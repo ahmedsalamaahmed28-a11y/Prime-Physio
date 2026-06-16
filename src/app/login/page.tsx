@@ -32,6 +32,8 @@ export default function LoginPage() {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPassword = password.trim();
 
+    await setAppValue("pending_role", activeRole);
+
     const { error: loginError } = await loginWithSupabase(cleanEmail, cleanPassword);
     if (loginError) {
       setError(loginError.includes("Invalid login credentials")
