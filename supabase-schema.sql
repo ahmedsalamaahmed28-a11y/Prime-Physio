@@ -200,6 +200,20 @@ begin
 end;
 $$;
 
+create table if not exists public.subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_email text not null,
+  plan_name text not null,
+  plan_price numeric not null default 0,
+  status text not null default 'active',
+  order_id text,
+  transaction_id text,
+  start_date timestamptz not null default now(),
+  end_date timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 drop trigger if exists touch_clinic_settings_updated_at on public.clinic_settings;
 create trigger touch_clinic_settings_updated_at before update on public.clinic_settings
 for each row execute function public.touch_updated_at();
@@ -220,6 +234,10 @@ drop trigger if exists touch_invoices_updated_at on public.invoices;
 create trigger touch_invoices_updated_at before update on public.invoices
 for each row execute function public.touch_updated_at();
 
+drop trigger if exists touch_subscriptions_updated_at on public.subscriptions;
+create trigger touch_subscriptions_updated_at before update on public.subscriptions
+for each row execute function public.touch_updated_at();
+
 alter table public.clinic_settings enable row level security;
 alter table public.staff enable row level security;
 alter table public.patients enable row level security;
@@ -235,6 +253,7 @@ alter table public.treatment_templates enable row level security;
 alter table public.patient_nutrition enable row level security;
 alter table public.audit_logs enable row level security;
 alter table public.app_key_values enable row level security;
+alter table public.subscriptions enable row level security;
 
 drop policy if exists "service role full access clinic_settings" on public.clinic_settings;
 create policy "service role full access clinic_settings" on public.clinic_settings for all using (true) with check (true);
@@ -266,3 +285,5 @@ drop policy if exists "service role full access audit_logs" on public.audit_logs
 create policy "service role full access audit_logs" on public.audit_logs for all using (true) with check (true);
 drop policy if exists "service role full access app_key_values" on public.app_key_values;
 create policy "service role full access app_key_values" on public.app_key_values for all using (true) with check (true);
+drop policy if exists "service role full access subscriptions" on public.subscriptions;
+create policy "service role full access subscriptions" on public.subscriptions for all using (true) with check (true);

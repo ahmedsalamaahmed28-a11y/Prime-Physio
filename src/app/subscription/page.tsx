@@ -77,25 +77,49 @@ export default function SubscriptionPage() {
   const isRtl = language === "ar";
   
   const [activePlanId, setActivePlanId] = useState("basic");
+  const [patientCount, setPatientCount] = useState(0);
+  const [sessionCount, setSessionCount] = useState(0);
+  const [planLimits, setPlanLimits] = useState({ patients: 100, sessions: 2000 });
 
   React.useEffect(() => {
-    async function loadPlan() {
+    async function loadData() {
       try {
-        const { data, error } = await supabase
+        const { data: subData, error: subErr } = await supabase
           .from('subscriptions')
-          .select('*')
+          .select('plan_name, plan_price')
           .eq('status', 'active')
           .order('created_at', { ascending: false })
           .limit(1);
-          
-        if (data && data.length > 0) {
-          setActivePlanId(data[0].plan_name);
+
+        if (subErr) {
+          if (subErr.code === "42P01") console.warn("Table 'subscriptions' does not exist yet");
+          else console.error("Subscription load error:", subErr);
+        } else if (subData && subData.length > 0) {
+          setActivePlanId(subData[0].plan_name);
+          const limits: Record<string, { patients: number; sessions: number }> = {
+            basic: { patients: 100, sessions: 2000 },
+            silver: { patients: 300, sessions: 10000 },
+            gold: { patients: 500, sessions: 999999 },
+          };
+          setPlanLimits(limits[subData[0].plan_name] || limits.basic);
         }
       } catch (e) {
         console.error("Failed to load active plan", e);
       }
+
+      try {
+        const { count: pCount } = await supabase
+          .from("patients").select("*", { count: "exact", head: true });
+        if (pCount !== null) setPatientCount(pCount);
+      } catch { /* ignore */ }
+
+      try {
+        const { count: sCount } = await supabase
+          .from("sessions").select("*", { count: "exact", head: true });
+        if (sCount !== null) setSessionCount(sCount);
+      } catch { /* ignore */ }
     }
-    loadPlan();
+    loadData();
   }, []);
 
   const PLANS = getPlans(isRtl).map(p => ({
@@ -204,22 +228,36 @@ export default function SubscriptionPage() {
           <div className="space-y-1.5">
             <div className={`flex justify-between text-xs ${isRtl ? "" : "flex-row-reverse"}`}>
               <span className="text-slate-600 font-medium">{isRtl ? "المرضى المسجلين" : "Registered Patients"}</span>
-              <span className="font-mono font-bold text-slate-800">48 / 100</span>
+              <span className="font-mono font-bold text-slate-800">{patientCount} / {planLimits.patients.toLocaleString()}</span>
             </div>
             <div className={`bg-slate-100 rounded-full h-2.5 overflow-hidden ${isRtl ? "" : "transform rotate-180"}`}>
-              <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: "48%" }} />
+              <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: `${Math.min(100, (patientCount / planLimits.patients) * 100)}%` }} />
             </div>
-            <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>{isRtl ? "52 مريض متبقي قبل الوصول للحد الأقصى" : "52 patients left before reaching the limit"}</p>
+            <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>
+              {planLimits.patients - patientCount > 0
+                ? (isRtl
+                  ? `${(planLimits.patients - patientCount).toLocaleString()} مريض متبقي قبل الوصول للحد الأقصى`
+                  : `${(planLimits.patients - patientCount).toLocaleString()} patients left before reaching the limit`)
+                : (isRtl ? "تم الوصول للحد الأقصى من المرضى" : "Maximum patient limit reached")}
+            </p>
           </div>
           <div className="space-y-1.5">
             <div className={`flex justify-between text-xs ${isRtl ? "" : "flex-row-reverse"}`}>
               <span className="text-slate-600 font-medium">{isRtl ? "الجلسات هذا الشهر" : "Sessions this Month"}</span>
-              <span className="font-mono font-bold text-slate-800">320 / 2,000</span>
+              <span className="font-mono font-bold text-slate-800">{sessionCount.toLocaleString()} / {planLimits.sessions === 999999 ? "∞" : planLimits.sessions.toLocaleString()}</span>
             </div>
             <div className={`bg-slate-100 rounded-full h-2.5 overflow-hidden ${isRtl ? "" : "transform rotate-180"}`}>
-              <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: "16%" }} />
+              <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: `${Math.min(100, (sessionCount / planLimits.sessions) * 100)}%` }} />
             </div>
-            <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>{isRtl ? "1,680 جلسة متبقية هذا الشهر" : "1,680 sessions left this month"}</p>
+            <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>
+              {planLimits.sessions === 999999
+                ? (isRtl ? "جلسات غير محدودة" : "Unlimited sessions")
+                : (planLimits.sessions - sessionCount > 0
+                  ? (isRtl
+                    ? `${(planLimits.sessions - sessionCount).toLocaleString()} جلسة متبقية هذا الشهر`
+                    : `${(planLimits.sessions - sessionCount).toLocaleString()} sessions left this month`)
+                  : (isRtl ? "تم الوصول للحد الأقصى من الجلسات" : "Maximum session limit reached"))}
+            </p>
           </div>
         </div>
       </div>

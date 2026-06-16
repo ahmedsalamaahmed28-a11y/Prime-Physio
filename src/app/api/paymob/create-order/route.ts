@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-
-// ─── Paymob 3-Step Flow ────────────────────────────────────────────────────
-// Step 1: Authenticate → get auth token
-// Step 2: Register order → get order_id
-// Step 3: Get payment key → redirect to iframe
+import { createClient } from "@supabase/supabase-js";
 
 const PAYMOB_BASE = "https://accept.paymob.com/api";
 
 const PLAN_PRICES: Record<string, number> = {
-  basic:  500  * 100, // amount in cents (EGP × 100)
+  basic:  500  * 100,
   silver: 1000 * 100,
   gold:   1500 * 100,
 };
@@ -18,6 +14,12 @@ const PLAN_NAMES: Record<string, string> = {
   silver: "الخطة الفضية - Prime Physio",
   gold:   "الخطة الذهبية - Prime Physio",
 };
+
+function getAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  return createClient(url, key);
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -74,6 +76,18 @@ export async function POST(req: NextRequest) {
     }
 
     const { id: orderId } = await orderRes.json();
+
+    // Store order info for callback lookup
+    try {
+      const admin = getAdminClient();
+      await admin.from("app_key_values").upsert({
+        key: `paymob_order_${orderId}`,
+        value: { planId, planName: PLAN_NAMES[planId], price: amountCents / 100, email: billingData?.email || "" },
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "key" });
+    } catch (e) {
+      console.warn("[Paymob] Failed to store order mapping:", e);
+    }
 
     // ── Step 3: Get Payment Key ───────────────────────────────────────────
     const billing = billingData || {

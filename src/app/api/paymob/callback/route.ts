@@ -1,5 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { createClient } from "@supabase/supabase-js";
+
+function getAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+  return createClient(url, key);
+}
+
+async function persistSubscription(orderId: string, transactionId: string, email: string) {
+  try {
+    const admin = getAdminClient();
+    const { data: mapping } = await admin
+      .from("app_key_values")
+      .select("value")
+      .eq("key", `paymob_order_${orderId}`)
+      .maybeSingle();
+
+    const info = mapping?.value || { planId: "basic", planName: "Prime Physio", price: 0, email: email || "" };
+
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 1);
+
+    const { error } = await admin.from("subscriptions").insert({
+      user_email: info.email || email || "unknown@primephysio.com",
+      plan_name: info.planId || "basic",
+      plan_price: info.price || 0,
+      status: "active",
+      order_id: String(orderId),
+      transaction_id: String(transactionId),
+      start_date: new Date().toISOString(),
+      end_date: endDate.toISOString(),
+    });
+
+    if (error) {
+      console.error("[Paymob] Failed to save subscription:", error);
+    } else {
+      console.log(`[Paymob] ✅ Subscription saved: ${info.planId} for ${info.email}`);
+      // Clean up mapping
+      await admin.from("app_key_values").delete().eq("key", `paymob_order_${orderId}`);
+    }
+  } catch (err) {
+    console.error("[Paymob] Subscription persist error:", err);
+  }
+}
 
 // ─── Paymob Transaction Callback (GET redirect + POST webhook) ─────────────
 // Paymob redirects the user here after payment with query params
@@ -46,6 +90,7 @@ export async function GET(req: NextRequest) {
   const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
   if (isPaid) {
+    await persistSubscription(orderId || "", txId || "", "");
     return NextResponse.redirect(
       `${base}/subscription/success?order=${orderId}&tx=${txId}`
     );
@@ -95,9 +140,8 @@ export async function POST(req: NextRequest) {
     }
 
     if (obj.success === true) {
-      // ✅ Payment successful — update subscription status in your DB here
       console.log(`[Paymob] ✅ Payment confirmed — Order: ${obj.order?.id}, TX: ${obj.id}`);
-      // TODO (production): implement actual Supabase subscription table update
+      await persistSubscription(String(obj.order?.id || ""), String(obj.id || ""), obj.owner || "");
     } else {
       console.log(`[Paymob] ❌ Payment failed — Order: ${obj.order?.id}`);
     }
