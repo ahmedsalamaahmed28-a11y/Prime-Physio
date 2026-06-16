@@ -172,9 +172,9 @@
   background: var(--accent);
 }
 .calendar-wrapper .rbc-toolbar button.rbc-active {
-  background: #2563eb;
+  background: var(--primary);
   color: white;
-  border-color: #2563eb;
+  border-color: var(--primary);
 }
 .calendar-wrapper .rbc-toolbar-label {
   font-size: 15px;
@@ -204,7 +204,7 @@
   opacity: 0.4;
 }
 .calendar-wrapper .rbc-today {
-  background: #eff6ff;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
 }
 .calendar-wrapper .rbc-time-gutter .rbc-label {
   font-size: 11px;
@@ -217,11 +217,11 @@
   padding: 2px 6px !important;
 }
 .calendar-wrapper .rbc-event.rbc-selected {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2563eb;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--primary);
 }
 .calendar-wrapper .rbc-slot-selection {
-  background: rgba(37,99,235,0.15);
-  border: 1px solid #2563eb;
+  background: color-mix(in srgb, var(--primary) 15%, transparent);
+  border: 1px solid var(--primary);
   border-radius: 4px;
 }
 .calendar-wrapper .rbc-current-time-indicator {
@@ -229,7 +229,17 @@
   height: 2px;
 }
 .calendar-wrapper .rbc-show-more {
-  color: #2563eb;
+  color: var(--primary);
   font-size: 11px;
   font-weight: 600;
+}
+
+/* ── Print styles ──────────────────────────────── */
+@media print {
+  .print\:hidden { display: none !important; }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  @page { margin: 1.5cm; }
 }
