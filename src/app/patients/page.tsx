@@ -116,12 +116,15 @@ function PatientsContent() {
     }
 
     async function loadDoctors() {
-      const { data } = await supabase.from("staff").select("name,email,specialty,role");
-      if (data) {
-        const isDoctor = (role: string) =>
-          ["مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(role);
-        setDoctorsList(data.filter((s: any) => isDoctor(s.role) || String(s.specialty || "").length > 0));
-      }
+      try {
+        const { data, error } = await supabase.from("staff").select("name,email,specialty,role");
+        if (error) { console.error("loadDoctors error:", error); return; }
+        if (data) {
+          const isDoctor = (role: string) =>
+            ["مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(role);
+          setDoctorsList(data.filter((s: any) => isDoctor(s.role) || String(s.specialty || "").length > 0));
+        }
+      } catch (err) { console.error("loadDoctors exception:", err); }
     }
 
     loadPatients();
