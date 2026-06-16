@@ -51,6 +51,7 @@ const getRecentInvoices = (isRtl: boolean) => [];
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/LanguageContext";
 import { usePermissions } from "@/lib/usePermissions";
+import { useAuth } from "@/lib/auth";
 
 // Canonical status values stored in DB: "انتظار" | "مدفوع" | "ملغي"
 const normalizeInvoiceStatus = (value: string): "انتظار" | "مدفوع" | "ملغي" => {
@@ -72,6 +73,8 @@ export default function BillingPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission, isAdmin } = usePermissions();
+  const { user } = useAuth();
+  const clinicId = user?.clinicId;
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
   const [selectedInvoiceForDiscount, setSelectedInvoiceForDiscount] = useState<any>(null);
   const [discountValue, setDiscountValue] = useState("");
@@ -85,6 +88,7 @@ export default function BillingPage() {
       const { data: invs, error: invErr } = await supabase
         .from("invoices")
         .select("*")
+        .eq("clinic_id", clinicId)
         .order("date", { ascending: false });
 
       if (!invErr && invs) {
@@ -112,7 +116,7 @@ export default function BillingPage() {
 
   const loadPatients = async () => {
     try {
-      const { data, error } = await supabase.from("patients").select("id, nameAr");
+      const { data, error } = await supabase.from("patients").select("id, nameAr").eq("clinic_id", clinicId);
       if (!error && data) {
         setPatients(data);
       } else {
@@ -136,15 +140,15 @@ export default function BillingPage() {
       const patientId = invoice?.patientId;
 
       // Delete the invoice
-      const { error } = await supabase.from("invoices").delete().eq("id", deleteInvoiceId);
+      const { error } = await supabase.from("invoices").delete().eq("clinic_id", clinicId).eq("id", deleteInvoiceId);
       if (error) throw error;
 
       // If invoice belongs to a patient, delete patient + all their related data
       if (patientId) {
-        await supabase.from("invoices").delete().eq("patient_id", patientId);
-        await supabase.from("appointments").delete().eq("patient_id", patientId);
-        await supabase.from("sessions").delete().eq("patient_id", patientId);
-        await supabase.from("patients").delete().eq("id", patientId);
+        await supabase.from("invoices").delete().eq("clinic_id", clinicId).eq("patient_id", patientId);
+        await supabase.from("appointments").delete().eq("clinic_id", clinicId).eq("patient_id", patientId);
+        await supabase.from("sessions").delete().eq("clinic_id", clinicId).eq("patient_id", patientId);
+        await supabase.from("patients").delete().eq("clinic_id", clinicId).eq("id", patientId);
       }
 
       // Update local state
@@ -425,11 +429,13 @@ export default function BillingPage() {
                             await supabase
                               .from("patients")
                               .update({ status: newStatus === "مدفوع" ? "نشط" : "غير نشط" })
+                              .eq("clinic_id", clinicId)
                               .eq("id", inv.patientId);
 
                             const { error: invoiceErr } = await supabase
                               .from("invoices")
                               .update({ status: newStatus })
+                              .eq("clinic_id", clinicId)
                               .eq("id", inv.id);
                             if (invoiceErr) throw invoiceErr;
                           } catch (err: any) {
@@ -544,6 +550,7 @@ export default function BillingPage() {
                   try {
                     await supabase.from("invoices").upsert({
                       id: item.id,
+                      clinic_id: clinicId,
                       patient_id: item.patientId,
                       patient_name: item.patientName,
                       description: item.description,

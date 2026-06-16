@@ -14,9 +14,11 @@ interface User {
   initialsEn?: string;
   role: string;
   roleEn?: string;
-  roleKey: "admin" | "doctor" | "receptionist";
+  roleKey: "admin" | "doctor" | "receptionist" | "platform_admin";
   bg: string;
   image?: string;
+  clinicId?: string | null;
+  isPlatformAdmin?: boolean;
 }
 
 interface AuthContextType {
@@ -31,27 +33,63 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-function prefixArabicName(name: string, roleKey: "admin" | "doctor" | "receptionist") {
-  if (roleKey === "receptionist") return name;
+function prefixArabicName(name: string, roleKey: string) {
+  if (roleKey === "receptionist" || roleKey === "platform_admin") return name;
   if (name.startsWith("د.") || name.startsWith("د/")) return name;
   return `د. ${name}`;
 }
 
-function prefixEnglishName(name: string, roleKey: "admin" | "doctor" | "receptionist") {
-  if (roleKey === "receptionist") return name;
+function prefixEnglishName(name: string, roleKey: string) {
+  if (roleKey === "receptionist" || roleKey === "platform_admin") return name;
   return name.startsWith("Dr.") ? name : `Dr. ${name.replace(/^د\.?\s*/, "").trim()}`;
 }
 
-function getArabicRoleLabel(roleKey: "admin" | "doctor" | "receptionist") {
-  if (roleKey === "admin") return "مدير النظام";
+function getArabicRoleLabel(roleKey: string) {
+  if (roleKey === "platform_admin") return "مدير المنصة";
+  if (roleKey === "admin") return "مدير العيادة";
   if (roleKey === "doctor") return "طبيب معالج";
   return "موظف استقبال";
 }
 
-function getEnglishRoleLabel(roleKey: "admin" | "doctor" | "receptionist") {
-  if (roleKey === "admin") return "System Admin";
+function getEnglishRoleLabel(roleKey: string) {
+  if (roleKey === "platform_admin") return "Platform Admin";
+  if (roleKey === "admin") return "Clinic Admin";
   if (roleKey === "doctor") return "Doctor";
   return "Receptionist";
+}
+
+async function enrichUserWithClinic(user: User): Promise<User> {
+  try {
+    // Check if platform super admin
+    const { data: pa } = await supabase
+      .from("platform_admins")
+      .select("email")
+      .eq("email", user.email)
+      .maybeSingle();
+    user.isPlatformAdmin = !!pa;
+
+    if (pa) {
+      user.roleKey = "platform_admin";
+      user.role = getArabicRoleLabel("platform_admin");
+      user.roleEn = getEnglishRoleLabel("platform_admin");
+      user.clinicId = null;
+      return user;
+    }
+
+    // Look up clinic_id from staff
+    const { data: staff } = await supabase
+      .from("staff")
+      .select("clinic_id, role")
+      .eq("email", user.email)
+      .maybeSingle();
+
+    if (staff?.clinic_id) {
+      user.clinicId = staff.clinic_id;
+    }
+  } catch {
+    // If table doesn't exist yet (pre-migration), just proceed
+  }
+  return user;
 }
 
 function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
@@ -101,10 +139,12 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           initialsEn: name.substring(0, 2).toUpperCase(),
         };
 
+        const enriched = await enrichUserWithClinic(newUser);
+
         setUser((prev) => {
-          if (prev?.email === newUser.email) return prev;
-          setAppValue("current_user", newUser).catch((error) => console.error("Failed to persist user", error));
-          return newUser;
+          if (prev?.email === enriched.email) return prev;
+          setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
+          return enriched;
         });
         setAppValue("pending_role", "doctor").catch(() => {});
 
@@ -168,10 +208,11 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           initialsEn: initials,
         };
 
+        const enriched = await enrichUserWithClinic(newUser);
         setUser((prev) => {
-          if (prev?.email === newUser.email) return prev;
-          setAppValue("current_user", newUser).catch((error) => console.error("Failed to persist user", error));
-          return newUser;
+          if (prev?.email === enriched.email) return prev;
+          setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
+          return enriched;
         });
 
         if (window.location.pathname === "/login" || window.location.pathname === "/signup") {
@@ -196,7 +237,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, pathname, isAuthLoading, status]);
 
-  const loginWithGoogle = (email: string) => {
+  const loginWithGoogle = async (email: string) => {
     const name = email.split("@")[0];
     const uppercaseName = name.charAt(0).toUpperCase() + name.slice(1);
     const newUser: User = {
@@ -210,12 +251,13 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       roleEn: "Certified Therapist (Google)",
       initialsEn: uppercaseName.substring(0, 2),
     };
-    setUser(newUser);
-    setAppValue("current_user", newUser).catch((error) => console.error("Failed to persist user", error));
+    const enriched = await enrichUserWithClinic(newUser);
+    setUser(enriched);
+    setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
     window.location.href = "/";
   };
 
-  const loginWithCredentials = (email: string, name: string, role: string) => {
+  const loginWithCredentials = async (email: string, name: string, role: string) => {
     const initials = name.substring(0, 2).toUpperCase();
     const roleKey = (email.startsWith("admin")
       ? "admin"
@@ -234,8 +276,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       roleEn: getEnglishRoleLabel(roleKey),
       initialsEn: initials,
     };
-    setUser(newUser);
-    setAppValue("current_user", newUser).catch((error) => console.error("Failed to persist user", error));
+    const enriched = await enrichUserWithClinic(newUser);
+    setUser(enriched);
+    setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
     window.location.href = "/";
   };
 

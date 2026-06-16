@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/lib/LanguageContext";
 import { logAuditAction } from "@/lib/audit";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
 
 const AVAILABLE_PERMISSIONS = [
   { id: "delete_patient", labelAr: "حذف ملف مريض نهائياً", labelEn: "Delete Patient", category: "Patients" },
@@ -47,6 +48,7 @@ const getDefaultPerms = (role: string) => {
 export default function PermissionsPage() {
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
+  const { user } = useAuth(); const clinicId = user?.clinicId;
   const [staff, setStaff] = useState<any[]>([]);
   const [selectedStaffEmail, setSelectedStaffEmail] = useState<string | null>(null);
   
@@ -58,7 +60,7 @@ export default function PermissionsPage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const { data, error } = await supabase.from('staff').select('*').order('created_at', { ascending: true });
+        const { data, error } = await supabase.from('staff').select('*').eq('clinic_id', clinicId).order('created_at', { ascending: true });
         if (!error && data) {
           setStaff(data);
           if (data.length > 0) setSelectedStaffEmail(data[0].email);

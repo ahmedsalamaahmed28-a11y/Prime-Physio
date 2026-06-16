@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
 
 interface LibraryItem {
   id: string;
@@ -241,6 +242,7 @@ const DEFAULT_TEMPLATES: LibraryItem[] = [
 export default function ClinicalLibraryPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
+  const { user } = useAuth(); const clinicId = user?.clinicId;
 
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [mainTab, setMainTab] = useState<"nutrition" | "exercise" | "device">("nutrition");

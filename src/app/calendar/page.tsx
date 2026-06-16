@@ -24,6 +24,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
 import { useEffect } from "react";
 import { usePermissions } from "@/lib/usePermissions";
+import { useAuth } from "@/lib/auth";
 
 // ─── Localizer ────────────────────────────────────────────────────────────────
 
@@ -408,6 +409,7 @@ export default function CalendarPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
+  const { user } = useAuth(); const clinicId = user?.clinicId;
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
   const [doctorsList, setDoctorsList] = useState<{name:string}[]>([]);
@@ -419,7 +421,7 @@ export default function CalendarPage() {
   // Load patients and events from Supabase
   useEffect(() => {
     const loadData = async () => {
-      const { data: patientsData, error: patientsError } = await supabase.from("patients").select("id, nameAr");
+      const { data: patientsData, error: patientsError } = await supabase.from("patients").select("id, nameAr").eq('clinic_id', clinicId);
       if (patientsError) {
         console.error("Failed to load patients from Supabase", patientsError);
         setPatients([]);
@@ -427,7 +429,7 @@ export default function CalendarPage() {
         setPatients(patientsData || []);
       }
 
-      const { data: doctorsData, error: doctorsError } = await supabase.from("staff").select("name,email,role");
+      const { data: doctorsData, error: doctorsError } = await supabase.from("staff").select("name,email,role").eq('clinic_id', clinicId);
       if (doctorsError) {
         console.error("Failed to load doctors from Supabase", doctorsError);
         setDoctorsList([]);
@@ -437,7 +439,7 @@ export default function CalendarPage() {
         setDoctorsList((doctorsData || []).filter((s: any) => isDoctor(s.role)));
       }
 
-      const { data: dbEvents, error: dbErr } = await supabase.from("appointments").select("*");
+      const { data: dbEvents, error: dbErr } = await supabase.from("appointments").select("*").eq('clinic_id', clinicId);
       if (dbErr) {
         console.error("Failed to load appointments from Supabase", dbErr);
         setEvents([]);
@@ -486,6 +488,20 @@ export default function CalendarPage() {
   }, []);
 
   const handleSaveNew = async (ev: CalendarEvent) => {
+    // Check subscription limit for sessions
+    try {
+      const limitRes = await fetch(`/api/subscription/check-limit?clinic_id=${clinicId}&resource=sessions`);
+      if (limitRes.ok) {
+        const limitData = await limitRes.json();
+        if (!limitData.allowed) {
+          alert(isRtl
+            ? "لقد تجاوزت الحد المسموح به لعدد الجلسات الشهرية في خطتك الحالية. يرجى ترقية اشتراكك."
+            : "You have reached the monthly session limit for your current plan. Please upgrade your subscription.");
+          return;
+        }
+      }
+    } catch {}
+
     const generateUUID = () => {
       if (typeof crypto !== "undefined" && crypto.randomUUID) {
         return crypto.randomUUID();
@@ -502,6 +518,7 @@ export default function CalendarPage() {
     try {
       const { error } = await supabase.from("appointments").insert({
         id: newId,
+        clinic_id: clinicId,
         patient_id: ev.patientId,
         patient_name: ev.patientName,
         doctor_name: ev.doctor,
@@ -520,6 +537,7 @@ export default function CalendarPage() {
            .from("clinic_settings")
            .select("default_session_price")
            .eq("user_id", "default")
+           .eq('clinic_id', clinicId)
            .maybeSingle();
          if (settings?.default_session_price) defaultPrice = String(settings.default_session_price);
          
@@ -527,8 +545,9 @@ export default function CalendarPage() {
          
          try {
            await supabase.from("invoices").insert([{
-             id: `INV-${newId}`,
-             patient_id: ev.patientId,
+              id: `INV-${newId}`,
+              clinic_id: clinicId,
+              patient_id: ev.patientId,
              patient_name: ev.patientName,
              description: invoiceDesc,
              amount: invoiceAmt,
@@ -555,7 +574,7 @@ export default function CalendarPage() {
         status: updated.status,
         start_time: updated.start.toISOString(),
         end_time: updated.end.toISOString()
-      }).eq("id", updated.id);
+      }).eq("id", updated.id).eq('clinic_id', clinicId);
     } catch (err) {}
     syncEventsState(events.map((e) => e.id === updated.id ? updated : e));
     setSelectedEvent(null);
@@ -563,7 +582,7 @@ export default function CalendarPage() {
 
   const handleCancel = async (id: string) => {
     try {
-      await supabase.from("appointments").update({ status: "ملغي" }).eq("id", id);
+      await supabase.from("appointments").update({ status: "ملغي" }).eq("id", id).eq('clinic_id', clinicId);
     } catch (err) {}
     syncEventsState(events.map((e) => e.id === id ? { ...e, status: "ملغي" } : e));
   };
@@ -571,21 +590,22 @@ export default function CalendarPage() {
   const handleComplete = async (id: string) => {
     const completedEvent = events.find(e => e.id === id);
     try {
-      await supabase.from("appointments").update({ status: "منتهي" }).eq("id", id);
-
+      await supabase.from("appointments").update({ status: "منتهي" }).eq("id", id).eq('clinic_id', clinicId);
+ 
       // Update patient sessionsUsed + set status to active
       if (completedEvent) {
         const { data: patient } = await supabase
           .from("patients")
           .select("sessionsUsed")
           .eq("id", completedEvent.patientId)
+          .eq('clinic_id', clinicId)
           .single();
         
         if (patient) {
           await supabase.from("patients").update({
             sessionsUsed: (patient.sessionsUsed || 0) + 1,
             status: "نشط"
-          }).eq("id", completedEvent.patientId);
+          }).eq("id", completedEvent.patientId).eq('clinic_id', clinicId);
         }
       }
     } catch (err) {

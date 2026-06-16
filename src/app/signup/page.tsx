@@ -44,22 +44,27 @@ export default function SignupPage() {
 
     setIsLoading(true);
 
-    const { error: signUpError } = await registerWithSupabase(email, password, {
-      full_name: clinicName,
-      clinic_name: clinicName,
-      phone: phone,
-      role: role,
-    });
+    try {
+      const res = await fetch("/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, clinicName, phone, role }),
+      });
 
-    if (signUpError) {
-      setError(signUpError === "User already registered"
-        ? "البريد الإلكتروني مسجل بالفعل - يمكنك تسجيل الدخول مباشرة"
-        : signUpError);
-      setIsLoading(false);
-      return;
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error === "User already registered"
+          ? "البريد الإلكتروني مسجل بالفعل - يمكنك تسجيل الدخول مباشرة"
+          : data.error || "فشل إنشاء الحساب");
+        setIsLoading(false);
+        return;
+      }
+
+      setSuccess(true);
+    } catch {
+      setError("فشل الاتصال بالخادم");
     }
-
-    setSuccess(true);
     setIsLoading(false);
   };
 

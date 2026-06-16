@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useLanguage } from "@/lib/LanguageContext";
+import { useAuth } from "@/lib/auth";
 import { usePermissions } from "@/lib/usePermissions";
 import { logAuditAction } from "@/lib/audit";
 import { supabase } from "@/lib/supabase";
@@ -27,6 +28,8 @@ export default function DoctorsPage() {
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
+  const { user } = useAuth();
+  const clinicId = user?.clinicId;
   
   const [formData, setFormData] = useState({
     name: "",
@@ -38,9 +41,9 @@ export default function DoctorsPage() {
 
   const loadDoctors = async () => {
     const [{ data: staff, error }, { data: patients }, { data: appointments }] = await Promise.all([
-      supabase.from("staff").select("*").order("created_at", { ascending: true }),
-      supabase.from("patients").select("assignedDoctor,status"),
-      supabase.from("appointments").select("therapist,date"),
+      supabase.from("staff").select("*").eq("clinic_id", clinicId).order("created_at", { ascending: true }),
+      supabase.from("patients").select("assignedDoctor,status").eq("clinic_id", clinicId),
+      supabase.from("appointments").select("therapist,date").eq("clinic_id", clinicId),
     ]);
 
     if (error) {
@@ -80,7 +83,7 @@ export default function DoctorsPage() {
     if (deleteDoctorEmail === null) return;
     const doctorToDelete = doctors.find(d => d.email === deleteDoctorEmail);
     try {
-      const { error } = await supabase.from('staff').delete().eq('email', deleteDoctorEmail);
+      const { error } = await supabase.from('staff').delete().eq('clinic_id', clinicId).eq('email', deleteDoctorEmail);
       if (error) throw error;
       await loadDoctors();
       if (doctorToDelete) {
@@ -111,6 +114,7 @@ export default function DoctorsPage() {
     };
 
     const { error } = await supabase.from("staff").insert({
+      clinic_id: clinicId,
       name: newDoctor.name,
       specialty: newDoctor.specialty,
       email: newDoctor.email,

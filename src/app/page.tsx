@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
 
 const VISIT_COLORS: Record<string, string> = {
   "جلسة علاج": "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
@@ -38,6 +39,8 @@ const STATUS_COLORS: Record<string, string> = {
 export default function HomePage() {
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
+  const { user } = useAuth();
+  const clinicId = user?.clinicId;
 
   const [appointments, setAppointments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,11 +56,12 @@ export default function HomePage() {
         let totalPatientsCount = 0;
         const { count, error: countErr } = await supabase
           .from("patients")
-          .select("*", { count: 'exact', head: true });
+          .select("*", { count: 'exact', head: true })
+          .eq('clinic_id', clinicId);
         if (!countErr && count !== null) {
           totalPatientsCount = count;
         } else {
-          const { data: dbPatients } = await supabase.from("patients").select("id");
+          const { data: dbPatients } = await supabase.from("patients").select("id").eq('clinic_id', clinicId);
           if (dbPatients) totalPatientsCount = dbPatients.length;
         }
         
@@ -69,6 +73,7 @@ export default function HomePage() {
         const { data: paidInvoices, error: invErr } = await supabase
           .from("invoices")
           .select("amount")
+          .eq('clinic_id', clinicId)
           .eq("date", todayStr)
           .in("status", ["مدفوع", "Paid"]);
           
@@ -81,6 +86,7 @@ export default function HomePage() {
         const { data: paidInvoiceRows, error: paidInvErr } = await supabase
           .from("invoices")
           .select("patient_id, status")
+          .eq('clinic_id', clinicId)
           .eq("status", "مدفوع");
 
         if (paidInvErr) {
@@ -98,6 +104,7 @@ export default function HomePage() {
         const { data: realAppointments, error: aptError } = await supabase
           .from("appointments")
           .select("*")
+          .eq('clinic_id', clinicId)
           .order("start_time", { ascending: true });
 
         const todayDateStr = new Date().toDateString();

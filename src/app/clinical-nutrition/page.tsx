@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
 
 interface LibraryItem {
   id: string;
@@ -23,6 +24,7 @@ interface LibraryItem {
 export default function ClinicalNutritionPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
+  const { user } = useAuth(); const clinicId = user?.clinicId;
 
   const [patients, setPatients] = useState<any[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState("");
@@ -48,6 +50,7 @@ export default function ClinicalNutritionPage() {
         const { data, error } = await supabase
           .from("patients")
           .select("*")
+          .eq('clinic_id', clinicId)
           .order("id", { ascending: true });
 
         if (error) {
@@ -134,6 +137,7 @@ export default function ClinicalNutritionPage() {
         .from("patient_nutrition")
         .select("*")
         .eq("patient_id", selectedPatientId)
+        .eq('clinic_id', clinicId)
         .maybeSingle();
 
       if (error) {
@@ -166,6 +170,7 @@ export default function ClinicalNutritionPage() {
   const handleSavePatientNutrition = async () => {
     const { error } = await supabase.from("patient_nutrition").upsert({
       patient_id: selectedPatientId,
+      clinic_id: clinicId,
       weight,
       height,
       waist,

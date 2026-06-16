@@ -20,6 +20,7 @@ import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/lib/supabase";
 import { queueOfflineMutation } from "@/lib/offlineQueue";
 import { usePermissions } from "@/lib/usePermissions";
+import { useAuth } from "@/lib/auth";
 
 // ─── Mock Data for Seeding ───────────────────────────────────────────────────
 
@@ -45,6 +46,8 @@ function PatientsContent() {
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
+  const { user } = useAuth();
+  const clinicId = user?.clinicId;
   
   // Modal state
   const [isOpen, setIsOpen] = useState(false);
@@ -80,6 +83,7 @@ function PatientsContent() {
         const { data, error } = await supabase
           .from("patients")
           .select("*")
+          .eq("clinic_id", clinicId)
           .order("id", { ascending: true });
         
         if (error) throw error;
@@ -97,7 +101,7 @@ function PatientsContent() {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const { data: settings } = await supabase.from('clinic_settings').select('branches, default_exam_price, default_session_price').eq('user_id', user.id).single();
+          const { data: settings } = await supabase.from('clinic_settings').select('branches, default_exam_price, default_session_price').eq('clinic_id', clinicId).single();
           if (settings) {
             // Load exam price
             if (settings.default_exam_price) {
@@ -117,7 +121,7 @@ function PatientsContent() {
 
     async function loadDoctors() {
       try {
-        const { data, error } = await supabase.from("staff").select("name,email,role");
+        const { data, error } = await supabase.from("staff").select("name,email,role").eq("clinic_id", clinicId);
         if (error) { console.error("loadDoctors error:", error); return; }
         if (data) {
           const isDoctor = (role: string) =>
@@ -161,12 +165,27 @@ function PatientsContent() {
       alert(isRtl ? "الرجاء إدخال الاسم ورقم الجوال" : "Please enter name and phone number");
       return;
     }
-    
+
+    // Check subscription limit
+    try {
+      const limitRes = await fetch(`/api/subscription/check-limit?clinic_id=${clinicId}&resource=patients`);
+      if (limitRes.ok) {
+        const limitData = await limitRes.json();
+        if (!limitData.allowed) {
+          alert(isRtl
+            ? "لقد تجاوزت الحد المسموح به لعدد المرضى في خطتك الحالية. يرجى ترقية اشتراكك لإضافة المزيد من المرضى."
+            : "You have reached the patient limit for your current plan. Please upgrade your subscription.");
+          return;
+        }
+      }
+    } catch {}
+
     let newId = "";
     try {
       const { data: existing } = await supabase
         .from("patients")
-        .select("id");
+        .select("id")
+        .eq("clinic_id", clinicId);
       const count = existing ? existing.length : 0;
       const nextNumber = count + 1;
       newId = `PT-${String(nextNumber).padStart(2, '0')}`;
@@ -177,6 +196,7 @@ function PatientsContent() {
 
     const newPatient = {
       id: newId,
+      clinic_id: clinicId,
       nameAr: formData.nameAr,
       phone: formData.phone,
       gender: formData.gender,
@@ -211,6 +231,7 @@ function PatientsContent() {
 
     const newInvoice = {
       id: invoiceId,
+      clinic_id: clinicId,
       patient_id: newPatient.id,
       patient_name: newPatient.nameAr,
       description: invoiceDesc,
@@ -222,6 +243,7 @@ function PatientsContent() {
 
     const newAppointment = {
       id: appointmentId,
+      clinic_id: clinicId,
       patient_id: newPatient.id,
       patient_name: newPatient.nameAr,
       doctor_name: formData.doctor || "د. منى حسين",
@@ -332,10 +354,10 @@ function PatientsContent() {
 
     try {
       // Delete associated invoices and appointments first so home/billing pages stay clean
-      await supabase.from("invoices").delete().eq("patient_id", deletePatientId);
-      await supabase.from("appointments").delete().eq("patient_id", deletePatientId);
+      await supabase.from("invoices").delete().eq("patient_id", deletePatientId).eq("clinic_id", clinicId);
+      await supabase.from("appointments").delete().eq("patient_id", deletePatientId).eq("clinic_id", clinicId);
 
-      const { error } = await supabase.from("patients").delete().eq("id", deletePatientId);
+      const { error } = await supabase.from("patients").delete().eq("id", deletePatientId).eq("clinic_id", clinicId);
       if (error) throw error;
       saveLocalPatients(patients.filter((p) => p.id !== deletePatientId));
     } catch (err: any) {

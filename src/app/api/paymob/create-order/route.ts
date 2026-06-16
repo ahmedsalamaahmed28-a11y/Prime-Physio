@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { getAdminClient } from "@/lib/supabase";
+import { requireAuth } from "../../utils/auth";
 
 const PAYMOB_BASE = "https://accept.paymob.com/api";
 
@@ -15,14 +16,9 @@ const PLAN_NAMES: Record<string, string> = {
   gold:   "الخطة الذهبية - Prime Physio",
 };
 
-function getAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-  return createClient(url, key);
-}
-
 export async function POST(req: NextRequest) {
   try {
+    await requireAuth(req);
     const { planId, billingData } = await req.json();
 
     const amountCents = PLAN_PRICES[planId];
@@ -142,7 +138,8 @@ export async function POST(req: NextRequest) {
 
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    const status = msg === "Unauthorized" ? 401 : 500;
     console.error("[Paymob] Unexpected error:", msg);
-    return NextResponse.json({ error: "خطأ غير متوقع في نظام الدفع", details: msg }, { status: 500 });
+    return NextResponse.json({ error: "خطأ غير متوقع في نظام الدفع", details: msg }, { status });
   }
 }

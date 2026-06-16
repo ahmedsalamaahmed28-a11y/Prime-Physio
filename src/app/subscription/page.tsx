@@ -5,59 +5,97 @@ import {
   Zap, Shield, Crown, Users, UserCheck, Building,
   Calendar, Mail, Phone, Sparkles, CheckCircle2,
   X, Star, Check, TrendingUp, Clock, CreditCard,
-  Loader2, AlertCircle,
+  Loader2, AlertCircle, BookOpen,
 } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
 
-const getPlans = (isRtl: boolean) => [
+const ALL_FEATURES = (isRtl: boolean) => [
   {
-    id: "basic", name: isRtl ? "الأساسية" : "Basic", nameEn: "BASIC", price: 500,
-    icon: Zap, gradient: "from-slate-500 to-slate-700",
-    ringColor: "ring-slate-400", glow: "shadow-slate-200",
-    isCurrent: false, badge: null,
-    features: [
-      { label: isRtl ? "100 مريض (سجلات طبية)" : "100 Patients (EHR)", icon: Users },
-      { label: isRtl ? "2,000 جلسة / شهر" : "2,000 Sessions / Month", icon: Calendar },
-      { label: isRtl ? "20 حساب للأخصائيين" : "20 Therapist Accounts", icon: UserCheck },
-      { label: isRtl ? "1 فرع للعيادة" : "1 Clinic Branch", icon: Building },
-      { label: isRtl ? "إدارة المواعيد الأساسية" : "Basic Appointment Mgmt", icon: Clock },
-      { label: isRtl ? "دعم فني عبر البريد والتذاكر" : "Email & Ticket Support", icon: Mail },
-    ],
-    missing: isRtl ? ["المكتبة والتغذية العلاجية", "التقارير المتقدمة", "رسائل التذكير", "فروع متعددة"] : ["Rehab Library & Nutrition", "Advanced Reports", "Reminders", "Multiple Branches"],
+    label: isRtl ? "المرضى (سجلات طبية)" : "Patients (EHR)",
+    limits: { basic: isRtl ? "100" : "100", silver: isRtl ? "300" : "300", gold: isRtl ? "500+" : "500+" },
+    included: { basic: true, silver: true, gold: true },
   },
   {
-    id: "silver", name: isRtl ? "الفضية" : "Silver", nameEn: "SILVER", price: 1000,
-    icon: Shield, gradient: "from-cyan-500 to-blue-600",
-    ringColor: "ring-cyan-400", glow: "shadow-cyan-100",
-    isCurrent: false, badge: isRtl ? "الأكثر شيوعاً" : "Most Popular",
-    features: [
-      { label: isRtl ? "300 مريض (سجلات طبية)" : "300 Patients (EHR)", icon: Users },
-      { label: isRtl ? "10,000 جلسة / شهر" : "10,000 Sessions / Month", icon: Calendar },
-      { label: isRtl ? "50 حساب للأخصائيين" : "50 Therapist Accounts", icon: UserCheck },
-      { label: isRtl ? "إدارة التغذية العلاجية" : "Clinical Nutrition Mgmt", icon: Zap },
-      { label: isRtl ? "تقارير وتحليلات العيادة" : "Clinic Reports & Analytics", icon: TrendingUp },
-      { label: isRtl ? "دعم هاتفي سريع" : "Fast Phone Support", icon: Phone },
-    ],
-    missing: isRtl ? ["المكتبة العلاجية الشاملة", "رسائل التذكير (SMS/WA)", "فروع متعددة"] : ["Comprehensive Rehab Library", "Reminders (SMS/WA)", "Multiple Branches"],
+    label: isRtl ? "الجلسات الشهرية" : "Monthly Sessions",
+    limits: { basic: isRtl ? "2,000" : "2,000", silver: isRtl ? "10,000" : "10,000", gold: isRtl ? "∞" : "∞" },
+    included: { basic: true, silver: true, gold: true },
   },
   {
-    id: "gold", name: isRtl ? "الذهبية" : "Gold", nameEn: "GOLD", price: 1500,
-    icon: Crown, gradient: "from-amber-400 to-orange-500",
-    ringColor: "ring-amber-400", glow: "shadow-amber-100",
-    isCurrent: false, badge: isRtl ? "الأفضل قيمة" : "Best Value",
-    features: [
-      { label: isRtl ? "500 مريض (سجلات طبية)" : "500 Patients (EHR)", icon: Users },
-      { label: isRtl ? "جلسات غير محدودة ∞" : "Unlimited Sessions ∞", icon: Sparkles },
-      { label: isRtl ? "100 حساب للأخصائيين" : "100 Therapist Accounts", icon: UserCheck },
-      { label: isRtl ? "فرعين (ربط بيانات متكامل)" : "2 Branches (Linked Data)", icon: Building },
-      { label: isRtl ? "المكتبة والتغذية العلاجية" : "Rehab Library & Nutrition", icon: Star },
-      { label: isRtl ? "رسائل التذكير التلقائية" : "Automated Reminders", icon: Phone },
-      { label: isRtl ? "أولوية الدعم الفني VIP" : "VIP Priority Support", icon: Crown },
-    ],
-    missing: [],
+    label: isRtl ? "حسابات الأخصائيين" : "Therapist Accounts",
+    limits: { basic: isRtl ? "20" : "20", silver: isRtl ? "50" : "50", gold: isRtl ? "100+" : "100+" },
+    included: { basic: true, silver: true, gold: true },
+  },
+  {
+    label: isRtl ? "إدارة المواعيد" : "Appointment Management",
+    limits: { basic: null, silver: null, gold: null },
+    included: { basic: true, silver: true, gold: true },
+  },
+  {
+    label: isRtl ? "التقارير والتحليلات" : "Reports & Analytics",
+    limits: { basic: null, silver: null, gold: null },
+    included: { basic: false, silver: true, gold: true },
+  },
+  {
+    label: isRtl ? "التغذية العلاجية" : "Clinical Nutrition",
+    limits: { basic: null, silver: null, gold: null },
+    included: { basic: false, silver: true, gold: true },
+  },
+  {
+    label: isRtl ? "المكتبة العلاجية" : "Rehab Library",
+    limits: { basic: null, silver: null, gold: null },
+    included: { basic: false, silver: false, gold: true },
+  },
+  {
+    label: isRtl ? "رسائل التذكير (SMS/WA)" : "Reminders (SMS/WA)",
+    limits: { basic: null, silver: null, gold: null },
+    included: { basic: false, silver: false, gold: true },
+  },
+  {
+    label: isRtl ? "الدعم الفني" : "Support",
+    limits: { basic: isRtl ? "بريد إلكتروني" : "Email", silver: isRtl ? "هاتفي سريع" : "Phone", gold: isRtl ? "VIP 24/7" : "VIP 24/7" },
+    included: { basic: true, silver: true, gold: true },
+  },
+  {
+    label: isRtl ? "فروع العيادة" : "Clinic Branches",
+    limits: { basic: isRtl ? "1" : "1", silver: isRtl ? "1" : "1", gold: isRtl ? "2" : "2" },
+    included: { basic: true, silver: true, gold: true },
   },
 ];
+
+const getPlans = (isRtl: boolean) => {
+  const allFeatures = ALL_FEATURES(isRtl);
+  return [
+    {
+      id: "basic", name: isRtl ? "الأساسية" : "Basic", nameEn: "STARTER", price: 500,
+      subtitle: isRtl ? "للعيادات الصغيرة والناشئة" : "For small & startup clinics",
+      icon: Zap, gradient: "from-slate-400 to-slate-500",
+      ringColor: "ring-slate-300", glow: "shadow-slate-100",
+      isCurrent: false, badge: isRtl ? "أساسي" : "Essential",
+      badgeStyle: "bg-slate-100 text-slate-600 border-slate-200",
+      features: allFeatures.map((f) => ({ ...f, included: f.included.basic, limit: f.limits.basic })),
+    },
+    {
+      id: "silver", name: isRtl ? "الفضية" : "Silver", nameEn: "PROFESSIONAL", price: 1000,
+      subtitle: isRtl ? "للعيادات المتوسطة والنشطة" : "For growing active clinics",
+      icon: Shield, gradient: "from-cyan-500 to-blue-600",
+      ringColor: "ring-cyan-400", glow: "shadow-cyan-100",
+      isCurrent: false, badge: isRtl ? "الأكثر طلباً" : "Most Popular",
+      badgeStyle: "bg-cyan-100 text-cyan-700 border-cyan-200",
+      features: allFeatures.map((f) => ({ ...f, included: f.included.silver, limit: f.limits.silver })),
+    },
+    {
+      id: "gold", name: isRtl ? "الذهبية" : "Gold", nameEn: "ENTERPRISE", price: 1500,
+      subtitle: isRtl ? "للمراكز الطبية الكبرى والسلاسل" : "For large clinics & chains",
+      icon: Crown, gradient: "from-[#FF8C00] via-[#FFC300] to-[#FFF082]",
+      ringColor: "ring-amber-400", glow: "shadow-amber-100",
+      isCurrent: false, badge: isRtl ? "كامل" : "Full",
+      badgeStyle: "bg-amber-100 text-amber-700 border-amber-200",
+      features: allFeatures.map((f) => ({ ...f, included: f.included.gold, limit: f.limits.gold })),
+    },
+  ];
+};
 
 const getCompareRows = (isRtl: boolean) => [
   { label: isRtl ? "المرضى (سجلات إلكترونية)" : "Patients (EHR)", values: [isRtl ? "100 مريض" : "100 Patients", isRtl ? "300 مريض" : "300 Patients", isRtl ? "500 مريض" : "500 Patients"] },
@@ -75,6 +113,8 @@ const getCompareRows = (isRtl: boolean) => [
 export default function SubscriptionPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
+  const { user } = useAuth();
+  const clinicId = user?.clinicId;
   
   const [activePlanId, setActivePlanId] = useState("basic");
   const [patientCount, setPatientCount] = useState(0);
@@ -87,6 +127,7 @@ export default function SubscriptionPage() {
         const { data: subData, error: subErr } = await supabase
           .from('subscriptions')
           .select('plan_name, plan_price')
+          .eq('clinic_id', clinicId)
           .eq('status', 'active')
           .order('created_at', { ascending: false })
           .limit(1);
@@ -112,13 +153,17 @@ export default function SubscriptionPage() {
 
       try {
         const { count: pCount } = await supabase
-          .from("patients").select("*", { count: "exact", head: true });
+          .from("patients")
+          .select("*", { count: "exact", head: true })
+          .eq('clinic_id', clinicId);
         if (pCount !== null) setPatientCount(pCount);
       } catch { /* ignore */ }
 
       try {
         const { count: sCount } = await supabase
-          .from("sessions").select("*", { count: "exact", head: true });
+          .from("sessions")
+          .select("*", { count: "exact", head: true })
+          .eq('clinic_id', clinicId);
         if (sCount !== null) setSessionCount(sCount);
       } catch { /* ignore */ }
     }
@@ -267,89 +312,118 @@ export default function SubscriptionPage() {
 
       {/* ── Plans Grid ──────────────────────────────────────────────────── */}
       <div>
-        <h2 className={`text-sm font-extrabold text-slate-700 mb-4 ${isRtl ? "text-right" : "text-left"}`}>{isRtl ? "اختر خطة اشتراك" : "Choose a Subscription Plan"}</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-6 items-center mt-8">
+        <div className={`flex items-center gap-2 mb-6 ${isRtl ? "flex-row-reverse" : ""}`}>
+          <div className="h-px flex-1 bg-slate-200" />
+          <h2 className={`text-sm font-extrabold text-slate-700 ${isRtl ? "text-right" : "text-left"}`}>{isRtl ? "اختر خطة اشتراك" : "Choose a Subscription Plan"}</h2>
+          <div className="h-px flex-1 bg-slate-200" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
           {PLANS.map((plan) => {
             const PlanIcon = plan.icon;
-            const isDark = plan.id === "gold";
             const isSilver = plan.id === "silver";
+            const isGold = plan.id === "gold";
 
             return (
               <div
                 key={plan.id}
-                className={`relative rounded-3xl border overflow-hidden transition-all duration-500 hover:-translate-y-2
-                  ${isDark
-                    ? "bg-slate-900 border-slate-800 shadow-[0_0_40px_-15px_rgba(245,158,11,0.3)]"
+                className={`relative rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-1.5
+                  ${isGold
+                    ? "bg-gradient-to-b from-slate-900 to-slate-950 border border-amber-500/30 shadow-[0_0_50px_-12px_rgba(245,158,11,0.35)] ring-1 ring-amber-500/10"
                     : isSilver
-                    ? "bg-white border-cyan-200 shadow-2xl shadow-cyan-900/5 ring-4 ring-cyan-50 md:-my-4 z-10"
-                    : "bg-white border-slate-200 shadow-sm"
+                    ? "bg-white border-2 border-cyan-400 shadow-2xl shadow-cyan-900/10 z-10 md:scale-[1.04]"
+                    : "bg-white border border-slate-300 shadow-sm opacity-85 hover:opacity-100"
                   }
-                  ${plan.isCurrent && !isDark ? `ring-2 ${plan.ringColor} border-transparent` : ""}
+                  ${plan.isCurrent ? "ring-2 ring-[#0d8a8a]" : ""}
                 `}
               >
-                {/* Top glow/gradient strip */}
-                <div className={`h-2 w-full bg-gradient-to-r ${plan.gradient}`} />
-
-                {plan.badge && (
-                  <div className="absolute top-5 left-4 z-10">
-                    <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full text-white bg-gradient-to-r ${plan.gradient} flex items-center gap-1 shadow-lg`}>
+                {isSilver && (
+                  <div className="absolute -top-px left-1/2 -translate-x-1/2 z-20">
+                    <div className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-[10px] font-extrabold px-5 py-1.5 rounded-b-xl shadow-lg flex items-center gap-1.5 tracking-wider">
                       <Star className="w-3 h-3 fill-current" />
                       {plan.badge}
-                    </span>
+                      <Star className="w-3 h-3 fill-current" />
+                    </div>
                   </div>
                 )}
 
-                <div className="p-6 md:p-8 space-y-6">
-                  {/* Header */}
-                  <div className={`flex items-center gap-3 ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${plan.gradient} flex items-center justify-center shadow-lg transform -rotate-3`}>
-                      <PlanIcon className="w-6 h-6 text-white" />
+                {isGold && (
+                  <div className="absolute -top-px left-1/2 -translate-x-1/2 z-20">
+                    <div className="bg-gradient-to-r from-[#FF8C00] via-[#FFC300] to-[#FFF082] text-white text-[10px] font-extrabold px-5 py-1.5 rounded-b-xl shadow-lg flex items-center gap-1.5 tracking-wider">
+                      <Crown className="w-3 h-3" />
+                      {plan.badge}
+                    </div>
+                  </div>
+                )}
+
+                {/* Card body */}
+                <div className={`p-6 md:p-7 space-y-5 ${isGold ? "" : "pt-8"}`}>
+                  {/* Icon + Name row */}
+                  <div className={`flex items-center gap-3 ${isRtl ? "" : "flex-row-reverse justify-between"}`}>
+                    <div className={`${isGold ? "w-14 h-14 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/20" : isSilver ? "w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-md" : "w-10 h-10 rounded-lg bg-gradient-to-br from-slate-400 to-slate-500"} flex items-center justify-center`}>
+                      <PlanIcon className={`${isGold ? "w-7 h-7" : isSilver ? "w-6 h-6" : "w-5 h-5"} text-white`} />
                     </div>
                     <div className={isRtl ? "text-right" : "text-left"}>
-                      <p className={`text-[10px] font-bold tracking-widest uppercase ${isDark ? "text-slate-400" : "text-slate-400"}`}>
+                      <p className={`text-[9px] font-bold tracking-[0.15em] uppercase ${isGold ? "text-amber-400/70" : isSilver ? "text-cyan-600" : "text-slate-400"}`}>
                         {plan.nameEn}
                       </p>
-                      <h3 className={`text-lg font-black ${isDark ? "text-white" : "text-slate-800"}`}>
-                        {isRtl ? `الخطة ${plan.name}` : `${plan.name} Plan`}
+                      <h3 className={`font-black ${isGold ? "text-white text-xl" : isSilver ? "text-slate-800 text-lg" : "text-slate-600 text-base"}`}>
+                        {plan.name}
                       </h3>
+                      {plan.subtitle && (
+                        <p className={`text-[10px] mt-0.5 ${isGold ? "text-slate-500" : isSilver ? "text-slate-400" : "text-slate-400"}`}>
+                          {plan.subtitle}
+                        </p>
+                      )}
                     </div>
                   </div>
 
-                  {/* Price */}
-                  <div className={`border-t border-b py-5 ${isDark ? "border-slate-800/60" : "border-slate-100"}`}>
+                  {/* Price strip */}
+                  <div className={`py-4 ${isGold ? "border-y border-amber-500/10" : "border-y border-slate-100"}`}>
                     <div className={`flex items-end gap-1.5 ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
-                      <span className={`text-5xl font-black bg-gradient-to-r ${plan.gradient} bg-clip-text text-transparent drop-shadow-sm`}>
+                      <span className={`font-black ${isGold ? "text-5xl text-white" : isSilver ? "text-4xl text-slate-800" : "text-3xl text-slate-600"}`}>
                         {plan.price.toLocaleString()}
                       </span>
-                      <div className={`mb-1.5 ${isRtl ? "text-right" : "text-left"}`}>
-                        <span className={`text-sm font-bold block ${isDark ? "text-slate-300" : "text-slate-500"}`}>{isRtl ? "ج.م" : "EGP"}</span>
-                        <span className={`text-[10px] ${isDark ? "text-slate-500" : "text-slate-400"}`}>{isRtl ? "/ شهرياً" : "/ month"}</span>
+                      <div className={`mb-1 ${isRtl ? "text-right" : "text-left"}`}>
+                        <span className={`text-xs font-bold block ${isGold ? "text-amber-300" : isSilver ? "text-cyan-600" : "text-slate-500"}`}>{isRtl ? "ج.م" : "EGP"}</span>
+                        <span className={`text-[9px] ${isGold ? "text-slate-500" : "text-slate-400"}`}>{isRtl ? "/ شهرياً" : "/ month"}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Features */}
-                  <ul className="space-y-3.5">
-                    {plan.features.map((f) => (
-                      <li key={f.label} className={`flex items-center gap-3 text-sm font-medium ${isDark ? "text-slate-200" : "text-slate-700"} ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
-                        <CheckCircle2 className={`w-4 h-4 shrink-0 text-white bg-gradient-to-br ${plan.gradient} rounded-full shadow-sm`} />
-                        {f.label}
-                      </li>
-                    ))}
-                    {plan.missing.map((m) => (
-                      <li key={m} className={`flex items-center gap-3 text-sm ${isDark ? "text-slate-600" : "text-slate-400"} ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
-                        <X className="w-4 h-4 shrink-0 opacity-50" />
-                        <span className="line-through">{m}</span>
-                      </li>
-                    ))}
+                  {/* Features — unified list per plan */}
+                  <ul className="space-y-2.5">
+                    {plan.features.map((f) => {
+                      const isIncluded = f.included;
+                      if (isIncluded) {
+                        return (
+                          <li key={f.label} className={`flex items-center gap-2.5 text-sm ${isRtl ? "" : "flex-row-reverse justify-end"} ${isGold ? "text-slate-200 font-medium" : isSilver ? "text-slate-700 font-medium" : "text-slate-500"}`}>
+                            <div className={`shrink-0 flex items-center justify-center ${isGold ? "w-5 h-5 rounded-full bg-amber-500/20" : isSilver ? "w-5 h-5 rounded-full bg-cyan-100" : "w-4 h-4 rounded-full bg-slate-100"}`}>
+                              <CheckCircle2 className={`${isGold ? "w-3.5 h-3.5 text-amber-400" : isSilver ? "w-3.5 h-3.5 text-cyan-600" : "w-3 h-3 text-slate-400"}`} />
+                            </div>
+                            <span className="flex items-center gap-1">
+                              {f.label}
+                              {f.limit && <span className={`text-[10px] ${isGold ? "text-amber-400/80" : isSilver ? "text-cyan-500" : "text-slate-400"}`}>({f.limit})</span>}
+                            </span>
+                          </li>
+                        );
+                      }
+                      return (
+                        <li key={f.label} className={`flex items-center gap-2.5 text-xs ${isRtl ? "" : "flex-row-reverse justify-end"} ${isGold ? "text-slate-500" : isSilver ? "text-slate-300" : "text-slate-300"}`}>
+                          <div className="shrink-0 w-4 h-4 rounded-full bg-slate-100/50 flex items-center justify-center">
+                            <X className="w-3 h-3 text-slate-300" />
+                          </div>
+                          <span className="line-through">{f.label}</span>
+                        </li>
+                      );
+                    })}
                   </ul>
 
-                  {/* CTA */}
-                  <div className="pt-2">
+                  {/* Divider before CTA */}
+                  <div className={`pt-2 ${isGold ? "border-t border-amber-500/10" : "border-t border-slate-100"}`}>
                     {plan.isCurrent ? (
-                      <div className={`w-full text-center py-3.5 rounded-2xl text-sm font-bold flex items-center justify-center gap-2
-                        ${isDark 
-                          ? "text-amber-400 bg-amber-400/10 border border-amber-400/20" 
+                      <div className={`w-full text-center py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2
+                        ${isGold
+                          ? "text-amber-400 bg-amber-400/10 border border-amber-400/20"
                           : "text-[#0d8a8a] bg-[#0d8a8a]/10 border border-[#0d8a8a]/20"}`}
                       >
                         <Check className="w-4 h-4" />
@@ -358,10 +432,17 @@ export default function SubscriptionPage() {
                     ) : (
                       <button
                         onClick={() => handleUpgrade(plan.id)}
-                        className={`w-full py-3.5 rounded-2xl text-sm font-bold text-white bg-gradient-to-r ${plan.gradient} hover:opacity-90 active:scale-95 transition-all shadow-lg hover:shadow-xl flex items-center justify-center gap-2`}
+                        className={`w-full py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.97] flex items-center justify-center gap-2
+                          ${isGold
+                            ? "bg-gradient-to-b from-[#FF8C00] via-[#FFC300] to-[#FFF082] text-white shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30"
+                            : isSilver
+                            ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20 hover:shadow-xl hover:shadow-cyan-500/30"
+                            : "bg-gradient-to-r from-slate-500 to-slate-600 text-white shadow hover:shadow-md"
+                          }
+                        `}
                       >
                         <CreditCard className="w-4 h-4" />
-                        {isRtl ? `الترقية إلى ${plan.name}` : `Upgrade to ${plan.name}`}
+                        {isRtl ? `اشتراك ${plan.name}` : `Subscribe ${plan.name}`}
                       </button>
                     )}
                   </div>

@@ -19,6 +19,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { logAuditAction } from "@/lib/audit";
 import { usePermissions } from "@/lib/usePermissions";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
 
 export default function StaffPage() {
   const [staff, setStaff] = useState<any[]>([]);
@@ -28,6 +29,8 @@ export default function StaffPage() {
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
+  const { user } = useAuth();
+  const clinicId = user?.clinicId;
 
   const translateName = (arName: string) => {
     if (isRtl || !arName) return arName || "";
@@ -53,8 +56,8 @@ export default function StaffPage() {
 
   const fetchRelatedCounts = async () => {
     const [{ data: patientRows }, { data: appointmentRows }] = await Promise.all([
-      supabase.from("patients").select("assignedDoctor,status"),
-      supabase.from("appointments").select("therapist,date"),
+      supabase.from("patients").select("assignedDoctor,status").eq('clinic_id', clinicId),
+      supabase.from("appointments").select("therapist,date").eq('clinic_id', clinicId),
     ]);
 
     setPatients(patientRows || []);
@@ -81,7 +84,7 @@ export default function StaffPage() {
 
   const fetchStaff = async () => {
     try {
-      const { data, error } = await supabase.from('staff').select('*').order('created_at', { ascending: true });
+      const { data, error } = await supabase.from('staff').select('*').eq('clinic_id', clinicId).order('created_at', { ascending: true });
       if (error) throw error;
       
       setStaff(data || []);
@@ -127,6 +130,7 @@ export default function StaffPage() {
       email: formData.email,
       phone: formData.phone || "0500000000",
       status: "نشط",
+      clinic_id: clinicId,
       permissions: [],
     };
 
@@ -180,7 +184,7 @@ export default function StaffPage() {
         role: editFormData.role,
         phone: editFormData.phone,
         status: editFormData.status
-      }).eq('email', editingEmail);
+      }).eq('clinic_id', clinicId).eq('email', editingEmail);
 
       if (error) throw error;
 
@@ -203,7 +207,7 @@ export default function StaffPage() {
     const staffToDelete = staff.find(m => m.email === deleteStaffEmail);
     
     try {
-      const { error } = await supabase.from('staff').delete().eq('email', deleteStaffEmail);
+      const { error } = await supabase.from('staff').delete().eq('clinic_id', clinicId).eq('email', deleteStaffEmail);
       if (error) throw error;
       
       await fetchStaff();

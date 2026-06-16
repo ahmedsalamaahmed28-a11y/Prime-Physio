@@ -760,6 +760,8 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
+  const { user: authUser } = useAuth();
+  const clinicId = authUser?.clinicId;
   
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
@@ -775,6 +777,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
         const { data, error } = await supabase
           .from("sessions")
           .select("*")
+          .eq('clinic_id', clinicId)
           .eq("patient_id", patient.id)
           .order("date", { ascending: false });
         if (!error && data) {
@@ -893,6 +896,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
     // Build the session row — matches Supabase sessions table schema
     const sessionRow: any = {
       patient_id: patient.id,
+      clinic_id: clinicId,
       date: today,
       diagnosis: form.diagnosis,
       vasScore: form.vasScore,
@@ -927,6 +931,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
 
       await supabase.from("appointments").insert([{
         patient_id: patient.id,
+        clinic_id: clinicId,
         patient_name: patient.nameAr,
         doctor_name: therapistName,
         appointment_type: "جلسة علاج",
@@ -958,7 +963,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
 
   const handleDeleteSession = async (sessionId: string) => {
     try {
-      const { error } = await supabase.from("sessions").delete().eq("id", sessionId);
+      const { error } = await supabase.from("sessions").delete().eq('clinic_id', clinicId).eq("id", sessionId);
       if (error) throw error;
     } catch (err) {
       console.warn("Failed to delete session from Supabase:", err);
@@ -1638,6 +1643,8 @@ function PatientInvoicesTab({ patientId }: { patientId: string }) {
   const [isLoading, setIsLoading] = useState(true);
   const { language } = useLanguage();
   const isRtl = language === "ar";
+  const { user: authUser } = useAuth();
+  const clinicId = authUser?.clinicId;
 
   useEffect(() => {
     const fetchInvoices = async () => {
@@ -1646,6 +1653,7 @@ function PatientInvoicesTab({ patientId }: { patientId: string }) {
         const { data, error } = await supabase
           .from("invoices")
           .select("*")
+          .eq('clinic_id', clinicId)
           .eq("patient_id", patientId)
           .order("date", { ascending: false });
 
@@ -1868,6 +1876,8 @@ const DEVICE_DATABASE: Exercise[] = [
 function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
   const { language } = useLanguage();
   const isRtl = language === "ar";
+  const { user: authUser } = useAuth();
+  const clinicId = authUser?.clinicId;
 
   const [selectedExercises, setSelectedExercises] = useState<(Exercise & { customReps?: string; note?: string })[]>([]);
   const [contraindicationAlert, setContraindicationAlert] = useState<{ open: boolean; exercise: Exercise | null; reason: string }>({ open: false, exercise: null, reason: "" });
@@ -1914,6 +1924,7 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
       const { error } = await supabase
         .from("patients")
         .update({ active_protocol: state })
+        .eq('clinic_id', clinicId)
         .eq("id", patient.id);
       if (error) {
         console.warn("Protocol saved locally; Supabase sync skipped or failed.", error.message || error);
@@ -2530,6 +2541,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
   const { user } = useAuth();
+  const clinicId = user?.clinicId;
 
   // Real-time collaboration state
   const [activeEditors, setActiveEditors] = useState<{ email: string; name: string; role: string; initials: string; bg: string }[]>([]);
@@ -2563,6 +2575,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
         const { data, error } = await supabase
           .from("patients")
           .select("*")
+          .eq('clinic_id', clinicId)
           .eq("id", resolvedParams.id)
           .single();
         if (!error && data) {

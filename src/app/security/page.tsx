@@ -20,7 +20,7 @@ type SecurityEvent = {
 };
 
 export default function SecurityPage() {
-  const { user } = useAuth();
+  const { user } = useAuth(); const clinicId = user?.clinicId;
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const isGoogleAccount = Boolean(user?.roleEn?.includes("Google"));
@@ -37,6 +37,7 @@ export default function SecurityPage() {
     const { data, error } = await supabase
       .from("audit_logs")
       .select("id, action, details, created_at, user_email")
+      .eq('clinic_id', clinicId)
       .order("created_at", { ascending: false })
       .limit(5);
 

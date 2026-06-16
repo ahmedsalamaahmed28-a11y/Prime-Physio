@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import { BarChart3, TrendingUp, Users, DollarSign, Calendar, Activity, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 
 export default function AnalyticsPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
+  const { user } = useAuth(); const clinicId = user?.clinicId;
   const [stats, setStats] = useState({
     totalPatients: 0,
     activePatients: 0,
@@ -28,7 +30,8 @@ export default function AnalyticsPage() {
         setIsLoading(true);
         const { data: patients, error } = await supabase
           .from("patients")
-          .select("*");
+          .select("*")
+          .eq('clinic_id', clinicId);
 
         if (!error && patients) {
           const totalPatients = patients.length;

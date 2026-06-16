@@ -37,6 +37,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 
 import { useLanguage } from "@/lib/LanguageContext";
+import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 type TabType = "profile" | "clinic" | "verification" | "security";
@@ -45,6 +46,8 @@ export default function ProfileSettingsPage() {
   const [activeTab, setActiveTab] = useState<TabType>("profile");
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
+  const { user } = useAuth();
+  const clinicId = user?.clinicId;
   
   // Profile Tab States
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -117,6 +120,7 @@ export default function ProfileSettingsPage() {
         const { data, error } = await supabase
           .from("clinic_settings")
           .select("*")
+          .eq("clinic_id", clinicId)
           .eq("user_id", user.id)
           .maybeSingle();
 
@@ -181,10 +185,11 @@ export default function ProfileSettingsPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
         await supabase.from('clinic_settings').upsert({
+          clinic_id: clinicId,
           user_id: user.id,
           branches: updated,
           updated_at: new Date().toISOString()
-        }, { onConflict: 'user_id' });
+        }, { onConflict: 'clinic_id' });
       }
     } catch (err) {}
 
@@ -266,6 +271,7 @@ export default function ProfileSettingsPage() {
       }
 
       const updates = {
+        clinic_id: clinicId,
         user_id: user.id,
         clinic_name: clinicName,
         email: email,
@@ -280,7 +286,7 @@ export default function ProfileSettingsPage() {
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase.from('clinic_settings').upsert(updates, { onConflict: 'user_id' });
+      const { error } = await supabase.from('clinic_settings').upsert(updates, { onConflict: 'clinic_id' });
       if (error) {
         console.error("DB Error:", error);
         throw error;
@@ -537,11 +543,12 @@ export default function ProfileSettingsPage() {
                       const { data: { user } } = await supabase.auth.getUser();
                       if (user) {
                         await supabase.from('clinic_settings').upsert({
+                          clinic_id: clinicId,
                           user_id: user.id,
                           default_exam_price: defaultExamPrice,
                           default_session_price: defaultSessionPrice,
                           updated_at: new Date().toISOString()
-                        }, { onConflict: 'user_id' });
+                        }, { onConflict: 'clinic_id' });
                         setPricingSaved(true);
                         setTimeout(() => setPricingSaved(false), 3000);
                       }

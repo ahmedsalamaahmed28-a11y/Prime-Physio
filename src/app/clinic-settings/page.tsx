@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UploadCloud } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 const translateDay = (day: string, isRtl: boolean) => {
@@ -26,6 +27,8 @@ const translateDay = (day: string, isRtl: boolean) => {
 export default function ClinicSettingsPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
+  const { user } = useAuth();
+  const clinicId = user?.clinicId;
 
   const [clinicName, setClinicName] = useState("");
   const [phone, setPhone] = useState("");
@@ -50,6 +53,7 @@ export default function ClinicSettingsPage() {
       const { data, error } = await supabase
         .from("clinic_settings")
         .select("*")
+        .eq("clinic_id", clinicId)
         .eq("user_id", "default")
         .maybeSingle();
 
@@ -73,6 +77,7 @@ export default function ClinicSettingsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     const { error } = await supabase.from("clinic_settings").upsert({
+      clinic_id: clinicId,
       user_id: "default",
       clinic_name: clinicName,
       phone,

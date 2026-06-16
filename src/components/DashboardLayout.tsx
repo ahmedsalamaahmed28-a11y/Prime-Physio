@@ -19,6 +19,8 @@ import {
   Lock,
   Stethoscope,
   Plus,
+  ShieldAlert,
+  ShieldCheck,
   LogOut,
   Check,
   Building,
@@ -78,16 +80,10 @@ interface Account {
   initialsEn: string;
   role: string;
   roleEn: string;
-  roleKey: "admin" | "doctor" | "receptionist";
+  roleKey: "admin" | "doctor" | "receptionist" | "platform_admin";
   bg: string;
   image?: string;
 }
-
-const ACCOUNTS: Account[] = [
-  { name: "المدير العام", nameEn: "General Manager", email: "admin@primephysio.com", initials: "مد", initialsEn: "GM", role: "مدير النظام", roleEn: "System Admin", roleKey: "admin", bg: "bg-gradient-to-br from-[#0d8a8a] to-[#085454]" },
-  { name: "د. أحمد محمد", nameEn: "Dr. Ahmed Mohamed", email: "doctor@primephysio.com", initials: "أم", initialsEn: "AM", role: "طبيب معالج", roleEn: "Certified Therapist", roleKey: "doctor", bg: "bg-gradient-to-br from-emerald-500 to-teal-600" },
-  { name: "سحر طارق", nameEn: "Sahar Tarek", email: "reception@primephysio.com", initials: "ست", initialsEn: "ST", role: "موظف استقبال", roleEn: "Head Receptionist", roleKey: "receptionist", bg: "bg-gradient-to-br from-amber-500 to-orange-600" },
-];
 
 export default function DashboardLayout({
   children,
@@ -104,7 +100,10 @@ export default function DashboardLayout({
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false); // Notifications popover state
   const [notifications, setNotifications] = useState<SystemNotification[]>([]);
   
-  const activeAccount = user || ACCOUNTS[0];
+  const activeAccount = user;
+
+  if (!activeAccount) return null;
+
   const displayAccountName = activeAccount.roleKey === "receptionist"
     ? activeAccount.name
     : activeAccount.name.startsWith("د.")
@@ -117,9 +116,6 @@ export default function DashboardLayout({
     : (activeAccount.nameEn || activeAccount.name).startsWith("Dr.")
     ? (activeAccount.nameEn || activeAccount.name)
     : `Dr. ${activeAccount.nameEn || activeAccount.name}`;
-
-  // Show only the currently active account (hide the virtual demo accounts)
-  const displayAccounts = [activeAccount];
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
@@ -154,12 +150,6 @@ export default function DashboardLayout({
   };
   const toggleNotifications = () => {
     setIsNotificationsOpen(prev => !prev);
-  };
-
-  const handleAccountSwitch = (acc: any) => {
-    console.log("Switching account to:", acc.name);
-    loginWithCredentials(acc.email, acc.name, acc.role);
-    setIsProfileOpen(false);
   };
 
   const [mounted, setMounted] = useState(false);
@@ -252,10 +242,8 @@ export default function DashboardLayout({
     );
   }
 
-  // Route protection: If there is no user and we are not on an auth page, render nothing while auth.tsx redirects to login.
-  if (!user) {
-    return null;
-  }
+  // Route protection: auth.tsx redirects unauthenticated users to /login
+  if (!user) return null;
 
   const isRtl = language === "ar";
 
@@ -542,38 +530,23 @@ export default function DashboardLayout({
                     <p className="text-[10px] text-muted-foreground">{isRtl ? "حساب إدارة المركز الطبي" : "Medical Center Management"}</p>
                   </div>
 
-                  {/* Section 1: Saved Accounts */}
+                  {/* Section 1: Current Account */}
                   <div className="space-y-2.5">
-                    <div className="text-[10px] font-bold text-slate-400 px-1">{isRtl ? "الحسابات المحفوظة" : "Saved Accounts"}</div>
-                    <div className="space-y-1.5 max-h-36 overflow-y-auto">
-                      {displayAccounts.map((acc) => {
-                        const isCurrent = acc.email === activeAccount.email;
-                        return (
-                          <div 
-                            key={acc.email}
-                            onClick={() => handleAccountSwitch(acc)}
-                            className={`flex items-center gap-3 p-2.5 rounded-xl cursor-pointer transition-colors ${
-                              isRtl ? "" : "flex-row-reverse"
-                            } ${
-                              isCurrent ? "bg-slate-50 border border-slate-150" : "hover:bg-slate-50/70 border border-transparent"
-                            }`}
-                          >
-                            <div className={`w-8 h-8 rounded-full ${acc.bg} text-white text-xs font-bold flex items-center justify-center overflow-hidden`}>
-                              {acc.image ? (
-                                <img src={acc.image} alt="" className="w-full h-full object-cover" />
-                              ) : (
-                                isRtl ? acc.initials : acc.initialsEn
-                              )}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className={`text-xs font-bold text-slate-800 truncate ${isRtl ? "text-right" : "text-left"} ${isRtl ? "" : "font-sans"}`}>{isRtl ? acc.name : acc.nameEn}</p>
-                              <p className={`text-[10px] text-muted-foreground truncate ${isRtl ? "text-right" : "text-left"} ${isRtl ? "" : "font-sans"}`}>{acc.email}</p>
-                            </div>
-                            {isCurrent && <Check className="w-3.5 h-3.5 text-[#0d8a8a] flex-shrink-0" />}
-                          </div>
-                        );
-                      })}
-                    </div>
+                    {activeAccount && (
+                      <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-150">
+                        <div className={`w-8 h-8 rounded-full ${activeAccount.bg} text-white text-xs font-bold flex items-center justify-center overflow-hidden`}>
+                          {activeAccount.image ? (
+                            <img src={activeAccount.image} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            isRtl ? activeAccount.initials : (activeAccount.initialsEn || activeAccount.initials)
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-xs font-bold text-slate-800 truncate ${isRtl ? "text-right" : "text-left"} ${isRtl ? "" : "font-sans"}`}>{isRtl ? activeAccount.name : (activeAccount.nameEn || activeAccount.name)}</p>
+                          <p className={`text-[10px] text-muted-foreground truncate ${isRtl ? "text-right" : "text-left"} ${isRtl ? "" : "font-sans"}`}>{activeAccount.email}</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <hr className="border-slate-100" />
@@ -610,6 +583,34 @@ export default function DashboardLayout({
                       );
                     })}
                   </div>
+
+                  {/* Platform Admin section */}
+                  {activeAccount?.roleKey === "platform_admin" && (
+                    <>
+                      <hr className="border-slate-100" />
+                      <div className="space-y-1">
+                        <div className="text-[10px] font-bold text-slate-400 px-1">{isRtl ? "إدارة المنصة" : "Platform"}</div>
+                        {[
+                          { label: isRtl ? "لوحة التحكم" : "Admin Panel", href: "/admin", icon: ShieldAlert },
+                        ].map((link) => {
+                          const Icon = link.icon;
+                          return (
+                            <Link key={link.href} href={link.href} onClick={() => setIsProfileOpen(false)}>
+                              <div className={`flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700 hover:text-slate-900 transition-colors border border-transparent hover:border-slate-100 ${
+                                isRtl ? "" : "flex-row-reverse"
+                              }`}>
+                                <div className={`flex items-center gap-2 ${isRtl ? "" : "flex-row-reverse"}`}>
+                                  <Icon className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                                  <span className="text-xs font-medium">{link.label}</span>
+                                </div>
+                                <ChevronLeft className={`w-3.5 h-3.5 text-slate-300 ${isRtl ? "" : "rotate-180"}`} />
+                              </div>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
 
                   <hr className="border-slate-100" />
 
