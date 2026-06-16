@@ -1,35 +1,39 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const publicRoutes = ["/login", "/signup", "/api/auth", "/api/paymob"];
+const AUTH_ROUTES = ["/login", "/signup"];
+const PUBLIC_PATHS = ["/_next/", "/api/auth/", "/favicon.ico", "/icon.png", "/robots.txt", "/sitemap.xml"];
+
+const SUPABASE_PROJECT_REF = "pnqwkdqldfmcqozqrdeo";
+
+function isPublicPath(pathname: string): boolean {
+  if (AUTH_ROUTES.some((r) => pathname === r)) return true;
+  if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return true;
+  if (pathname.startsWith("/api/") && !pathname.startsWith("/api/admin/")) return true;
+  return false;
+}
+
+function hasAuthCookie(request: NextRequest): boolean {
+  const nextAuthCookie = request.cookies.get("__Secure-next-auth.session-token")
+    || request.cookies.get("next-auth.session-token");
+  if (nextAuthCookie?.value) return true;
+
+  const supabaseCookie = request.cookies.get(`sb-${SUPABASE_PROJECT_REF}-auth-token`);
+  if (supabaseCookie?.value) return true;
+
+  return false;
+}
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  const isPublic = publicRoutes.some((route) => pathname.startsWith(route));
-  if (isPublic) {
+  if (isPublicPath(pathname)) {
     return NextResponse.next();
   }
 
-  if (pathname.startsWith("/_next/") || pathname.startsWith("/static/")) {
-    return NextResponse.next();
-  }
-
-  if (/\.(svg|png|jpg|jpeg|gif|webp|ico|json|js)$/.test(pathname)) {
-    return NextResponse.next();
-  }
-
-  const cookies = request.cookies;
-  const hasSession =
-    cookies.has("next-auth.session-token") ||
-    cookies.has("__Secure-next-auth.session-token") ||
-    cookies.has("sb-access-token") ||
-    cookies.has("sb-refresh-token") ||
-    Array.from(cookies.getAll()).some((c) => c.name.startsWith("sb-") && c.name.endsWith("-auth-token"));
-
-  if (!hasSession) {
+  if (!hasAuthCookie(request)) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("callbackUrl", pathname);
+    loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
 
@@ -38,6 +42,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|manifest.json|sw.js).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|icon.png).*)",
   ],
 };

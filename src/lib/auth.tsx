@@ -309,9 +309,10 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     setUser(null);
     setAppValue("current_user", null).catch(() => {});
+    await supabase.auth.signOut();
     signOut({ callbackUrl: "/login" }).catch(() => {
       window.location.href = "/login";
     });
