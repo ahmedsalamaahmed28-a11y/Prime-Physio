@@ -65,124 +65,34 @@ interface ProtocolState {
   completedCriteria: string[];
 }
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const MOCK_PATIENTS: Patient[] = [
-  {
-    id: "PT-01",
-    nameAr: "أحمد محمد السيد",
-    nameEn: "Ahmed Mohamed El-Sayed",
-    age: 38,
-    gender: "ذكر",
-    phone: "01012345678",
-    email: "ahmed.elsayed@email.com",
-    nationalId: "28804152XXXXXXX",
-    bloodType: "A+",
-    allergies: "بنسلين",
-    dvt: "تاريخ جلطة ساق DVT",
-    emergencyContact: "سارة أحمد (الزوجة)",
-    emergencyPhone: "01098765432",
-    address: "١٢ شارع النيل، المعادي، القاهرة",
-    occupation: "مهندس برمجيات",
-    referral: "عيادة العظام - د. خالد",
-    chiefComplaint: "ألم أسفل الظهر يمتد إلى الساق اليمنى وتنميل بالقدم",
-    diagnosis: "انزلاق غضروفي قطني بين الفقرتين L4/L5 مع عرق النسا",
-    medicalHistory: "بدأ الألم منذ سنتين بشكل متقطع وازداد حدة قبل شهر بعد رفع حمل ثقيل بالعمل",
-    pastSurgeries: "لا يوجد عمليات سابقة",
-    chronicDiseases: "لا يوجد أمراض مزمنة",
-    currentMedications: "مسكنات ألم (بروفين 400 ملغ عند الحاجة)، مرخي عضلات",
-    drugAllergies: "بنسلين",
-  },
-  {
-    id: "PT-02",
-    nameAr: "فاطمة علي حسن",
-    nameEn: "Fatima Ali Hassan",
-    age: 34,
-    gender: "أنثى",
-    phone: "0557654321",
-    email: "fatima.hassan@email.com",
-    nationalId: "29209212XXXXXXX",
-    bloodType: "O+",
-    allergies: "لا يوجد",
-    dvt: "",
-    emergencyContact: "علي حسن (الأب)",
-    emergencyPhone: "0557654322",
-    address: "شارع التخصصي، الرياض، السعودية",
-    occupation: "معلمة",
-    referral: "ذاتي (بدون تحويل)",
-  },
-  {
-    id: "PT-03",
-    nameAr: "محمود إبراهيم",
-    nameEn: "Mahmoud Ibrahim",
-    age: 41,
-    gender: "ذكر",
-    phone: "0569998888",
-    email: "mahmoud.ibrahim@email.com",
-    nationalId: "28511032XXXXXXX",
-    bloodType: "B+",
-    allergies: "لا يوجد",
-    dvt: "",
-    emergencyContact: "محمد إبراهيم (الأخ)",
-    emergencyPhone: "0569998889",
-    address: "شارع الجامعة، جدة، السعودية",
-    occupation: "محاسب مالي",
-    referral: "مستشفى السلام - د. أحمد الرشيد",
-  },
-  {
-    id: "PT-04",
-    nameAr: "نورا حسن",
-    nameEn: "Noura Hassan",
-    age: 36,
-    gender: "أنثى",
-    phone: "0543210987",
-    email: "noura.hassan@email.com",
-    nationalId: "29012122XXXXXXX",
-    bloodType: "A-",
-    allergies: "لا يوجد",
-    dvt: "اشتباه DVT بالساق اليمنى",
-    emergencyContact: "حسن محمد (الأب)",
-    emergencyPhone: "0543210988",
-    address: "الملز، الرياض، السعودية",
-    occupation: "طبيبة أسنان",
-    referral: "عيادة الأعصاب - د. سارة العتيبي",
-  },
-  {
-    id: "PT-05",
-    nameAr: "كريم عادل",
-    nameEn: "Karim Adel",
-    age: 31,
-    gender: "ذكر",
-    phone: "0531112222",
-    email: "karim.adel@email.com",
-    nationalId: "29503302XXXXXXX",
-    bloodType: "AB+",
-    allergies: "لا يوجد",
-    dvt: "",
-    emergencyContact: "عادل كريم (الأب)",
-    emergencyPhone: "0531112223",
-    address: "شارع المدينة، عمان، الأردن",
-    occupation: "محامي",
-    referral: "مركز المفاصل التخصصي",
-  },
-  {
-    id: "PT-06",
-    nameAr: "سمر طارق",
-    nameEn: "Samar Tarek",
-    age: 39,
-    gender: "أنثى",
-    phone: "0504445555",
-    email: "samar.tarek@email.com",
-    nationalId: "28707072XXXXXXX",
-    bloodType: "O-",
-    allergies: "لا يوجد",
-    dvt: "",
-    emergencyContact: "طارق سمر (الأب)",
-    emergencyPhone: "0504445556",
-    address: "العليا، الرياض، السعودية",
-    occupation: "مصممة جرافيك",
-    referral: "طبيب العظام - د. عمر الشمري",  }
-];
+// ─── Empty initial state ───────────────────────────────────────────────────────
+const EMPTY_PATIENT = (id: string): Patient => ({
+  id,
+  nameAr: "",
+  nameEn: "",
+  age: 0,
+  gender: "",
+  phone: "",
+  email: "",
+  nationalId: "",
+  bloodType: "",
+  allergies: "",
+  dvt: "",
+  emergencyContact: "",
+  emergencyPhone: "",
+  address: "",
+  occupation: "",
+  referral: "",
+  chiefComplaint: "",
+  diagnosis: "",
+  medicalHistory: "",
+  pastSurgeries: "",
+  chronicDiseases: "",
+  currentMedications: "",
+  drugAllergies: "",
+  doctor: "",
+  active_protocol: undefined,
+});
 
 // ─── Phase-Based Protocols Database ──────────────────────────────────────────
 
@@ -332,86 +242,11 @@ const getInitials = (name: string) => {
   return (parts[0][0] + (parts[1] ? parts[1][0] : "")).toUpperCase();
 };
 
-const translateMock = (isRtl: boolean, val?: string) => {
-  if (isRtl || !val) return val || "";
-  const tMap: Record<string, string> = {
-    "أحمد محمد السيد": "Ahmed Mohamed El-Sayed",
-    "فاطمة علي حسن": "Fatima Ali Hassan",
-    "محمود إبراهيم": "Mahmoud Ibrahim",
-    "نورا حسن": "Noura Hassan",
-    "كريم عادل": "Karim Adel",
-    "سمر طارق": "Samar Tarek",
-    "ذكر": "Male",
-    "أنثى": "Female",
-    "بنسلين": "Penicillin",
-    "لا يوجد": "None",
-    "تاريخ جلطة ساق DVT": "History of DVT",
-    "اشتباه DVT بالساق اليمنى": "Suspected DVT in right leg",
-    "مهندس برمجيات": "Software Engineer",
-    "معلمة": "Teacher",
-    "محاسب مالي": "Financial Accountant",
-    "طبيبة أسنان": "Dentist",
-    "محامي": "Lawyer",
-    "مصممة جرافيك": "Graphic Designer",
-    "عيادة العظام - د. خالد": "Orthopedics - Dr. Khaled",
-    "ذاتي (بدون تحويل)": "Self-referred",
-    "مستشفى السلام - د. أحمد الرشيد": "Al-Salam Hospital - Dr. Ahmed Al-Rashid",
-    "عيادة الأعصاب - د. سارة العتيبي": "Neurology - Dr. Sara Al-Otaibi",
-    "مركز المفاصل التخصصي": "Specialized Joint Center",
-    "طبيب العظام - د. عمر الشمري": "Orthopedics - Dr. Omar Al-Shammari",
-    "ألم أسفل الظهر يمتد إلى الساق اليمنى وتنميل بالقدم": "Lower back pain radiating to right leg with foot numbness",
-    "انزلاق غضروفي قطني بين الفقرتين L4/L5 مع عرق النسا": "L4/L5 Lumbar disc herniation with sciatica",
-    "بدأ الألم منذ سنتين بشكل متقطع وازداد حدة قبل شهر بعد رفع حمل ثقيل بالعمل": "Pain started 2 years ago intermittently, worsened a month ago after lifting a heavy object at work",
-    "لا يوجد عمليات سابقة": "No previous surgeries",
-    "لا يوجد أمراض مزمنة": "No chronic diseases",
-    "مسكنات ألم (بروفين 400 ملغ عند الحاجة)، مرخي عضلات": "Painkillers (Ibuprofen 400mg PRN), Muscle relaxants",
-    "د. منى حسين": "Dr. Mona Hussein",
-    "د. خالد عمر": "Dr. Khaled Omar",
-    "د. سارة أحمد": "Dr. Sara Ahmed",
-    "١٢ شارع النيل، المعادي، القاهرة": "12 Nile St., Maadi, Cairo",
-    "شارع التخصصي، الرياض، السعودية": "Takhassusi St., Riyadh, KSA",
-    "شارع الجامعة، جدة، السعودية": "University St., Jeddah, KSA",
-    "الملز، الرياض، السعودية": "Al Malaz, Riyadh, KSA",
-    "شارع المدينة، عمان، الأردن": "Madina St., Amman, Jordan",
-    "العليا، الرياض، السعودية": "Olaya, Riyadh, KSA",
-    "سارة أحمد (الزوجة)": "Sara Ahmed (Wife)",
-    "علي حسن (الأب)": "Ali Hassan (Father)",
-    "محمد إبراهيم (الأخ)": "Mohamed Ibrahim (Brother)",
-    "حسن محمد (الأب)": "Hassan Mohamed (Father)",
-    "عادل كريم (الأب)": "Adel Karim (Father)",
-    "طارق سمر (الأب)": "Tarek Samar (Father)",
-  };
-  return tMap[val.trim()] || val;
-};
+const translateMock = (_isRtl: boolean, val?: string) => val || "";
 
-const MOCK_PATIENT = MOCK_PATIENTS[0];
 
-const MOCK_SESSIONS: Session[] = [
-  {
-    id: "S-001",
-    date: "2024-12-10",
-    diagnosis: "ألم أسفل الظهر المزمن - L4/L5",
-    vasScore: 7,
-    rom: "ثني أمامي: 45°، مد خلفي: 15°",
-    notes: "المريض يشكو من تصلب صباحي. تم تطبيق TENS وتمارين تقوية العضلات المحيطة.",
-    therapist: "د. منى حسين",
-  },
-  {
-    id: "S-002",
-    date: "2024-12-14",
-    diagnosis: "ألم أسفل الظهر المزمن - L4/L5",
-    vasScore: 5,
-    rom: "ثني أمامي: 55°، مد خلفي: 20°",
-    notes: "تحسن ملحوظ في المدى الحركي. تم إضافة تمارين McKenzie.",
-    therapist: "د. منى حسين",
-  },
-  {
-    id: "S-003",
-    date: "2024-12-18",
-    diagnosis: "ألم أسفل الظهر المزمن - L4/L5",
-    vasScore: 3,
-    rom: "ثني أمامي: 65°، مد خلفي: 25°",  },
-];
+
+
 
 // ─── Clinical Knowledge Base (EBP & Contraindications) ───────────────────────
 
@@ -745,7 +580,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
   
   const [sessions, setSessions] = useState<Session[]>([]);
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);  const [form, setForm] = useState({ diagnosis: "", vasScore: 5, notes: "" });
+  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);  const [form, setForm] = useState({ diagnosis: "", vasScore: 0, notes: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
 
@@ -764,7 +599,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
             id: s.id,
             date: s.date,
             diagnosis: s.diagnosis || "",
-            vasScore: s.vasScore ?? s.vas_score ?? 5,
+            vasScore: s.vasScore ?? s.vas_score ?? 0,
             rom: s.rom || "",
             notes: s.notes || "",
             therapist: s.therapist || "",
@@ -847,7 +682,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
     e.preventDefault();
     setIsSubmitting(true);
 
-    const therapistName = isRtl ? "د. منى حسين" : "Dr. Mona Hussein";
+    const therapistName = "";
     const today = new Date().toISOString().split("T")[0];
 
     // Build the session row — matches Supabase sessions table schema
@@ -911,7 +746,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
       setSessions([newSession, ...sessions]);
     }
 
-    setForm({ diagnosis: "", vasScore: 5, notes: "" });
+    setForm({ diagnosis: "", vasScore: 0, notes: "" });
     setSelectedRegions([]);
     setIsSubmitting(false);
   };
@@ -1380,11 +1215,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
 function RadiologyTab() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
-  const { hasPermission } = usePermissions();  const [files, setFiles] = useState([
-    { name: "MRI_spine_L4L5.dcm", size: "48.2 MB", type: "MRI", date: "2024-11-20", url: "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&q=80&w=800" },
-    { name: "Xray_lumbar_lateral.jpg", size: "3.1 MB", type: "X-Ray", date: "2024-11-20", url: "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=800" },
-    { name: "Blood_test_CBC.pdf", size: "0.8 MB", type: isRtl ? "تحليل دم" : "Blood Test", date: "2024-12-01", url: "https://images.unsplash.com/photo-1583324113626-70df0f4deaab?auto=format&fit=crop&q=80&w=800" },
-  ]);
+  const { hasPermission } = usePermissions();  const [files, setFiles] = useState<{ name: string; size: string; type: string; date: string; url: string }[]>([]);
   const [deleteFileIdx, setDeleteFileIdx] = useState<number | null>(null);
   const [viewFileIdx, setViewFileIdx] = useState<number | null>(null);
 
@@ -1504,18 +1335,18 @@ function PackagesTab() {
   const isRtl = language === "ar";
 
   const pkg = { 
-    nameAr: "باقة العلاج الطبيعي المتكاملة", 
-    nameEn: "Comprehensive Physical Therapy Package",
-    totalSessions: 20, 
-    usedSessions: 13, 
-    startDate: "2024-11-01", 
-    endDate: "2025-02-01", 
-    price: 3500, 
-    statusAr: "نشط",
-    statusEn: "Active"
+    nameAr: "", 
+    nameEn: "",
+    totalSessions: 0, 
+    usedSessions: 0, 
+    startDate: "", 
+    endDate: "", 
+    price: 0, 
+    statusAr: "",
+    statusEn: ""
   };
   const remaining = pkg.totalSessions - pkg.usedSessions;
-  const pct = Math.round((pkg.usedSessions / pkg.totalSessions) * 100);
+  const pct = pkg.totalSessions > 0 ? Math.round((pkg.usedSessions / pkg.totalSessions) * 100) : 0;
 
   return (
     <div className="pt-4 space-y-4">
@@ -1571,15 +1402,7 @@ function PackagesTab() {
       </Card>
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">{isRtl ? "الباقات السابقة" : "Previous Packages"}</h3>
-        <Card className="opacity-60">
-          <CardContent className="py-3 px-4 flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">{isRtl ? "باقة البداية (١٠ جلسات)" : "Starter Package (10 Sessions)"}</p>
-              <p className="text-xs text-muted-foreground">2024-08-01 → 2024-10-31</p>
-            </div>
-            <Badge variant="outline">{isRtl ? "منتهية" : "Expired"}</Badge>
-          </CardContent>
-        </Card>
+        <p className="text-sm text-muted-foreground text-center py-4">{isRtl ? "لا توجد باقات سابقة" : "No previous packages"}</p>
       </div>
     </div>
   );
@@ -2492,9 +2315,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
     }).catch(() => {});
   };
 
-  const [patient, setPatient] = useState<Patient>(() => {
-    return MOCK_PATIENTS.find((p) => p.id === resolvedParams.id) || MOCK_PATIENT;
-  });
+  const [patient, setPatient] = useState<Patient>(EMPTY_PATIENT(resolvedParams.id));
 
   // Load real patient data from Supabase
   useEffect(() => {
