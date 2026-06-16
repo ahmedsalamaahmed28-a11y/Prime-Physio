@@ -3,10 +3,8 @@ const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',
   '/logo.png',
-  '/favicon.ico',
-  '/globe.svg',
-  '/file.svg',
-  '/window.svg'
+  '/next.svg',
+  '/vercel.svg'
 ];
 
 // Install Event - Pre-cache core files
