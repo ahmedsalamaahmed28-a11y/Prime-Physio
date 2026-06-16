@@ -48,90 +48,95 @@ export default function HomePage() {
   const [totalPatients, setTotalPatients] = useState(0);
 
   useEffect(() => {
+    if (clinicId === undefined) return;
     async function fetchAppointmentsAndPatients() {
       try {
         setIsLoading(true);
 
         // 1. Fetch total patients
         let totalPatientsCount = 0;
-        const { count, error: countErr } = await supabase
-          .from("patients")
-          .select("*", { count: 'exact', head: true })
-          .eq('clinic_id', clinicId);
+        const qb = supabase.from("patients");
+        const q = clinicId ? qb.select("*", { count: 'exact', head: true }).eq('clinic_id', clinicId) : qb.select("*", { count: 'exact', head: true });
+        const { count, error: countErr } = await q;
         if (!countErr && count !== null) {
           totalPatientsCount = count;
-        } else {
+        } else if (clinicId) {
           const { data: dbPatients } = await supabase.from("patients").select("id").eq('clinic_id', clinicId);
           if (dbPatients) totalPatientsCount = dbPatients.length;
         }
-        
+
         setTotalPatients(totalPatientsCount);
 
         // 2. Fetch today's income strictly from Invoices where status is Paid
         let incomeSum = 0;
         const todayStr = new Date().toISOString().split("T")[0];
-        const { data: paidInvoices, error: invErr } = await supabase
-          .from("invoices")
-          .select("amount")
-          .eq('clinic_id', clinicId)
-          .eq("date", todayStr)
-          .in("status", ["مدفوع", "Paid"]);
-          
-        if (!invErr && paidInvoices) {
-          incomeSum = paidInvoices.reduce((sum, inv) => sum + parseInt(inv.amount.replace(/[^0-9]/g, "") || "0"), 0);
+        if (clinicId) {
+          const { data: paidInvoices, error: invErr } = await supabase
+            .from("invoices")
+            .select("amount")
+            .eq('clinic_id', clinicId)
+            .eq("date", todayStr)
+            .in("status", ["مدفوع", "Paid"]);
+
+          if (!invErr && paidInvoices) {
+            incomeSum = paidInvoices.reduce((sum, inv) => sum + parseInt(inv.amount.replace(/[^0-9]/g, "") || "0"), 0);
+          }
         }
         setTodayIncome(incomeSum);
 
         // 3. Fetch real upcoming appointments from Supabase, but only for paid invoices
-        const { data: paidInvoiceRows, error: paidInvErr } = await supabase
-          .from("invoices")
-          .select("patient_id, status")
-          .eq('clinic_id', clinicId)
-          .eq("status", "مدفوع");
+        const paidPatientIds = new Set<string>();
+        if (clinicId) {
+          const { data: paidInvoiceRows, error: paidInvErr } = await supabase
+            .from("invoices")
+            .select("patient_id, status")
+            .eq('clinic_id', clinicId)
+            .eq("status", "مدفوع");
 
-        if (paidInvErr) {
-          console.warn("Failed to load paid invoices for homepage", paidInvErr);
-        }
+          if (paidInvErr) {
+            console.warn("Failed to load paid invoices for homepage", paidInvErr);
+          }
 
-        const paidPatientIds = new Set(
           (paidInvoiceRows || [])
             .map((inv: any) => inv.patient_id)
             .filter(Boolean)
-        );
+            .forEach((id: string) => paidPatientIds.add(id));
+        }
 
         // 4. Fetch real upcoming appointments from Supabase for today
         let finalAppointments: any[] = [];
-        const { data: realAppointments, error: aptError } = await supabase
-          .from("appointments")
-          .select("*")
-          .eq('clinic_id', clinicId)
-          .order("start_time", { ascending: true });
+        if (clinicId) {
+          const { data: realAppointments, error: aptError } = await supabase
+            .from("appointments")
+            .select("*")
+            .eq('clinic_id', clinicId)
+            .order("start_time", { ascending: true });
 
-        const todayDateStr = new Date().toDateString();
+          const todayDateStr = new Date().toDateString();
 
-        if (!aptError && realAppointments && realAppointments.length > 0) {
-          finalAppointments = realAppointments
-            .filter(a =>
-              new Date(a.start_time).toDateString() === todayDateStr &&
-              a.status !== "ملغي" &&
-              paidPatientIds.has(a.patient_id)
-            )
-            .map(a => {
-              const start = new Date(a.start_time);
-              const end = new Date(a.end_time);
-              return {
-                id: a.id,
-                patientId: a.patient_id,
-                time: `${start.getHours().toString().padStart(2, '0')}:${start.getMinutes().toString().padStart(2, '0')} - ${end.getHours().toString().padStart(2, '0')}:${end.getMinutes().toString().padStart(2, '0')}`,
-                doctor: a.doctor_name,
-                type: a.appointment_type,
-                status: a.status,
-                name: a.patient_name,
-                nameAr: a.patient_name
-              };
-            });
+          if (!aptError && realAppointments && realAppointments.length > 0) {
+            finalAppointments = realAppointments
+              .filter(a =>
+                new Date(a.start_time).toDateString() === todayDateStr &&
+                a.status !== "ملغي" &&
+                paidPatientIds.has(a.patient_id)
+              )
+              .map(a => {
+                const start = new Date(a.start_time);
+                const end = new Date(a.end_time);
+                return {
+                  id: a.id,
+                  patientId: a.patient_id,
+                  time: `${start.getHours().toString().padStart(2, '0')}:${start.getMinutes().toString().padStart(2, '0')} - ${end.getHours().toString().padStart(2, '0')}:${end.getMinutes().toString().padStart(2, '0')}`,
+                  doctor: a.doctor_name,
+                  type: a.appointment_type,
+                  status: a.status,
+                  name: a.patient_name,
+                  nameAr: a.patient_name
+                };
+              });
+          }
         }
-
 
         setAppointments(finalAppointments);
       } catch (err) {
@@ -143,7 +148,7 @@ export default function HomePage() {
       }
     }
     fetchAppointmentsAndPatients();
-  }, []);
+  }, [clinicId]);
 
   const totalSessions = appointments.length;
   const completedSessions = appointments.filter(apt => apt.status === "نشط" || apt.status === "Active").length;
