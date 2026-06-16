@@ -893,7 +893,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
         status: "مؤكد",
         start_time: startTime.toISOString(),
         end_time: endTime.toISOString(),
-      }]).then(() => {}).catch(() => {}); // best-effort — don't block on failure
+      }]).then(() => {}, () => {}); // best-effort — don't block on failure
 
       setSessions([newSession, ...sessions]);
     } catch (err) {
