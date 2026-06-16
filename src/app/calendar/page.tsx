@@ -56,8 +56,6 @@ type VisitType = "جلسة علاج" | "كشف أول" | "متابعة" | "تق�
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
 const PATIENTS: any[] = [];
-
-const DOCTORS = ["د. منى حسين", "د. خالد عمر", "د. سارة أحمد"];
 const VISIT_TYPES: VisitType[] = ["جلسة علاج", "كشف أول", "متابعة", "تقييم"];
 
 const VISIT_COLORS: Record<VisitType, string> = {
@@ -90,19 +88,21 @@ function NewAppointmentDialog({
   open,
   slot,
   patientsList,
+  doctorsList,
   onClose,
   onSave,
 }: {
   open: boolean;
   slot: SlotInfo | null;
   patientsList: any[];
+  doctorsList: {name:string}[];
   onClose: () => void;
   onSave: (ev: CalendarEvent) => void;
 }) {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const [patientId, setPatientId] = useState("");
-  const [doctor, setDoctor] = useState(DOCTORS[0]);
+  const [doctor, setDoctor] = useState("");
   const [visitType, setVisitType] = useState<VisitType>("جلسة علاج");
   const [duration, setDuration] = useState(45);
   const [notes, setNotes] = useState("");
@@ -181,7 +181,7 @@ function NewAppointmentDialog({
               value={doctor}
               onChange={(e) => setDoctor(e.target.value)}
             >
-              {DOCTORS.map((d) => <option key={d}>{d}</option>)}
+                  {doctorsList.map((d) => <option key={d.name} value={d.name}>{d.name}</option>)}
             </select>
           </div>
 
@@ -247,12 +247,14 @@ function NewAppointmentDialog({
 
 function EventDetailsDialog({
   event,
+  doctorsList,
   onClose,
   onUpdate,
   onCancel,
   onComplete,
 }: {
   event: CalendarEvent | null;
+  doctorsList: {name:string}[];
   onClose: () => void;
   onUpdate: (ev: CalendarEvent) => void;
   onCancel: (id: string) => void;
@@ -318,7 +320,7 @@ function EventDetailsDialog({
                 <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   value={form.doctor ?? event.doctor}
                   onChange={(e) => setForm(f => ({ ...f, doctor: e.target.value }))}>
-                  {DOCTORS.map((d) => <option key={d}>{d}</option>)}
+              {doctorsList.map((d) => <option key={d.name} value={d.name}>{d.name}</option>)}
                 </select>
               </div>
               <div className="space-y-1.5">
@@ -402,6 +404,7 @@ export default function CalendarPage() {
   const { hasPermission } = usePermissions();
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
+  const [doctorsList, setDoctorsList] = useState<{name:string}[]>([]);
   const [view, setView] = useState<View>("week");
   const [date, setDate] = useState(new Date());
   const [selectedSlot, setSelectedSlot] = useState<SlotInfo | null>(null);
@@ -416,6 +419,16 @@ export default function CalendarPage() {
         setPatients([]);
       } else {
         setPatients(patientsData || []);
+      }
+
+      const { data: doctorsData, error: doctorsError } = await supabase.from("staff").select("name,email,role");
+      if (doctorsError) {
+        console.error("Failed to load doctors from Supabase", doctorsError);
+        setDoctorsList([]);
+      } else {
+        const isDoctor = (role: string) =>
+          ["مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(role);
+        setDoctorsList((doctorsData || []).filter((s: any) => isDoctor(s.role)));
       }
 
       const { data: dbEvents, error: dbErr } = await supabase.from("appointments").select("*");
@@ -724,11 +737,13 @@ export default function CalendarPage() {
         open={!!selectedSlot}
         slot={selectedSlot}
         patientsList={patients}
+        doctorsList={doctorsList}
         onClose={() => setSelectedSlot(null)}
         onSave={handleSaveNew}
       />
       <EventDetailsDialog
         event={selectedEvent}
+        doctorsList={doctorsList}
         onClose={() => setSelectedEvent(null)}
         onUpdate={handleUpdate}
         onCancel={handleCancel}
