@@ -117,12 +117,12 @@ function PatientsContent() {
 
     async function loadDoctors() {
       try {
-        const { data, error } = await supabase.from("staff").select("name,email,specialty,role");
-        if (error) { console.error("loadDoctors error:", JSON.stringify(error, null, 2)); return; }
+        const { data, error } = await supabase.from("staff").select("name,email,role");
+        if (error) { console.error("loadDoctors error:", error); return; }
         if (data) {
           const isDoctor = (role: string) =>
             ["مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(role);
-          setDoctorsList(data.filter((s: any) => isDoctor(s.role) || String(s.specialty || "").length > 0));
+          setDoctorsList(data.filter((s: any) => isDoctor(s.role)));
         }
       } catch (err) { console.error("loadDoctors exception:", err); }
     }

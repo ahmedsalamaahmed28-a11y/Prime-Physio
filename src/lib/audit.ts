@@ -28,12 +28,11 @@ export async function logAuditAction(action: string, module: string, details: st
       userName = session.user.user_metadata?.full_name || userName;
     }
 
-    const logEntry = {
+    const logEntry: Record<string, any> = {
       id: crypto.randomUUID(),
       user_email: userEmail,
       user_name: userName,
       action,
-      module,
       details,
       created_at: new Date().toISOString()
     };

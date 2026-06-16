@@ -205,7 +205,7 @@ export default function DashboardLayout({
     const loadNotifications = async () => {
       const { data, error } = await supabase
         .from("audit_logs")
-        .select("id, action, module, entity, entity_id, details, created_at")
+        .select("id, action, entity, entity_id, details, created_at")
         .order("created_at", { ascending: false })
         .limit(6);
 

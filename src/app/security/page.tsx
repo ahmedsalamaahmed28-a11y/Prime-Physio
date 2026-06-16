@@ -36,7 +36,7 @@ export default function SecurityPage() {
   const loadSecurityEvents = async () => {
     const { data, error } = await supabase
       .from("audit_logs")
-      .select("id, action, module, details, created_at, user_email")
+      .select("id, action, details, created_at, user_email")
       .order("created_at", { ascending: false })
       .limit(5);
 
