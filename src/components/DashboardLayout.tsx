@@ -104,29 +104,6 @@ export default function DashboardLayout({
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
-
-  const isAuthPage = pathname === "/login" || pathname === "/signup";
-
-  if (!activeAccount) {
-    if (isAuthPage) {
-      return <>{children}</>;
-    }
-    return null;
-  }
-
-  const displayAccountName = activeAccount.roleKey === "receptionist"
-    ? activeAccount.name
-    : activeAccount.name.startsWith("د.")
-    ? activeAccount.name
-    : `د. ${activeAccount.name}`;
-  const displayAccountNameEn = activeAccount.roleKey === "receptionist"
-    ? (activeAccount.nameEn || activeAccount.name)
-    : activeAccount.roleKey === "admin"
-    ? activeAccount.name
-    : (activeAccount.nameEn || activeAccount.name).startsWith("Dr.")
-    ? (activeAccount.nameEn || activeAccount.name)
-    : `Dr. ${activeAccount.nameEn || activeAccount.name}`;
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -142,23 +119,6 @@ export default function DashboardLayout({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const isActive = (href: string) => {
-    if (!pathname) return false;
-    if (href === "/") {
-      return pathname === "/";
-    }
-    return pathname.startsWith(href);
-  };
-
-  const toggleSidebar = () => setIsOpen(!isOpen);
-  const closeSidebar = () => setIsOpen(false);
-  const toggleProfile = () => {
-    setIsProfileOpen(prev => !prev);
-  };
-  const toggleNotifications = () => {
-    setIsNotificationsOpen(prev => !prev);
-  };
 
   useEffect(() => {
     let active = true;
@@ -223,29 +183,52 @@ export default function DashboardLayout({
       )
       .subscribe();
 
-    const interval = window.setInterval(loadNotifications, 60000);
-
     return () => {
       active = false;
-      window.clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, []);
 
-  if (pathname === "/login" || pathname === "/signup") {
+  const isAuthPage = pathname === "/login" || pathname === "/signup";
+
+  if (isAuthPage) {
     return <>{children}</>;
   }
 
-  if (!mounted || isLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0d8a8a]"></div>
-      </div>
-    );
+  if (!activeAccount) {
+    if (isLoading) {
+      return (
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0d8a8a]"></div>
+        </div>
+      );
+    }
+    return null;
   }
 
-  // Route protection: auth.tsx redirects unauthenticated users to /login
-  if (!user) return null;
+  const displayAccountName = activeAccount.roleKey === "receptionist"
+    ? activeAccount.name
+    : activeAccount.name.startsWith("د.")
+    ? activeAccount.name
+    : `د. ${activeAccount.name}`;
+  const displayAccountNameEn = activeAccount.roleKey === "receptionist"
+    ? (activeAccount.nameEn || activeAccount.name)
+    : activeAccount.roleKey === "admin"
+    ? activeAccount.name
+    : (activeAccount.nameEn || activeAccount.name).startsWith("Dr.")
+    ? (activeAccount.nameEn || activeAccount.name)
+    : `Dr. ${activeAccount.nameEn || activeAccount.name}`;
+
+  const isActive = (href: string) => {
+    if (!pathname) return false;
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
+  };
+
+  const toggleSidebar = () => setIsOpen(!isOpen);
+  const closeSidebar = () => setIsOpen(false);
+  const toggleProfile = () => setIsProfileOpen(prev => !prev);
+  const toggleNotifications = () => setIsNotificationsOpen(prev => !prev);
 
   const isRtl = language === "ar";
 
