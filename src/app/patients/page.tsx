@@ -66,6 +66,7 @@ function PatientsContent() {
   });
   const [defaultClinicPrice, setDefaultClinicPrice] = useState("100");
   const [defaultExamPrice, setDefaultExamPrice] = useState("200");
+  const [doctorsList, setDoctorsList] = useState<any[]>([]);
 
   const saveLocalPatients = (data: any[]) => {
     setPatients(data);
@@ -114,8 +115,19 @@ function PatientsContent() {
       } catch (err) {}
     }
 
+    async function loadDoctors() {
+      const { data } = await supabase.from("staff").select("name,email,specialty,role");
+      if (data) {
+        const docs = data.filter((s: any) =>
+          String(s.role || "").includes("علاج") || String(s.specialty || "").length > 0
+        );
+        setDoctorsList(docs);
+      }
+    }
+
     loadPatients();
     loadDefaultSettings();
+    loadDoctors();
   }, []);
 
   const getPatientName = (p: any) => {
@@ -493,9 +505,9 @@ function PatientsContent() {
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-600"
                 >
                   <option value="">{isRtl ? "غير محدد" : "Not specified"}</option>
-                  <option value="د. منى حسين">د. منى حسين</option>
-                  <option value="د. خالد عمر">د. خالد عمر</option>
-                  <option value="د. سارة أحمد">د. سارة أحمد</option>
+                  {doctorsList.map((doc) => (
+                    <option key={doc.email} value={doc.name}>{doc.name}</option>
+                  ))}
                 </select>
               </div>
             </div>
