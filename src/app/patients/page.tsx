@@ -118,7 +118,7 @@ function PatientsContent() {
     async function loadDoctors() {
       try {
         const { data, error } = await supabase.from("staff").select("name,email,specialty,role");
-        if (error) { console.error("loadDoctors error:", error); return; }
+        if (error) { console.error("loadDoctors error:", JSON.stringify(error, null, 2)); return; }
         if (data) {
           const isDoctor = (role: string) =>
             ["مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(role);
