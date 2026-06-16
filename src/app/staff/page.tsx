@@ -284,6 +284,14 @@ export default function StaffPage() {
                       <span className="font-mono">{doc.phone || ""}</span>
                     </div>
                   </div>
+                  {hasPermission("manage_staff") && (
+                    <div className="pt-2 border-t flex justify-center">
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteStaffClick(doc.email)} className="text-rose-600 hover:text-rose-700 text-xs gap-1">
+                        <Trash2 className="w-3.5 h-3.5" />
+                        {isRtl ? "حذف" : "Delete"}
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

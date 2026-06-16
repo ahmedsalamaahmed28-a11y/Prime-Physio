@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Stethoscope, Calendar, Phone, Users } from "lucide-react";
+import { Stethoscope, Calendar, Phone, Users, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,13 +16,17 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useLanguage } from "@/lib/LanguageContext";
+import { usePermissions } from "@/lib/usePermissions";
+import { logAuditAction } from "@/lib/audit";
 import { supabase } from "@/lib/supabase";
 
 export default function DoctorsPage() {
   const [doctors, setDoctors] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [deleteDoctorEmail, setDeleteDoctorEmail] = useState<string | null>(null);
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
+  const { hasPermission } = usePermissions();
   
   const [formData, setFormData] = useState({
     name: "",
@@ -65,6 +69,26 @@ export default function DoctorsPage() {
   useEffect(() => {
     loadDoctors();
   }, []);
+
+  const handleDeleteDoctorClick = (email: string) => {
+    setDeleteDoctorEmail(email);
+  };
+
+  const executeDeleteDoctor = async () => {
+    if (deleteDoctorEmail === null) return;
+    const doctorToDelete = doctors.find(d => d.email === deleteDoctorEmail);
+    try {
+      const { error } = await supabase.from('staff').delete().eq('email', deleteDoctorEmail);
+      if (error) throw error;
+      await loadDoctors();
+      if (doctorToDelete) {
+        logAuditAction("DELETE_STAFF", "STAFF_MANAGEMENT", `Deleted doctor: ${doctorToDelete.name} (${deleteDoctorEmail})`);
+      }
+      setDeleteDoctorEmail(null);
+    } catch (err: any) {
+      alert("Error deleting doctor: " + err.message);
+    }
+  };
 
   const handleAddDoctor = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -228,6 +252,33 @@ export default function DoctorsPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Delete Doctor Confirmation Modal */}
+      <Dialog open={deleteDoctorEmail !== null} onOpenChange={(open) => !open && setDeleteDoctorEmail(null)}>
+        <DialogContent className="sm:max-w-sm text-center" showCloseButton={false}>
+          <div className="flex flex-col items-center justify-center space-y-4 pt-4">
+            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-2">
+              <Trash2 className="w-8 h-8" />
+            </div>
+            <DialogTitle className="text-xl font-bold text-slate-800">
+              {isRtl ? "تأكيد الحذف" : "Confirm Deletion"}
+            </DialogTitle>
+            <DialogDescription className="text-sm text-slate-500">
+              {isRtl
+                ? "هل أنت متأكد من حذف هذا الطبيب نهائياً؟ سيتم إزالة جميع بياناته ولن يمكنه الدخول مجدداً."
+                : "Are you sure you want to permanently delete this doctor? This action cannot be undone."}
+            </DialogDescription>
+          </div>
+          <div className={`mt-6 flex gap-3 w-full ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
+            <Button type="button" variant="outline" onClick={() => setDeleteDoctorEmail(null)} className="flex-1 rounded-xl font-bold">
+              {isRtl ? "إلغاء" : "Cancel"}
+            </Button>
+            <Button type="button" onClick={executeDeleteDoctor} className="flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold">
+              {isRtl ? "نعم، احذف" : "Yes, Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {doctors.map((doc) => (
           <Card key={doc.email} className="shadow-xs hover:shadow-md transition-shadow">
@@ -267,9 +318,16 @@ export default function DoctorsPage() {
                 } font-normal border`}>
                   {getDoctorStatus(doc)}
                 </Badge>
-                <Button variant="outline" size="sm" className="text-xs h-8 rounded-lg">
-                  {t("view_appointments")}
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="text-xs h-8 rounded-lg">
+                    {t("view_appointments")}
+                  </Button>
+                  {hasPermission("manage_staff") && (
+                    <Button variant="outline" size="sm" onClick={() => handleDeleteDoctorClick(doc.email)} className="text-xs h-8 rounded-lg text-rose-600 border-rose-200 hover:bg-rose-50">
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
