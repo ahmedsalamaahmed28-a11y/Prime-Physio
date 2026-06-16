@@ -1,0 +1,287 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Shield, ShieldCheck, ShieldAlert, Save, UserCheck, AlertTriangle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/lib/LanguageContext";
+import { logAuditAction } from "@/lib/audit";
+import { supabase } from "@/lib/supabase";
+
+const AVAILABLE_PERMISSIONS = [
+  { id: "delete_patient", labelAr: "حذف ملف مريض نهائياً", labelEn: "Delete Patient", category: "Patients" },
+  { id: "edit_patient", labelAr: "تعديل بيانات المريض", labelEn: "Edit Patient", category: "Patients" },
+  { id: "create_invoice", labelAr: "إنشاء وتحصيل فاتورة", labelEn: "Create Invoice", category: "Billing" },
+  { id: "delete_invoice", labelAr: "إلغاء/حذف فاتورة", labelEn: "Delete Invoice", category: "Billing" },
+  { id: "refund_invoice", labelAr: "إصدار مرتجع مالي", labelEn: "Refund Invoice", category: "Billing" },
+  { id: "apply_discount", labelAr: "إعطاء خصم مالي", labelEn: "Apply Discount", category: "Billing" },
+  { id: "print_invoice", labelAr: "طباعة الفواتير", labelEn: "Print Invoice", category: "Billing" },
+  { id: "view_patient_history", labelAr: "الاطلاع على التاريخ الطبي (History)", labelEn: "View Medical History", category: "Medical" },
+  { id: "edit_emr", labelAr: "تعديل سجل طبي (EMR)", labelEn: "Edit EMR", category: "Medical" },
+  { id: "delete_emr", labelAr: "حذف السجل الطبي بالكامل", labelEn: "Delete EMR", category: "Medical" },
+  { id: "edit_appointments", labelAr: "إدارة المواعيد والجدولة", labelEn: "Manage Appointments", category: "Reception" },
+  { id: "send_messages", labelAr: "إرسال رسائل للمرضى", labelEn: "Send Messages", category: "Reception" },
+  { id: "manage_staff", labelAr: "إضافة وحذف الموظفين", labelEn: "Manage Staff", category: "Admin" },
+  { id: "view_analytics", labelAr: "الاطلاع على الإيرادات والتحليلات", labelEn: "View Analytics", category: "Admin" },
+  { id: "export_data", labelAr: "تصدير بيانات العيادة (Excel/PDF)", labelEn: "Export Data", category: "Admin" },
+  { id: "manage_settings", labelAr: "تعديل الإعدادات الأساسية", labelEn: "Manage Settings", category: "Admin" },
+  { id: "manage_inventory", labelAr: "إدارة المخزون والمعدات", labelEn: "Manage Inventory", category: "Admin" },
+];
+
+const getDefaultPerms = (role: string) => {
+  const roleName = role || "";
+  if (["مدير العياده", "مدير النظام", "admin"].includes(roleName)) {
+    return AVAILABLE_PERMISSIONS.map(p => p.id);
+  }
+  if (["استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي", "doctor"].includes(roleName)) {
+    return ["edit_emr", "edit_patient"];
+  }
+  if (["موظف استقبال", "موظفة استقبال رئيسية", "receptionist"].includes(roleName)) {
+    return ["create_invoice", "edit_patient"];
+  }
+  return [];
+};
+
+export default function PermissionsPage() {
+  const { language, t } = useLanguage();
+  const isRtl = language === "ar";
+  const [staff, setStaff] = useState<any[]>([]);
+  const [selectedStaffEmail, setSelectedStaffEmail] = useState<string | null>(null);
+  
+  // permissionsMap: { "email@example.com": ["delete_patient", "edit_emr"] }
+  const [permissionsMap, setPermissionsMap] = useState<Record<string, string[]>>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const { data, error } = await supabase.from('staff').select('*').order('created_at', { ascending: true });
+        if (!error && data) {
+          setStaff(data);
+          if (data.length > 0) setSelectedStaffEmail(data[0].email);
+          
+          const perms: Record<string, string[]> = {};
+          data.forEach((member) => {
+            if (member.permissions && Array.isArray(member.permissions)) {
+              perms[member.email] = member.permissions;
+            }
+          });
+          setPermissionsMap(perms);
+        }
+      } catch (err) {
+        console.warn("Failed to load staff permissions", err);
+      }
+    }
+    loadData();
+  }, []);
+
+  const handleTogglePermission = (permissionId: string) => {
+    if (!selectedStaffEmail || !activeStaffMember) return;
+    setPermissionsMap(prev => {
+      // If no override exists, start with the default perms
+      const basePerms = prev[selectedStaffEmail] !== undefined 
+        ? prev[selectedStaffEmail] 
+        : getDefaultPerms(activeStaffMember.role);
+        
+      const hasPerm = basePerms.includes(permissionId);
+      return {
+        ...prev,
+        [selectedStaffEmail]: hasPerm 
+          ? basePerms.filter(p => p !== permissionId)
+          : [...basePerms, permissionId]
+      };
+    });
+  };
+
+  const handleSave = async () => {
+    if (!selectedStaffEmail) return;
+    setIsSaving(true);
+    
+    try {
+      const userPerms = permissionsMap[selectedStaffEmail] || getDefaultPerms(activeStaffMember?.role || "");
+      const { error } = await supabase
+        .from('staff')
+        .update({ permissions: userPerms })
+        .eq('email', selectedStaffEmail);
+        
+      if (error) throw error;
+
+      // Log the change in Audit Trail
+      const selectedUser = staff.find(s => s.email === selectedStaffEmail);
+      if (selectedUser) {
+        await logAuditAction("UPDATE_PERMISSIONS", "SECURITY", `Updated custom permissions for ${selectedUser.name} (${selectedUser.email})`);
+      }
+      
+      setToastMessage(isRtl ? "تم حفظ الصلاحيات بنجاح!" : "Permissions saved successfully!");
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (err: any) {
+      alert("Error saving permissions: " + err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const activeStaffMember = staff.find(s => s.email === selectedStaffEmail);
+  const activeUserPerms = selectedStaffEmail 
+    ? (permissionsMap[selectedStaffEmail] !== undefined ? permissionsMap[selectedStaffEmail] : (activeStaffMember ? getDefaultPerms(activeStaffMember.role) : [])) 
+    : [];
+
+  return (
+    <div className="space-y-6" dir={isRtl ? "rtl" : "ltr"}>
+      {/* Header */}
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isRtl ? "" : "flex-row-reverse"}`}>
+        <div>
+          <h1 className={`text-2xl font-bold text-slate-800 flex items-center gap-2 ${isRtl ? "" : "flex-row-reverse"}`}>
+            <div className="bg-rose-50 p-2 rounded-xl">
+              <ShieldAlert className="w-6 h-6 text-rose-600" />
+            </div>
+            {isRtl ? "إدارة الصلاحيات (Dynamic Permissions)" : "Dynamic Permissions Management"}
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            {isRtl 
+              ? "التحكم الدقيق بصلاحيات الموظفين بشكل فردي لتأمين الحركات الحرجة." 
+              : "Fine-grained control over individual employee permissions to secure critical actions."}
+          </p>
+        </div>
+        <Button 
+          onClick={handleSave} 
+          disabled={!selectedStaffEmail || isSaving}
+          className="bg-blue-600 hover:bg-blue-700 text-white gap-2 self-start sm:self-auto rounded-xl font-bold px-6 shadow-md transition-all active:scale-95"
+        >
+          {isSaving ? (
+            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+          ) : (
+            <Save className="w-4 h-4" />
+          )}
+          {isRtl ? "حفظ التعديلات" : "Save Changes"}
+        </Button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Left Col: Staff Selector */}
+        <Card className="lg:col-span-1 shadow-xs border-slate-100">
+          <CardHeader className="bg-slate-50/50 border-b pb-4">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <UserCheck className="w-4 h-4 text-slate-500" />
+              {isRtl ? "اختر الموظف" : "Select Staff"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="flex flex-col divide-y divide-border/50 max-h-[600px] overflow-y-auto">
+              {staff.length === 0 ? (
+                <div className="p-4 text-center text-sm text-slate-500">
+                  {isRtl ? "لا يوجد موظفين مسجلين" : "No staff found"}
+                </div>
+              ) : (
+                staff.map(member => (
+                  <button
+                    key={member.email}
+                    onClick={() => setSelectedStaffEmail(member.email)}
+                    className={`flex flex-col items-start p-4 transition-colors text-right w-full ${
+                      selectedStaffEmail === member.email 
+                        ? "bg-blue-50 border-r-4 border-blue-500" 
+                        : "hover:bg-slate-50 border-r-4 border-transparent"
+                    }`}
+                  >
+                    <span className="font-bold text-sm text-slate-800">{member.name}</span>
+                    <span className="text-[11px] text-slate-500">{member.role}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Right Col: Permissions List */}
+        <Card className="lg:col-span-3 shadow-xs border-slate-100">
+          <CardHeader className="border-b pb-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="text-base font-bold text-slate-800">
+                  {isRtl ? "صلاحيات الوصول الفردية" : "Individual Access Permissions"}
+                </CardTitle>
+                <CardDescription className="text-xs mt-1">
+                  {activeStaffMember 
+                    ? (isRtl ? `تعديل صلاحيات الموظف: ${activeStaffMember.name}` : `Editing permissions for: ${activeStaffMember.name}`)
+                    : (isRtl ? "يرجى اختيار موظف للبدء" : "Please select a staff member to begin")}
+                </CardDescription>
+              </div>
+              {activeStaffMember && (
+                <Badge variant="outline" className="bg-slate-100 font-mono text-[10px]">
+                  {activeStaffMember.email}
+                </Badge>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            {!selectedStaffEmail ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center opacity-60">
+                <Shield className="w-16 h-16 text-slate-300 mb-4" />
+                <p className="font-semibold text-slate-500">
+                  {isRtl ? "اختر موظفاً من القائمة الجانبية لعرض صلاحياته" : "Select a staff member from the sidebar to view their permissions"}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                
+                {/* Information Alert */}
+                <div className="bg-blue-50 text-blue-800 p-4 rounded-xl text-xs flex gap-3 border border-blue-100">
+                  <AlertTriangle className="w-5 h-5 shrink-0 text-blue-600" />
+                  <p className="leading-relaxed">
+                    {isRtl 
+                      ? "هذه الصلاحيات تتجاوز الصلاحيات الافتراضية للدور الوظيفي. عند تفعيل صلاحية هنا، سيتمكن الموظف من القيام بها بغض النظر عن مسماه الوظيفي. جميع الإجراءات سيتم تسجيلها في (سجل النشاطات)."
+                      : "These permissions override default role-based access. When enabled, the employee can perform the action regardless of their title. All actions are logged in the Audit Trail."}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {AVAILABLE_PERMISSIONS.map(perm => {
+                    const isEnabled = activeUserPerms.includes(perm.id);
+                    return (
+                      <div 
+                        key={perm.id} 
+                        className={`p-4 rounded-xl border flex items-center justify-between transition-all ${
+                          isEnabled ? "bg-white border-blue-200 shadow-sm" : "bg-slate-50 border-slate-200 opacity-70"
+                        }`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`p-2 rounded-lg ${isEnabled ? "bg-blue-100 text-blue-600" : "bg-slate-200 text-slate-500"}`}>
+                            {isEnabled ? <ShieldCheck className="w-4 h-4" /> : <Shield className="w-4 h-4" />}
+                          </div>
+                          <div>
+                            <p className={`font-bold text-sm ${isEnabled ? "text-slate-800" : "text-slate-600"}`}>
+                              {isRtl ? perm.labelAr : perm.labelEn}
+                            </p>
+                            <p className="text-[10px] text-slate-400 mt-0.5">{perm.category}</p>
+                          </div>
+                        </div>
+                        <Switch 
+                          checked={isEnabled} 
+                          onCheckedChange={() => handleTogglePermission(perm.id)}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
+          <div className="bg-emerald-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 font-semibold text-sm">
+            <ShieldCheck className="w-5 h-5" />
+            {toastMessage}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
