@@ -114,6 +114,7 @@ interface ClinicalProtocol {
   id: string;
   nameAr: string;
   nameEn: string;
+  keywords: string[];
   phases: ProtocolPhase[];
 }
 
@@ -122,6 +123,7 @@ const CLINICAL_PROTOCOLS: ClinicalProtocol[] = [
     id: "acl_reconstruction",
     nameAr: "إعادة بناء الرباط الصليبي الأمامي (ACL Reconstruction)",
     nameEn: "ACL Reconstruction Protocol",
+    keywords: ["acl", "رباط صليبي", "cruciate", "anterior cruciate", "تمزق الرباط"],
     phases: [
       {
         phaseNumber: 1,
@@ -173,6 +175,184 @@ const CLINICAL_PROTOCOLS: ClinicalProtocol[] = [
           { key: "limb_symmetry_90", labelAr: "تماثل القوة بنسبة 90% أو أكثر", labelEn: "Limb symmetry index > 90% on functional testing" },
           { key: "hop_tests_pass", labelAr: "اجتياز اختبارات القفز الوظيفية (Hop Tests)", labelEn: "Pass functional hop test battery (>90% symmetry)" },
           { key: "psychological_readiness", labelAr: "الجاهزية النفسية التامة للعب (درجة عالية في مقياس ACL-RSI)", labelEn: "Complete psychological readiness (high score on ACL-RSI)" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "lumbar_disc",
+    nameAr: "بروتوكول الانزلاق الغضروفي القطني (Lumbar Disc Herniation)",
+    nameEn: "Lumbar Disc Herniation Protocol",
+    keywords: ["lumbar", "disc", "herniation", "sciatica", "عرق النسا", "انزلاق غضروفي", "ظهر", "back pain", "spinal"],
+    phases: [
+      {
+        phaseNumber: 1,
+        weeks: "الأسابيع 1 - 2",
+        goalsAr: ["تخفيف الألم الحاد", "تصحيح وضعية الجلوس والوقوف", "تقليل الالتهاب حول العصب", "تعليم المريض ميكانيكا الجسم السليمة"],
+        goalsEn: ["Relieve acute pain", "Correct sitting and standing posture", "Reduce nerve root inflammation", "Teach proper body mechanics"],
+        precautionsAr: ["تجنب ثني العمود الفقري للأمام (Flexion)", "تجنب الجلوس الطويل", "تجنب رفع الأوزان الثقيلة", "عدم ممارسة تمارين اللمس (Toe Touches)"],
+        precautionsEn: ["Avoid spinal flexion", "Avoid prolonged sitting", "Avoid heavy lifting", "No toe touch exercises"],
+        criteria: [
+          { key: "pain_below_knee_gone", labelAr: "اختفاء الألم أسفل الركبة", labelEn: "Pain below knee resolved" },
+          { key: "sitting_30min", labelAr: "القدرة على الجلوس 30 دقيقة بدون ألم", labelEn: "Able to sit 30 min pain-free" },
+          { key: "slr_60", labelAr: "اختبار رفع الساق المستقيمة (SLR) أكثر من 60 درجة", labelEn: "Straight Leg Raise > 60°" }
+        ]
+      },
+      {
+        phaseNumber: 2,
+        weeks: "الأسابيع 3 - 4",
+        goalsAr: ["تحسين القوة الأساسية (Core)", "استعادة المدى الحركي الكامل للعمود الفقري", "البدء بتمارين التمدد和治疗ية"],
+        goalsEn: ["Improve core strength", "Restore full spinal ROM", "Begin McKenzie extension exercises"],
+        precautionsAr: ["تجنب الحركات الدورانية المفاجئة", "عدم العودة للرياضة قبل التقييم"],
+        precautionsEn: ["Avoid sudden rotational movements", "No return to sport before assessment"],
+        criteria: [
+          { key: "core_stability", labelAr: "ثبات الجذع الأساسي (Core) لمدة 30 ثانية", labelEn: "Core stability hold for 30 seconds" },
+          { key: "pain_free_rom", labelAr: "مدى حركي كامل للظهر بدون ألم", labelEn: "Full pain-free lumbar ROM" }
+        ]
+      },
+      {
+        phaseNumber: 3,
+        weeks: "الأسابيع 5 - 8",
+        goalsAr: ["تقوية عضلات الظهر والبطن", "العودة التدريجية للأنشطة اليومية", "الوقاية من تكرار الإصابة"],
+        goalsEn: ["Strengthen back and abdominal muscles", "Gradual return to daily activities", "Prevent recurrence"],
+        precautionsAr: ["مراقبة علامات التحذير (ألم، تنميل)"],
+        precautionsEn: ["Monitor for red flags (pain, numbness)"],
+        criteria: [
+          { key: "full_activity", labelAr: "العودة الكاملة للأنشطة اليومية بدون ألم", labelEn: "Full pain-free daily activities" },
+          { key: "back_strength", labelAr: "قوة عضلات الظهر تعادل 80%", labelEn: "Back muscle strength > 80%" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "shoulder_impingement",
+    nameAr: "بروتوكول تأهيل الكتف (Shoulder Impingement / Rotator Cuff)",
+    nameEn: "Shoulder Impingement & Rotator Cuff Protocol",
+    keywords: ["shoulder", "impingement", "rotator cuff", "supraspinatus", "subacromial", "painful arc", "كتف", "كفة مدورة"],
+    phases: [
+      {
+        phaseNumber: 1,
+        weeks: "الأسابيع 1 - 3",
+        goalsAr: ["تخفيف الألم والالتهاب", "استعادة المدى الحركي السلبي الكامل", "تفعيل العضلات بدون ألم"],
+        goalsEn: ["Reduce pain and inflammation", "Restore full passive ROM", "Activate muscles pain-free"],
+        precautionsAr: ["تجنب رفع الذراع فوق الكتف", "تجنب حمل الأوزان", "تجنب الحركات فوق الرأس"],
+        precautionsEn: ["Avoid lifting arm above shoulder", "No heavy lifting", "Avoid overhead activities"],
+        criteria: [
+          { key: "pain_at_rest_gone", labelAr: "اختفاء الألم عند الراحة", labelEn: "No pain at rest" },
+          { key: "passive_rom_90", labelAr: "مدى حركي سلبي للثني 90 درجة", labelEn: "Passive flexion ROM to 90°" }
+        ]
+      },
+      {
+        phaseNumber: 2,
+        weeks: "الأسابيع 4 - 7",
+        goalsAr: ["المدى الحركي النشط الكامل", "تقوية الكفة المدورة", "تحسين ثبات لوح الكتف"],
+        goalsEn: ["Full active ROM", "Strengthen rotator cuff", "Improve scapular stability"],
+        precautionsAr: ["تجنب رفع الأوزان الثقيلة", "تجنب الحركات القوية فجأة"],
+        precautionsEn: ["Avoid heavy resistance", "Avoid sudden explosive movements"],
+        criteria: [
+          { key: "active_rom_full", labelAr: "مدى حركي نشط كامل بدون ألم", labelEn: "Full active ROM pain-free" },
+          { key: "scapular_stability", labelAr: "ثبات لوح الكتف أثناء الحركة", labelEn: "Scapular stability during movement" }
+        ]
+      },
+      {
+        phaseNumber: 3,
+        weeks: "الأسابيع 8 - 12",
+        goalsAr: ["تقوية متقدمة للكتف", "العودة للأنشطة الرياضية", "الوقاية من الإصابة"],
+        goalsEn: ["Advanced strengthening", "Return to sport activities", "Prevent recurrence"],
+        precautionsAr: ["التدرج في العودة للرياضات العلوية"],
+        precautionsEn: ["Gradual return to overhead sports"],
+        criteria: [
+          { key: "strength_80", labelAr: "قوة الكتف تعادل 80% من الطرف السليم", labelEn: "Shoulder strength > 80% of uninvolved side" },
+          { key: "sport_specific", labelAr: "القدرة على أداء الحركات الرياضية الخاصة", labelEn: "Able to perform sport-specific movements" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "total_knee_replacement",
+    nameAr: "بروتوكول ما بعد تغيير مفصل الركبة (TKR)",
+    nameEn: "Total Knee Replacement (TKR) Protocol",
+    keywords: ["knee replacement", "total knee", "tkr", "arthroplasty", "ركبة صناعية", "تغيير مفصل", " knee"],
+    phases: [
+      {
+        phaseNumber: 1,
+        weeks: "الأسابيع 1 - 2",
+        goalsAr: ["السيطرة على التورم والألم", "استعادة امتداد الركبة الكامل (0 درجة)", "ثني الركبة حتى 60 درجة", "المشي باستخدام المشاية أو العكازات"],
+        goalsEn: ["Control swelling and pain", "Restore full knee extension (0°)", "Knee flexion to 60°", "Ambulate with walker/crutches"],
+        precautionsAr: ["تجنب ثني الركبة أكثر من 90 درجة", "تجنب التواء الركبة", "الكمادات الباردة المنتظمة"],
+        precautionsEn: ["Avoid flexion beyond 90°", "Avoid twisting the knee", "Regular ice packs"],
+        criteria: [
+          { key: "extension_0", labelAr: "امتداد كامل للركبة (0 درجة)", labelEn: "Full extension (0°)" },
+          { key: "flexion_60", labelAr: "ثني الركبة لـ 60 درجة", labelEn: "Knee flexion to 60°" },
+          { key: "independent_transfer", labelAr: "الانتقال من السرير للكرسي بشكل مستقل", labelEn: "Independent bed-to-chair transfer" }
+        ]
+      },
+      {
+        phaseNumber: 2,
+        weeks: "الأسابيع 3 - 6",
+        goalsAr: ["ثني الركبة حتى 110 درجة", "المشي بدون أجهزة مساعدة", "تقوية العضلة الرباعية"],
+        goalsEn: ["Flexion to 110°", "Ambulate without assistive devices", "Strengthen quadriceps"],
+        precautionsAr: ["تجنب الجري والقفز", "تجنب صعود الدرج بدون درابزين"],
+        precautionsEn: ["No running or jumping", "Avoid stairs without railing"],
+        criteria: [
+          { key: "flexion_110", labelAr: "ثني الركبة 110 درجة", labelEn: "Knee flexion to 110°" },
+          { key: "no_device_walking", labelAr: "المشي بدون عكازات أو مشاية", labelEn: "Walking without assistive device" }
+        ]
+      },
+      {
+        phaseNumber: 3,
+        weeks: "الأسابيع 7 - 12",
+        goalsAr: ["القوة العضلية تعادل 80% من الساق السليمة", "صعود ونزول الدرج بشكل طبيعي", "العودة للأنشطة اليومية"],
+        goalsEn: ["Strength > 80% of uninvolved limb", "Normal stair negotiation", "Return to daily activities"],
+        precautionsAr: ["تجنب الرياضات عالية التأثير", "مراقبة أي علامات تورم"],
+        precautionsEn: ["Avoid high-impact sports", "Monitor for swelling"],
+        criteria: [
+          { key: "strength_80_tkr", labelAr: "قوة الساق تعادل 80%", labelEn: "Limb strength > 80%" },
+          { key: "stairs_normal", labelAr: "صعود ونزول الدرج بشكل طبيعي", labelEn: "Normal stair climbing" }
+        ]
+      }
+    ]
+  },
+  {
+    id: "frozen_shoulder",
+    nameAr: "بروتوكول الكتف المتجمد (Frozen Shoulder / Adhesive Capsulitis)",
+    nameEn: "Frozen Shoulder (Adhesive Capsulitis) Protocol",
+    keywords: ["frozen shoulder", "adhesive capsulitis", "كتف متجمد", "محفظة لاصق", "shoulder stiffness"],
+    phases: [
+      {
+        phaseNumber: 1,
+        weeks: "مرحلة التجميد (Freezing) - أسابيع 1 - 8",
+        goalsAr: ["تخفيف الألم", "الحفاظ على المدى الحركي المتبقي", "تحسين النوم"],
+        goalsEn: ["Pain relief", "Maintain remaining ROM", "Improve sleep"],
+        precautionsAr: ["تجنب التمدد العنيف", "تمارين بندولية فقط", "عدم إجبار الكتف على الحركة"],
+        precautionsEn: ["Avoid aggressive stretching", "Pendulum exercises only", "Do not force shoulder movement"],
+        criteria: [
+          { key: "pain_control", labelAr: "السيطرة على الألم (VAS أقل من 4)", labelEn: "Pain controlled (VAS < 4)" },
+          { key: "pendulum_mastery", labelAr: "إتقان التمارين البندولية", labelEn: "Master pendulum exercises" }
+        ]
+      },
+      {
+        phaseNumber: 2,
+        weeks: "مرحلة التجمد (Frozen) - أسابيع 8 - 16",
+        goalsAr: ["تحسين المدى الحركي بالتمدد اللطيف", "تقوية الكتف ضمن حدود الألم"],
+        goalsEn: ["Improve ROM with gentle stretching", "Strengthen shoulder within pain limits"],
+        precautionsAr: ["التمدد ضمن حدود الألم فقط", "عدم استخدام أوزان ثقيلة"],
+        precautionsEn: ["Stretch only within pain limits", "No heavy weights"],
+        criteria: [
+          { key: "flexion_120_frozen", labelAr: "ثني الكتف لـ 120 درجة", labelEn: "Shoulder flexion to 120°" },
+          { key: "abduction_90", labelAr: "إبعاد الكتف لـ 90 درجة", labelEn: "Shoulder abduction to 90°" }
+        ]
+      },
+      {
+        phaseNumber: 3,
+        weeks: "مرحلة الذوبان (Thawing) - أسابيع 16 - 24+",
+        goalsAr: ["المدى الحركي الكامل", "تقوية متقدمة", "العودة للأنشطة"],
+        goalsEn: ["Full ROM", "Advanced strengthening", "Return to activities"],
+        precautionsAr: ["التدرج في العودة للأنشطة العلوية"],
+        precautionsEn: ["Gradual return to overhead activities"],
+        criteria: [
+          { key: "full_rom_frozen", labelAr: "المدى الحركي الكامل للكتف", labelEn: "Full shoulder ROM" },
+          { key: "strength_full", labelAr: "قوة الكتف طبيعية", labelEn: "Normal shoulder strength" }
         ]
       }
     ]
@@ -1753,6 +1933,15 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
     return activeProtocol.phases.find(p => p.phaseNumber === activeProtocolState.currentPhase) || null;
   }, [activeProtocol, activeProtocolState]);
 
+  const patientDiagnosis = patient.diagnosis || "";
+  const matchedProtocolIds = useMemo(() => {
+    if (!patientDiagnosis.trim()) return new Set<string>();
+    const lower = patientDiagnosis.toLowerCase();
+    return new Set(
+      CLINICAL_PROTOCOLS.filter(p => p.keywords.some(kw => lower.includes(kw))).map(p => p.id)
+    );
+  }, [patientDiagnosis]);
+
   // Assign protocol
   const handleAssignProtocol = async (protocolId: string) => {
     const initialState: ProtocolState = {
@@ -1972,19 +2161,24 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
           <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-3">
             <p className="text-xs text-slate-500 max-w-xl">
               {isRtl 
-                ? "حدد بروتوكولاً علاجياً عالمياً لمتابعة تأهيل المريض عبر مراحل زمنية واختبارات معيارية محددة." 
-                : "Select a standardized protocol to track patient rehabilitation using phase-specific checklists and criteria."}
+                ? (patientDiagnosis.trim() ? `تم اقتراح البروتوكولات المناسبة بناءً على تشخيص المريض.` : "حدد بروتوكولاً علاجياً لمتابعة تأهيل المريض.")
+                : (patientDiagnosis.trim() ? `Protocols are auto-suggested based on the patient's diagnosis.` : "Select a protocol to track patient rehabilitation.")}
             </p>
-            <div className="flex gap-2">
-              {CLINICAL_PROTOCOLS.map(proto => (
-                <Button
-                  key={proto.id}
-                  onClick={() => handleAssignProtocol(proto.id)}
-                  className="bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold px-4 h-9"
-                >
-                  {isRtl ? proto.nameAr : proto.nameEn}
-                </Button>
-              ))}
+            <div className="flex flex-wrap gap-2">
+              {CLINICAL_PROTOCOLS.map(proto => {
+                const isMatch = matchedProtocolIds.has(proto.id);
+                const hasMatches = matchedProtocolIds.size > 0;
+                return (
+                  <Button
+                    key={proto.id}
+                    onClick={() => handleAssignProtocol(proto.id)}
+                    className={`text-xs font-semibold px-4 h-9 ${isMatch ? "bg-teal-600 hover:bg-teal-700 text-white ring-2 ring-teal-300" : hasMatches ? "bg-slate-100 hover:bg-slate-200 text-slate-500" : "bg-teal-600 hover:bg-teal-700 text-white"}`}
+                  >
+                    {isRtl ? proto.nameAr : proto.nameEn}
+                    {isMatch && <span className="mr-1.5 text-[10px] opacity-80">{isRtl ? "✓ موصى به" : "✓ Recommended"}</span>}
+                  </Button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
