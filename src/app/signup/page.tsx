@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useAuth } from "@/lib/auth";
 import { setAppValue } from "@/lib/appStorage";
-import { supabase } from "@/lib/supabase";
 import Link from "next/link";
-import { ShieldAlert, Check, ArrowRight } from "lucide-react";
+import { ShieldAlert, Check } from "lucide-react";
 
 export default function SignupPage() {
   const { registerWithSupabase } = useAuth();
@@ -69,17 +69,7 @@ export default function SignupPage() {
 
     await setAppValue("pending_role", role);
 
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      },
-    });
-
-    if (oauthError) {
-      setError(oauthError.message);
-      setIsLoading(false);
-    }
+    signIn("google", { callbackUrl: "/" });
   };
 
   return (

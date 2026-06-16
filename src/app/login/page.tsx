@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabase";
 import { setAppValue } from "@/lib/appStorage";
-import { ShieldAlert, Lock, Eye, EyeOff, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ShieldAlert, Lock, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 
 export default function LoginPage() {
   const { loginWithSupabase } = useAuth();
@@ -51,17 +51,7 @@ export default function LoginPage() {
 
     await setAppValue("pending_role", activeRole);
 
-    const { error: oauthError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/`,
-      },
-    });
-
-    if (oauthError) {
-      setError(oauthError.message);
-      setIsSubmitting(false);
-    }
+    signIn("google", { callbackUrl: "/" });
   };
 
   return (
