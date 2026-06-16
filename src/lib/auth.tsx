@@ -142,7 +142,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         const enriched = await enrichUserWithClinic(newUser);
 
         setUser((prev) => {
-          if (prev?.email === enriched.email) return prev;
+          if (prev?.email === enriched.email && prev?.clinicId !== undefined) return prev;
           setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
           return enriched;
         });
@@ -210,7 +210,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
         const enriched = await enrichUserWithClinic(newUser);
         setUser((prev) => {
-          if (prev?.email === enriched.email) return prev;
+          if (prev?.email === enriched.email && prev?.clinicId !== undefined) return prev;
           setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
           return enriched;
         });
