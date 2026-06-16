@@ -59,17 +59,17 @@ const PATIENTS: any[] = [];
 const VISIT_TYPES: VisitType[] = ["جلسة علاج", "كشف أول", "متابعة", "تقييم"];
 
 const VISIT_COLORS: Record<VisitType, string> = {
-  "جلسة علاج": "#159C9E",
-  "كشف أول":   "#8b5cf6",
-  "متابعة":    "#06b6d4",
-  "تقييم":     "#f59e0b",
+  "جلسة علاج": "#119094",
+  "كشف أول":   "#7c3aed",
+  "متابعة":    "#0891b2",
+  "تقييم":     "#d97706",
 };
 
 const STATUS_STYLES: Record<string, string> = {
-  "مؤكد":   "bg-emerald-100 text-emerald-700 border-emerald-200",
-  "انتظار": "bg-amber-100 text-amber-700 border-amber-200",
-  "منتهي":  "bg-slate-100 text-slate-600 border-slate-200",
-  "ملغي":   "bg-red-100 text-red-700 border-red-200",
+  "مؤكد":   "bg-emerald-50 text-emerald-700 border-emerald-300",
+  "انتظار": "bg-amber-50 text-amber-700 border-amber-300",
+  "منتهي":  "bg-slate-100 text-slate-600 border-slate-300",
+  "ملغي":   "bg-red-50 text-red-700 border-red-300",
 };
 
 const now = new Date();
@@ -149,8 +149,9 @@ function NewAppointmentDialog({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className={`sm:max-w-md ${isRtl ? "text-right" : "text-left"}`} dir={isRtl ? "rtl" : "ltr"}>
         <DialogHeader>
-          <DialogTitle className={`flex items-center gap-2 text-lg ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
-            <span>➕</span> {isRtl ? "حجز موعد جديد" : "Book New Appointment"}
+          <DialogTitle className={`flex items-center gap-2 text-lg font-heading ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
+            <span className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-base">➕</span>
+            <span>{isRtl ? "حجز موعد جديد" : "Book New Appointment"}</span>
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
             {slot && format(slot.start, "EEEE d MMMM yyyy — HH:mm", { locale: ar })}
@@ -233,7 +234,7 @@ function NewAppointmentDialog({
         </div>
 
         <DialogFooter className={`gap-3 sm:gap-3 flex w-full ${isRtl ? "flex-row" : "flex-row-reverse"}`}>
-          <Button variant="outline" onClick={onClose} className="rounded-xl font-bold flex-1">{isRtl ? "إلغاء" : "Cancel"}</Button>
+          <Button variant="outline" onClick={onClose} className="rounded-xl font-bold flex-1 transition-all active:scale-95">{isRtl ? "إلغاء" : "Cancel"}</Button>
           <Button onClick={handleSave} className="bg-[#0d8a8a] hover:bg-[#085454] text-white rounded-xl font-bold flex-1 shadow-md transition-all active:scale-95">
             {isRtl ? "تأكيد الحجز" : "Confirm Booking"}
           </Button>
@@ -260,6 +261,8 @@ function EventDetailsDialog({
   onCancel: (id: string) => void;
   onComplete: (id: string) => void;
 }) {
+  const { language } = useLanguage();
+  const isRtl = language === "ar";
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState<Partial<CalendarEvent>>({});
 
@@ -281,35 +284,37 @@ function EventDetailsDialog({
     <Dialog open={!!event} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md" dir="rtl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-lg">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: VISIT_COLORS[event.visitType] }} />
-            <Link href={`/patients/${event.patientId}`} className="text-[#0d8a8a] hover:underline dark:text-[#1ab0b2]">
+          <DialogTitle className="flex items-center gap-2 text-lg font-heading">
+            <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: VISIT_COLORS[event.visitType] }} />
+            <Link href={`/patients/${event.patientId}`} className="text-[#0d8a8a] hover:underline dark:text-[#1ab0b2] font-bold">
               {event.patientName}
             </Link>
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="font-medium text-muted-foreground/80">
             {format(event.start, "EEEE d MMMM yyyy", { locale: ar })}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 py-1">
-          {/* Status badge */}
+          {/* Status badge + date row */}
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">الحالة</span>
-            <Badge variant="outline" className={STATUS_STYLES[event.status]}>{event.status}</Badge>
+            <Badge variant="outline" className={STATUS_STYLES[event.status] + " font-bold shadow-sm"}>{event.status}</Badge>
           </div>
           <Separator />
 
-          {/* Details */}
-          {[
-            { label: "رقم الملف", value: event.patientId },
-            { label: "الوقت", value: `${format(event.start, "HH:mm")} — ${format(event.end, "HH:mm")}` },
-          ].map(({ label, value }) => (
-            <div key={label} className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">{label}</span>
-              <span className="font-medium font-mono">{value}</span>
-            </div>
-          ))}
+          {/* Detail cards */}
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: "رقم الملف", value: event.patientId, icon: "📁" },
+              { label: "الوقت", value: `${format(event.start, "HH:mm")} — ${format(event.end, "HH:mm")}`, icon: "🕒" },
+            ].map(({ label, value, icon }) => (
+              <div key={label} className="bg-muted/40 rounded-lg p-3 space-y-0.5">
+                <p className="text-xs text-muted-foreground/70">{label}</p>
+                <p className="text-sm font-bold font-mono">{value}</p>
+              </div>
+            ))}
+          </div>
 
           {/* Editable fields */}
           {editing ? (
@@ -317,7 +322,7 @@ function EventDetailsDialog({
               <Separator />
               <div className="space-y-1.5">
                 <Label>المعالج</Label>
-                <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   value={form.doctor ?? event.doctor}
                   onChange={(e) => setForm(f => ({ ...f, doctor: e.target.value }))}>
               {doctorsList.map((d) => <option key={d.name} value={d.name}>{d.name}</option>)}
@@ -325,7 +330,7 @@ function EventDetailsDialog({
               </div>
               <div className="space-y-1.5">
                 <Label>نوع الزيارة</Label>
-                <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   value={form.visitType ?? event.visitType}
                   onChange={(e) => setForm(f => ({ ...f, visitType: e.target.value as VisitType }))}>
                   {VISIT_TYPES.map((t) => <option key={t}>{t}</option>)}
@@ -337,15 +342,16 @@ function EventDetailsDialog({
               </div>
             </div>
           ) : (
-            <div className="space-y-0">
+            <div className="space-y-1">
               {[
-                { label: "المعالج", value: e.doctor },
-                { label: "نوع الزيارة", value: e.visitType },
-                { label: "ملاحظات", value: e.notes ?? "—" },
-              ].map(({ label, value }) => (
-                <div key={label} className="flex items-center justify-between text-sm py-1.5 border-b border-border/50 last:border-0">
-                  <span className="text-muted-foreground">{label}</span>
-                  <span className="font-medium">{value}</span>
+                { label: "المعالج", value: e.doctor, icon: "👨‍⚕️" },
+                { label: "نوع الزيارة", value: e.visitType, icon: "📋" },
+                { label: "ملاحظات", value: e.notes ?? "—", icon: "📝" },
+              ].map(({ label, value, icon }) => (
+                <div key={label} className="flex items-center gap-3 text-sm py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors">
+                  <span className="text-base">{icon}</span>
+                  <span className="text-muted-foreground/70 min-w-[70px]">{label}</span>
+                  <span className="font-medium flex-1">{value}</span>
                 </div>
               ))}
             </div>
@@ -356,36 +362,36 @@ function EventDetailsDialog({
           {/* Complete session — prominent green button */}
           {event.status !== "منتهي" && event.status !== "ملغي" && (
             <Button
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2 h-10"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2 h-11 rounded-xl shadow-md transition-all active:scale-[0.98]"
               onClick={() => { onComplete(event.id); onClose(); }}
             >
-              ✅ اكتملت الجلسة
-              <span className="text-xs opacity-75 font-normal">(سيُخصم من باقة المريض)</span>
+              ✅ <span className="font-bold">{isRtl ? "اكتملت الجلسة" : "Complete Session"}</span>
+              <span className="text-xs opacity-75 font-normal">({isRtl ? "سيُخصم من باقة المريض" : "Deducted from patient package"})</span>
             </Button>
           )}
           <div className="flex gap-2 w-full">
             {editing ? (
               <>
-                <Button variant="outline" className="flex-1" onClick={() => setEditing(false)}>تراجع</Button>
-                <Button className="flex-1" onClick={saveEdit}>حفظ التعديلات</Button>
+                <Button variant="outline" className="flex-1 rounded-xl transition-all active:scale-95" onClick={() => setEditing(false)}>{isRtl ? "تراجع" : "Back"}</Button>
+                <Button className="flex-1 rounded-xl bg-[#0d8a8a] hover:bg-[#085454] text-white shadow-md transition-all active:scale-95" onClick={saveEdit}>{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
               </>
             ) : (
               <>
                 {event.status !== "ملغي" && event.status !== "منتهي" && (
                   <>
-                    <Button variant="outline" className="flex-1" onClick={startEdit}>
-                      ✏️ تعديل الموعد
+                    <Button variant="outline" className="flex-1 rounded-xl transition-all active:scale-95" onClick={startEdit}>
+                      ✏️ {isRtl ? "تعديل" : "Edit"}
                     </Button>
                     <Button
-                      variant="destructive" className="flex-1"
+                      variant="destructive" className="flex-1 rounded-xl transition-all active:scale-95"
                       onClick={() => { onCancel(event.id); onClose(); }}
                     >
-                      🗑 إلغاء الموعد
+                      🗑 {isRtl ? "إلغاء" : "Cancel"}
                     </Button>
                   </>
                 )}
                 {(event.status === "ملغي" || event.status === "منتهي") && (
-                  <Button variant="outline" className="flex-1" onClick={onClose}>إغلاق</Button>
+                  <Button variant="outline" className="flex-1 rounded-xl" onClick={onClose}>{isRtl ? "إغلاق" : "Close"}</Button>
                 )}
               </>
             )}
@@ -610,15 +616,15 @@ export default function CalendarPage() {
       <div className="border-b bg-card sticky top-0 z-10 shadow-sm">
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4 flex-wrap ${isRtl ? "" : "flex-row-reverse"}`}>
           <div className={`flex items-center gap-3 ${isRtl ? "" : "flex-row-reverse"}`}>
-            <div className="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-xl shadow-sm border border-teal-100">📅</div>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-lg shadow-sm text-white">📅</div>
             <div className={isRtl ? "text-right" : "text-left"}>
-              <h1 className="text-xl font-bold text-slate-800">{isRtl ? "إدارة الحجوزات" : "Appointments Management"}</h1>
+              <h1 className="text-xl font-bold font-heading text-slate-800">{isRtl ? "إدارة الحجوزات" : "Appointments Management"}</h1>
               <p className="text-xs text-muted-foreground mt-0.5">{isRtl ? "التقويم التفاعلي للمواعيد" : "Interactive appointments calendar"}</p>
             </div>
           </div>
           {hasPermission("edit_appointments") && (
             <Button
-              className={`bg-[#0d8a8a] hover:bg-[#085454] text-white gap-2 rounded-xl font-bold px-6 shadow-md transition-all active:scale-95 ${isRtl ? "" : "flex-row-reverse"}`}
+              className="bg-[#0d8a8a] hover:bg-[#085454] text-white gap-2 rounded-xl font-bold px-6 shadow-md transition-all active:scale-95"
               onClick={() => setSelectedSlot({ start: new Date(), end: new Date(), slots: [], action: "click" })}
             >
               ＋ {isRtl ? "حجز موعد جديد" : "Book New Appointment"}
@@ -632,24 +638,28 @@ export default function CalendarPage() {
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { icon: "📋", label: isRtl ? "مواعيد اليوم" : "Today's Appts", value: todayEvents.length, color: "bg-teal-50 dark:bg-teal-950/30 text-[#0d8a8a]" },
-            { icon: "✅", label: isRtl ? "مؤكدة" : "Confirmed", value: confirmed, color: "bg-emerald-50 dark:bg-emerald-950/30" },
-            { icon: "⏳", label: isRtl ? "في الانتظار" : "Pending", value: pending, color: "bg-amber-50 dark:bg-amber-950/30" },
-            { icon: "🏁", label: isRtl ? "مكتملة" : "Completed", value: done, color: "bg-slate-50 dark:bg-slate-900/30" },
-          ].map((s) => (
-            <div key={s.label} className={`${s.color} rounded-xl p-4 flex items-center gap-3 border border-border/50 ${isRtl ? "" : "flex-row-reverse text-right"}`}>
-              <span className="text-2xl">{s.icon}</span>
-              <div className={isRtl ? "text-right" : "text-left"}>
-                <p className="text-xs text-muted-foreground">{s.label}</p>
-                <p className="text-2xl font-bold">{s.value}</p>
+            { icon: "📋", label: isRtl ? "مواعيد اليوم" : "Today's Appts", value: todayEvents.length, color: "teal" },
+            { icon: "✅", label: isRtl ? "مؤكدة" : "Confirmed", value: confirmed, color: "emerald" },
+            { icon: "⏳", label: isRtl ? "في الانتظار" : "Pending", value: pending, color: "amber" },
+            { icon: "🏁", label: isRtl ? "مكتملة" : "Completed", value: done, color: "slate" },
+          ].map((s) => {
+            const bgMap: Record<string,string> = { teal: "bg-teal-50 dark:bg-teal-950/30", emerald: "bg-emerald-50 dark:bg-emerald-950/30", amber: "bg-amber-50 dark:bg-amber-950/30", slate: "bg-slate-50 dark:bg-slate-900/30" };
+            const borderMap: Record<string,string> = { teal: "border-teal-200 dark:border-teal-900/50", emerald: "border-emerald-200 dark:border-emerald-900/50", amber: "border-amber-200 dark:border-amber-900/50", slate: "border-slate-200 dark:border-slate-800/50" };
+            return (
+              <div key={s.label} className={`${bgMap[s.color]} ${borderMap[s.color]} rounded-xl p-4 flex items-center gap-3 border shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${isRtl ? "" : "flex-row-reverse text-right"}`}>
+                <span className="text-2xl">{s.icon}</span>
+                <div className={isRtl ? "text-right" : "text-left"}>
+                  <p className="text-xs text-muted-foreground/80 font-medium">{s.label}</p>
+                  <p className="text-2xl font-bold font-heading">{s.value}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Legend */}
-        <div className={`flex flex-wrap gap-3 items-center ${isRtl ? "" : "flex-row-reverse"}`}>
-          <span className="text-xs text-muted-foreground font-medium">{isRtl ? "أنواع الجلسات:" : "Session Types:"}</span>
+        <div className={`flex flex-wrap gap-2 items-center ${isRtl ? "" : "flex-row-reverse"}`}>
+          <span className="text-xs text-muted-foreground font-semibold ml-2">{isRtl ? "أنواع الجلسات:" : "Session Types:"}</span>
           {VISIT_TYPES.map((t) => {
             const tVisitType = (type: VisitType) => {
               if (isRtl) return type;
@@ -662,16 +672,16 @@ export default function CalendarPage() {
               return map[type] || type;
             };
             return (
-              <div key={t} className={`flex items-center gap-1.5 ${isRtl ? "" : "flex-row-reverse"}`}>
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: VISIT_COLORS[t] }} />
-                <span className="text-xs text-muted-foreground">{tVisitType(t)}</span>
+              <div key={t} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-card border border-border/60 shadow-sm">
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: VISIT_COLORS[t] }} />
+                <span className="text-xs text-muted-foreground font-medium">{tVisitType(t)}</span>
               </div>
             );
           })}
         </div>
 
         {/* Calendar */}
-        <div className={`bg-card border rounded-2xl overflow-hidden shadow-sm calendar-wrapper ${isRtl ? "rbc-rtl" : ""}`} dir={isRtl ? "rtl" : "ltr"}>
+        <div className={`bg-card border rounded-2xl overflow-hidden shadow-lg calendar-wrapper ${isRtl ? "rbc-rtl" : ""}`} dir={isRtl ? "rtl" : "ltr"}>
           <Calendar
             localizer={localizer}
             events={events}
