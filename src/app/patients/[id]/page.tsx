@@ -185,6 +185,7 @@ interface DiagnosisNode {
   symptomKey: string;
   symptomLabelAr: string;
   symptomLabelEn: string;
+  keywords: string[];
   tests: {
     key: string;
     nameAr: string;
@@ -205,6 +206,7 @@ const DIAGNOSIS_DECISION_TREE: DiagnosisNode[] = [
     symptomKey: "anterior_knee_pain",
     symptomLabelAr: "ألم أمامي في الركبة (Anterior Knee Pain)",
     symptomLabelEn: "Anterior Knee Pain",
+    keywords: ["knee", "patellofemoral", "runner's knee", "pfps", "patellar", "anterior knee", "jumper's knee", "patellar tendon", "chondromalacia"],
     tests: [
       { key: "clarkes", nameAr: "Clarke's Test (طحن الرضفة)", nameEn: "Clarke's Test (Patellar Grind)", descAr: "فحص الاحتكاك تحت الرضفة أثناء انقباض العضلة الرباعية", descEn: "Tests for patellofemoral cartilage degeneration" },
       { key: "apprehension", nameAr: "Patellar Apprehension Test (فحص الخوف من الخلع)", nameEn: "Patellar Apprehension Test", descAr: "دفع الرضفة للخارج لمحاكاة الخلع ومراقبة رد فعل المريض", descEn: "Tests for patellar subluxation or instability" }
@@ -220,6 +222,7 @@ const DIAGNOSIS_DECISION_TREE: DiagnosisNode[] = [
     symptomKey: "shoulder_impingement",
     symptomLabelAr: "ألم الكتف العلوي مع رفع الذراع (Shoulder Pain / Painful Arc)",
     symptomLabelEn: "Shoulder Pain / Painful Arc",
+    keywords: ["shoulder", "impingement", "subacromial", "rotator cuff", "supraspinatus", "frozen shoulder", "adhesive capsulitis", "painful arc"],
     tests: [
       { key: "neer", nameAr: "Neer's Test (فحص زنقة الكتف)", nameEn: "Neer's Test", descAr: "رفع الذراع سلبياً للداخل لإثارة أوتار الكفة المدورة", descEn: "Tests for shoulder impingement" },
       { key: "empty_can", nameAr: "Empty Can Test (فحص العضلة فوق الشوكية)", nameEn: "Empty Can Test (Jobe)", descAr: "مقاومة إبعاد الكتف بزاوية 30 درجة مع تدوير الإبهام للأسفل", descEn: "Tests for Supraspinatus tendon tear or weakness" }
@@ -617,9 +620,31 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
     fetchSessions();
   }, [patient.id]);
   const [isDiagAssistantOpen, setIsDiagAssistantOpen] = useState(false);
-  const [selectedSymptomKey, setSelectedSymptomKey] = useState(DIAGNOSIS_DECISION_TREE[0]?.symptomKey ?? "");
+  const [selectedSymptomKey, setSelectedSymptomKey] = useState("");
   const [testResults, setTestResults] = useState<Record<string, "positive" | "negative">>({});
   const [isSavingDiagnosis, setIsSavingDiagnosis] = useState(false);
+
+  const currentDiagnosis = form.diagnosis || patient.diagnosis || "";
+
+  const matchedDiagnosisNode = useMemo(() => {
+    if (!currentDiagnosis.trim()) return null;
+    const lower = currentDiagnosis.toLowerCase();
+    return DIAGNOSIS_DECISION_TREE.find(node =>
+      node.keywords.some(kw => lower.includes(kw))
+    ) || null;
+  }, [currentDiagnosis]);
+
+  const openDiagAssistant = () => {
+    const node = matchedDiagnosisNode;
+    if (node) {
+      setSelectedSymptomKey(node.symptomKey);
+      setTestResults({});
+    } else {
+      setSelectedSymptomKey(currentDiagnosis.trim() ? "_no_match" : "");
+      setTestResults({});
+    }
+    setIsDiagAssistantOpen(true);
+  };
 
   const getRegionSearchTerms = (region: (typeof BODY_PAIN_REGIONS)[number]) => {
     const withoutParentheses = (value: string) => value.replace(/\s*\([^)]*\)/g, "").trim();
@@ -817,7 +842,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
             )}
             {hasPermission("edit_emr") && (
               <>
-                <Button variant="outline" size="sm" onClick={() => setIsDiagAssistantOpen(true)} className="h-8 border-teal-600 text-teal-700 bg-teal-50 hover:bg-teal-100 cursor-pointer print:hidden">
+                <Button variant="outline" size="sm" onClick={openDiagAssistant} disabled={!currentDiagnosis.trim()} className={`h-8 border-teal-600 text-teal-700 bg-teal-50 hover:bg-teal-100 cursor-pointer print:hidden ${!currentDiagnosis.trim() ? "opacity-40 cursor-not-allowed" : ""}`}>
                   🔍 {isRtl ? "مساعد التشخيص التفريقي" : "Diagnostic Assistant"}
                 </Button>
                 <Button variant="outline" size="sm" onClick={onEditMedicalClick} className="h-8 border-teal-650/40 text-teal-700 hover:bg-teal-50 cursor-pointer print:hidden">
@@ -877,86 +902,106 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
               <span>🔍 {isRtl ? "مساعد التشخيص التفريقي" : "Differential Diagnosis Assistant"}</span>
             </DialogTitle>
             <DialogDescription className={`text-xs text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>
-              {isRtl ? "اختر العرض الرئيسي لإجراء الاختبارات السريرية والتوصية بالتشخيص." : "Select symptomatology to perform tests and get diagnostics."}
+              {currentDiagnosis.trim()
+                ? (isRtl ? `بناءً على التشخيص: "${currentDiagnosis}"` : `Based on diagnosis: "${currentDiagnosis}"`)
+                : (isRtl ? "اكتب التشخيص أولاً ليظهر المساعد." : "Write a diagnosis first for the assistant to activate.")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2" dir={isRtl ? "rtl" : "ltr"}>
-            <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-700">{isRtl ? "العرض الرئيسي للمريض" : "Chief Symptom"}</Label>
-              <select
-                value={selectedSymptomKey}
-                onChange={(e) => handleSymptomChange(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-600 text-slate-700"
-              >
-                {DIAGNOSIS_DECISION_TREE.map(node => (
-                  <option key={node.symptomKey} value={node.symptomKey}>
-                    {isRtl ? node.symptomLabelAr : node.symptomLabelEn}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="space-y-2 pt-1">
-              <Label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-                {isRtl ? "الاختبارات الخاصة المطلوبة (Special Tests)" : "Required Special Tests"}
-              </Label>
-              
-              <div className="space-y-2">
-                {selectedDiagnosisNode?.tests.map((test) => (
-                  <div key={test.key} className="p-2.5 border rounded-lg bg-slate-50/50 flex items-center justify-between gap-3 text-xs">
-                    <div className="flex-1">
-                      <p className="font-bold text-slate-800">{isRtl ? test.nameAr : test.nameEn}</p>
-                      <p className="text-[9px] text-slate-400 mt-0.5">{isRtl ? test.descAr : test.descEn}</p>
-                    </div>
-                    <div className="flex gap-1.5 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => setTestResults(prev => ({ ...prev, [test.key]: "positive" }))}
-                        className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-all cursor-pointer ${testResults[test.key] === "positive" ? "bg-rose-500 border-rose-500 text-white" : "border-slate-200 text-slate-500 bg-white hover:bg-slate-50"}`}
-                      >
-                        {isRtl ? "إيجابي ✅" : "Positive ✅"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setTestResults(prev => ({ ...prev, [test.key]: "negative" }))}
-                        className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-all cursor-pointer ${testResults[test.key] === "negative" ? "bg-teal-500 border-teal-500 text-white" : "border-slate-200 text-slate-500 bg-white hover:bg-slate-50"}`}
-                      >
-                        {isRtl ? "سلبي ❌" : "Negative ❌"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {recommendedDiag ? (
-              <div className="p-3.5 rounded-lg border border-teal-200 bg-teal-50/10 space-y-2 animate-in fade-in zoom-in-95 duration-200 text-xs">
-                <div className="flex justify-between items-center font-bold">
-                  <span className="text-[9px] bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200 px-1.5 py-0.5 rounded-full">
-                    {isRtl ? "التشخيص المقترح" : "Suggested Diagnosis"}
-                  </span>
-                  <span className="text-teal-700">
-                    {isRtl ? `دقة متوقعة: ${recommendedDiag.confidence}` : `Confidence: ${recommendedDiag.confidence}`}
-                  </span>
-                </div>
-                <p className="font-bold text-slate-800 leading-normal">
-                  {isRtl ? recommendedDiag.diagnosisAr : recommendedDiag.diagnosisEn}
+            {selectedSymptomKey === "_no_match" ? (
+              <div className="p-6 text-center">
+                <p className="text-sm text-slate-500">
+                  {isRtl
+                    ? `لم يتم العثور على بروتوكول تشخيص تفريقي يطابق "${currentDiagnosis}".`
+                    : `No differential diagnosis protocol found matching "${currentDiagnosis}".`}
                 </p>
-                <div className="pt-1">
-                  <Button
-                    onClick={handleApplyDiagnosis}
-                    disabled={isSavingDiagnosis}
-                    className="w-full bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold h-8"
-                  >
-                    {isSavingDiagnosis ? (isRtl ? "جاري الحفظ..." : "Applying...") : (isRtl ? "اعتماد هذا التشخيص وحفظه" : "Apply & Save to EMR")}
-                  </Button>
-                </div>
+              </div>
+            ) : !selectedSymptomKey ? (
+              <div className="p-6 text-center">
+                <p className="text-sm text-slate-500">
+                  {isRtl ? "اكتب التشخيص في الحقل أعلاه أولاً." : "Enter a diagnosis in the field above first."}
+                </p>
               </div>
             ) : (
-              <div className="p-3 rounded-lg border border-dashed text-center text-[10px] text-slate-400 bg-slate-50/50">
-                {isRtl ? "أدخل جميع نتائج الاختبارات لإظهار التشخيص المقترح." : "Complete all test inputs to get suggested diagnosis."}
-              </div>
+              <>
+                <div className="space-y-1">
+                  <Label className="text-xs font-semibold text-slate-700">{isRtl ? "العرض الرئيسي للمريض" : "Chief Symptom"}</Label>
+                  <select
+                    value={selectedSymptomKey}
+                    onChange={(e) => handleSymptomChange(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-600 text-slate-700"
+                  >
+                    {DIAGNOSIS_DECISION_TREE.map(node => (
+                      <option key={node.symptomKey} value={node.symptomKey}>
+                        {isRtl ? node.symptomLabelAr : node.symptomLabelEn}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2 pt-1">
+                  <Label className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                    {isRtl ? "الاختبارات الخاصة المطلوبة (Special Tests)" : "Required Special Tests"}
+                  </Label>
+                  
+                  <div className="space-y-2">
+                    {selectedDiagnosisNode?.tests.map((test) => (
+                      <div key={test.key} className="p-2.5 border rounded-lg bg-slate-50/50 flex items-center justify-between gap-3 text-xs">
+                        <div className="flex-1">
+                          <p className="font-bold text-slate-800">{isRtl ? test.nameAr : test.nameEn}</p>
+                          <p className="text-[9px] text-slate-400 mt-0.5">{isRtl ? test.descAr : test.descEn}</p>
+                        </div>
+                        <div className="flex gap-1.5 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setTestResults(prev => ({ ...prev, [test.key]: "positive" }))}
+                            className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-all cursor-pointer ${testResults[test.key] === "positive" ? "bg-rose-500 border-rose-500 text-white" : "border-slate-200 text-slate-500 bg-white hover:bg-slate-50"}`}
+                          >
+                            {isRtl ? "إيجابي ✅" : "Positive ✅"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setTestResults(prev => ({ ...prev, [test.key]: "negative" }))}
+                            className={`px-2 py-1 rounded-md text-[10px] font-bold border transition-all cursor-pointer ${testResults[test.key] === "negative" ? "bg-teal-500 border-teal-500 text-white" : "border-slate-200 text-slate-500 bg-white hover:bg-slate-50"}`}
+                          >
+                            {isRtl ? "سلبي ❌" : "Negative ❌"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {recommendedDiag ? (
+                  <div className="p-3.5 rounded-lg border border-teal-200 bg-teal-50/10 space-y-2 animate-in fade-in zoom-in-95 duration-200 text-xs">
+                    <div className="flex justify-between items-center font-bold">
+                      <span className="text-[9px] bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200 px-1.5 py-0.5 rounded-full">
+                        {isRtl ? "التشخيص المقترح" : "Suggested Diagnosis"}
+                      </span>
+                      <span className="text-teal-700">
+                        {isRtl ? `دقة متوقعة: ${recommendedDiag.confidence}` : `Confidence: ${recommendedDiag.confidence}`}
+                      </span>
+                    </div>
+                    <p className="font-bold text-slate-800 leading-normal">
+                      {isRtl ? recommendedDiag.diagnosisAr : recommendedDiag.diagnosisEn}
+                    </p>
+                    <div className="pt-1">
+                      <Button
+                        onClick={handleApplyDiagnosis}
+                        disabled={isSavingDiagnosis}
+                        className="w-full bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold h-8"
+                      >
+                        {isSavingDiagnosis ? (isRtl ? "جاري الحفظ..." : "Applying...") : (isRtl ? "اعتماد هذا التشخيص وحفظه" : "Apply & Save to EMR")}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 rounded-lg border border-dashed text-center text-[10px] text-slate-400 bg-slate-50/50">
+                    {isRtl ? "أدخل جميع نتائج الاختبارات لإظهار التشخيص المقترح." : "Complete all test inputs to get suggested diagnosis."}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </DialogContent>
