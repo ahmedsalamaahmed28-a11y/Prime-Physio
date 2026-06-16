@@ -50,8 +50,10 @@ export default function DoctorsPage() {
     }
 
     const today = new Date().toISOString().slice(0, 10);
+    const isDoctor = (role: string) =>
+      ["مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(role);
     const doctorRows = (staff || []).filter((s: any) =>
-      String(s.role || "").includes("علاج") || String(s.specialty || "").length > 0
+      isDoctor(s.role) || String(s.specialty || "").length > 0
     );
 
     setDoctors(doctorRows.map((doc: any) => ({
