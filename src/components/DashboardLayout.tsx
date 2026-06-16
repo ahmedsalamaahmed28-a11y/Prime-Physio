@@ -102,7 +102,18 @@ export default function DashboardLayout({
   
   const activeAccount = user;
 
-  if (!activeAccount) return null;
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = useState(false);
+
+  const isAuthPage = pathname === "/login" || pathname === "/signup";
+
+  if (!activeAccount) {
+    if (isAuthPage) {
+      return <>{children}</>;
+    }
+    return null;
+  }
 
   const displayAccountName = activeAccount.roleKey === "receptionist"
     ? activeAccount.name
@@ -116,9 +127,6 @@ export default function DashboardLayout({
     : (activeAccount.nameEn || activeAccount.name).startsWith("Dr.")
     ? (activeAccount.nameEn || activeAccount.name)
     : `Dr. ${activeAccount.nameEn || activeAccount.name}`;
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const notificationsRef = useRef<HTMLDivElement>(null);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
@@ -151,12 +159,6 @@ export default function DashboardLayout({
   const toggleNotifications = () => {
     setIsNotificationsOpen(prev => !prev);
   };
-
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     let active = true;
