@@ -92,8 +92,11 @@ export default function SubscriptionPage() {
           .limit(1);
 
         if (subErr) {
-          if (subErr.code === "42P01") console.warn("Table 'subscriptions' does not exist yet");
-          else console.error("Subscription load error:", subErr);
+          if (subErr.code === "42P01" || String(subErr.message || "").includes("does not exist")) {
+            console.warn("Table 'subscriptions' does not exist yet — run migration");
+          } else {
+            console.error("Subscription load error:", subErr.message || subErr);
+          }
         } else if (subData && subData.length > 0) {
           setActivePlanId(subData[0].plan_name);
           const limits: Record<string, { patients: number; sessions: number }> = {

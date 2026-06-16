@@ -141,7 +141,8 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (err) {
-    console.error("[Paymob] Unexpected error:", err);
-    return NextResponse.json({ error: "خطأ غير متوقع في نظام الدفع" }, { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[Paymob] Unexpected error:", msg);
+    return NextResponse.json({ error: "خطأ غير متوقع في نظام الدفع", details: msg }, { status: 500 });
   }
 }
