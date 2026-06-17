@@ -11,38 +11,34 @@ export async function POST(req: NextRequest) {
     }
 
     const admin = getAdminClient();
+    const cleanEmail = email.toLowerCase().trim();
 
-    // Check if email already registered
     const { data: existing } = await admin
       .from("auth_accounts")
       .select("id")
-      .eq("email", email.toLowerCase().trim())
+      .eq("email", cleanEmail)
       .maybeSingle();
 
     if (existing) {
       return NextResponse.json({ error: "البريد الإلكتروني مسجل بالفعل" }, { status: 400 });
     }
 
-    // Generate 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000;
+    const key = `verification_${cleanEmail.replace(/[^a-z0-9]/g, "_")}`;
 
-    // Store in DB (valid for 10 minutes)
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
-
-    await admin.from("verification_codes").insert({
-      email: email.toLowerCase().trim(),
-      code,
-      expires_at: expiresAt,
+    await admin.from("app_key_values").upsert({
+      key,
+      value: { code, expires_at: expiresAt, used: false },
     });
 
-    // Send email
-    const sent = await sendVerificationCode(email, code);
+    const sent = await sendVerificationCode(cleanEmail, code);
 
-    if (!sent) {
-      return NextResponse.json({ error: "فشل إرسال رمز التحقق - تأكد من إعدادات البريد" }, { status: 500 });
-    }
-
-    return NextResponse.json({ sent: true });
+    return NextResponse.json({
+      sent,
+      devCode: sent ? undefined : code,
+      smtpMissing: !sent,
+    });
   } catch (err) {
     console.error("[SendVerification] Error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

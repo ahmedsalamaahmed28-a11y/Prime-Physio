@@ -20,6 +20,8 @@ export default function SignupPage() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [devCode, setDevCode] = useState("");
+  const [smtpMissing, setSmtpMissing] = useState(false);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -61,6 +63,11 @@ export default function SignupPage() {
           : data.error || "فشل إرسال رمز التحقق");
         setIsLoading(false);
         return;
+      }
+
+      if (data.devCode) {
+        setDevCode(data.devCode);
+        setSmtpMissing(!!data.smtpMissing);
       }
 
       setStep("otp");
@@ -262,6 +269,14 @@ export default function SignupPage() {
         </p>
         <p className="text-sm font-bold text-slate-800">{formData.email}</p>
       </div>
+
+      {smtpMissing && devCode && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-xs text-amber-700 leading-relaxed space-y-2">
+          <p className="font-bold">لم يتم إعداد إرسال البريد بعد</p>
+          <p>رمز التحقق الخاص بك هو: <span className="font-bold text-lg tracking-widest" dir="ltr">{devCode}</span></p>
+          <p className="text-[10px] text-amber-500">لإرسال رمز التحقق تلقائياً للإيميل، أضف SMTP_USER و SMTP_PASS في إعدادات Vercel</p>
+        </div>
+      )}
 
       <div className="flex justify-center gap-2" dir="ltr">
         {otp.map((digit, index) => (
