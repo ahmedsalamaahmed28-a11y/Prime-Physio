@@ -23,14 +23,13 @@ Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (
 - **Super admin panel**: Created `/admin` page — lists all clinics with patient counts, subscription info, toggle active/suspended. Added `GET/PATCH /api/admin/clinics` API. Added sidebar link in DashboardLayout (visible only to platform_admin role).
 - **NEXTAUTH_SECRET strengthened**: Replaced weak `prime_physio_very_secret_key_12345` with cryptographically random 64-char hex string.
 
-### Session: NextAuth Credentials Auth Rewrite (2026-06-17)
-- **Auth migration created**: `supabase-auth-migration.sql` — creates `public.auth_accounts` table with RLS (service_role only), bypassing broken GoTrue auth.users schema.
-- **NextAuth CredentialsProvider added**: `src/pages/api/auth/[...nextauth].ts` — new `CredentialsProvider` that queries `auth_accounts` table with `bcryptjs` password verification. Email/password users now authenticate through NextAuth like Google users.
-- **Signup API rewritten**: `src/app/api/signup/route.ts` — stores password hash in `auth_accounts` table instead of calling broken `admin.auth.admin.createUser()`. Creates clinic + staff + settings atomically with rollback on failure.
-- **Login page updated**: `src/app/login/page.tsx` — replaced `loginWithSupabase()` with `signIn("credentials", ...)` from NextAuth. Removed dependency on `useAuth()` for manual login. Redirects to `/` on success.
-- **Signup page cleaned**: `src/app/signup/page.tsx` — removed unused `useAuth` / `registerWithSupabase` imports. Updated success message (no email confirmation needed, log in immediately).
-- **Supabase `auth_accounts` table**: SQL to run in Supabase SQL Editor — creates the table that holds email + bcrypt hashed passwords. Service role only access via RLS.
-- **Fixes**: Login redirects with `window.location.href = "/"` after successful credentials sign-in.
+### Session: Google-Only Signup + Auto-Provision (2026-06-17)
+- **Signup page rewritten**: Removed email/password form entirely. Only Google OAuth button remains. Stores `pending_google_signup` flag before redirect.
+- **Auto-provision API created**: `POST /api/auth/auto-provision` — creates clinic + staff (admin) + clinic_settings for first-time Google OAuth users. Idempotent (skips if already in staff).
+- **enrichUserWithClinic updated**: When `pending_google_signup` flag is set and user not found in staff, calls auto-provision API automatically during first login. Clears flag after use.
+- **Proxy fixed**: `/logo.png` added to `PUBLIC_PATHS` and matcher exclusion so unauthenticated users on `/login` see the logo.
+- **New admins signup flow**: Visit `/signup` → click "التسجيل بواسطة Google" → Google OAuth → auto-create clinic + staff → redirect to dashboard.
+- **Doctors/receptionists**: Added by clinic admin from `/staff` page with email/password login.
 - **DashboardLayout clinicId guard**: Added check — if `activeAccount` exists but `clinicId === undefined`, show loading spinner instead of rendering children. Prevents all pages from fetching data with stale/undefined `clinicId` before `enrichUserWithClinic` completes.
 - **Error boundaries created**: `src/app/error.tsx` (route-level, preserves layout) and `src/app/global-error.tsx` (catches root layout errors, defines own html/body). Both show Arabic-first error UI with retry button.
 
