@@ -195,6 +195,15 @@ export default function DashboardLayout({
     return <>{children}</>;
   }
 
+  // Wait for enrichUserWithClinic to set clinicId before rendering pages
+  if (activeAccount && activeAccount.clinicId === undefined) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0d8a8a]"></div>
+      </div>
+    );
+  }
+
   if (!activeAccount) {
     if (isLoading) {
       return (

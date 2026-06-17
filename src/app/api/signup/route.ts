@@ -20,6 +20,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (createError) {
+      console.error("[Signup] createError:", createError.message, JSON.stringify(createError));
       return NextResponse.json(
         { error: createError.message === "User already registered" ? "User already registered" : "فشل إنشاء الحساب" },
         { status: 400 }

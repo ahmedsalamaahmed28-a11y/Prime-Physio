@@ -23,6 +23,10 @@ Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (
 - **Super admin panel**: Created `/admin` page — lists all clinics with patient counts, subscription info, toggle active/suspended. Added `GET/PATCH /api/admin/clinics` API. Added sidebar link in DashboardLayout (visible only to platform_admin role).
 - **NEXTAUTH_SECRET strengthened**: Replaced weak `prime_physio_very_secret_key_12345` with cryptographically random 64-char hex string.
 
+### Session: Error Boundaries & Page Stability (2026-06-16)
+- **DashboardLayout clinicId guard**: Added check — if `activeAccount` exists but `clinicId === undefined`, show loading spinner instead of rendering children. Prevents all pages from fetching data with stale/undefined `clinicId` before `enrichUserWithClinic` completes.
+- **Error boundaries created**: `src/app/error.tsx` (route-level, preserves layout) and `src/app/global-error.tsx` (catches root layout errors, defines own html/body). Both show Arabic-first error UI with retry button.
+
 ### Previous work (pre-2026-06-16)
 - Multi-tenant migration SQL created and run (platform_admins, clinics, clinic_id columns, RLS, data migration)
 - Paymob integration (env vars in Vercel, subscription plans, callback handling)
@@ -39,8 +43,6 @@ Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (
 4. **Test full signup flow** — create a new clinic, verify staff record and clinic_id are created
 5. **Test subscription enforcement** — create patients beyond basic limit, verify block
 6. **Test Paymob payment** end-to-end (create order → iframe → callback → subscription persisted)
-7. **Remove hardcoded mock accounts** from `DashboardLayout.tsx` lines 86-90
-8. **Add error boundaries** for production UX (toast system, global error boundary)
 
 ## Key Architecture Decisions
 - `requireAuth()` checks NextAuth JWT first (Google users), then Supabase session cookie (email/password), then Authorization header
@@ -48,6 +50,8 @@ Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (
 - Subscription enforcement is client-side pre-check + server-side verification via API
 - Admin panel uses platform_admin bypass (checks `platform_admins` table + service_role)
 - RLS uses `security definer` on `is_platform_admin()` function so anon-key users can read `platform_admins` table
+- DashboardLayout shows loading spinner when `clinicId === undefined` — prevents all pages from rendering with stale clinicId before `enrichUserWithClinic` completes
+- Error boundary conventions in this Next.js version: `error.tsx` (route-level, preserves layout, uses `unstable_retry` prop), `global-error.tsx` (catches root layout, defines own html/body)
 
 ## Relevant Files
 - `src/app/api/utils/auth.ts`: `requireAuth()` helper for API routes
@@ -56,5 +60,7 @@ Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (
 - `src/app/api/admin/clinics/route.ts`: Admin API (list clinics, toggle active)
 - `src/app/admin/page.tsx`: Super admin panel UI
 - `src/lib/subscriptionCheck.ts`: Plan limit enforcement logic
-- `src/components/DashboardLayout.tsx`: Sidebar with admin link for platform_admin role
+- `src/components/DashboardLayout.tsx`: Sidebar with admin link for platform_admin role; clinicId guard (loading spinner until enrichUserWithClinic completes)
+- `src/app/error.tsx`: Route-level error boundary (Arabic-first, retry button)
+- `src/app/global-error.tsx`: Global error boundary for root layout crashes
 - `supabase-rls-patch.sql`: Complete RLS policies for all tables
