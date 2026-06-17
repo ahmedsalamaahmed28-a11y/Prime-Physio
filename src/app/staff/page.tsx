@@ -98,6 +98,7 @@ export default function StaffPage() {
     role: "أخصائي علاج طبيعي",
     email: "",
     phone: "",
+    password: "",
   });
 
   const [editingEmail, setEditingEmail] = useState<string | null>(null);
@@ -117,6 +118,10 @@ export default function StaffPage() {
       alert(isRtl ? "الرجاء تعبئة الاسم والبريد الإلكتروني" : "Please fill in Name and Email");
       return;
     }
+    if (!formData.password || formData.password.length < 6) {
+      alert(isRtl ? "يرجى إدخال كلمة مرور قوية (6 أحرف على الأقل)" : "Please enter a strong password (min 6 characters)");
+      return;
+    }
 
     let formattedName = formData.name.trim();
     const isDoctorOrAdmin = ["مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(formData.role);
@@ -124,29 +129,37 @@ export default function StaffPage() {
       formattedName = `د. ${formattedName}`;
     }
 
-    const newStaff = {
-      name: formattedName,
-      role: formData.role,
-      email: formData.email,
-      phone: formData.phone || "0500000000",
-      status: "نشط",
-      clinic_id: clinicId,
-      permissions: [],
-    };
-
     try {
-      const { error } = await supabase.from('staff').insert([newStaff]);
-      if (error) throw error;
-      
+      const res = await fetch("/api/staff/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formattedName,
+          email: formData.email,
+          password: formData.password,
+          role: formData.role,
+          clinicId,
+          phone: formData.phone,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "فشل إضافة الموظف");
+        return;
+      }
+
       await fetchStaff();
       logAuditAction("CREATE_STAFF", "STAFF_MANAGEMENT", `Added new staff member: ${formattedName} (${formData.email})`);
-      
+
       setIsOpen(false);
       setFormData({
         name: "",
         role: "أخصائي علاج طبيعي",
         email: "",
         phone: "",
+        password: "",
       });
     } catch (err: any) {
       alert("Error adding staff: " + err.message);
@@ -420,6 +433,16 @@ export default function StaffPage() {
                 value={formData.phone}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                 placeholder="0501234567"
+              />
+            </div>
+            <div className="space-y-1 text-right">
+              <Label>{isRtl ? "كلمة المرور (للدخول)" : "Password (for login)"}</Label>
+              <Input
+                type="password"
+                value={formData.password}
+                onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                placeholder={isRtl ? "كلمة مرور قوية (6 أحرف على الأقل)" : "Min 6 characters"}
+                required
               />
             </div>
             <div className="space-y-1 text-right">
