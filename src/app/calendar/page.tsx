@@ -2,10 +2,8 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import { Calendar, dateFnsLocalizer, View, SlotInfo } from "react-big-calendar";
-import { format, parse, startOfWeek, getDay } from "date-fns";
+import { format } from "date-fns";
 import { ar } from "date-fns/locale";
-import "react-big-calendar/lib/css/react-big-calendar.css";
 
 import {
   Dialog,
@@ -25,17 +23,7 @@ import { supabase } from "@/lib/supabase";
 import { useEffect } from "react";
 import { usePermissions } from "@/lib/usePermissions";
 import { useAuth } from "@/lib/auth";
-
-// ─── Localizer ────────────────────────────────────────────────────────────────
-
-const locales = { ar };
-const localizer = dateFnsLocalizer({
-  format,
-  parse,
-  startOfWeek: (date: Date) => startOfWeek(date, { weekStartsOn: 0 }),
-  getDay,
-  locales,
-});
+import CustomMonthCalendar from "@/components/CustomMonthCalendar";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -87,14 +75,14 @@ const INITIAL_EVENTS: CalendarEvent[] = [];
 
 function NewAppointmentDialog({
   open,
-  slot,
+  selectedDate,
   patientsList,
   doctorsList,
   onClose,
   onSave,
 }: {
   open: boolean;
-  slot: SlotInfo | null;
+  selectedDate: Date | null;
   patientsList: any[];
   doctorsList: {name:string}[];
   onClose: () => void;
@@ -126,9 +114,10 @@ function NewAppointmentDialog({
   };
 
   const handleSave = () => {
-    if (!slot || patientsList.length === 0) return;
+    if (!selectedDate || patientsList.length === 0) return;
     const patient = patientsList.find((p) => p.id === patientId) || patientsList[0];
-    const start = slot.start;
+    const start = new Date(selectedDate);
+    start.setHours(9, 0, 0, 0);
     const end = new Date(start.getTime() + duration * 60000);
     const pName = isRtl ? patient.nameAr : (patient.nameEn || patient.nameAr);
     onSave({
@@ -155,7 +144,7 @@ function NewAppointmentDialog({
             <span>{isRtl ? "حجز موعد جديد" : "Book New Appointment"}</span>
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            {slot && format(slot.start, "EEEE d MMMM yyyy — HH:mm", { locale: ar })}
+            {selectedDate && format(selectedDate, "EEEE d MMMM yyyy", { locale: ar })}
           </DialogDescription>
         </DialogHeader>
 
@@ -413,9 +402,8 @@ export default function CalendarPage() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
   const [doctorsList, setDoctorsList] = useState<{name:string}[]>([]);
-  const [view, setView] = useState<View>("week");
-  const [date, setDate] = useState(new Date());
-  const [selectedSlot, setSelectedSlot] = useState<SlotInfo | null>(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
 
   // Load patients and events from Supabase
@@ -479,14 +467,6 @@ export default function CalendarPage() {
   const pending = events.filter((e) => e.status === "انتظار").length;
   const done = events.filter((e) => e.status === "منتهي").length;
 
-  const handleSelectSlot = useCallback((slot: SlotInfo) => {
-    setSelectedSlot(slot);
-  }, []);
-
-  const handleSelectEvent = useCallback((event: CalendarEvent) => {
-    setSelectedEvent(event);
-  }, []);
-
   const handleSaveNew = async (ev: CalendarEvent) => {
     // Check subscription limit for sessions
     try {
@@ -545,16 +525,16 @@ export default function CalendarPage() {
          
          try {
            await supabase.from("invoices").insert([{
-              id: `INV-${newId}`,
-              clinic_id: clinicId,
-              patient_id: ev.patientId,
-             patient_name: ev.patientName,
-             description: invoiceDesc,
-             amount: invoiceAmt,
-             status: isRtl ? "انتظار" : "Pending",
-             payment_method: "—",
-             date: ev.start.toISOString().split("T")[0]
-            }]);
+             id: `INV-${newId}`,
+             clinic_id: clinicId,
+             patient_id: ev.patientId,
+            patient_name: ev.patientName,
+            description: invoiceDesc,
+            amount: invoiceAmt,
+            status: isRtl ? "انتظار" : "Pending",
+            payment_method: "—",
+            date: ev.start.toISOString().split("T")[0]
+           }]);
          } catch (invErr) {
            console.warn("Failed to generate invoice", invErr);
          }
@@ -563,7 +543,7 @@ export default function CalendarPage() {
       console.warn("DB insert failed", err);
     }
     syncEventsState([...events, ev]);
-    setSelectedSlot(null);
+    setSelectedDate(null);
   };
 
   const handleUpdate = async (updated: CalendarEvent) => {
@@ -614,22 +594,6 @@ export default function CalendarPage() {
     syncEventsState(events.map((e) => e.id === id ? { ...e, status: "منتهي" } : e));
   };
 
-  // Custom event styling
-  const eventPropGetter = useCallback((event: CalendarEvent) => {
-    const bg = event.status === "ملغي" ? "#94a3b8" : event.status === "منتهي" ? "#64748b" : VISIT_COLORS[event.visitType];
-    return {
-      style: {
-        backgroundColor: bg,
-        borderColor: bg,
-        borderRadius: "6px",
-        color: "white",
-        fontSize: "12px",
-        padding: "2px 6px",
-        opacity: event.status === "ملغي" ? 0.5 : 1,
-      },
-    };
-  }, []);
-
   return (
     <div className="min-h-screen bg-background" dir={isRtl ? "rtl" : "ltr"}>
       {/* Header */}
@@ -645,7 +609,7 @@ export default function CalendarPage() {
           {hasPermission("edit_appointments") && (
             <Button
               className="bg-[#0d8a8a] hover:bg-[#085454] text-white gap-2 rounded-xl font-bold px-6 shadow-md transition-all active:scale-95"
-              onClick={() => setSelectedSlot({ start: new Date(), end: new Date(), slots: [], action: "click" })}
+              onClick={() => setSelectedDate(new Date())}
             >
               ＋ {isRtl ? "حجز موعد جديد" : "Book New Appointment"}
             </Button>
@@ -700,75 +664,26 @@ export default function CalendarPage() {
           })}
         </div>
 
-        {/* Calendar */}
-        <div className={`bg-card border rounded-2xl overflow-hidden shadow-lg calendar-wrapper ${isRtl ? "rbc-rtl" : ""}`} dir={isRtl ? "rtl" : "ltr"}>
-          <Calendar
-            localizer={localizer}
-            events={events}
-            view={view}
-            onView={setView}
-            date={date}
-            onNavigate={setDate}
-            selectable={hasPermission("edit_appointments")}
-            onSelectSlot={(slotInfo) => {
-              if (hasPermission("edit_appointments")) handleSelectSlot(slotInfo);
-            }}
-            onSelectEvent={handleSelectEvent}
-            eventPropGetter={eventPropGetter}
-            style={{ height: 650 }}
-            views={["month", "week", "day"]}
-            messages={isRtl ? {
-              today: "اليوم",
-              previous: "السابق",
-              next: "التالي",
-              month: "شهر",
-              week: "أسبوع",
-              day: "يوم",
-              agenda: "أجندة",
-              date: "التاريخ",
-              time: "الوقت",
-              event: "الحدث",
-              noEventsInRange: "لا توجد مواعيد في هذه الفترة",
-              showMore: (total) => `+${total} مزيد`,
-            } : {
-              today: "Today",
-              previous: "Prev",
-              next: "Next",
-              month: "Month",
-              week: "Week",
-              day: "Day",
-              agenda: "Agenda",
-              date: "Date",
-              time: "Time",
-              event: "Event",
-              noEventsInRange: "No appointments in this range",
-              showMore: (total) => `+${total} more`,
-            }}
-            formats={{
-              timeGutterFormat: "HH:mm",
-              eventTimeRangeFormat: ({ start, end }: { start: Date; end: Date }) =>
-                `${format(start, "HH:mm")} – ${format(end, "HH:mm")}`,
-              dayHeaderFormat: (date: Date) => format(date, "EEEE d MMM", { locale: ar }),
-              monthHeaderFormat: (date: Date) => format(date, "MMMM yyyy", { locale: ar }),
-              dayRangeHeaderFormat: ({ start, end }: { start: Date; end: Date }) =>
-                `${format(start, "d MMM", { locale: ar })} – ${format(end, "d MMM yyyy", { locale: ar })}`,
-            }}
-            popup
-            step={15}
-            timeslots={4}
-            min={new Date(0, 0, 0, 7, 0, 0)}
-            max={new Date(0, 0, 0, 21, 0, 0)}
-          />
-        </div>
+        {/* Custom Month Calendar */}
+        <CustomMonthCalendar
+          events={events}
+          currentDate={currentDate}
+          onDateChange={setCurrentDate}
+          onSelectSlot={(date) => {
+            if (hasPermission("edit_appointments")) setSelectedDate(date);
+          }}
+          onSelectEvent={setSelectedEvent}
+          selectable={hasPermission("edit_appointments")}
+        />
       </div>
 
       {/* Dialogs */}
       <NewAppointmentDialog
-        open={!!selectedSlot}
-        slot={selectedSlot}
+        open={!!selectedDate}
+        selectedDate={selectedDate}
         patientsList={patients}
         doctorsList={doctorsList}
-        onClose={() => setSelectedSlot(null)}
+        onClose={() => setSelectedDate(null)}
         onSave={handleSaveNew}
       />
       <EventDetailsDialog
