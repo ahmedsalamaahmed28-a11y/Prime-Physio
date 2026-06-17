@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (clinicError) {
-      await admin.from("auth_accounts").delete().eq("id", userId).catch(() => {});
+      try { await admin.from("auth_accounts").delete().eq("id", userId); } catch {}
       return NextResponse.json({ error: "فشل إنشاء العيادة" }, { status: 500 });
     }
 
