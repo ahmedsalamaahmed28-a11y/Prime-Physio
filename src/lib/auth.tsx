@@ -85,6 +85,23 @@ async function enrichUserWithClinic(user: User): Promise<User> {
 
     if (staff?.clinic_id) {
       user.clinicId = staff.clinic_id;
+      return user;
+    }
+
+    // First-time Google signup — auto-provision clinic + staff
+    const pendingSignup = await getAppValue<string>("pending_google_signup", "");
+    if (pendingSignup === "true") {
+      const res = await fetch("/api/auth/auto-provision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email, name: user.name }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        user.clinicId = data.clinicId;
+        // Clear the flag so it only runs once
+        setAppValue("pending_google_signup", "").catch(() => {});
+      }
     }
   } catch {
     // If table doesn't exist yet (pre-migration), just proceed
