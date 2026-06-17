@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase";
-import { requireAuth } from "../../utils/auth";
+import { requireRole } from "../../utils/auth";
 
 const PAYMOB_BASE = "https://accept.paymob.com/api";
 
@@ -18,7 +18,7 @@ const PLAN_NAMES: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
-    await requireAuth(req);
+    await requireRole(req, ["admin"]);
     const { planId, billingData } = await req.json();
 
     const amountCents = PLAN_PRICES[planId];
@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
 
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    const status = msg === "Unauthorized" ? 401 : 500;
+    const status = msg === "Unauthorized" || msg === "غير مصرح — صلاحية غير كافية" ? 401 : 500;
     console.error("[Paymob] Unexpected error:", msg);
     return NextResponse.json({ error: "خطأ غير متوقع في نظام الدفع", details: msg }, { status });
   }

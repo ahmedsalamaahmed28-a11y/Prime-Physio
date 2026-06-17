@@ -58,6 +58,19 @@ function getEnglishRoleLabel(roleKey: string) {
   return "Receptionist";
 }
 
+function mapStaffRoleToRoleKey(staffRole: string): "admin" | "doctor" | "receptionist" {
+  switch (staffRole) {
+    case "admin":
+    case "مدير العياده":
+      return "admin";
+    case "موظف استقبال":
+    case "receptionist":
+      return "receptionist";
+    default:
+      return "doctor";
+  }
+}
+
 async function enrichUserWithClinic(user: User): Promise<User> {
   try {
     // Check if platform super admin
@@ -76,7 +89,7 @@ async function enrichUserWithClinic(user: User): Promise<User> {
       return user;
     }
 
-    // Look up clinic_id from staff
+    // Look up clinic_id + role from staff (source of truth for roleKey)
     const { data: staff } = await supabase
       .from("staff")
       .select("clinic_id, role")
@@ -85,6 +98,10 @@ async function enrichUserWithClinic(user: User): Promise<User> {
 
     if (staff?.clinic_id) {
       user.clinicId = staff.clinic_id;
+      // Derive roleKey from the DB role — not from client-side pending_role
+      user.roleKey = mapStaffRoleToRoleKey(staff.role);
+      user.role = getArabicRoleLabel(user.roleKey);
+      user.roleEn = getEnglishRoleLabel(user.roleKey);
       return user;
     }
 
@@ -99,6 +116,7 @@ async function enrichUserWithClinic(user: User): Promise<User> {
       if (res.ok) {
         const data = await res.json();
         user.clinicId = data.clinicId;
+        // roleKey remains "admin" (set from pending_role before redirect)
         // Clear the flag so it only runs once
         setAppValue("pending_google_signup", "").catch(() => {});
       }

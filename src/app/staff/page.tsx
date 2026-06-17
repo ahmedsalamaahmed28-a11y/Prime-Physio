@@ -452,7 +452,6 @@ export default function StaffPage() {
                 onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none"
               >
-                <option value="مدير العياده">{isRtl ? "مدير العياده" : "Clinic Manager"}</option>
                 <option value="استشاري علاج طبيعي">{isRtl ? "استشاري علاج طبيعي" : "Physiotherapy Consultant"}</option>
                 <option value="أخصائي علاج طبيعي">{isRtl ? "أخصائي علاج طبيعي" : "Physiotherapy Specialist"}</option>
                 <option value="ممارس علاج طبيعي">{isRtl ? "ممارس علاج طبيعي" : "Physiotherapy Practitioner"}</option>
@@ -505,7 +504,6 @@ export default function StaffPage() {
                 onChange={(e) => setEditFormData(prev => ({ ...prev, role: e.target.value }))}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none"
               >
-                <option value="مدير العياده">{isRtl ? "مدير العياده" : "Clinic Manager"}</option>
                 <option value="استشاري علاج طبيعي">{isRtl ? "استشاري علاج طبيعي" : "Physiotherapy Consultant"}</option>
                 <option value="أخصائي علاج طبيعي">{isRtl ? "أخصائي علاج طبيعي" : "Physiotherapy Specialist"}</option>
                 <option value="ممارس علاج طبيعي">{isRtl ? "ممارس علاج طبيعي" : "Physiotherapy Practitioner"}</option>

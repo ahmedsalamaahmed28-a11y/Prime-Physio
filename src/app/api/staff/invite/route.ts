@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/app/api/utils/auth";
+import { requireRole } from "@/app/api/utils/auth";
 import { getAdminClient } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
+
+const VALID_STAFF_ROLES = ["استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي", "موظف استقبال"];
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,27 +13,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "جميع الحقول المطلوبة" }, { status: 400 });
     }
 
-    // Get the authenticated user
-    let authedUser;
+    // Only admin can add staff — server-side enforced
     try {
-      authedUser = await requireAuth(req);
+      await requireRole(req, ["admin"]);
     } catch {
       return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
     }
 
-    const admin = getAdminClient();
-
-    // Verify the requester is an admin of this clinic
-    const { data: adminStaff } = await admin
-      .from("staff")
-      .select("role")
-      .eq("email", authedUser.email)
-      .eq("clinic_id", clinicId)
-      .maybeSingle();
-
-    if (!adminStaff || (adminStaff.role !== "admin" && adminStaff.role !== "مدير العياده")) {
-      return NextResponse.json({ error: "غير مصرح بإضافة موظفين" }, { status: 403 });
+    // Prevent creating more admins via staff invite
+    if (role === "admin" || role === "مدير العياده") {
+      return NextResponse.json({ error: "لا يمكن إنشاء مدير جديد من هنا. المدير الوحيد يتم إنشاؤه أثناء تسجيل العيادة." }, { status: 403 });
     }
+
+    // Only allow valid staff roles
+    if (!VALID_STAFF_ROLES.includes(role)) {
+      return NextResponse.json({ error: "دور غير صالح. الأدوار المسموحة: استشاري، أخصائي، ممارس، موظف استقبال" }, { status: 400 });
+    }
+
+    const admin = getAdminClient();
 
     // Check if email already in auth_accounts
     const { data: existing } = await admin

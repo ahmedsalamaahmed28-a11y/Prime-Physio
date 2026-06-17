@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "../utils/auth";
+import { requireRole } from "../utils/auth";
 
 const deepseekApiKey = process.env.DEEPSEEK_API_KEY || "";
 const geminiApiKey = process.env.GEMINI_API_KEY || "";
@@ -69,7 +69,7 @@ async function callGemini(modelName: string, prompt: string) {
 
 export async function POST(req: NextRequest) {
   try {
-    await requireAuth(req);
+    await requireRole(req, ["admin", "doctor"]);
     const { type, patientInfo, clinicalData } = await req.json();
 
     let prompt = "";
@@ -159,7 +159,7 @@ Include standard insurance clinical report sections:
       { status: 500 }
     );
   } catch (error: any) {
-    const status = error.message === "Unauthorized" ? 401 : 500;
+    const status = error.message === "Unauthorized" || error.message === "غير مصرح — صلاحية غير كافية" ? 401 : 500;
     console.error("Report Generator API Error:", error);
     return NextResponse.json(
       { error: error.message || "Internal server error" },

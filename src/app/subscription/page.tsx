@@ -14,17 +14,17 @@ import { useAuth } from "@/lib/auth";
 const ALL_FEATURES = (isRtl: boolean) => [
   {
     label: isRtl ? "المرضى (سجلات طبية)" : "Patients (EHR)",
-    limits: { basic: isRtl ? "100" : "100", silver: isRtl ? "300" : "300", gold: isRtl ? "500+" : "500+" },
+    limits: { basic: isRtl ? "50" : "50", silver: isRtl ? "200" : "200", gold: isRtl ? "∞" : "∞" },
     included: { basic: true, silver: true, gold: true },
   },
   {
     label: isRtl ? "الجلسات الشهرية" : "Monthly Sessions",
-    limits: { basic: isRtl ? "2,000" : "2,000", silver: isRtl ? "10,000" : "10,000", gold: isRtl ? "∞" : "∞" },
+    limits: { basic: isRtl ? "100" : "100", silver: isRtl ? "500" : "500", gold: isRtl ? "∞" : "∞" },
     included: { basic: true, silver: true, gold: true },
   },
   {
     label: isRtl ? "حسابات الأخصائيين" : "Therapist Accounts",
-    limits: { basic: isRtl ? "20" : "20", silver: isRtl ? "50" : "50", gold: isRtl ? "100+" : "100+" },
+    limits: { basic: isRtl ? "20" : "20", silver: isRtl ? "50" : "50", gold: isRtl ? "∞" : "∞" },
     included: { basic: true, silver: true, gold: true },
   },
   {
@@ -98,9 +98,9 @@ const getPlans = (isRtl: boolean) => {
 };
 
 const getCompareRows = (isRtl: boolean) => [
-  { label: isRtl ? "المرضى (سجلات إلكترونية)" : "Patients (EHR)", values: [isRtl ? "100 مريض" : "100 Patients", isRtl ? "300 مريض" : "300 Patients", isRtl ? "500 مريض" : "500 Patients"] },
-  { label: isRtl ? "الجلسات الشهرية" : "Monthly Sessions",        values: [isRtl ? "2,000" : "2,000", isRtl ? "10,000" : "10,000", isRtl ? "∞ غير محدودة" : "∞ Unlimited"] },
-  { label: isRtl ? "حسابات الأخصائيين" : "Therapist Accounts",      values: [isRtl ? "20 حساب" : "20 Accounts", isRtl ? "50 حساب" : "50 Accounts", isRtl ? "100 حساب" : "100 Accounts"] },
+  { label: isRtl ? "المرضى (سجلات إلكترونية)" : "Patients (EHR)", values: [isRtl ? "50 مريض" : "50 Patients", isRtl ? "200 مريض" : "200 Patients", isRtl ? "∞ غير محدودة" : "∞ Unlimited"] },
+  { label: isRtl ? "الجلسات الشهرية" : "Monthly Sessions",        values: [isRtl ? "100" : "100", isRtl ? "500" : "500", isRtl ? "∞ غير محدودة" : "∞ Unlimited"] },
+  { label: isRtl ? "حسابات الأخصائيين" : "Therapist Accounts",      values: [isRtl ? "20 حساب" : "20 Accounts", isRtl ? "50 حساب" : "50 Accounts", isRtl ? "∞ غير محدودة" : "∞ Unlimited"] },
   { label: isRtl ? "الفروع والمراكز" : "Branches & Centers",        values: [isRtl ? "1 فرع" : "1 Branch", isRtl ? "1 فرع" : "1 Branch", isRtl ? "2 فرع (مربوطة)" : "2 Branches (Linked)"] },
   { label: isRtl ? "إدارة المواعيد" : "Appointments Mgmt",         values: [true,         true,          true]            },
   { label: isRtl ? "التغذية العلاجية" : "Clinical Nutrition",       values: [false,        true,          true]            },
@@ -119,7 +119,7 @@ export default function SubscriptionPage() {
   const [activePlanId, setActivePlanId] = useState("basic");
   const [patientCount, setPatientCount] = useState(0);
   const [sessionCount, setSessionCount] = useState(0);
-  const [planLimits, setPlanLimits] = useState({ patients: 100, sessions: 2000 });
+  const [planLimits, setPlanLimits] = useState({ patients: 50, sessions: 100 });
 
   React.useEffect(() => {
     async function loadData() {
@@ -141,9 +141,9 @@ export default function SubscriptionPage() {
         } else if (subData && subData.length > 0) {
           setActivePlanId(subData[0].plan_name);
           const limits: Record<string, { patients: number; sessions: number }> = {
-            basic: { patients: 100, sessions: 2000 },
-            silver: { patients: 300, sessions: 10000 },
-            gold: { patients: 500, sessions: 999999 },
+            basic: { patients: 50, sessions: 100 },
+            silver: { patients: 200, sessions: 500 },
+            gold: { patients: -1, sessions: -1 },
           };
           setPlanLimits(limits[subData[0].plan_name] || limits.basic);
         }
@@ -160,10 +160,14 @@ export default function SubscriptionPage() {
       } catch { /* ignore */ }
 
       try {
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
         const { count: sCount } = await supabase
           .from("sessions")
           .select("*", { count: "exact", head: true })
-          .eq('clinic_id', clinicId);
+          .eq('clinic_id', clinicId)
+          .gte("created_at", startOfMonth.toISOString());
         if (sCount !== null) setSessionCount(sCount);
       } catch { /* ignore */ }
     }
@@ -276,29 +280,47 @@ export default function SubscriptionPage() {
           <div className="space-y-1.5">
             <div className={`flex justify-between text-xs ${isRtl ? "" : "flex-row-reverse"}`}>
               <span className="text-slate-600 font-medium">{isRtl ? "المرضى المسجلين" : "Registered Patients"}</span>
-              <span className="font-mono font-bold text-slate-800">{patientCount} / {planLimits.patients.toLocaleString()}</span>
+              {planLimits.patients === -1 ? (
+                <span className="font-mono font-bold text-slate-800">{patientCount.toLocaleString()} / ∞</span>
+              ) : (
+                <span className="font-mono font-bold text-slate-800">{patientCount} / {planLimits.patients.toLocaleString()}</span>
+              )}
             </div>
             <div className={`bg-slate-100 rounded-full h-2.5 overflow-hidden ${isRtl ? "" : "transform rotate-180"}`}>
-              <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: `${Math.min(100, (patientCount / planLimits.patients) * 100)}%` }} />
+              {planLimits.patients === -1 ? (
+                <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: "100%" }} />
+              ) : (
+                <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: `${Math.min(100, (patientCount / planLimits.patients) * 100)}%` }} />
+              )}
             </div>
             <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>
-              {planLimits.patients - patientCount > 0
-                ? (isRtl
-                  ? `${(planLimits.patients - patientCount).toLocaleString()} مريض متبقي قبل الوصول للحد الأقصى`
-                  : `${(planLimits.patients - patientCount).toLocaleString()} patients left before reaching the limit`)
-                : (isRtl ? "تم الوصول للحد الأقصى من المرضى" : "Maximum patient limit reached")}
+              {planLimits.patients === -1
+                ? (isRtl ? "مرضى غير محدودين" : "Unlimited patients")
+                : (planLimits.patients - patientCount > 0
+                  ? (isRtl
+                    ? `${(planLimits.patients - patientCount).toLocaleString()} مريض متبقي قبل الوصول للحد الأقصى`
+                    : `${(planLimits.patients - patientCount).toLocaleString()} patients left before reaching the limit`)
+                  : (isRtl ? "تم الوصول للحد الأقصى من المرضى" : "Maximum patient limit reached"))}
             </p>
           </div>
           <div className="space-y-1.5">
             <div className={`flex justify-between text-xs ${isRtl ? "" : "flex-row-reverse"}`}>
               <span className="text-slate-600 font-medium">{isRtl ? "الجلسات هذا الشهر" : "Sessions this Month"}</span>
-              <span className="font-mono font-bold text-slate-800">{sessionCount.toLocaleString()} / {planLimits.sessions === 999999 ? "∞" : planLimits.sessions.toLocaleString()}</span>
+              {planLimits.sessions === -1 ? (
+                <span className="font-mono font-bold text-slate-800">{sessionCount.toLocaleString()} / ∞</span>
+              ) : (
+                <span className="font-mono font-bold text-slate-800">{sessionCount.toLocaleString()} / {planLimits.sessions.toLocaleString()}</span>
+              )}
             </div>
             <div className={`bg-slate-100 rounded-full h-2.5 overflow-hidden ${isRtl ? "" : "transform rotate-180"}`}>
-              <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: `${Math.min(100, (sessionCount / planLimits.sessions) * 100)}%` }} />
+              {planLimits.sessions === -1 ? (
+                <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: "100%" }} />
+              ) : (
+                <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: `${Math.min(100, (sessionCount / planLimits.sessions) * 100)}%` }} />
+              )}
             </div>
             <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>
-              {planLimits.sessions === 999999
+              {planLimits.sessions === -1
                 ? (isRtl ? "جلسات غير محدودة" : "Unlimited sessions")
                 : (planLimits.sessions - sessionCount > 0
                   ? (isRtl

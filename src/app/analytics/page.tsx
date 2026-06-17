@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BarChart3, TrendingUp, Users, DollarSign, Calendar, Activity, CheckCircle2 } from "lucide-react";
+import { BarChart3, TrendingUp, Users, DollarSign, Calendar, Activity, CheckCircle2, Minus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
@@ -17,7 +17,7 @@ export default function AnalyticsPage() {
     inactivePatients: 0,
     totalSessions: 0,
     netRevenue: 0,
-    satisfactionRate: 98.4,
+    satisfactionRate: null as number | null,
     backPackageCount: 0,
     kneePackageCount: 0,
     singleSessionsCount: 0
@@ -68,7 +68,7 @@ export default function AnalyticsPage() {
             inactivePatients,
             totalSessions,
             netRevenue,
-            satisfactionRate: 98.5,
+            satisfactionRate: null,
             backPackageCount,
             kneePackageCount,
             singleSessionsCount
@@ -87,7 +87,7 @@ export default function AnalyticsPage() {
     { title: isRtl ? "إجمالي المرضى بالعيادة" : "Total Clinic Patients", value: `${stats.totalPatients} ${isRtl ? 'مريض' : 'Patients'}`, desc: isRtl ? `نشط: ${stats.activePatients} | غير نشط: ${stats.inactivePatients}` : `Active: ${stats.activePatients} | Inactive: ${stats.inactivePatients}`, icon: Users, color: "text-[#0d8a8a] bg-teal-50 dark:bg-teal-950/20 ring-1 ring-teal-100/50" },
     { title: isRtl ? "الجلسات المنفذة" : "Completed Sessions", value: `${stats.totalSessions} ${isRtl ? 'جلسة' : 'Sessions'}`, desc: isRtl ? "من واقع سجلات العلاج الطبيعي" : "Based on physiotherapy records", icon: Calendar, color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 ring-1 ring-indigo-100/50" },
     { title: isRtl ? "صافي الإيرادات (المدفوعة)" : "Net Revenue (Paid)", value: `${stats.netRevenue.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}`, desc: isRtl ? "جميع المدفوعات نقدية (نقدي)" : "All payments are cash", icon: DollarSign, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 ring-1 ring-emerald-100/50" },
-    { title: isRtl ? "معدل رضا المرضى" : "Patient Satisfaction", value: `${stats.satisfactionRate}٪`, desc: isRtl ? "بناءً على التقييمات بعد الجلسة" : "Based on post-session reviews", icon: TrendingUp, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/20 ring-1 ring-blue-100/50" },
+    { title: isRtl ? "معدل رضا المرضى" : "Patient Satisfaction", value: stats.satisfactionRate !== null ? `${stats.satisfactionRate}٪` : "—", desc: isRtl ? "لا توجد تقييمات بعد" : "No reviews yet", icon: stats.satisfactionRate !== null ? TrendingUp : Minus, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/20 ring-1 ring-blue-100/50" },
   ];
 
   return (

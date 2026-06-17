@@ -5,10 +5,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 <!-- END:nextjs-agent-rules -->
 
 ## Goal
-Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (Google OAuth + Supabase email/password), live Supabase data with per-clinic isolation, working Paymob subscriptions.
+Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (NextAuth Credentials + Google OAuth), live Supabase data with per-clinic isolation, working Paymob subscriptions.
 
 ## Constraints & Preferences
 - Arabic-first interface
+- Admin signup via Google OAuth (verified real account); doctors/receptionists use email/password (created by admin from `/staff`)
 - Super admin (ahmedsalamaahmed21@gmail.com) sees all clinics; each clinic admin sees only their data
 - Plans use unified feature list across all tiers; Basic most locked, Gold all unlocked
 - NEXT_PUBLIC_SUPABASE_ANON_KEY on client; SUPABASE_SERVICE_ROLE_KEY server-side only
@@ -33,6 +34,22 @@ Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (
 - **DashboardLayout clinicId guard**: Added check — if `activeAccount` exists but `clinicId === undefined`, show loading spinner instead of rendering children. Prevents all pages from fetching data with stale/undefined `clinicId` before `enrichUserWithClinic` completes.
 - **Error boundaries created**: `src/app/error.tsx` (route-level, preserves layout) and `src/app/global-error.tsx` (catches root layout errors, defines own html/body). Both show Arabic-first error UI with retry button.
 
+### Session: Subscription Page Limit Alignment (2026-06-17)
+- **Fixed limit mismatch**: Aligned `subscription/page.tsx` display limits with `subscriptionCheck.ts` enforcement — basic now shows 50 patients/100 sessions (was 100/2000), silver 200/500 (was 300/10000), gold ∞/∞ (was 500/999999).
+- **Fixed session count**: Subscription page now filters session count by current month (`created_at >= startOfMonth`) matching the server-side enforcement and the "هذا الشهر" label.
+- **Gold unlimited display**: Usage bar now shows ∞ and full-width progress bar for gold plans instead of specific numbers.
+- **Consistent feature table**: `ALL_FEATURES` limits and `COMPARE_ROWS` updated to match actual server-enforced limits across all plans.
+- **Build verified**: `npm run build` passes with zero errors.
+
+### Session: RBAC Implementation + Server-Side Role Enforcement (2026-06-17)
+- **Free signup removed**: `/signup` page rewritten — email/password form, OTP verification, and role selector removed entirely. Only Google OAuth remains for new clinic admins. Added notice explaining staff accounts are created by clinic admin from dashboard.
+- **Normalized roles**: Added `mapStaffRoleToRoleKey()` in both `auth.tsx` and `auth.ts` — maps Arabic role values (`مدير العياده`, `موظف استقبال`, etc.) to canonical role keys. `enrichUserWithClinic` now derives `roleKey` from `staff.role` in the DB, not from client-side `pending_role` in `appStorage`.
+- **Server-side enforcement**: Created `requireRole(req, allowedRoles)` in `src/app/api/utils/auth.ts` — authenticates user, queries staff role from DB, maps to role key, and rejects if insufficient permissions.
+- **API routes hardened**: `paymob/create-order` restricted to admin only (`requireRole(["admin"])`). `report` and `chat` restricted to admin/doctor (`requireRole(["admin", "doctor"])`). Receptionists can no longer generate AI reports or create payment orders.
+- **Staff invite locked down**: `POST /api/staff/invite` now uses `requireRole(["admin"])` instead of manual role check. Blocks creating any user with role `admin` or `مدير العياده` (only the original signup/auto-provision creates admins). Validates that the role is one of the 4 allowed staff roles (استشاري, أخصائي, ممارس, موظف استقبال).
+- **Staff form updated**: Both add and edit dialogs on `/staff` page no longer include "مدير العياده" in the role dropdown. Admins can only create doctors and receptionists.
+- **Build verified**: `npm run build` passes with zero errors.
+
 ### Previous work (pre-2026-06-16)
 - Multi-tenant migration SQL created and run (platform_admins, clinics, clinic_id columns, RLS, data migration)
 - Paymob integration (env vars in Vercel, subscription plans, callback handling)
@@ -52,6 +69,7 @@ Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (
 
 ## Key Architecture Decisions
 - `requireAuth()` checks NextAuth JWT first (Google users), then Supabase session cookie (email/password), then Authorization header
+- `requireRole()` builds on `requireAuth()` — queries staff role from DB, maps Arabic role values to canonical `roleKey`, and rejects if insufficient permissions
 - Signup API uses service_role key (`getAdminClient()`) to create auth users + clinic + staff atomically
 - Subscription enforcement is client-side pre-check + server-side verification via API
 - Admin panel uses platform_admin bypass (checks `platform_admins` table + service_role)
@@ -60,12 +78,14 @@ Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (
 - Error boundary conventions in this Next.js version: `error.tsx` (route-level, preserves layout, uses `unstable_retry` prop), `global-error.tsx` (catches root layout, defines own html/body)
 
 ## Relevant Files
-- `src/app/api/utils/auth.ts`: `requireAuth()` helper for API routes
+- `src/app/api/utils/auth.ts`: `requireAuth()` + `requireRole()` helpers for API routes
 - `src/app/api/signup/route.ts`: Server-side signup (creates auth user + clinic + staff)
 - `src/app/api/subscription/check-limit/route.ts`: Subscription limit check endpoint
 - `src/app/api/admin/clinics/route.ts`: Admin API (list clinics, toggle active)
+- `src/app/api/staff/invite/route.ts`: Staff invite with role validation + admin-only guard
 - `src/app/admin/page.tsx`: Super admin panel UI
 - `src/lib/subscriptionCheck.ts`: Plan limit enforcement logic
+- `src/lib/auth.tsx`: Auth context with `mapStaffRoleToRoleKey()` and `enrichUserWithClinic()`
 - `src/components/DashboardLayout.tsx`: Sidebar with admin link for platform_admin role; clinicId guard (loading spinner until enrichUserWithClinic completes)
 - `src/app/error.tsx`: Route-level error boundary (Arabic-first, retry button)
 - `src/app/global-error.tsx`: Global error boundary for root layout crashes

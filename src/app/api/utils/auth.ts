@@ -7,6 +7,19 @@ export interface AuthUser {
   userId?: string;
 }
 
+function mapStaffRoleToRoleKey(role: string): "admin" | "doctor" | "receptionist" {
+  switch (role) {
+    case "admin":
+    case "مدير العياده":
+      return "admin";
+    case "موظف استقبال":
+    case "receptionist":
+      return "receptionist";
+    default:
+      return "doctor";
+  }
+}
+
 export async function requireAuth(req: NextRequest): Promise<AuthUser> {
   // 1. Try NextAuth token (Google OAuth users)
   const token = await getToken({ req });
@@ -37,4 +50,30 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
   }
 
   throw new Error("Unauthorized");
+}
+
+export async function requireRole(
+  req: NextRequest,
+  allowedRoles: Array<"admin" | "doctor" | "receptionist">
+): Promise<AuthUser & { roleKey: string }> {
+  const authed = await requireAuth(req);
+  const admin = getAdminClient();
+
+  const { data: staff } = await admin
+    .from("staff")
+    .select("role")
+    .eq("email", authed.email)
+    .maybeSingle();
+
+  if (!staff) {
+    throw new Error("لم يتم العثور على حساب الموظف");
+  }
+
+  const roleKey = mapStaffRoleToRoleKey(staff.role);
+
+  if (!allowedRoles.includes(roleKey)) {
+    throw new Error("غير مصرح — صلاحية غير كافية");
+  }
+
+  return { ...authed, roleKey };
 }
