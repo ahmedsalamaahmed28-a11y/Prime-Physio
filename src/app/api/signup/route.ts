@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase";
+import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,26 +12,31 @@ export async function POST(req: NextRequest) {
 
     const admin = getAdminClient();
 
-    // 1. Create auth user
-    const { data: authUser, error: createError } = await admin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { full_name: clinicName, clinic_name: clinicName, phone, role },
-    });
+    // Check if email already exists in auth_accounts
+    const { data: existing } = await admin
+      .from("auth_accounts")
+      .select("id")
+      .eq("email", email.toLowerCase().trim())
+      .maybeSingle();
 
-    if (createError) {
-      console.error("[Signup] createError:", createError.message, JSON.stringify(createError));
-      return NextResponse.json(
-        { error: createError.message === "User already registered" ? "User already registered" : "فشل إنشاء الحساب" },
-        { status: 400 }
-      );
+    if (existing) {
+      return NextResponse.json({ error: "User already registered" }, { status: 400 });
     }
 
-    const userId = authUser.user?.id;
-    if (!userId) {
+    // Hash password and store in auth_accounts
+    const passwordHash = await bcrypt.hash(password, 10);
+    const { data: authRecord, error: authError } = await admin
+      .from("auth_accounts")
+      .insert({ email: email.toLowerCase().trim(), password_hash: passwordHash })
+      .select("id")
+      .single();
+
+    if (authError || !authRecord) {
+      console.error("[Signup] Failed to create auth account:", authError?.message);
       return NextResponse.json({ error: "فشل إنشاء الحساب" }, { status: 500 });
     }
+
+    const userId = authRecord.id;
 
     // 2. Create clinic
     const clinicId = crypto.randomUUID();
@@ -44,8 +50,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (clinicError) {
-      // Cleanup: delete auth user if clinic creation fails
-      await admin.auth.admin.deleteUser(userId).catch(() => {});
+      await admin.from("auth_accounts").delete().eq("id", userId).catch(() => {});
       return NextResponse.json({ error: "فشل إنشاء العيادة" }, { status: 500 });
     }
 
@@ -62,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     if (staffError) {
       try { await admin.from("clinics").delete().eq("id", clinicId); } catch {}
-      try { await admin.auth.admin.deleteUser(userId); } catch {}
+      try { await admin.from("auth_accounts").delete().eq("id", userId); } catch {}
       return NextResponse.json({ error: "فشل إنشاء بيانات الموظف" }, { status: 500 });
     }
 

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,6 @@ import { setAppValue } from "@/lib/appStorage";
 import { ShieldAlert, Lock, Eye, EyeOff, CheckCircle2 } from "lucide-react";
 
 export default function LoginPage() {
-  const { loginWithSupabase } = useAuth();
   const { language } = useLanguage();
   const isRtl = language === "ar";
 
@@ -33,18 +31,23 @@ export default function LoginPage() {
     const cleanPassword = password.trim();
 
     await setAppValue("pending_role", activeRole);
+    const result = await signIn("credentials", {
+      email: cleanEmail,
+      password: cleanPassword,
+      redirect: false,
+    });
 
-    const { error: loginError } = await loginWithSupabase(cleanEmail, cleanPassword);
-    if (loginError) {
-      setError(loginError.includes("Invalid login credentials")
+    if (result?.error) {
+      setError(result.error === "CredentialsSignin"
         ? (isRtl ? "بيانات الدخول غير صحيحة" : "Invalid login credentials")
-        : loginError);
+        : result.error);
       setIsSubmitting(false);
       return;
     }
 
     setSuccessMsg(isRtl ? "تم تسجيل الدخول بنجاح" : "Logged in successfully");
     setIsSubmitting(false);
+    window.location.href = "/";
   };
 
   const handleGoogleLogin = async () => {

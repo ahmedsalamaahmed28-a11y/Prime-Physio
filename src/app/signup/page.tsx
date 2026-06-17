@@ -2,13 +2,11 @@
 
 import React, { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useAuth } from "@/lib/auth";
 import { setAppValue } from "@/lib/appStorage";
 import Link from "next/link";
 import { ShieldAlert, Check } from "lucide-react";
 
 export default function SignupPage() {
-  const { registerWithSupabase } = useAuth();
   const [clinicName, setClinicName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -107,7 +105,7 @@ export default function SignupPage() {
               <span>تم إنشاء الحساب بنجاح!</span>
             </div>
             <p className="text-[11px] leading-relaxed">
-              تم إرسال رابط تأكيد إلى بريدك الإلكتروني. بعد التأكيد، يمكنك
+              يمكنك الآن
               {' '}
               <Link href="/login" className="font-bold text-emerald-800 underline">
                 تسجيل الدخول من هنا
