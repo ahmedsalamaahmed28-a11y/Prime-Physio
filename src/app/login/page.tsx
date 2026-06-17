@@ -55,6 +55,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     await setAppValue("pending_role", activeRole);
+    await setAppValue("pending_google_signup", "true");
 
     signIn("google", { callbackUrl: "/" });
   };
