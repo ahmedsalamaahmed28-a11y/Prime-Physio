@@ -105,6 +105,8 @@ export default function DashboardLayout({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
 
+  const [mounted, setMounted] = useState(false);
+
   // Public pages: render without auth guard
   if (pathname === "/login" || pathname === "/signup") {
     return <>{children}</>;
@@ -156,8 +158,6 @@ export default function DashboardLayout({
   const toggleNotifications = () => {
     setIsNotificationsOpen(prev => !prev);
   };
-
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
