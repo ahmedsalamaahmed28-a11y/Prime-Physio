@@ -12,16 +12,25 @@ export async function POST(req: NextRequest) {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
-    const admin = getAdminClient();
 
-    // Check if service role key is set
-    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    // Debug: Log env vars (first 10 chars only)
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+    console.log("[AutoProvision] Env check:", {
+      hasServiceKey: !!serviceKey,
+      serviceKeyPrefix: serviceKey.substring(0, 10),
+      supabaseUrlPrefix: supabaseUrl.substring(0, 30),
+    });
+
+    if (!serviceKey) {
       console.error("[AutoProvision] MISSING SUPABASE_SERVICE_ROLE_KEY env var");
       return NextResponse.json(
         { error: "Service role key not configured", detail: "SUPABASE_SERVICE_ROLE_KEY is missing" },
         { status: 500 }
       );
     }
+
+    const admin = getAdminClient();
 
     // Check if already provisioned (staff record exists)
     const { data: existing, error: lookupError } = await admin
