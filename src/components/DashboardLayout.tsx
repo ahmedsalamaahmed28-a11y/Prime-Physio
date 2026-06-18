@@ -102,6 +102,11 @@ export default function DashboardLayout({
   
   const activeAccount = user;
 
+  // Public pages: render without auth guard
+  if (pathname === "/login" || pathname === "/signup") {
+    return <>{children}</>;
+  }
+
   if (!activeAccount) return null;
 
   const displayAccountName = activeAccount.roleKey === "receptionist"
@@ -229,10 +234,6 @@ export default function DashboardLayout({
       supabase.removeChannel(channel);
     };
   }, []);
-
-  if (pathname === "/login" || pathname === "/signup") {
-    return <>{children}</>;
-  }
 
   if (!mounted || isLoading) {
     return (
