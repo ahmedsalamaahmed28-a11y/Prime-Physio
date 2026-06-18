@@ -49,7 +49,7 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
     // 4. Register custom Service Worker
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
-        .register("/api/sw", { scope: "/" })
+        .register("/sw.js", { scope: "/" })
         .then((reg) => {
           console.log("[PWA Provider] Service Worker registered with scope:", reg.scope);
         })
