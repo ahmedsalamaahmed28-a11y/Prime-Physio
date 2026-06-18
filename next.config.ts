@@ -3,9 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   devIndicators: false,
-  experimental: {
-    globalNotFound: true,
-  },
+  // Disable globalNotFound experimental feature to fix Service Worker registration
+  // experimental: {
+  //   globalNotFound: true,
+  // },
   // Allow network origins for HMR web sockets
   allowedDevOrigins: [
     "localhost:3000",
