@@ -609,10 +609,10 @@ export default function LoginPage() {
             <img src="/logo.png" alt="Prime Physio" className="w-5 h-5 object-contain" />
             <span className="text-[10px] font-bold text-slate-400">Prime Physio © 2026</span>
           </div>
-          <div className="flex items-center gap-4 text-[10px] text-slate-400">
+            <div className="flex items-center gap-4 text-[10px] text-slate-400">
             <span className="cursor-pointer hover:text-slate-600 transition-colors">{isRtl ? "سياسة الخصوصية" : "Privacy"}</span>
             <span className="cursor-pointer hover:text-slate-600 transition-colors">{isRtl ? "الشروط" : "Terms"}</span>
-            <span className="cursor-pointer hover:text-slate-600 transition-colors">{isRtl ? "اتصل بنا" : "Contact"}</span>
+            <Link href="/login" className="cursor-pointer hover:text-slate-600 transition-colors">{isRtl ? "اتصل بنا" : "Contact"}</Link>
           </div>
         </div>
       </footer>
