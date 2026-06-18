@@ -102,6 +102,9 @@ export default function DashboardLayout({
   
   const activeAccount = user;
 
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+
   // Public pages: render without auth guard
   if (pathname === "/login" || pathname === "/signup") {
     return <>{children}</>;
@@ -121,9 +124,6 @@ export default function DashboardLayout({
     : (activeAccount.nameEn || activeAccount.name).startsWith("Dr.")
     ? (activeAccount.nameEn || activeAccount.name)
     : `Dr. ${activeAccount.nameEn || activeAccount.name}`;
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const notificationsRef = useRef<HTMLDivElement>(null);
 
   // Close profile dropdown when clicking outside
   useEffect(() => {
