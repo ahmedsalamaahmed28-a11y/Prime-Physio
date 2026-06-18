@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import SelectMenu from "@/components/SelectMenu";
 import { supabase } from "@/lib/supabase";
 import { queueOfflineMutation } from "@/lib/offlineQueue";
 import { usePermissions } from "@/lib/usePermissions";
@@ -36,6 +37,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useLanguage } from "@/lib/LanguageContext";
+import AlertPopup from "@/components/AlertPopup";
 
 function PatientsContent() {
   const searchParams = useSearchParams();
@@ -43,6 +45,7 @@ function PatientsContent() {
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [patients, setPatients] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [alertMsg, setAlertMsg] = useState("");
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
@@ -162,7 +165,7 @@ function PatientsContent() {
   const handleAddPatient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.nameAr || !formData.phone) {
-      alert(isRtl ? "الرجاء إدخال الاسم ورقم الجوال" : "Please enter name and phone number");
+      setAlertMsg(isRtl ? "الرجاء إدخال الاسم ورقم الجوال" : "Please enter name and phone number");
       return;
     }
 
@@ -172,7 +175,7 @@ function PatientsContent() {
       if (limitRes.ok) {
         const limitData = await limitRes.json();
         if (!limitData.allowed) {
-          alert(isRtl
+          setAlertMsg(isRtl
             ? "لقد تجاوزت الحد المسموح به لعدد المرضى في خطتك الحالية. يرجى ترقية اشتراكك لإضافة المزيد من المرضى."
             : "You have reached the patient limit for your current plan. Please upgrade your subscription.");
           return;
@@ -504,13 +507,25 @@ function PatientsContent() {
                 <select
                   id="visitType"
                   value={formData.visitType}
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     const type = e.target.value;
                     const price = type === "كشف أول" ? defaultExamPrice : defaultClinicPrice;
+                    let sessionsTotal = type === "كشف أول" ? 1 : 0;
+                    if (type === "متابعة (جلسات)") {
+                      try {
+                        const res = await fetch(`/api/subscription/check-limit?clinic_id=${clinicId}&resource=sessions`);
+                        if (res.ok) {
+                          const data = await res.json();
+                          if (data.limit && data.limit !== -1) {
+                            sessionsTotal = Math.max(0, data.limit - (data.current || 0));
+                          }
+                        }
+                      } catch {}
+                    }
                     setFormData({
                       ...formData,
                       visitType: type,
-                      sessionsTotal: type === "كشف أول" ? 1 : 0,
+                      sessionsTotal,
                       sessionPrice: price,
                     });
                   }}
@@ -522,17 +537,14 @@ function PatientsContent() {
               </div>
               <div className="space-y-1">
                 <Label htmlFor="doctor" className="text-xs font-semibold text-slate-700">{isRtl ? "الطبيب المعالج" : "Doctor"}</Label>
-                <select
-                  id="doctor"
+                <SelectMenu
+                  items={doctorsList.map((doc) => ({ value: doc.name, label: doc.name }))}
                   value={formData.doctor}
-                  onChange={(e) => setFormData({...formData, doctor: e.target.value})}
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-600"
-                >
-                  <option value="">{isRtl ? "غير محدد" : "Not specified"}</option>
-                  {doctorsList.map((doc) => (
-                    <option key={doc.email} value={doc.name}>{doc.name}</option>
-                  ))}
-                </select>
+                  onValueChange={(val) => setFormData({...formData, doctor: val})}
+                  placeholder={isRtl ? "غير محدد" : "Not specified"}
+                  searchPlaceholder={isRtl ? "بحث..." : "Search"}
+                  nothingFound={isRtl ? "لا يوجد نتائج" : "Nothing found."}
+                />
               </div>
             </div>
 
@@ -783,6 +795,7 @@ function PatientsContent() {
         </CardContent>
       </Card>
 
+      <AlertPopup message={alertMsg} isOpen={!!alertMsg} onClose={() => setAlertMsg("")} />
     </div>
   );
 }

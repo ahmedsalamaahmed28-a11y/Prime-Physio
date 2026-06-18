@@ -27,7 +27,7 @@ interface CustomMonthCalendarProps {
 }
 
 const VISIT_COLORS: Record<string, string> = {
-  "جلسة علاج": "#119094",
+  "جلسة علاج": "#4F46BA",
   "كشف أول": "#7c3aed",
   "متابعة": "#0891b2",
   "تقييم": "#d97706",
@@ -153,7 +153,7 @@ export default function CustomMonthCalendar({
                 </div>
                 <div className="space-y-0.5">
                   {dayEvents.slice(0, 3).map((ev) => {
-                    const bgColor = ev.status === "ملغي" ? "#94a3b8" : VISIT_COLORS[ev.visitType] || "#119094";
+                    const bgColor = ev.status === "ملغي" ? "#94a3b8" : VISIT_COLORS[ev.visitType] || "#4F46BA";
                     return (
                       <div
                         key={ev.id}

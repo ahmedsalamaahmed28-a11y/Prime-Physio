@@ -66,7 +66,7 @@ function FailedContent() {
         <div className="flex flex-col gap-3">
           <Link
             href="/subscription"
-            className="w-full bg-gradient-to-r from-[#0d8a8a] to-cyan-500 text-white font-bold py-3 rounded-2xl text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-md"
+            className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-bold py-3 rounded-2xl text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-md"
           >
             <RefreshCw className="w-4 h-4" />
             إعادة المحاولة

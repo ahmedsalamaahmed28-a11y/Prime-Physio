@@ -208,14 +208,14 @@ export default function UsersPermissionsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-            <div className="bg-teal-50 p-2 rounded-xl">
-              <Shield className="w-6 h-6 text-[#0d8a8a]" />
+            <div className="bg-indigo-50 p-2 rounded-xl">
+              <Shield className="w-6 h-6 text-[#4F46BA]" />
             </div>
             %/'1) 'DE3*./EJF H'D5D'-J'*
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">'D*-CE AJ -3'('* 'D7'BE 'D7(J H'D%/'1J HE3*HJ'* 'D5D'-J'* 'D.'5) (GE</p>
         </div>
-        <Button onClick={() => setIsAddOpen(true)} className="bg-[#0d8a8a] hover:bg-[#085454] text-white gap-2 self-start sm:self-auto rounded-xl font-bold px-6 shadow-md transition-all active:scale-95">
+        <Button onClick={() => setIsAddOpen(true)} className="bg-[#4F46BA] hover:bg-[#4338ca] text-white gap-2 self-start sm:self-auto rounded-xl font-bold px-6 shadow-md transition-all active:scale-95">
           <UserPlus className="w-4 h-4" />
           %6'A) E3*./E ,/J/
         </Button>
@@ -226,7 +226,7 @@ export default function UsersPermissionsPage() {
         <Card className="lg:col-span-1 shadow-xs">
           <CardHeader className="border-b pb-4">
             <CardTitle className="text-base font-bold flex items-center gap-2">
-              <Key className="w-5 h-5 text-[#0d8a8a]" />
+              <Key className="w-5 h-5 text-[#4F46BA]" />
               E,EH9'* 'D5D'-J'* 'D#3'3J)
             </CardTitle>
           </CardHeader>
@@ -385,7 +385,7 @@ export default function UsersPermissionsPage() {
             </div>
             <DialogFooter className="mt-6 flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)} className="rounded-xl font-bold">%D:'!</Button>
-                <Button type="submit" className="bg-[#0d8a8a] hover:bg-[#085454] text-white rounded-xl font-bold px-6">%6'A)</Button>
+                <Button type="submit" className="bg-[#4F46BA] hover:bg-[#4338ca] text-white rounded-xl font-bold px-6">%6'A)</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -457,7 +457,7 @@ export default function UsersPermissionsPage() {
             </div>
             <DialogFooter className="mt-6 flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="rounded-xl font-bold">%D:'!</Button>
-                <Button type="submit" className="bg-[#0d8a8a] hover:bg-[#085454] text-white rounded-xl font-bold px-6">-A8 'D*9/JD'*</Button>
+                <Button type="submit" className="bg-[#4F46BA] hover:bg-[#4338ca] text-white rounded-xl font-bold px-6">-A8 'D*9/JD'*</Button>
             </DialogFooter>
           </form>
         </DialogContent>

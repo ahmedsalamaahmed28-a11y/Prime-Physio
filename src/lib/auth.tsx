@@ -113,12 +113,11 @@ async function enrichUserWithClinic(user: User): Promise<User> {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: user.email, name: user.name }),
       });
+      // Clear the flag so it only runs once (even on failure, to avoid infinite retry)
+      setAppValue("pending_google_signup", "").catch(() => {});
       if (res.ok) {
         const data = await res.json();
         user.clinicId = data.clinicId;
-        // roleKey remains "admin" (set from pending_role before redirect)
-        // Clear the flag so it only runs once
-        setAppValue("pending_google_signup", "").catch(() => {});
       }
     }
   } catch {
@@ -135,7 +134,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    const isAuthPage = window.location.pathname === "/login" || window.location.pathname === "/signup";
+    const isAuthPage = window.location.pathname === "/login" || window.location.pathname === "/signup" || window.location.pathname === "/forgot-password" || window.location.pathname === "/reset-password";
     if (isAuthPage) {
       setIsLoading(false);
       return;
@@ -165,9 +164,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           roleKey,
           bg:
             roleKey === "admin"
-              ? "bg-gradient-to-br from-[#0d8a8a] to-[#085454]"
+              ? "bg-gradient-to-br from-[#4F46BA] to-[#4338ca]"
               : roleKey === "doctor"
-              ? "bg-gradient-to-br from-emerald-500 to-teal-600"
+              ? "bg-gradient-to-br from-[#4F46BA] to-[#7c3aed]"
               : "bg-gradient-to-br from-amber-500 to-orange-600",
           nameEn: prefixEnglishName(name, roleKey),
           roleEn: getEnglishRoleLabel(roleKey),
@@ -183,7 +182,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         });
         setAppValue("pending_role", "doctor").catch(() => {});
 
-        if (window.location.pathname === "/login" || window.location.pathname === "/signup") {
+        if (window.location.pathname === "/login" || window.location.pathname === "/signup" || window.location.pathname === "/forgot-password" || window.location.pathname === "/reset-password") {
           window.location.href = "/";
         }
       } else if (event === "SIGNED_OUT") {
@@ -233,9 +232,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           roleKey: finalRoleKey,
           bg:
             finalRoleKey === "admin"
-              ? "bg-gradient-to-br from-[#0d8a8a] to-[#085454]"
+              ? "bg-gradient-to-br from-[#4F46BA] to-[#4338ca]"
               : finalRoleKey === "doctor"
-              ? "bg-gradient-to-br from-emerald-500 to-teal-600"
+              ? "bg-gradient-to-br from-[#4F46BA] to-[#7c3aed]"
               : "bg-gradient-to-br from-amber-500 to-orange-600",
           image: currentUser.image || undefined,
           nameEn: prefixEnglishName(name, finalRoleKey),
@@ -250,7 +249,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           return enriched;
         });
 
-        if (window.location.pathname === "/login" || window.location.pathname === "/signup") {
+        if (window.location.pathname === "/login" || window.location.pathname === "/signup" || window.location.pathname === "/forgot-password" || window.location.pathname === "/reset-password") {
           window.location.href = "/";
         }
       };
@@ -263,7 +262,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isAuthLoading) {
-      const isAuthPage = pathname === "/login" || pathname === "/signup";
+      const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password" || pathname === "/reset-password";
       if (!user && status !== "authenticated" && !isAuthPage) {
         window.location.href = "/login";
       } else if ((user || status === "authenticated") && isAuthPage) {
@@ -281,7 +280,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       initials: uppercaseName.substring(0, 2),
       role: "طبيب معالج (جوجل)",
       roleKey: "doctor",
-      bg: "bg-gradient-to-br from-[#0d8a8a] to-[#085454]",
+      bg: "bg-gradient-to-br from-[#4F46BA] to-[#4338ca]",
       nameEn: uppercaseName,
       roleEn: "Certified Therapist (Google)",
       initialsEn: uppercaseName.substring(0, 2),
@@ -306,7 +305,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       initials,
       role,
       roleKey,
-      bg: "bg-gradient-to-br from-[#0d8a8a] to-[#085454]",
+      bg: "bg-gradient-to-br from-[#4F46BA] to-[#4338ca]",
       nameEn: prefixEnglishName(name, roleKey),
       roleEn: getEnglishRoleLabel(roleKey),
       initialsEn: initials,

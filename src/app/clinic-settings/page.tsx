@@ -99,8 +99,8 @@ export default function ClinicSettingsPage() {
     <div className="space-y-6" dir={isRtl ? "rtl" : "ltr"}>
       <div className={`flex flex-col gap-2 ${isRtl ? "" : "text-left"}`}>
         <h1 className={`text-2xl font-bold text-slate-800 flex items-center gap-2 ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
-          <div className="bg-teal-50 p-2 rounded-xl">
-            <Building className="w-6 h-6 text-[#0d8a8a]" />
+          <div className="bg-indigo-50 p-2 rounded-xl">
+            <Building className="w-6 h-6 text-[#4F46BA]" />
           </div>
           {isRtl ? "إعدادات العيادة" : "Clinic Settings"}
         </h1>
@@ -112,14 +112,14 @@ export default function ClinicSettingsPage() {
         <Card className="lg:col-span-2 shadow-xs">
           <CardHeader className="border-b pb-4">
             <CardTitle className={`text-base font-bold flex items-center gap-2 text-slate-800 ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
-              <Building className="w-5 h-5 text-[#0d8a8a]" />
+              <Building className="w-5 h-5 text-[#4F46BA]" />
               {isRtl ? "بيانات تعريف المركز" : "Center Identification Data"}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
             <form onSubmit={handleSave} className={`space-y-4 ${isRtl ? "" : "text-left"}`}>
               <div className={`flex gap-6 items-start border border-slate-100 p-4 rounded-xl bg-slate-50/50 ${isRtl ? "" : "flex-row-reverse"}`}>
-                <div className="w-24 h-24 rounded-2xl bg-white border border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-[#0d8a8a] transition-colors relative overflow-hidden group">
+                <div className="w-24 h-24 rounded-2xl bg-white border border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-[#4F46BA] transition-colors relative overflow-hidden group">
                   <img src="/logo.png" alt="Logo" className="w-full h-full object-contain p-2" />
                   <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <UploadCloud className="w-6 h-6 text-white" />
@@ -134,17 +134,17 @@ export default function ClinicSettingsPage() {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700">{isRtl ? "اسم العيادة / المركز" : "Clinic / Center Name"}</label>
-                <Input value={clinicName} onChange={(e) => setClinicName(e.target.value)} required className={`focus-visible:ring-[#0d8a8a] rounded-xl ${isRtl ? "" : "text-left"}`} />
+                <Input value={clinicName} onChange={(e) => setClinicName(e.target.value)} required className={`focus-visible:ring-[#4F46BA] rounded-xl ${isRtl ? "" : "text-left"}`} />
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">{isRtl ? "رقم الجوال الرئيسي" : "Main Phone Number"}</label>
-                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} required className={`focus-visible:ring-[#0d8a8a] rounded-xl ${isRtl ? "" : "text-left"}`} />
+                  <Input value={phone} onChange={(e) => setPhone(e.target.value)} required className={`focus-visible:ring-[#4F46BA] rounded-xl ${isRtl ? "" : "text-left"}`} />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">{isRtl ? "العنوان الفعلي" : "Physical Address"}</label>
-                  <Input value={address} onChange={(e) => setAddress(e.target.value)} required className={`focus-visible:ring-[#0d8a8a] rounded-xl ${isRtl ? "" : "text-left"}`} />
+                  <Input value={address} onChange={(e) => setAddress(e.target.value)} required className={`focus-visible:ring-[#4F46BA] rounded-xl ${isRtl ? "" : "text-left"}`} />
                 </div>
               </div>
 
@@ -155,7 +155,7 @@ export default function ClinicSettingsPage() {
                     {isRtl ? "تم حفظ الإعدادات بنجاح!" : "Settings saved successfully!"}
                   </span>
                 )}
-                <Button type="submit" className={`bg-[#0d8a8a] hover:bg-[#085454] text-white ${isRtl ? "mr-auto" : "ml-auto"} rounded-xl gap-1.5 font-bold px-6 shadow-md transition-all active:scale-95 ${isRtl ? "" : "flex-row-reverse"}`}>
+                <Button type="submit" className={`bg-[#4F46BA] hover:bg-[#4338ca] text-white ${isRtl ? "mr-auto" : "ml-auto"} rounded-xl gap-1.5 font-bold px-6 shadow-md transition-all active:scale-95 ${isRtl ? "" : "flex-row-reverse"}`}>
                   <Save className="w-4 h-4" />
                   {isRtl ? "حفظ التغييرات" : "Save Changes"}
                 </Button>
@@ -168,14 +168,14 @@ export default function ClinicSettingsPage() {
         <Card className="lg:col-span-1 shadow-xs">
           <CardHeader className="border-b pb-4">
             <CardTitle className={`text-base font-bold flex items-center gap-2 text-slate-800 ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
-              <Clock className="w-5 h-5 text-[#0d8a8a]" />
+              <Clock className="w-5 h-5 text-[#4F46BA]" />
               {isRtl ? "ساعات وأيام العمل" : "Working Hours & Days"}
             </CardTitle>
           </CardHeader>
           <CardContent className={`pt-6 space-y-4 text-sm ${isRtl ? "" : "text-left"}`}>
             <div className="space-y-1.5">
               <span className="text-xs font-bold text-slate-700 block">{isRtl ? "ساعات العمل اليومية" : "Daily Working Hours"}</span>
-              <Input value={workingHours} onChange={(e) => setWorkingHours(e.target.value)} className={`focus-visible:ring-[#0d8a8a] rounded-xl ${isRtl ? "" : "text-left"}`} />
+              <Input value={workingHours} onChange={(e) => setWorkingHours(e.target.value)} className={`focus-visible:ring-[#4F46BA] rounded-xl ${isRtl ? "" : "text-left"}`} />
             </div>
 
             <div className="space-y-2 border-t pt-4">

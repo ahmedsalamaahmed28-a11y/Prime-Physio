@@ -11,13 +11,13 @@ function SuccessContent() {
   const txId    = params ? params.get("tx") : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center p-4" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-indigo-50 flex items-center justify-center p-4" dir="rtl">
       <div className="w-full max-w-md text-center space-y-6">
 
         {/* Success Icon */}
         <div className="flex justify-center">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-xl shadow-emerald-200">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-[#4F46BA] to-[#7c3aed] flex items-center justify-center shadow-xl shadow-emerald-200">
               <CheckCircle2 className="w-12 h-12 text-white" />
             </div>
             <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center shadow-md">
@@ -64,7 +64,7 @@ function SuccessContent() {
         <div className="flex flex-col gap-3">
           <Link
             href="/subscription"
-            className="w-full bg-gradient-to-r from-[#0d8a8a] to-cyan-500 text-white font-bold py-3 rounded-2xl text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-md"
+            className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-bold py-3 rounded-2xl text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 shadow-md"
           >
             <Crown className="w-4 h-4" />
             عرض خطة الاشتراك
@@ -88,7 +88,7 @@ function SuccessContent() {
 
 export default function PaymentSuccessPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#0d8a8a] border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#4F46BA] border-t-transparent rounded-full animate-spin" /></div>}>
       <SuccessContent />
     </Suspense>
   );

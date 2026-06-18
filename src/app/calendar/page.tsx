@@ -24,6 +24,8 @@ import { useEffect } from "react";
 import { usePermissions } from "@/lib/usePermissions";
 import { useAuth } from "@/lib/auth";
 import CustomMonthCalendar from "@/components/CustomMonthCalendar";
+import SelectMenu from "@/components/SelectMenu";
+import AlertPopup from "@/components/AlertPopup";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -48,7 +50,7 @@ const PATIENTS: any[] = [];
 const VISIT_TYPES: VisitType[] = ["جلسة علاج", "كشف أول", "متابعة", "تقييم"];
 
 const VISIT_COLORS: Record<VisitType, string> = {
-  "جلسة علاج": "#119094",
+  "جلسة علاج": "#4F46BA",
   "كشف أول":   "#7c3aed",
   "متابعة":    "#0891b2",
   "تقييم":     "#d97706",
@@ -140,7 +142,7 @@ function NewAppointmentDialog({
       <DialogContent className={`sm:max-w-md ${isRtl ? "text-right" : "text-left"}`} dir={isRtl ? "rtl" : "ltr"}>
         <DialogHeader>
           <DialogTitle className={`flex items-center gap-2 text-lg font-heading ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
-            <span className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center text-base">➕</span>
+            <span className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-base">➕</span>
             <span>{isRtl ? "حجز موعد جديد" : "Book New Appointment"}</span>
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
@@ -152,28 +154,27 @@ function NewAppointmentDialog({
           {/* Patient */}
           <div className="space-y-1.5">
             <Label>{isRtl ? "المريض" : "Patient"}</Label>
-            <select
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            <SelectMenu
+              items={patientsList.map((p) => ({ value: p.id, label: `${isRtl ? p.nameAr : (p.nameEn || p.nameAr)} (${p.id})` }))}
               value={patientId}
-              onChange={(e) => setPatientId(e.target.value)}
-            >
-              {patientsList.map((p) => {
-                const name = isRtl ? p.nameAr : (p.nameEn || p.nameAr);
-                return <option key={p.id} value={p.id}>{name} ({p.id})</option>;
-              })}
-            </select>
+              onValueChange={setPatientId}
+              placeholder={isRtl ? "اختر مريض..." : "Select patient..."}
+              searchPlaceholder={isRtl ? "بحث..." : "Search"}
+              nothingFound={isRtl ? "لا يوجد نتائج" : "Nothing found."}
+            />
           </div>
 
           {/* Doctor */}
           <div className="space-y-1.5">
             <Label>{isRtl ? "المعالج" : "Therapist"}</Label>
-            <select
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            <SelectMenu
+              items={doctorsList.map((d) => ({ value: d.name, label: d.name }))}
               value={doctor}
-              onChange={(e) => setDoctor(e.target.value)}
-            >
-                  {doctorsList.map((d) => <option key={d.name} value={d.name}>{d.name}</option>)}
-            </select>
+              onValueChange={setDoctor}
+              placeholder={isRtl ? "اختر معالج..." : "Select therapist..."}
+              searchPlaceholder={isRtl ? "بحث..." : "Search"}
+              nothingFound={isRtl ? "لا يوجد نتائج" : "Nothing found."}
+            />
           </div>
 
           {/* Visit type & Duration */}
@@ -225,7 +226,7 @@ function NewAppointmentDialog({
 
         <DialogFooter className={`gap-3 sm:gap-3 flex w-full ${isRtl ? "flex-row" : "flex-row-reverse"}`}>
           <Button variant="outline" onClick={onClose} className="rounded-xl font-bold flex-1 transition-all active:scale-95">{isRtl ? "إلغاء" : "Cancel"}</Button>
-          <Button onClick={handleSave} className="bg-[#0d8a8a] hover:bg-[#085454] text-white rounded-xl font-bold flex-1 shadow-md transition-all active:scale-95">
+          <Button onClick={handleSave} className="bg-[#4F46BA] hover:bg-[#4338ca] text-white rounded-xl font-bold flex-1 shadow-md transition-all active:scale-95">
             {isRtl ? "تأكيد الحجز" : "Confirm Booking"}
           </Button>
         </DialogFooter>
@@ -276,7 +277,7 @@ function EventDetailsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg font-heading">
             <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: VISIT_COLORS[event.visitType] }} />
-            <Link href={`/patients/${event.patientId}`} className="text-[#0d8a8a] hover:underline dark:text-[#1ab0b2] font-bold">
+            <Link href={`/patients/${event.patientId}`} className="text-[#4F46BA] hover:underline dark:text-[#818cf8] font-bold">
               {event.patientName}
             </Link>
           </DialogTitle>
@@ -312,11 +313,14 @@ function EventDetailsDialog({
               <Separator />
               <div className="space-y-1.5">
                 <Label>المعالج</Label>
-                <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                <SelectMenu
+                  items={doctorsList.map((d) => ({ value: d.name, label: d.name }))}
                   value={form.doctor ?? event.doctor}
-                  onChange={(e) => setForm(f => ({ ...f, doctor: e.target.value }))}>
-              {doctorsList.map((d) => <option key={d.name} value={d.name}>{d.name}</option>)}
-                </select>
+                  onValueChange={(val) => setForm(f => ({ ...f, doctor: val }))}
+                  placeholder="اختر معالج..."
+                  searchPlaceholder="بحث..."
+                  nothingFound="لا يوجد نتائج"
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>نوع الزيارة</Label>
@@ -363,7 +367,7 @@ function EventDetailsDialog({
             {editing ? (
               <>
                 <Button variant="outline" className="flex-1 rounded-xl transition-all active:scale-95" onClick={() => setEditing(false)}>{isRtl ? "تراجع" : "Back"}</Button>
-                <Button className="flex-1 rounded-xl bg-[#0d8a8a] hover:bg-[#085454] text-white shadow-md transition-all active:scale-95" onClick={saveEdit}>{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
+                <Button className="flex-1 rounded-xl bg-[#4F46BA] hover:bg-[#4338ca] text-white shadow-md transition-all active:scale-95" onClick={saveEdit}>{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
               </>
             ) : (
               <>
@@ -405,6 +409,7 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [alertMsg, setAlertMsg] = useState("");
 
   // Load patients and events from Supabase
   useEffect(() => {
@@ -474,7 +479,7 @@ export default function CalendarPage() {
       if (limitRes.ok) {
         const limitData = await limitRes.json();
         if (!limitData.allowed) {
-          alert(isRtl
+          setAlertMsg(isRtl
             ? "لقد تجاوزت الحد المسموح به لعدد الجلسات الشهرية في خطتك الحالية. يرجى ترقية اشتراكك."
             : "You have reached the monthly session limit for your current plan. Please upgrade your subscription.");
           return;
@@ -600,7 +605,7 @@ export default function CalendarPage() {
       <div className="border-b bg-card sticky top-0 z-10 shadow-sm">
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4 flex-wrap ${isRtl ? "" : "flex-row-reverse"}`}>
           <div className={`flex items-center gap-3 ${isRtl ? "" : "flex-row-reverse"}`}>
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center text-lg shadow-sm text-white">📅</div>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4F46BA] to-[#7c3aed] flex items-center justify-center text-lg shadow-sm text-white">📅</div>
             <div className={isRtl ? "text-right" : "text-left"}>
               <h1 className="text-xl font-bold font-heading text-slate-800">{isRtl ? "إدارة الحجوزات" : "Appointments Management"}</h1>
               <p className="text-xs text-muted-foreground mt-0.5">{isRtl ? "التقويم التفاعلي للمواعيد" : "Interactive appointments calendar"}</p>
@@ -608,7 +613,7 @@ export default function CalendarPage() {
           </div>
           {hasPermission("edit_appointments") && (
             <Button
-              className="bg-[#0d8a8a] hover:bg-[#085454] text-white gap-2 rounded-xl font-bold px-6 shadow-md transition-all active:scale-95"
+              className="bg-[#4F46BA] hover:bg-[#4338ca] text-white gap-2 rounded-xl font-bold px-6 shadow-md transition-all active:scale-95"
               onClick={() => setSelectedDate(new Date())}
             >
               ＋ {isRtl ? "حجز موعد جديد" : "Book New Appointment"}
@@ -622,13 +627,13 @@ export default function CalendarPage() {
         {/* Stats row */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {[
-            { icon: "📋", label: isRtl ? "مواعيد اليوم" : "Today's Appts", value: todayEvents.length, color: "teal" },
+            { icon: "📋", label: isRtl ? "مواعيد اليوم" : "Today's Appts", value: todayEvents.length, color: "indigo" },
             { icon: "✅", label: isRtl ? "مؤكدة" : "Confirmed", value: confirmed, color: "emerald" },
             { icon: "⏳", label: isRtl ? "في الانتظار" : "Pending", value: pending, color: "amber" },
             { icon: "🏁", label: isRtl ? "مكتملة" : "Completed", value: done, color: "slate" },
           ].map((s) => {
-            const bgMap: Record<string,string> = { teal: "bg-teal-50 dark:bg-teal-950/30", emerald: "bg-emerald-50 dark:bg-emerald-950/30", amber: "bg-amber-50 dark:bg-amber-950/30", slate: "bg-slate-50 dark:bg-slate-900/30" };
-            const borderMap: Record<string,string> = { teal: "border-teal-200 dark:border-teal-900/50", emerald: "border-emerald-200 dark:border-emerald-900/50", amber: "border-amber-200 dark:border-amber-900/50", slate: "border-slate-200 dark:border-slate-800/50" };
+            const bgMap: Record<string,string> = { indigo: "bg-indigo-50 dark:bg-indigo-950/30", emerald: "bg-emerald-50 dark:bg-emerald-950/30", amber: "bg-amber-50 dark:bg-amber-950/30", slate: "bg-slate-50 dark:bg-slate-900/30" };
+            const borderMap: Record<string,string> = { indigo: "border-indigo-200 dark:border-indigo-900/50", emerald: "border-emerald-200 dark:border-emerald-900/50", amber: "border-amber-200 dark:border-amber-900/50", slate: "border-slate-200 dark:border-slate-800/50" };
             return (
               <div key={s.label} className={`${bgMap[s.color]} ${borderMap[s.color]} rounded-xl p-4 flex items-center gap-3 border shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${isRtl ? "" : "flex-row-reverse text-right"}`}>
                 <span className="text-2xl">{s.icon}</span>
@@ -694,6 +699,7 @@ export default function CalendarPage() {
         onCancel={handleCancel}
         onComplete={handleComplete}
       />
+      <AlertPopup message={alertMsg} isOpen={!!alertMsg} onClose={() => setAlertMsg("")} />
     </div>
   );
 }

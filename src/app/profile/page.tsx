@@ -352,7 +352,7 @@ export default function ProfileSettingsPage() {
                 onClick={() => setActiveTab(tab.id as TabType)}
                 className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 cursor-pointer ${
                   isActive
-                    ? "bg-[#0d8a8a] text-white shadow-sm"
+                    ? "bg-[#4F46BA] text-white shadow-sm"
                     : "text-slate-500 hover:text-slate-800 hover:bg-slate-50"
                 }`}
               >
@@ -369,7 +369,7 @@ export default function ProfileSettingsPage() {
             {/* Logo Circular Avatar Uploader */}
             <div className="flex flex-col items-center text-center">
               <div className="relative group cursor-pointer" onClick={triggerFileInput}>
-                <div className="w-24 h-24 rounded-full border-4 border-slate-100 overflow-hidden bg-[#0d8a8a] flex items-center justify-center shadow-md relative">
+                <div className="w-24 h-24 rounded-full border-4 border-slate-100 overflow-hidden bg-[#4F46BA] flex items-center justify-center shadow-md relative">
                   {logoUrl ? (
                     <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
                   ) : (
@@ -392,7 +392,7 @@ export default function ProfileSettingsPage() {
                 />
                 
                 {/* Small camera badge overlapping bottom-left (bottom-right in RTL layout representation) */}
-                <div className="absolute bottom-0 left-0 bg-[#0d8a8a] text-white p-1 rounded-full shadow-md border border-white">
+                <div className="absolute bottom-0 left-0 bg-[#4F46BA] text-white p-1 rounded-full shadow-md border border-white">
                   <Camera className="w-3.5 h-3.5" />
                 </div>
               </div>
@@ -416,7 +416,7 @@ export default function ProfileSettingsPage() {
                     <Input 
                       value={clinicName} 
                       onChange={(e) => setClinicName(e.target.value)} 
-                      className="border-slate-200/80 focus:ring-[#0d8a8a] focus:border-[#0d8a8a]"
+                      className="border-slate-200/80 focus:ring-[#4F46BA] focus:border-[#4F46BA]"
                     />
                   </div>
                   
@@ -436,7 +436,7 @@ export default function ProfileSettingsPage() {
                     <Input 
                       value={address} 
                       onChange={(e) => setAddress(e.target.value)} 
-                      className="border-slate-200/80 focus:ring-[#0d8a8a] focus:border-[#0d8a8a]"
+                      className="border-slate-200/80 focus:ring-[#4F46BA] focus:border-[#4F46BA]"
                     />
                   </div>
                 </div>
@@ -448,7 +448,7 @@ export default function ProfileSettingsPage() {
                     <Input 
                       value={phone} 
                       onChange={(e) => setPhone(e.target.value)} 
-                      className="border-slate-200/80 focus:ring-[#0d8a8a] focus:border-[#0d8a8a] text-left"
+                      className="border-slate-200/80 focus:ring-[#4F46BA] focus:border-[#4F46BA] text-left"
                       dir="ltr"
                     />
                   </div>
@@ -458,7 +458,7 @@ export default function ProfileSettingsPage() {
                     <Input 
                       value={city} 
                       onChange={(e) => setCity(e.target.value)} 
-                      className="border-slate-200/80 focus:ring-[#0d8a8a] focus:border-[#0d8a8a]"
+                      className="border-slate-200/80 focus:ring-[#4F46BA] focus:border-[#4F46BA]"
                     />
                   </div>
 
@@ -467,7 +467,7 @@ export default function ProfileSettingsPage() {
                     <Input 
                       value={country} 
                       onChange={(e) => setCountry(e.target.value)} 
-                      className="border-slate-200/80 focus:ring-[#0d8a8a] focus:border-[#0d8a8a]"
+                      className="border-slate-200/80 focus:ring-[#4F46BA] focus:border-[#4F46BA]"
                     />
                   </div>
                 </div>
@@ -481,7 +481,7 @@ export default function ProfileSettingsPage() {
                   rows={4} 
                   value={description} 
                   onChange={(e) => setDescription(e.target.value)} 
-                  className="border-slate-200/80 focus:ring-[#0d8a8a] focus:border-[#0d8a8a] resize-none"
+                  className="border-slate-200/80 focus:ring-[#4F46BA] focus:border-[#4F46BA] resize-none"
                 />
               </div>
 
@@ -493,7 +493,7 @@ export default function ProfileSettingsPage() {
                     {isRtl ? "تم حفظ البيانات بنجاح!" : "Data saved successfully!"}
                   </span>
                 )}
-                <Button type="submit" className={`bg-[#0d8a8a] hover:bg-[#0b7878] text-white rounded-xl px-6 ${isRtl ? "mr-auto" : "ml-auto"}`}>
+                <Button type="submit" className={`bg-[#4F46BA] hover:bg-[#0b7878] text-white rounded-xl px-6 ${isRtl ? "mr-auto" : "ml-auto"}`}>
                   {isRtl ? "حفظ البيانات" : "Save Details"}
                 </Button>
               </div>
@@ -506,9 +506,9 @@ export default function ProfileSettingsPage() {
           <div className="space-y-10 max-w-4xl mx-auto" dir="rtl">
             
             {/* 0. Default Pricing Section */}
-            <div className="bg-gradient-to-br from-teal-50/60 to-emerald-50/40 rounded-2xl p-6 border border-teal-200/50 space-y-6">
-              <div className="flex items-center gap-2 pb-3 border-b border-teal-200/50">
-                <CreditCard className="w-5 h-5 text-[#0d8a8a]" />
+            <div className="bg-gradient-to-br from-indigo-50/60 to-[#4F46BA]/5 rounded-2xl p-6 border border-indigo-200/50 space-y-6">
+              <div className="flex items-center gap-2 pb-3 border-b border-indigo-200/50">
+                <CreditCard className="w-5 h-5 text-[#4F46BA]" />
                 <h3 className="text-base font-extrabold text-slate-800">{isRtl ? "الأسعار الافتراضية" : "Default Pricing"}</h3>
               </div>
               <p className="text-xs text-slate-500">{isRtl ? "يتم استخدام هذه الأسعار تلقائياً عند إضافة مريض جديد في صفحة المرضى." : "These prices are auto-filled when adding a new patient."}</p>
@@ -519,7 +519,7 @@ export default function ProfileSettingsPage() {
                     type="number"
                     value={defaultExamPrice}
                     onChange={(e) => setDefaultExamPrice(e.target.value)}
-                    className="border-slate-200 focus:ring-[#0d8a8a] text-right font-mono text-lg font-bold"
+                    className="border-slate-200 focus:ring-[#4F46BA] text-right font-mono text-lg font-bold"
                     dir="ltr"
                   />
                 </div>
@@ -529,7 +529,7 @@ export default function ProfileSettingsPage() {
                     type="number"
                     value={defaultSessionPrice}
                     onChange={(e) => setDefaultSessionPrice(e.target.value)}
-                    className="border-slate-200 focus:ring-[#0d8a8a] text-right font-mono text-lg font-bold"
+                    className="border-slate-200 focus:ring-[#4F46BA] text-right font-mono text-lg font-bold"
                     dir="ltr"
                   />
                 </div>
@@ -537,7 +537,7 @@ export default function ProfileSettingsPage() {
               <div className="pt-2 flex items-center gap-3">
                 <Button
                   type="button"
-                  className="bg-[#0d8a8a] hover:bg-[#0b7878] text-white rounded-xl text-xs gap-1.5 h-10 px-5"
+                  className="bg-[#4F46BA] hover:bg-[#0b7878] text-white rounded-xl text-xs gap-1.5 h-10 px-5"
                   onClick={async () => {
                     try {
                       const { data: { user } } = await supabase.auth.getUser();
@@ -572,7 +572,7 @@ export default function ProfileSettingsPage() {
             {/* 1. Bank Details Section */}
             <div className="bg-slate-50/50 rounded-2xl p-6 border border-slate-200/50 space-y-6">
               <div className="flex items-center gap-2 pb-3 border-b">
-                <CreditCard className="w-5 h-5 text-[#0d8a8a]" />
+                <CreditCard className="w-5 h-5 text-[#4F46BA]" />
                 <h3 className="text-base font-extrabold text-slate-800">البيانات البنكية — Bank Details</h3>
               </div>
               
@@ -584,7 +584,7 @@ export default function ProfileSettingsPage() {
                       value={accountHolderName} 
                       onChange={(e) => setAccountHolderName(e.target.value)} 
                       required 
-                      className="border-slate-200 focus:ring-[#0d8a8a] text-right font-sans"
+                      className="border-slate-200 focus:ring-[#4F46BA] text-right font-sans"
                     />
                   </div>
                   
@@ -594,7 +594,7 @@ export default function ProfileSettingsPage() {
                       value={bankName} 
                       onChange={(e) => setBankName(e.target.value)} 
                       required 
-                      className="border-slate-200 focus:ring-[#0d8a8a] text-right font-sans"
+                      className="border-slate-200 focus:ring-[#4F46BA] text-right font-sans"
                     />
                   </div>
 
@@ -604,7 +604,7 @@ export default function ProfileSettingsPage() {
                       value={iban} 
                       onChange={(e) => setIban(e.target.value)} 
                       required 
-                      className="border-slate-200 focus:ring-[#0d8a8a] text-left font-mono"
+                      className="border-slate-200 focus:ring-[#4F46BA] text-left font-mono"
                       dir="ltr"
                     />
                   </div>
@@ -614,14 +614,14 @@ export default function ProfileSettingsPage() {
                     <Input 
                       value={swiftCode} 
                       onChange={(e) => setSwiftCode(e.target.value)} 
-                      className="border-slate-200 focus:ring-[#0d8a8a] text-left font-mono"
+                      className="border-slate-200 focus:ring-[#4F46BA] text-left font-mono"
                       dir="ltr"
                     />
                   </div>
                 </div>
 
                 <div className="pt-2 flex flex-row-reverse gap-3 items-center">
-                  <Button type="submit" className={`bg-[#0d8a8a] hover:bg-[#0b7878] text-white rounded-xl text-xs gap-1.5 h-10 px-5 ${isRtl ? "" : "flex-row-reverse"}`}>
+                  <Button type="submit" className={`bg-[#4F46BA] hover:bg-[#0b7878] text-white rounded-xl text-xs gap-1.5 h-10 px-5 ${isRtl ? "" : "flex-row-reverse"}`}>
                     <Save className="w-4 h-4" />
                     {isRtl ? "حفظ التغييرات" : "Save Changes"}
                   </Button>
@@ -647,7 +647,7 @@ export default function ProfileSettingsPage() {
             {/* 2. Branches & Locations Section */}
             <div className="bg-slate-50/50 rounded-2xl p-6 border border-slate-200/50 space-y-6">
               <div className={`flex items-center gap-2 pb-3 border-b ${isRtl ? "" : "flex-row-reverse"}`}>
-                <MapPin className="w-5 h-5 text-[#0d8a8a]" />
+                <MapPin className="w-5 h-5 text-[#4F46BA]" />
                 <h3 className="text-base font-extrabold text-slate-800">{isRtl ? "الفروع والمواقع" : "Branches & Locations"}</h3>
               </div>
 
@@ -675,7 +675,7 @@ export default function ProfileSettingsPage() {
                             updated[bIdx].city = e.target.value;
                             setBranches(updated);
                           }} 
-                          className="border-slate-200 focus:ring-[#0d8a8a] text-right font-sans"
+                          className="border-slate-200 focus:ring-[#4F46BA] text-right font-sans"
                         />
                       </div>
 
@@ -688,7 +688,7 @@ export default function ProfileSettingsPage() {
                             updated[bIdx].phone = e.target.value;
                             setBranches(updated);
                           }} 
-                          className="border-slate-200 focus:ring-[#0d8a8a] text-right font-mono"
+                          className="border-slate-200 focus:ring-[#4F46BA] text-right font-mono"
                           dir="ltr"
                         />
                       </div>
@@ -702,7 +702,7 @@ export default function ProfileSettingsPage() {
                             updated[bIdx].address = e.target.value;
                             setBranches(updated);
                           }} 
-                          className="border-slate-200 focus:ring-[#0d8a8a] text-right font-sans"
+                          className="border-slate-200 focus:ring-[#4F46BA] text-right font-sans"
                         />
                       </div>
 
@@ -716,7 +716,7 @@ export default function ProfileSettingsPage() {
                             updated[bIdx].startingPrice = e.target.value;
                             setBranches(updated);
                           }} 
-                          className="border-slate-200 focus:ring-[#0d8a8a] text-right font-mono"
+                          className="border-slate-200 focus:ring-[#4F46BA] text-right font-mono"
                         />
                         <p className="text-[9px] text-slate-400 mt-1 font-semibold pr-1">{isRtl ? "سعر الكشف أو الجلسة الافتراضي للعيادة" : "Default exam or session price"}</p>
                       </div>
@@ -725,7 +725,7 @@ export default function ProfileSettingsPage() {
                     {/* 3. Working Hours inside Branch */}
                     <div className="space-y-4 pt-2">
                       <div className={`flex items-center gap-2 ${isRtl ? "" : "flex-row-reverse"}`}>
-                        <Clock className="w-4.5 h-4.5 text-[#0d8a8a]" />
+                        <Clock className="w-4.5 h-4.5 text-[#4F46BA]" />
                         <h4 className="text-sm font-bold text-slate-800">{isRtl ? "ساعات العمل" : "Working Hours"}</h4>
                       </div>
 
@@ -812,9 +812,9 @@ export default function ProfileSettingsPage() {
                           <div className="flex justify-start">
                             <Button 
                               type="submit" 
-                              className="bg-white hover:bg-slate-50 border border-blue-200 text-[#0d8a8a] font-bold rounded-xl text-xs gap-1.5 h-10 px-5 shadow-xs flex items-center justify-center cursor-pointer"
+                              className="bg-white hover:bg-slate-50 border border-blue-200 text-[#4F46BA] font-bold rounded-xl text-xs gap-1.5 h-10 px-5 shadow-xs flex items-center justify-center cursor-pointer"
                             >
-                              <svg className="w-4 h-4 text-[#0d8a8a]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <svg className="w-4 h-4 text-[#4F46BA]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
                                 <polyline points="17 21 17 13 7 13 7 21" />
                                 <polyline points="7 3 7 8 15 8" />
@@ -882,7 +882,7 @@ export default function ProfileSettingsPage() {
             </div>
 
             <div className={`pt-2 border-t flex ${isRtl ? "justify-start" : "justify-end"}`}>
-              <Button className={`bg-[#0d8a8a] hover:bg-[#0b7878] text-white rounded-xl text-xs gap-1.5 h-9 ${isRtl ? "" : "flex-row-reverse"}`}>
+              <Button className={`bg-[#4F46BA] hover:bg-[#0b7878] text-white rounded-xl text-xs gap-1.5 h-9 ${isRtl ? "" : "flex-row-reverse"}`}>
                 <FileCheck className="w-4 h-4" />
                 {isRtl ? "تقديم المستندات للمراجعة" : "Submit Documents for Review"}
               </Button>
@@ -916,7 +916,7 @@ export default function ProfileSettingsPage() {
                       {isRtl ? "تم تحديث كلمة المرور بنجاح!" : "Password updated successfully!"}
                     </span>
                   )}
-                  <Button type="submit" className={`bg-[#0d8a8a] hover:bg-[#0b7878] text-white rounded-xl ${isRtl ? "mr-auto" : "ml-auto"}`}>
+                  <Button type="submit" className={`bg-[#4F46BA] hover:bg-[#0b7878] text-white rounded-xl ${isRtl ? "mr-auto" : "ml-auto"}`}>
                     {isRtl ? "حفظ كلمة المرور" : "Save Password"}
                   </Button>
                 </div>

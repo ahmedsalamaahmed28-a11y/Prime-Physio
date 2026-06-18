@@ -6,7 +6,11 @@ const PLAN_LIMITS: Record<string, { patients: number; sessionsPerMonth: number }
   gold:   { patients: -1,  sessionsPerMonth: -1 },
 };
 
-export async function checkSubscriptionLimit(clinicId: string, resource: "patients" | "sessions") {
+export async function checkSubscriptionLimit(clinicId: string, resource: "patients" | "sessions", isPlatformAdmin?: boolean) {
+  if (isPlatformAdmin) {
+    return { allowed: true };
+  }
+
   const admin = getAdminClient();
 
   const { data: sub } = await admin

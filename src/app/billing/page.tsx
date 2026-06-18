@@ -2,51 +2,10 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { 
-  CreditCard, 
-  TrendingUp, 
-  DollarSign, 
-  FileSpreadsheet, 
-  Plus, 
-  ArrowDownLeft, 
-  ArrowUpRight,
-  Download,
-  Trash2
-} from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { TrendingUp, DollarSign, Trash2, CreditCard } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-
-const BILLING_STATS = [
-  {
-    title: "مبيعات الباقات النشطة",
-    value: "24,800 ج.م",
-    description: "دخل مبيعات 18 باقة حالية",
-    icon: TrendingUp,
-    color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20",
-  },
-  {
-    title: "مبالغ مستحقة (غير مدفوعة)",
-    value: "1,600 ج.م",
-    description: "4 فواتير قيد الانتظار",
-    icon: DollarSign,
-    color: "text-amber-600 bg-amber-50 dark:bg-amber-950/20",
-  },
-  {
-    title: "جلسات باقات مستهلكة",
-    value: "108 جلسة",
-    description: "من أصل 180 جلسة إجمالية",
-    icon: CreditCard,
-    color: "text-blue-600 bg-blue-50 dark:bg-blue-950/20",
-  },
-];
-
-const getRecentInvoices = (isRtl: boolean) => [];
+// ─── Helpers ────────────────────────────────────────────────────────────────
 
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -100,7 +59,7 @@ export default function BillingPage() {
           amount: inv.amount,
           date: inv.date,
           status: normalizeInvoiceStatus(inv.status ?? ""),
-          paymentMethod: normalizeInvoiceStatus(inv.status ?? "") === "مدفوع" ? (isRtl ? "نقدي" : "Cash") : "—"
+          paymentMethod: inv.type || ""
         }));
         setInvoices(mapped);
       } else {
@@ -190,10 +149,10 @@ export default function BillingPage() {
           <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
           <style>
             body { font-family: 'Cairo', sans-serif; padding: 40px; color: #1e293b; }
-            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0d8a8a; padding-bottom: 20px; margin-bottom: 30px; }
+            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #4F46BA; padding-bottom: 20px; margin-bottom: 30px; }
             .logo-container { display: flex; align-items: center; gap: 15px; }
             .logo-img { max-height: 60px; max-width: 120px; object-fit: contain; }
-            .title h2 { margin: 0; color: #0d8a8a; font-size: 24px; }
+            .title h2 { margin: 0; color: #4F46BA; font-size: 24px; }
             .title p { margin: 0; font-size: 14px; color: #64748b; }
             .doc-info h1 { margin: 0; font-size: 20px; }
             .doc-info p { margin: 5px 0 0 0; font-size: 14px; color: #64748b; }
@@ -202,7 +161,7 @@ export default function BillingPage() {
             .stat-box p.label { margin: 0 0 5px 0; font-size: 12px; color: #64748b; }
             .stat-box p.val { margin: 0; font-size: 18px; font-weight: bold; color: #0f172a; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 14px; }
-            th { background-color: #0d8a8a; color: white; padding: 12px; text-align: right; border: 1px solid #0d8a8a; }
+            th { background-color: #4F46BA; color: white; padding: 12px; text-align: right; border: 1px solid #4F46BA; }
             td { padding: 12px; border: 1px solid #e2e8f0; text-align: right; }
             tr:nth-child(even) { background-color: #f8fafc; }
             .footer { text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 40px; }
@@ -323,287 +282,221 @@ export default function BillingPage() {
   ];
 
   return (
-    <div className="space-y-6" dir={isRtl ? "rtl" : "ltr"}>
+    <div className="space-y-6 animate-in fade-in duration-300" dir={isRtl ? "rtl" : "ltr"}>
       
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <CreditCard className="w-6 h-6 text-blue-600" />
+          <h1 className="text-xl font-bold text-gray-800">
             {isRtl ? "المالية والفواتير" : "Billing & Invoices"}
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{isRtl ? "مراقبة التسويات المالية، شراء باقات المرضى، والفواتير الصادرة" : "Monitor financial settlements, patient packages, and issued invoices"}</p>
+          <p className="text-sm text-zinc-500 font-semibold mt-1">
+            {isRtl ? "مراقبة التسويات المالية والفواتير الصادرة" : "Monitor financial settlements and issued invoices"}
+          </p>
         </div>
-        <div className={`flex gap-2 ${isRtl ? "" : "flex-row-reverse"}`}>
-          {hasPermission("export_data") && (
-            <Button variant="outline" className={`gap-2 ${isRtl ? "" : "flex-row-reverse"}`} onClick={handleExportPDF}>
-              <Download className="w-4 h-4 text-slate-500" />
-              {isRtl ? "تصدير PDF (طباعة)" : "Export PDF (Print)"}
-            </Button>
-          )}
-
-        </div>
+        {hasPermission("export_data") && (
+          <button onClick={handleExportPDF} className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-zinc-600 hover:bg-gray-50 transition-colors flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {isRtl ? "تصدير PDF" : "Export PDF"}
+          </button>
+        )}
       </div>
 
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {dynamicStats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title} className="shadow-xs hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
-                  </div>
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
-                    <Icon className="w-6 h-6" />
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground mt-4">
-                  {stat.description}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {dynamicStats.map((stat) => (
+          <div key={stat.title} className="p-5 rounded-xl shadow-sm" style={{ backgroundColor: stat.title.includes("مستحقة") ? "#51459E" : "#4F46BA" }}>
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-xs font-bold text-white/50">{stat.title}</p>
+              <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center">
+                <stat.icon className="w-4 h-4 text-white" />
+              </div>
+            </div>
+            <p className="text-lg font-semibold text-white mt-1">{stat.value}</p>
+            <p className="text-xs text-white/60 mt-2">{stat.description}</p>
+          </div>
+        ))}
       </div>
 
-      <Card className="shadow-xs">
-        <CardHeader className="flex flex-row items-center justify-between border-b pb-4 px-6">
-          <div className="space-y-1">
-            <CardTitle className="text-lg font-bold flex items-center gap-2">
-              <FileSpreadsheet className="w-5 h-5 text-blue-600" />
-              {isRtl ? "أحدث الفواتير والمعاملات المالية" : "Recent Invoices & Transactions"}
-            </CardTitle>
-            <p className="text-xs text-muted-foreground">{isRtl ? "قائمة التسويات وحجوزات الباقات الصادرة حديثاً للعيادة" : "List of recent settlements and package bookings"}</p>
+      {/* Invoices Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+          <div>
+            <h3 className="text-sm font-bold text-gray-700">
+              {isRtl ? "أحدث الفواتير" : "Recent Invoices"}
+            </h3>
+            <p className="text-xs text-zinc-400 mt-0.5">
+              {isRtl ? "قائمة الفواتير الصادرة للعيادة" : "List of issued clinic invoices"}
+            </p>
           </div>
-          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
-            {isRtl ? "نشط" : "Active"}
-          </Badge>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full text-right border-collapse">
-              <thead>
-                <tr className={`bg-muted/40 border-b text-xs font-semibold text-slate-500 uppercase tracking-wider ${isRtl ? "text-right" : "text-left"}`}>
-                  <th className="py-3.5 px-6">{isRtl ? "رقم الفاتورة" : "Invoice ID"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "المريض" : "Patient"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "البيان" : "Description"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "القيمة" : "Amount"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "تاريخ الفاتورة" : "Date"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "طريقة الدفع" : "Payment"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "الحالة" : "Status"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "إجراءات" : "Actions"}</th>
-                </tr>
-              </thead>
-              <tbody className={`divide-y divide-border/60 text-sm text-slate-700 ${isRtl ? "text-right" : "text-left"}`}>
-                {invoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-4 px-6 font-mono font-semibold text-slate-900">{inv.id}</td>
-                    <td className="py-4 px-6 font-medium text-slate-800">
-                      <Link href={`/patients/${inv.patientId}`} className="text-[#0d8a8a] hover:underline dark:text-[#1ab0b2]">
-                        {patients.find(p => p.id === inv.patientId)?.nameAr || inv.patientName}
-                      </Link>
-                    </td>
-                    <td className="py-4 px-6 text-slate-600">{inv.description}</td>
-                    <td className="py-4 px-6 font-semibold text-slate-900 font-mono">{inv.amount}</td>
-                    <td className="py-4 px-6 text-slate-500 font-mono text-xs">{inv.date}</td>
-                    <td className="py-4 px-6 text-slate-500 text-xs">
-                      {inv.status === "مدفوع" ? (
-                        <span className="flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          {isRtl ? "نقدي" : "Cash"}
-                        </span>
-                      ) : (
-                        <span>—</span>
+          <span className="text-xs font-semibold text-zinc-400 bg-gray-50 px-3 py-1 rounded-full">
+            {invoices.length} {isRtl ? "فاتورة" : "invoices"}
+          </span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-gray-50/50 border-b border-gray-100 text-xs font-semibold text-zinc-500">
+                <th className="py-3.5 px-6 text-right">{isRtl ? "رقم الفاتورة" : "Invoice ID"}</th>
+                <th className="py-3.5 px-6 text-right">{isRtl ? "المريض" : "Patient"}</th>
+                <th className="py-3.5 px-6 text-right">{isRtl ? "البيان" : "Description"}</th>
+                <th className="py-3.5 px-6 text-right">{isRtl ? "القيمة" : "Amount"}</th>
+                <th className="py-3.5 px-6 text-right">{isRtl ? "التاريخ" : "Date"}</th>
+                <th className="py-3.5 px-6 text-right">{isRtl ? "طريقة الدفع" : "Payment"}</th>
+                <th className="py-3.5 px-6 text-center">{isRtl ? "الحالة" : "Status"}</th>
+                <th className="py-3.5 px-6 text-center">{isRtl ? "إجراءات" : "Actions"}</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {invoices.length > 0 ? invoices.map((inv) => (
+                <tr key={inv.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="py-4 px-6 font-mono font-semibold text-zinc-800">{inv.id}</td>
+                  <td className="py-4 px-6">
+                    <Link href={`/patients/${inv.patientId}`} className="font-semibold text-[#4F46BA] hover:underline text-sm">
+                      {patients.find(p => p.id === inv.patientId)?.nameAr || inv.patientName}
+                    </Link>
+                  </td>
+                  <td className="py-4 px-6 text-zinc-600">{inv.description}</td>
+                  <td className="py-4 px-6 font-semibold text-zinc-800 font-mono">{inv.amount}</td>
+                  <td className="py-4 px-6 text-zinc-400 text-xs">{inv.date}</td>
+                  <td className="py-4 px-6 text-zinc-400 text-xs">
+                    {inv.status === "مدفوع" ? (
+                      <span className="text-zinc-500 font-medium">نقدي</span>
+                    ) : <span className="text-zinc-300">—</span>}
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <select
+                      value={inv.status}
+                      disabled={!hasPermission("create_invoice") && !isAdmin}
+                      onChange={async (e) => {
+                        const newStatus = normalizeInvoiceStatus(e.target.value);
+                        try {
+                          await supabase.from("patients").update({ status: newStatus === "مدفوع" ? "نشط" : "غير نشط" }).eq("clinic_id", clinicId).eq("id", inv.patientId);
+                          const { error: invoiceErr } = await supabase.from("invoices").update({ status: newStatus }).eq("clinic_id", clinicId).eq("id", inv.id);
+                          if (invoiceErr) throw invoiceErr;
+                        } catch (err: any) {
+                          console.error("Failed to update status:", err?.message || JSON.stringify(err));
+                          alert("حدث خطأ: " + (err?.message || JSON.stringify(err)));
+                        }
+                        setInvoices((prev) => prev.map((item) => item.id === inv.id ? { ...item, status: newStatus, paymentMethod: newStatus === "مدفوع" ? "نقدي" : "" } : item));
+                      }}
+                      className={`rounded-md px-2 py-1 text-xs font-semibold border cursor-pointer focus:outline-none focus:ring-1 focus:ring-[#4F46BA] transition-colors ${statusSelectClass(inv.status)}`}
+                    >
+                      <option value="انتظار">{isRtl ? "انتظار" : "Pending"}</option>
+                      <option value="مدفوع">{isRtl ? "مدفوع" : "Paid"}</option>
+                      <option value="ملغي">{isRtl ? "ملغي" : "Canceled"}</option>
+                    </select>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center justify-center gap-2">
+                      {hasPermission("apply_discount") && (
+                        <button
+                          className="text-xs font-semibold text-[#4F46BA] hover:text-[#4338ca] px-2 py-1 rounded-lg hover:bg-indigo-50 transition-colors"
+                          onClick={() => { setSelectedInvoiceForDiscount(inv); setDiscountValue(""); setDiscountModalOpen(true); }}
+                        >
+                          {isRtl ? "خصم" : "Discount"}
+                        </button>
                       )}
-                    </td>
-                    <td className="py-4 px-6">
-                      <select
-                        value={inv.status}
-                        disabled={!hasPermission("create_invoice") && !isAdmin}
-                        onChange={async (e) => {
-                          const newStatus = normalizeInvoiceStatus(e.target.value);
-                          
-                          try {
-                            await supabase
-                              .from("patients")
-                              .update({ status: newStatus === "مدفوع" ? "نشط" : "غير نشط" })
-                              .eq("clinic_id", clinicId)
-                              .eq("id", inv.patientId);
-
-                            const { error: invoiceErr } = await supabase
-                              .from("invoices")
-                              .update({ status: newStatus })
-                              .eq("clinic_id", clinicId)
-                              .eq("id", inv.id);
-                            if (invoiceErr) throw invoiceErr;
-                          } catch (err: any) {
-                            console.error("Failed to update status in Supabase:", err);
-                            alert("حدث خطأ في قاعدة البيانات: " + (err?.message || JSON.stringify(err)));
-                          }
-                          
-                          setInvoices((prev) =>
-                            prev.map((item) =>
-                              item.id === inv.id
-                                ? {
-                                    ...item,
-                                    status: newStatus,
-                                    paymentMethod: newStatus === "مدفوع" ? (isRtl ? "نقدي" : "Cash") : "—",
-                                  }
-                                : item
-                            )
-                          );
-                        }}
-                        className={`rounded-md px-2 py-1 text-xs font-semibold border cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-600 transition-colors ${statusSelectClass(inv.status)}`}
-                      >
-                        <option value="انتظار">{isRtl ? "⏳ انتظار" : "⏳ Pending"}</option>
-                        <option value="مدفوع">{isRtl ? "✅ مدفوع" : "✅ Paid"}</option>
-                        <option value="ملغي">{isRtl ? "🚫 ملغي" : "🚫 Canceled"}</option>
-                      </select>
-                    </td>
-                    <td className="py-4 px-6">
-                      <div className="flex items-center gap-2">
-                        {hasPermission("apply_discount") && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-blue-600 hover:text-blue-700 text-xs"
-                            onClick={() => {
-                              setSelectedInvoiceForDiscount(inv);
-                              setDiscountValue("");
-                              setDiscountModalOpen(true);
-                            }}
-                          >
-                            {isRtl ? "تطبيق خصم" : "Discount"}
-                          </Button>
-                        )}
-                        {(isAdmin || hasPermission("create_invoice")) && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 rounded-lg transition-colors"
-                            onClick={() => handleDeleteInvoiceClick(inv.id)}
-                            title={isRtl ? "حذف الفاتورة" : "Delete Invoice"}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                      {(isAdmin || hasPermission("create_invoice")) && (
+                        <button
+                          className="text-red-500 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition-colors"
+                          onClick={() => handleDeleteInvoiceClick(inv.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )) : (
+                <tr><td colSpan={8} className="py-12 text-center text-zinc-400 text-sm">{isRtl ? "لا توجد فواتير" : "No invoices found"}</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       {/* Discount Modal */}
       <Dialog open={discountModalOpen} onOpenChange={(open) => !open && setDiscountModalOpen(false)}>
-        <DialogContent className="sm:max-w-md text-center">
-          <div className="flex flex-col items-center justify-center space-y-4 pt-4">
-            <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-2">
-              <DollarSign className="w-8 h-8" />
+        <DialogContent className="sm:max-w-md">
+          <div className="flex flex-col items-center space-y-4 pt-4">
+            <div className="w-14 h-14 rounded-xl bg-[#4F46BA] flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-white" />
             </div>
-            <DialogTitle className="text-xl font-bold text-slate-800">
-              {isRtl ? "تطبيق خصم مالي" : "Apply Discount"}
+            <DialogTitle className="text-lg font-bold text-gray-800">
+              {isRtl ? "تطبيق خصم" : "Apply Discount"}
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-500">
-              {isRtl 
-                ? "أدخل قيمة الخصم كنسبة مئوية (مثل 10%) أو قيمة نقدية لتطبيقها على الفاتورة الحالية." 
-                : "Enter discount value as a percentage (e.g. 10%) or flat amount to apply it to the current invoice."}
+            <DialogDescription className="text-sm text-zinc-500 text-center">
+              {isRtl ? "اختر نسبة الخصم لتطبيقها على الفاتورة" : "Select discount percentage to apply"}
             </DialogDescription>
-            <div className={`w-full mt-4 flex flex-wrap gap-2 justify-center`}>
+            <div className="w-full grid grid-cols-3 gap-2 mt-2">
               {[10, 20, 30, 50, 100].map(pct => (
-                <Button 
+                <button
                   key={pct}
-                  type="button"
-                  variant={discountValue === `${pct}%` ? "default" : "outline"}
                   onClick={() => setDiscountValue(`${pct}%`)}
-                  className={`flex-1 min-w-[30%] ${discountValue === `${pct}%` ? "bg-blue-600 text-white" : ""}`}
+                  className={`py-2.5 px-4 rounded-xl text-sm font-semibold transition-colors ${
+                    discountValue === `${pct}%`
+                      ? "bg-[#4F46BA] text-white"
+                      : "bg-gray-50 text-zinc-600 border border-gray-200 hover:bg-gray-100"
+                  }`}
                 >
-                  {pct === 100 ? (isRtl ? "مجاني 100%" : "Free 100%") : `${pct}%`}
-                </Button>
+                  {pct === 100 ? (isRtl ? "مجاني" : "Free") : `${pct}%`}
+                </button>
               ))}
             </div>
           </div>
-          <div className={`mt-6 flex gap-3 w-full ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
-            <Button type="button" variant="outline" onClick={() => setDiscountModalOpen(false)} className="flex-1 rounded-xl font-bold">
+          <div className="flex gap-3 mt-6">
+            <button onClick={() => setDiscountModalOpen(false)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-zinc-600 hover:bg-gray-50 transition-colors">
               {isRtl ? "إلغاء" : "Cancel"}
-            </Button>
-            <Button 
-              type="button" 
+            </button>
+            <button
               disabled={!discountValue}
               onClick={async () => {
-                if (discountValue) {
-                  const item = selectedInvoiceForDiscount;
-                  if (!item) return;
-                  
-                  const originalNumeric = parseInt(item.amount.replace(/[^0-9]/g, "") || "0");
-                  const pct = parseInt(discountValue.replace(/[^0-9]/g, "") || "0");
-                  let newNumeric = originalNumeric - Math.round(originalNumeric * pct / 100);
-                  if (newNumeric < 0) newNumeric = 0;
-                  const currency = item.amount.replace(/[0-9,]/g, "").trim(); 
-                  const newAmount = `${newNumeric.toLocaleString()} ${currency}`;
-
-                  try {
-                    await supabase.from("invoices").upsert({
-                      id: item.id,
-                      clinic_id: clinicId,
-                      patient_id: item.patientId,
-                      patient_name: item.patientName,
-                      description: item.description,
-                      amount: newAmount,
-                      status: item.status
-                    });
-                  } catch (err) {
-                    console.error("Failed to save discount to Supabase", err);
-                  }
-
-                  setInvoices(prev => {
-                    const newInvoices = prev.map(inv => {
-                      if (inv.id === item.id) {
-                        return { ...inv, amount: newAmount };
-                      }
-                      return inv;
-                    });
-                    return newInvoices;
-                  });
-                  setDiscountModalOpen(false);
-                }
-              }} 
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold"
+                if (!discountValue || !selectedInvoiceForDiscount) return;
+                const item = selectedInvoiceForDiscount;
+                const originalNumeric = parseInt(item.amount.replace(/[^0-9]/g, "") || "0");
+                const pct = parseInt(discountValue.replace(/[^0-9]/g, "") || "0");
+                let newNumeric = originalNumeric - Math.round(originalNumeric * pct / 100);
+                if (newNumeric < 0) newNumeric = 0;
+                const currency = item.amount.replace(/[0-9,]/g, "").trim();
+                const newAmount = `${newNumeric.toLocaleString()} ${currency}`;
+                try {
+                  await supabase.from("invoices").upsert({ id: item.id, clinic_id: clinicId, patient_id: item.patientId, patient_name: item.patientName, description: item.description, amount: newAmount, status: item.status });
+                } catch (err) { console.error("Failed to save discount", err); }
+                setInvoices(prev => prev.map(inv => inv.id === item.id ? { ...inv, amount: newAmount } : inv));
+                setDiscountModalOpen(false);
+              }}
+              className="flex-1 py-2.5 rounded-xl bg-[#4F46BA] text-white text-sm font-semibold hover:bg-[#4338ca] transition-colors disabled:opacity-50"
             >
-              {isRtl ? "تأكيد الخصم" : "Apply Discount"}
-            </Button>
+              {isRtl ? "تأكيد" : "Apply"}
+            </button>
           </div>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Invoice Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       <Dialog open={!!deleteInvoiceId} onOpenChange={(open) => !open && setDeleteInvoiceId(null)}>
-        <DialogContent className="sm:max-w-sm text-center" showCloseButton={false}>
-          <div className="flex flex-col items-center justify-center space-y-4 pt-4">
-            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-2">
-              <Trash2 className="w-8 h-8" />
+        <DialogContent className="sm:max-w-sm" showCloseButton={false}>
+          <div className="flex flex-col items-center space-y-4 pt-4">
+            <div className="w-14 h-14 rounded-xl bg-red-50 flex items-center justify-center">
+              <Trash2 className="w-6 h-6 text-red-500" />
             </div>
-            <DialogTitle className="text-xl font-bold text-slate-800">
+            <DialogTitle className="text-lg font-bold text-gray-800">
               {isRtl ? "تأكيد الحذف" : "Confirm Deletion"}
             </DialogTitle>
-            <DialogDescription className="text-sm text-slate-500">
-              {isRtl 
-                ? `هل أنت متأكد؟ سيتم حذف الفاتورة وملف المريض كاملاً (${deleteInvoiceId}) بشكل نهائي من جميع الصفحات. لا يمكن التراجع عن هذا الإجراء.` 
-                : `Are you sure? This will permanently delete the invoice and the entire patient record (${deleteInvoiceId}) from all pages. This action cannot be undone.`}
+            <DialogDescription className="text-sm text-zinc-500 text-center">
+              {isRtl ? "سيتم حذف الفاتورة وملف المريض بالكامل. لا يمكن التراجع." : "Invoice and patient record will be permanently deleted."}
             </DialogDescription>
           </div>
-          <div className={`mt-6 flex gap-3 w-full ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
-            <Button type="button" variant="outline" onClick={() => setDeleteInvoiceId(null)} className="flex-1 rounded-xl font-bold">
+          <div className="flex gap-3 mt-6">
+            <button onClick={() => setDeleteInvoiceId(null)} className="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-zinc-600 hover:bg-gray-50 transition-colors">
               {isRtl ? "إلغاء" : "Cancel"}
-            </Button>
-            <Button type="button" onClick={executeDeleteInvoice} className="flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold">
-              {isRtl ? "نعم، احذف الفاتورة" : "Yes, Delete"}
-            </Button>
+            </button>
+            <button onClick={executeDeleteInvoice} className="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors">
+              {isRtl ? "حذف" : "Delete"}
+            </button>
           </div>
         </DialogContent>
       </Dialog>

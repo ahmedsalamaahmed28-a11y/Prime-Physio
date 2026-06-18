@@ -143,8 +143,8 @@ export default function SecurityPage() {
     <div className="space-y-6" dir={isRtl ? "rtl" : "ltr"}>
       <div>
         <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
-          <div className="bg-teal-50 p-2 rounded-xl">
-            <Shield className="w-6 h-6 text-[#0d8a8a]" />
+          <div className="bg-indigo-50 p-2 rounded-xl">
+            <Shield className="w-6 h-6 text-[#4F46BA]" />
           </div>
           {isRtl ? "الأمان وسجل الدخول" : "Security & Access"}
         </h1>
@@ -155,7 +155,7 @@ export default function SecurityPage() {
         <Card className="lg:col-span-2 shadow-xs border-slate-200/60 rounded-2xl overflow-hidden">
           <CardHeader className="border-b bg-slate-50/50 pb-4">
             <CardTitle className="text-base font-bold flex items-center gap-2 text-slate-800">
-              <Key className="w-5 h-5 text-[#0d8a8a]" />
+              <Key className="w-5 h-5 text-[#4F46BA]" />
               {isRtl ? "تغيير كلمة المرور" : "Change Password"}
             </CardTitle>
           </CardHeader>
@@ -199,7 +199,7 @@ export default function SecurityPage() {
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   required
                   autoComplete="current-password"
-                  className="focus-visible:ring-[#0d8a8a] rounded-xl"
+                  className="focus-visible:ring-[#4F46BA] rounded-xl"
                 />
               </div>
 
@@ -212,7 +212,7 @@ export default function SecurityPage() {
                     onChange={(e) => setNewPassword(e.target.value)}
                     required
                     autoComplete="new-password"
-                    className="focus-visible:ring-[#0d8a8a] rounded-xl"
+                    className="focus-visible:ring-[#4F46BA] rounded-xl"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -223,7 +223,7 @@ export default function SecurityPage() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     autoComplete="new-password"
-                    className="focus-visible:ring-[#0d8a8a] rounded-xl"
+                    className="focus-visible:ring-[#4F46BA] rounded-xl"
                   />
                 </div>
               </div>
@@ -235,7 +235,7 @@ export default function SecurityPage() {
                 <Button
                   type="submit"
                   disabled={saving}
-                  className="bg-[#0d8a8a] hover:bg-[#085454] text-white mr-auto rounded-xl gap-1.5 font-bold px-6 shadow-md transition-all active:scale-95"
+                  className="bg-[#4F46BA] hover:bg-[#4338ca] text-white mr-auto rounded-xl gap-1.5 font-bold px-6 shadow-md transition-all active:scale-95"
                 >
                   <Lock className="w-4 h-4" />
                   {saving ? (isRtl ? "جارِ الحفظ..." : "Saving...") : (isRtl ? "تحديث كلمة المرور" : "Update Password")}
@@ -248,7 +248,7 @@ export default function SecurityPage() {
         <Card className="lg:col-span-1 shadow-xs border-slate-200/60 rounded-2xl overflow-hidden">
           <CardHeader className="border-b bg-slate-50/50 pb-4">
             <CardTitle className="text-base font-bold flex items-center gap-2 text-slate-800">
-              <History className="w-5 h-5 text-[#0d8a8a]" />
+              <History className="w-5 h-5 text-[#4F46BA]" />
               {isRtl ? "سجل النشاط الأمني" : "Security Activity"}
             </CardTitle>
           </CardHeader>
@@ -260,15 +260,15 @@ export default function SecurityPage() {
                 </div>
               ) : (
                 events.map((item) => (
-                  <div key={item.id} className={`p-4 flex items-start gap-3 transition-colors hover:bg-slate-50 ${item.current ? "bg-teal-50/30" : ""}`}>
-                    <div className={`p-2 rounded-xl shrink-0 ${item.current ? "bg-[#0d8a8a] text-white shadow-md" : "bg-slate-100 text-slate-500"}`}>
+                  <div key={item.id} className={`p-4 flex items-start gap-3 transition-colors hover:bg-slate-50 ${item.current ? "bg-indigo-50/30" : ""}`}>
+                    <div className={`p-2 rounded-xl shrink-0 ${item.current ? "bg-[#4F46BA] text-white shadow-md" : "bg-slate-100 text-slate-500"}`}>
                       <item.icon className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5 gap-2">
                         <p className="text-xs font-bold text-slate-800 truncate">{item.device}</p>
                         {item.current && (
-                          <span className="text-[9px] font-bold bg-[#0d8a8a]/10 text-[#0d8a8a] px-2 py-0.5 rounded-full whitespace-nowrap">
+                          <span className="text-[9px] font-bold bg-[#4F46BA]/10 text-[#4F46BA] px-2 py-0.5 rounded-full whitespace-nowrap">
                             {isRtl ? "الحالي" : "Current"}
                           </span>
                         )}
