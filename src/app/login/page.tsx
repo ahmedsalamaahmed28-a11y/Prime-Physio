@@ -6,8 +6,58 @@ import { signIn } from "next-auth/react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { setAppValue } from "@/lib/appStorage";
 import { Input } from "@/components/ui/input";
-import { Mail, Lock, Eye, EyeClosed, ArrowRight, ShieldAlert, CheckCircle2, X, Activity, Users, Calendar, TrendingUp, Quote } from "lucide-react";
+import { Mail, Lock, Eye, EyeClosed, ArrowRight, ShieldAlert, CheckCircle2, X, Activity, Users, Calendar, TrendingUp, Quote, Zap, Shield, Crown, Check, CreditCard, Loader2, AlertCircle, Clock } from "lucide-react";
 import { CustomCheckbox } from "@/components/ui/checkbox";
+
+const ALL_FEATURES = (isRtl: boolean) => [
+  { label: isRtl ? "المرضى (سجلات طبية)" : "Patients (EHR)", limits: { basic: isRtl ? "50" : "50", silver: isRtl ? "200" : "200", gold: isRtl ? "∞" : "∞" }, included: { basic: true, silver: true, gold: true } },
+  { label: isRtl ? "الجلسات الشهرية" : "Monthly Sessions", limits: { basic: isRtl ? "100" : "100", silver: isRtl ? "500" : "500", gold: isRtl ? "∞" : "∞" }, included: { basic: true, silver: true, gold: true } },
+  { label: isRtl ? "حسابات الأخصائيين" : "Therapist Accounts", limits: { basic: isRtl ? "20" : "20", silver: isRtl ? "50" : "50", gold: isRtl ? "∞" : "∞" }, included: { basic: true, silver: true, gold: true } },
+  { label: isRtl ? "إدارة المواعيد" : "Appointment Management", limits: { basic: null, silver: null, gold: null }, included: { basic: true, silver: true, gold: true } },
+  { label: isRtl ? "التقارير والتحليلات" : "Reports & Analytics", limits: { basic: null, silver: null, gold: null }, included: { basic: false, silver: true, gold: true } },
+  { label: isRtl ? "التغذية العلاجية" : "Clinical Nutrition", limits: { basic: null, silver: null, gold: null }, included: { basic: false, silver: true, gold: true } },
+  { label: isRtl ? "المكتبة العلاجية" : "Rehab Library", limits: { basic: null, silver: null, gold: null }, included: { basic: false, silver: false, gold: true } },
+  { label: isRtl ? "رسائل التذكير (SMS/WA)" : "Reminders (SMS/WA)", limits: { basic: null, silver: null, gold: null }, included: { basic: false, silver: false, gold: true } },
+  { label: isRtl ? "الدعم الفني" : "Support", limits: { basic: isRtl ? "بريد إلكتروني" : "Email", silver: isRtl ? "هاتفي سريع" : "Phone", gold: isRtl ? "VIP 24/7" : "VIP 24/7" }, included: { basic: true, silver: true, gold: true } },
+  { label: isRtl ? "فروع العيادة" : "Clinic Branches", limits: { basic: isRtl ? "1" : "1", silver: isRtl ? "1" : "1", gold: isRtl ? "2" : "2" }, included: { basic: true, silver: true, gold: true } },
+];
+
+const getPlans = (isRtl: boolean) => {
+  const allFeatures = ALL_FEATURES(isRtl);
+  return [
+    {
+      id: "basic", name: isRtl ? "الأساسية" : "Basic", nameEn: "STARTER", price: 500,
+      subtitle: isRtl ? "للعيادات الصغيرة والناشئة" : "For small & startup clinics",
+      icon: Zap, gradient: "from-slate-400 to-slate-500",
+      features: allFeatures.map((f) => ({ ...f, included: f.included.basic, limit: f.limits.basic })),
+    },
+    {
+      id: "silver", name: isRtl ? "الفضية" : "Silver", nameEn: "PROFESSIONAL", price: 1000,
+      subtitle: isRtl ? "للعيادات المتوسطة والنشطة" : "For growing active clinics",
+      icon: Shield, gradient: "from-cyan-500 to-blue-600",
+      features: allFeatures.map((f) => ({ ...f, included: f.included.silver, limit: f.limits.silver })),
+    },
+    {
+      id: "gold", name: isRtl ? "الذهبية" : "Gold", nameEn: "ENTERPRISE", price: 1500,
+      subtitle: isRtl ? "للمراكز الطبية الكبرى والسلاسل" : "For large clinics & chains",
+      icon: Crown, gradient: "from-[#FF8C00] via-[#FFC300] to-[#FFF082]",
+      features: allFeatures.map((f) => ({ ...f, included: f.included.gold, limit: f.limits.gold })),
+    },
+  ];
+};
+
+const getCompareRows = (isRtl: boolean) => [
+  { label: isRtl ? "المرضى (سجلات إلكترونية)" : "Patients (EHR)", values: [isRtl ? "50 مريض" : "50 Patients", isRtl ? "200 مريض" : "200 Patients", isRtl ? "∞ غير محدودة" : "∞ Unlimited"] },
+  { label: isRtl ? "الجلسات الشهرية" : "Monthly Sessions", values: [isRtl ? "100" : "100", isRtl ? "500" : "500", isRtl ? "∞ غير محدودة" : "∞ Unlimited"] },
+  { label: isRtl ? "حسابات الأخصائيين" : "Therapist Accounts", values: [isRtl ? "20 حساب" : "20 Accounts", isRtl ? "50 حساب" : "50 Accounts", isRtl ? "∞ غير محدودة" : "∞ Unlimited"] },
+  { label: isRtl ? "الفروع والمراكز" : "Branches & Centers", values: [isRtl ? "1 فرع" : "1 Branch", isRtl ? "1 فرع" : "1 Branch", isRtl ? "2 فرع (مربوطة)" : "2 Branches (Linked)"] },
+  { label: isRtl ? "إدارة المواعيد" : "Appointments Mgmt", values: [true, true, true] },
+  { label: isRtl ? "التغذية العلاجية" : "Clinical Nutrition", values: [false, true, true] },
+  { label: isRtl ? "المكتبة العلاجية" : "Rehab Library", values: [false, false, true] },
+  { label: isRtl ? "التقارير والتحليلات" : "Reports & Analytics", values: [false, true, true] },
+  { label: isRtl ? "رسائل التذكير SMS" : "SMS Reminders", values: [false, false, true] },
+  { label: isRtl ? "مستوى الدعم الفني" : "Support Level", values: [isRtl ? "Email/تذاكر" : "Email/Tickets", isRtl ? "هاتف/سريع" : "Phone/Fast", isRtl ? "VIP 24/7" : "VIP 24/7"] },
+];
 
 export default function LoginPage() {
   const { language } = useLanguage();
@@ -30,6 +80,20 @@ export default function LoginPage() {
   const [forgotShowCode, setForgotShowCode] = useState("");
   const [forgotError, setForgotError] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
+
+  const PLANS = getPlans(isRtl);
+  const COMPARE_ROWS = getCompareRows(isRtl);
+  const [showCompare, setShowCompare] = useState(false);
+  const [payingPlan, setPayingPlan] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [payError, setPayError] = useState("");
+  const [iframeUrl, setIframeUrl] = useState("");
+  const [showBillingModal, setShowBillingModal] = useState(false);
+  const [showIframeModal, setShowIframeModal] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [payEmail, setPayEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
   const otpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
@@ -68,6 +132,53 @@ export default function LoginPage() {
     await setAppValue("pending_role", "admin");
     await setAppValue("pending_google_signup", "true");
     signIn("google", { callbackUrl: "/" });
+  };
+
+  const handleUpgrade = (planId: string) => {
+    setPayingPlan(planId);
+    setPayError("");
+    setShowBillingModal(true);
+  };
+
+  const handlePayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!payingPlan) return;
+    setIsLoading(true);
+    setPayError("");
+
+    try {
+      const res = await fetch("/api/paymob/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId: payingPlan,
+          billingData: {
+            first_name: firstName, last_name: lastName,
+            email: payEmail, phone_number: phone,
+            apartment: "N/A", floor: "N/A", street: "N/A",
+            building: "N/A", shipping_method: "PKG",
+            postal_code: "00000", city: "Cairo",
+            country: "EG", state: "Cairo",
+          },
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.iframeUrl) {
+        setPayError(data.error || "حدث خطأ أثناء إعداد الدفع");
+        setIsLoading(false);
+        return;
+      }
+
+      setIframeUrl(data.iframeUrl);
+      setShowBillingModal(false);
+      setShowIframeModal(true);
+    } catch {
+      setPayError("تعذر الاتصال بخادم الدفع. تحقق من الاتصال بالإنترنت.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleForgotSendEmail = async () => {
@@ -200,8 +311,328 @@ export default function LoginPage() {
         </div>
       </nav>
 
-      {/* Hero */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+       {/* Getting Started Guide */}
+       {activeTab === "guide" && (
+         <div className="bg-gradient-to-b from-indigo-50/50 to-white border-b border-slate-100">
+           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+             <div className="text-center mb-12">
+               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+                 {isRtl ? "🚀 دليل البدء مع برايم فيزيو" : "🚀 Getting Started with Prime Physio"}
+               </h2>
+               <p className="text-slate-600 max-w-2xl mx-auto">
+                 {isRtl
+                   ? "ثلاث خطوات سهلة لبدء رحلتك مع نظام إدارة عيادتك"
+                   : "Three simple steps to start managing your clinic"}
+               </p>
+             </div>
+
+             <div className="grid md:grid-cols-3 gap-8">
+               {/* Step 1 */}
+               <div className="bg-white rounded-2xl border border-slate-100 p-8 hover:shadow-lg transition-shadow">
+                 <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-2xl font-bold text-[#4F46BA] mb-4">
+                   1️⃣
+                 </div>
+                 <h3 className="text-lg font-bold text-slate-900 mb-3">
+                   {isRtl ? "إنشاء الحساب الشخصي" : "Create Your Account"}
+                 </h3>
+                 <ul className="space-y-2 text-sm text-slate-600">
+                   <li className="flex items-start gap-2">
+                     <span className="text-[#4F46BA] font-bold mt-0.5">•</span>
+                     <span>{isRtl ? "ادخل على قائمة الإدارة واختر تسجيل حساب جديد" : "Go to Management and select Sign Up"}</span>
+                   </li>
+                   <li className="flex items-start gap-2">
+                     <span className="text-[#4F46BA] font-bold mt-0.5">•</span>
+                     <span>{isRtl ? "أدخل اسمك وبريد إلكتروني قوي وكلمة مرور آمنة" : "Enter name, email and strong password"}</span>
+                   </li>
+                   <li className="flex items-start gap-2">
+                     <span className="text-[#4F46BA] font-bold mt-0.5">•</span>
+                     <span>{isRtl ? "تفعّل حسابك عبر البريد الإلكتروني" : "Verify email and activate account"}</span>
+                   </li>
+                 </ul>
+               </div>
+
+               {/* Step 2 */}
+               <div className="bg-white rounded-2xl border border-slate-100 p-8 hover:shadow-lg transition-shadow">
+                 <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-2xl font-bold text-[#4F46BA] mb-4">
+                   2️⃣
+                 </div>
+                 <h3 className="text-lg font-bold text-slate-900 mb-3">
+                   {isRtl ? "الاشتراك وإنشاء المركز" : "Subscribe & Create Clinic"}
+                 </h3>
+                 <ul className="space-y-2 text-sm text-slate-600">
+                   <li className="flex items-start gap-2">
+                     <span className="text-[#4F46BA] font-bold mt-0.5">•</span>
+                     <span>{isRtl ? "اختر باقتك المناسبة (أساسية / فضية / ذهبية)" : "Choose your subscription plan"}</span>
+                   </li>
+                   <li className="flex items-start gap-2">
+                     <span className="text-[#4F46BA] font-bold mt-0.5">•</span>
+                     <span>{isRtl ? "أدخل بيانات المركز (الاسم، الرمز التعريفي، الشعار)" : "Enter clinic details and branding"}</span>
+                   </li>
+                   <li className="flex items-start gap-2">
+                     <span className="text-[#4F46BA] font-bold mt-0.5">•</span>
+                     <span>{isRtl ? "أكمل عملية الدفع والتفعيل" : "Complete payment and activation"}</span>
+                   </li>
+                 </ul>
+               </div>
+
+               {/* Step 3 */}
+               <div className="bg-white rounded-2xl border border-slate-100 p-8 hover:shadow-lg transition-shadow">
+                 <div className="w-12 h-12 bg-indigo-100 rounded-xl flex items-center justify-center text-2xl font-bold text-[#4F46BA] mb-4">
+                   3️⃣
+                 </div>
+                 <h3 className="text-lg font-bold text-slate-900 mb-3">
+                   {isRtl ? "الدخول إلى المنصة" : "Access Your Platform"}
+                 </h3>
+                 <ul className="space-y-2 text-sm text-slate-600">
+                   <li className="flex items-start gap-2">
+                     <span className="text-[#4F46BA] font-bold mt-0.5">•</span>
+                     <span>{isRtl ? "ادخل عبر الرابط المباشر للمركز" : "Use direct clinic link"}</span>
+                   </li>
+                   <li className="flex items-start gap-2">
+                     <span className="text-[#4F46BA] font-bold mt-0.5">•</span>
+                     <span>{isRtl ? "أو من خلال لوحة تحكم إدارة المراكز" : "Or from management dashboard"}</span>
+                   </li>
+                   <li className="flex items-start gap-2">
+                     <span className="text-[#4F46BA] font-bold mt-0.5">•</span>
+                     <span>{isRtl ? "ابدأ استخدام كل الميزات الآن! 🎉" : "Start using all features! 🎉"}</span>
+                   </li>
+                 </ul>
+               </div>
+             </div>
+           </div>
+         </div>
+        )}
+
+       {/* Packages Section - Same design as subscription page */}
+       {activeTab === "packages" && (
+         <div className="space-y-8 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16" dir={isRtl ? "rtl" : "ltr"}>
+           <div className="text-center mb-4">
+             <h1 className={`text-2xl font-extrabold text-slate-800 flex items-center justify-center gap-2`}>
+               <Crown className="w-6 h-6 text-amber-500" />
+               {isRtl ? "خطط الاشتراك" : "Subscription Plans"}
+             </h1>
+             <p className="text-sm text-slate-500 mt-1">{isRtl ? "اختر الخطة المناسبة لحجم عيادتك واحتياجاتك" : "Choose the right plan for your clinic's size and needs"}</p>
+           </div>
+
+           {/* Plans Grid */}
+           <div className="flex flex-wrap items-center justify-center gap-6">
+             {PLANS.map((plan) => {
+               const isPro = plan.id === "silver";
+               return (
+                 <div key={plan.id} className={`w-72 text-center p-6 ${isPro ? "pb-14" : "pb-16"} rounded-lg relative ${isPro ? "bg-[#4F46BA] text-white border border-white/30" : "bg-white text-gray-800/80 border border-gray-200"}`}>
+                   {isPro && (
+                     <p className="absolute px-3 text-xs -top-3.5 left-3.5 py-1 bg-[#8789FB] rounded-full">
+                       {isRtl ? "الأكثر طلباً" : "Most Popular"}
+                     </p>
+                   )}
+                   <p className={`font-semibold ${isPro ? "pt-2" : ""}`}>{plan.name}</p>
+                   <h1 className="text-3xl font-semibold">
+                     {plan.price.toLocaleString()}
+                     <span className={`text-sm font-normal ${isPro ? "text-white/70" : "text-gray-500"}`}>{isRtl ? " ج.م/شهر" : " EGP/month"}</span>
+                   </h1>
+                   <ul className="list-none text-sm mt-6 space-y-1">
+                     {plan.features.filter(f => f.included).map((f) => (
+                       <li key={f.label} className="flex items-center gap-2">
+                         <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                           <path d="M7.162 13.5 2.887 9.225l1.07-1.069 3.205 3.207 6.882-6.882 1.069 1.07z" fill={isPro ? "currentColor" : "#6366F1"}/>
+                         </svg>
+                         <p className={isPro ? "text-white" : "text-gray-500"}>
+                           {f.label}
+                           {f.limit && <span className={`text-[10px] ${isPro ? "text-white/70" : "text-indigo-400"}`}> ({f.limit})</span>}
+                         </p>
+                       </li>
+                     ))}
+                   </ul>
+                   <button type="button" onClick={() => handleUpgrade(plan.id)}
+                     className={`text-sm w-full py-2 rounded font-medium mt-7 transition-all ${isPro ? "bg-white text-indigo-600 hover:bg-gray-200" : "bg-indigo-500 text-white hover:bg-indigo-600"}`}
+                   >
+                     {isRtl ? `اشتراك ${plan.name}` : `Get ${plan.nameEn || plan.name}`}
+                   </button>
+                 </div>
+               );
+             })}
+           </div>
+
+           {/* Compare Toggle */}
+           <div className="text-center">
+             <button
+               onClick={() => setShowCompare((v) => !v)}
+               className={`inline-flex items-center gap-2 text-slate-500 hover:text-[#4F46BA] border border-slate-200 hover:border-[#4F46BA]/30 rounded-full px-6 py-2 text-xs font-bold transition-all ${isRtl ? "" : "flex-row-reverse"}`}
+             >
+               {showCompare ? (isRtl ? "إخفاء جدول المقارنة" : "Hide Comparison Table") : (isRtl ? "مقارنة الخطط بالتفصيل" : "Compare Plans in Detail")}
+             </button>
+           </div>
+
+           {/* Comparison Table */}
+           {showCompare && (
+             <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+               <div className="overflow-x-auto">
+                 <table className="w-full">
+                   <thead>
+                     <tr className="border-b border-slate-100 bg-slate-50">
+                       <th className={`p-4 text-slate-500 text-xs font-bold w-1/4 ${isRtl ? "text-right" : "text-left"}`}>{isRtl ? "الميزة" : "Feature"}</th>
+                       {PLANS.map((plan) => {
+                         const Icon = plan.icon;
+                         return (
+                           <th key={plan.id} className="p-4 text-center">
+                             <div className="flex flex-col items-center gap-1">
+                               <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${plan.gradient} flex items-center justify-center`}>
+                                 <Icon className="w-3.5 h-3.5 text-white" />
+                               </div>
+                               <span className="text-xs font-extrabold text-slate-700">{isRtl ? `الخطة ${plan.name}` : `${plan.name} Plan`}</span>
+                               <span className={`text-[10px] font-bold bg-gradient-to-r ${plan.gradient} bg-clip-text text-transparent`}>
+                                 {plan.price.toLocaleString()} {isRtl ? "ج.م" : "EGP"}
+                               </span>
+                             </div>
+                           </th>
+                         );
+                       })}
+                     </tr>
+                   </thead>
+                   <tbody>
+                     {COMPARE_ROWS.map((row, i) => (
+                       <tr key={row.label} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors ${i % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}>
+                         <td className={`p-4 text-slate-600 text-xs font-medium ${isRtl ? "text-right" : "text-left"}`}>{row.label}</td>
+                         {row.values.map((val, vi) => (
+                           <td key={vi} className="p-4 text-center">
+                             {typeof val === "boolean" ? (
+                               <div className="flex justify-center">
+                                 {val ? (
+                                   <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${PLANS[vi].gradient} flex items-center justify-center`}>
+                                     <Check className="w-3 h-3 text-white" />
+                                   </div>
+                                 ) : (
+                                   <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center">
+                                     <X className="w-3 h-3 text-slate-300" />
+                                   </div>
+                                 )}
+                               </div>
+                             ) : (
+                               <span className={`text-xs font-bold bg-gradient-to-r ${PLANS[vi].gradient} bg-clip-text text-transparent`}>
+                                 {val}
+                               </span>
+                             )}
+                           </td>
+                         ))}
+                       </tr>
+                     ))}
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+           )}
+         </div>
+       )}
+
+       {/* Billing Form Modal */}
+       {showBillingModal && payingPlan && (
+         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
+             <div className={`h-1.5 w-full bg-gradient-to-r ${PLANS.find(p => p.id === payingPlan)?.gradient || "from-slate-400 to-slate-500"}`} />
+             <div className="p-6 space-y-5">
+               <div className="flex items-center justify-between">
+                 <div className={`flex items-center gap-3 ${isRtl ? "" : "flex-row-reverse"}`}>
+                   <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${PLANS.find(p => p.id === payingPlan)?.gradient || "from-slate-400 to-slate-500"} flex items-center justify-center`}>
+                     <CreditCard className="w-4 h-4 text-white" />
+                   </div>
+                   <div className={isRtl ? "text-right" : "text-left"}>
+                     <p className="text-[10px] text-slate-400 font-bold">{isRtl ? "دفع آمن عبر Paymob" : "Secure Payment via Paymob"}</p>
+                     <h3 className="text-sm font-extrabold text-slate-800">
+                       {isRtl ? `الخطة ${PLANS.find(p => p.id === payingPlan)?.name}` : `${PLANS.find(p => p.id === payingPlan)?.name} Plan`} — {PLANS.find(p => p.id === payingPlan)?.price.toLocaleString()} {isRtl ? "ج.م" : "EGP"}
+                     </h3>
+                   </div>
+                 </div>
+                 <button onClick={() => setShowBillingModal(false)} className="text-slate-400 hover:text-slate-700 transition-colors">
+                   <X className="w-5 h-5" />
+                 </button>
+               </div>
+
+               {payError && (
+                 <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl p-3">
+                   <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
+                   <p className="text-xs text-red-600">{payError}</p>
+                 </div>
+               )}
+
+               <form onSubmit={handlePayment} className={`space-y-4 ${isRtl ? "text-right" : "text-left"}`}>
+                 <div className="grid grid-cols-2 gap-3">
+                   <div className="space-y-1">
+                     <label className="text-xs font-bold text-slate-600">{isRtl ? "الاسم الأول *" : "First Name *"}</label>
+                     <input
+                       required value={firstName} onChange={(e) => setFirstName(e.target.value)}
+                       placeholder={isRtl ? "محمد" : "John"}
+                       className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#4F46BA] transition-colors"
+                     />
+                   </div>
+                   <div className="space-y-1">
+                     <label className="text-xs font-bold text-slate-600">{isRtl ? "الاسم الأخير *" : "Last Name *"}</label>
+                     <input
+                       required value={lastName} onChange={(e) => setLastName(e.target.value)}
+                       placeholder={isRtl ? "أحمد" : "Doe"}
+                       className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#4F46BA] transition-colors"
+                     />
+                   </div>
+                 </div>
+                 <div className="space-y-1">
+                   <label className="text-xs font-bold text-slate-600">{isRtl ? "البريد الإلكتروني *" : "Email Address *"}</label>
+                   <input
+                     required type="email" value={payEmail} onChange={(e) => setPayEmail(e.target.value)}
+                     placeholder="clinic@example.com" dir="ltr"
+                     className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#4F46BA] transition-colors text-left"
+                   />
+                 </div>
+                 <div className="space-y-1">
+                   <label className="text-xs font-bold text-slate-600">{isRtl ? "رقم الهاتف *" : "Phone Number *"}</label>
+                   <input
+                     required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
+                     placeholder="+201000000000" dir="ltr"
+                     className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#4F46BA] transition-colors text-left font-mono"
+                   />
+                 </div>
+                 <p className={`text-[10px] text-slate-400 ${isRtl ? "" : "text-left"}`}>
+                   {isRtl ? "🔒 دفعك محمي بتشفير TLS 1.3 عبر Paymob — لا نحتفظ ببيانات بطاقتك" : "🔒 Your payment is secured by TLS 1.3 via Paymob — We do not store your card data"}
+                 </p>
+                 <button
+                   type="submit"
+                   disabled={isLoading}
+                   className={`w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r ${PLANS.find(p => p.id === payingPlan)?.gradient || "from-slate-400 to-slate-500"} hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-all`}
+                 >
+                   {isLoading ? (
+                     <><Loader2 className="w-4 h-4 animate-spin" /> {isRtl ? "جاري إعداد الدفع..." : "Preparing Payment..."}</>
+                   ) : (
+                     <><CreditCard className="w-4 h-4" /> {isRtl ? "إتمام الدفع عبر Paymob" : "Complete Payment via Paymob"}</>
+                   )}
+                 </button>
+               </form>
+             </div>
+           </div>
+         </div>
+       )}
+
+       {/* Paymob iFrame Modal */}
+       {showIframeModal && iframeUrl && (
+         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
+             <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
+               <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                 <span className="text-sm font-bold text-slate-700">دفع آمن عبر Paymob</span>
+               </div>
+               <button
+                 onClick={() => { setShowIframeModal(false); setIframeUrl(""); }}
+                 className="text-slate-400 hover:text-slate-700 transition-colors"
+               >
+                 <X className="w-5 h-5" />
+               </button>
+             </div>
+             <iframe src={iframeUrl} className="w-full h-[600px] border-0" allow="payment" />
+           </div>
+         </div>
+       )}
+
+       {/* Hero & Login - Only show when not on guide or packages */}
+       {activeTab !== "guide" && activeTab !== "packages" && (
+       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="min-h-[calc(100vh-4rem)] flex items-center py-12 lg:py-0">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 w-full items-center">
 
