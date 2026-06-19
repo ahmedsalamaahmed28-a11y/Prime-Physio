@@ -419,7 +419,7 @@ export default function BillingPage() {
       </div>
 
       {/* Discount Modal */}
-      <Dialog open={discountModalOpen} onOpenChange={(open) => !open && setDiscountModalOpen(false)}>
+      <Dialog open={discountModalOpen} onOpenChange={(open: boolean) => !open && setDiscountModalOpen(false)}>
         <DialogContent className="sm:max-w-md">
           <div className="flex flex-col items-center space-y-4 pt-4">
             <div className="w-14 h-14 rounded-xl bg-[#4F46BA] flex items-center justify-center">
@@ -477,7 +477,7 @@ export default function BillingPage() {
       </Dialog>
 
       {/* Delete Confirmation Modal */}
-      <Dialog open={!!deleteInvoiceId} onOpenChange={(open) => !open && setDeleteInvoiceId(null)}>
+      <Dialog open={!!deleteInvoiceId} onOpenChange={(open: boolean) => !open && setDeleteInvoiceId(null)}>
         <DialogContent className="sm:max-w-sm" showCloseButton={false}>
           <div className="flex flex-col items-center space-y-4 pt-4">
             <div className="w-14 h-14 rounded-xl bg-red-50 flex items-center justify-center">
