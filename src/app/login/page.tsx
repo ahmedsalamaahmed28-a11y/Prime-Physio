@@ -83,6 +83,7 @@ export default function LoginPage() {
 
   const PLANS = getPlans(isRtl);
   const COMPARE_ROWS = getCompareRows(isRtl);
+  const [activeTab, setActiveTab] = useState("login");
   const [showCompare, setShowCompare] = useState(false);
   const [payingPlan, setPayingPlan] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -302,7 +303,7 @@ export default function LoginPage() {
             </div>
             <div className="hidden md:flex items-center gap-1">
               {navTabs.map((tab) => (
-                <span key={tab.key} className="px-3 py-1.5 text-xs font-medium text-slate-500 rounded-lg cursor-pointer hover:text-[#4F46BA] hover:bg-slate-50 transition-all">
+                <span key={tab.key} onClick={() => setActiveTab(tab.key)} className={`px-3 py-1.5 text-xs font-medium rounded-lg cursor-pointer transition-all ${activeTab === tab.key ? "text-[#4F46BA] bg-indigo-50" : "text-slate-500 hover:text-[#4F46BA] hover:bg-slate-50"}`}>
                   {isRtl ? tab.ar : tab.en}
                 </span>
               ))}
