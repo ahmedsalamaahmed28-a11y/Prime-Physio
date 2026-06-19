@@ -846,7 +846,6 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Forgot Password Modal */}
       {showForgotModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={(e) => { if (e.target === e.currentTarget) { setShowForgotModal(false); } }}>
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 sm:p-8 relative animate-in zoom-in-95 duration-200" onClick={(e) => e.stopPropagation()}>
