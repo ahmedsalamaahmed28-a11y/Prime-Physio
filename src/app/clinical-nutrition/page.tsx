@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import SelectMenu from "@/components/SelectMenu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/lib/supabase";
@@ -255,10 +254,10 @@ export default function ClinicalNutritionPage() {
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6 print:p-0" dir={isRtl ? "rtl" : "ltr"}>
       {/* Print-Only Clinic Header Letterhead */}
-      <div className="hidden print:flex flex-col mb-6 pb-4 border-b-2 border-[#4F46BA] w-full" dir={isRtl ? "rtl" : "ltr"}>
+      <div className="hidden print:flex flex-col mb-6 pb-4 border-b-2 border-teal-600 w-full" dir={isRtl ? "rtl" : "ltr"}>
         <div className="flex justify-between items-center w-full">
           <div>
-            <h1 className="text-2xl font-bold text-indigo-800 tracking-wider">PRIME PHYSIO CLINIC</h1>
+            <h1 className="text-2xl font-bold text-teal-800 tracking-wider">PRIME PHYSIO CLINIC</h1>
             <p className="text-xs text-slate-500">Physical Therapy & Rehabilitation Specialist Center</p>
           </div>
           <div className="text-right">
@@ -301,26 +300,26 @@ export default function ClinicalNutritionPage() {
         <div className="border rounded-2xl overflow-hidden">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-[#4F46BA] text-white text-xs font-bold">
-                <th className="py-3 px-4 text-right border-b border-[#4338ca] w-1/4">{isRtl ? "الوجبة" : "Meal"}</th>
-                <th className="py-3 px-4 text-right border-b border-[#4338ca] w-3/4">{isRtl ? "المكونات الغذائية الموصى بها" : "Recommended Dietary Content"}</th>
+              <tr className="bg-teal-600 text-white text-xs font-bold">
+                <th className="py-3 px-4 text-right border-b border-teal-700 w-1/4">{isRtl ? "الوجبة" : "Meal"}</th>
+                <th className="py-3 px-4 text-right border-b border-teal-700 w-3/4">{isRtl ? "المكونات الغذائية الموصى بها" : "Recommended Dietary Content"}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-xs">
               <tr className="hover:bg-slate-50">
-                <td className="py-4 px-4 font-bold text-indigo-800">🌅 {isRtl ? "وجبة الإفطار" : "Breakfast"}</td>
+                <td className="py-4 px-4 font-bold text-teal-800">🌅 {isRtl ? "وجبة الإفطار" : "Breakfast"}</td>
                 <td className="py-4 px-4 whitespace-pre-line leading-relaxed">{dietPlan.breakfast}</td>
               </tr>
               <tr className="hover:bg-slate-50">
-                <td className="py-4 px-4 font-bold text-indigo-800">☀️ {isRtl ? "وجبة الغداء" : "Lunch"}</td>
+                <td className="py-4 px-4 font-bold text-teal-800">☀️ {isRtl ? "وجبة الغداء" : "Lunch"}</td>
                 <td className="py-4 px-4 whitespace-pre-line leading-relaxed">{dietPlan.lunch}</td>
               </tr>
               <tr className="hover:bg-slate-50">
-                <td className="py-4 px-4 font-bold text-indigo-800">🌌 {isRtl ? "وجبة العشاء" : "Dinner"}</td>
+                <td className="py-4 px-4 font-bold text-teal-800">🌌 {isRtl ? "وجبة العشاء" : "Dinner"}</td>
                 <td className="py-4 px-4 whitespace-pre-line leading-relaxed">{dietPlan.dinner}</td>
               </tr>
               <tr className="hover:bg-slate-50">
-                <td className="py-4 px-4 font-bold text-indigo-800">🍎 {isRtl ? "الوجبات الخفيفة" : "Snacks"}</td>
+                <td className="py-4 px-4 font-bold text-teal-800">🍎 {isRtl ? "الوجبات الخفيفة" : "Snacks"}</td>
                 <td className="py-4 px-4 whitespace-pre-line leading-relaxed">{dietPlan.snacks}</td>
               </tr>
             </tbody>
@@ -329,7 +328,7 @@ export default function ClinicalNutritionPage() {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 border rounded-2xl bg-slate-50/50">
-            <h4 className="font-bold text-xs text-indigo-800 mb-2">{isRtl ? "الأهداف الحيوية والسعرات" : "Macronutrient Targets"}</h4>
+            <h4 className="font-bold text-xs text-teal-800 mb-2">{isRtl ? "الأهداف الحيوية والسعرات" : "Macronutrient Targets"}</h4>
             <div className="space-y-1.5 text-xs">
               <div className="flex justify-between">
                 <span>{isRtl ? "السعرات المستهدفة:" : "Target Calories:"}</span>
@@ -350,7 +349,7 @@ export default function ClinicalNutritionPage() {
             </div>
           </div>
           
-          <div className="p-4 border rounded-2xl bg-slate-50/50 flex flex-col justify-center text-[10px] text-indigo-800 leading-relaxed">
+          <div className="p-4 border rounded-2xl bg-slate-50/50 flex flex-col justify-center text-[10px] text-teal-800 leading-relaxed">
             <p className="font-bold mb-1">💡 {isRtl ? "توجيهات الطبيب المتابع:" : "Physician Instructions:"}</p>
             <p>{isRtl 
               ? "يُنصح بالالتزام الكامل بكميات شرب المياه اليومية (3 لتر على الأقل) وتوزيع الوجبات بفترات زمنية متساوية للمحافظة على كفاءة الأيض والاستشفاء العضلي." 
@@ -362,7 +361,7 @@ export default function ClinicalNutritionPage() {
       {/* Screen-Only Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 print:hidden">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-[#4F46BA]">{isRtl ? "قسم التغذية العلاجية" : "Clinical Nutrition Program"}</h1>
+          <h1 className="text-xl font-bold tracking-tight text-[#0d8a8a]">{isRtl ? "قسم التغذية العلاجية" : "Clinical Nutrition Program"}</h1>
           <p className="text-xs text-muted-foreground mt-1">
             {isRtl 
               ? "تقييم التركيب البدني للمريض ووضع الأنظمة الغذائية العلاجية المناسبة لدعم خطة الاستشفاء والتأهيل"
@@ -375,18 +374,19 @@ export default function ClinicalNutritionPage() {
       <div className="bg-card border p-4 rounded-xl flex flex-col sm:flex-row sm:items-end justify-between gap-4 print:hidden">
         <div className="space-y-2 flex-1 max-w-md">
           <Label className="text-xs font-semibold text-slate-500">{isRtl ? "اختيار المريض لتطبيق التقييم والنظام الغذائي عليه" : "Select Patient for Assessment & Diet Plan"}</Label>
-          <SelectMenu
-            items={patients.map((p) => ({ value: p.id, label: `${translateName(p.nameAr, p.nameEn)} (${p.id})` }))}
+          <select
             value={selectedPatientId}
-            onValueChange={setSelectedPatientId}
-            placeholder={isRtl ? "اختر مريض..." : "Select patient..."}
-            searchPlaceholder={isRtl ? "بحث..." : "Search"}
-            nothingFound={isRtl ? "لا يوجد نتائج" : "Nothing found."}
-          />
+            onChange={(e) => setSelectedPatientId(e.target.value)}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-teal-600 text-slate-700 font-medium"
+          >
+            {patients.map(p => (
+              <option key={p.id} value={p.id}>{translateName(p.nameAr, p.nameEn)} ({p.id})</option>
+            ))}
+          </select>
         </div>
         <Button 
           onClick={handleSavePatientNutrition}
-          className="bg-[#4F46BA] hover:bg-[#4338ca] text-white"
+          className="bg-teal-600 hover:bg-teal-700 text-white"
         >
           💾 {isRtl ? "حفظ في ملف المريض المختار" : "Save to Selected Patient's File"}
         </Button>
@@ -402,7 +402,7 @@ export default function ClinicalNutritionPage() {
         <TabsContent value="assessment" className="space-y-6 pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Calculator Card */}
-            <Card className="border-indigo-100">
+            <Card className="border-teal-150">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base text-slate-800 dark:text-white">
                   {isRtl ? "أدوات القياس المترية" : "Metric Measurement Inputs"}
@@ -419,7 +419,7 @@ export default function ClinicalNutritionPage() {
                     <Button 
                       type="button" 
                       variant={gender === "male" ? "default" : "outline"} 
-                      className={gender === "male" ? "bg-[#4F46BA] text-white" : ""}
+                      className={gender === "male" ? "bg-teal-600 text-white" : ""}
                       onClick={() => setGender("male")}
                     >
                       {isRtl ? "ذكر" : "Male"}
@@ -427,7 +427,7 @@ export default function ClinicalNutritionPage() {
                     <Button 
                       type="button" 
                       variant={gender === "female" ? "default" : "outline"} 
-                      className={gender === "female" ? "bg-[#4F46BA] text-white" : ""}
+                      className={gender === "female" ? "bg-teal-600 text-white" : ""}
                       onClick={() => setGender("female")}
                     >
                       {isRtl ? "أنثى" : "Female"}
@@ -492,7 +492,7 @@ export default function ClinicalNutritionPage() {
             {/* Results Column */}
             <div className="space-y-6">
               {/* BMI Result */}
-              <Card className="border-indigo-100">
+              <Card className="border-teal-150">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base text-slate-800 dark:text-white">
                     {isRtl ? "مؤشر كتلة الجسم (BMI)" : "Body Mass Index (BMI)"}
@@ -500,13 +500,13 @@ export default function ClinicalNutritionPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-baseline">
-                    <span className="text-3xl font-extrabold text-[#4F46BA]">{bmi}</span>
+                    <span className="text-3xl font-extrabold text-[#0d8a8a]">{bmi}</span>
                     <Badge className={bmiColor} variant="outline">{bmiCategory}</Badge>
                   </div>
 
                   <div className="space-y-1 pt-2">
                     <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#4F46BA] rounded-full transition-all duration-300" style={{ width: `${bmiProgressValue}%` }} />
+                      <div className="h-full bg-teal-600 rounded-full transition-all duration-300" style={{ width: `${bmiProgressValue}%` }} />
                     </div>
                     <div className="flex justify-between text-[10px] text-slate-400 font-sans">
                       <span>&lt; 18.5</span>
@@ -525,7 +525,7 @@ export default function ClinicalNutritionPage() {
               </Card>
 
               {/* Waist-to-Hip Ratio Result */}
-              <Card className="border-indigo-100">
+              <Card className="border-teal-150">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base text-slate-800 dark:text-white">
                     {isRtl ? "نسبة الخصر إلى الورك (W/H Ratio)" : "Waist-to-Hip Ratio (W/H Ratio)"}
@@ -533,7 +533,7 @@ export default function ClinicalNutritionPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-baseline">
-                    <span className="text-3xl font-extrabold text-[#4F46BA]">{whr}</span>
+                    <span className="text-3xl font-extrabold text-[#0d8a8a]">{whr}</span>
                     <Badge className={whrColor} variant="outline">{whrCategory}</Badge>
                   </div>
                   <p className="text-[10px] text-muted-foreground leading-relaxed">
@@ -552,7 +552,7 @@ export default function ClinicalNutritionPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Diet Plan Formulation Cards */}
             <div className="lg:col-span-8 space-y-4">
-              <Card className="border-indigo-100">
+              <Card className="border-teal-150">
                 <CardHeader className="pb-3 flex flex-row items-center justify-between gap-4">
                   <div className="space-y-1">
                     <CardTitle className="text-base text-slate-800 dark:text-white">
@@ -568,7 +568,7 @@ export default function ClinicalNutritionPage() {
                     onClick={() => window.print()}
                     variant="outline"
                     size="sm"
-                    className="border-[#4F46BA] text-indigo-700 hover:bg-indigo-50 gap-1.5 shrink-0 h-9"
+                    className="border-teal-600 text-teal-700 hover:bg-teal-50 gap-1.5 shrink-0 h-9"
                   >
                     🖨️ {isRtl ? "طباعة البرنامج" : "Print Program"}
                   </Button>
@@ -577,12 +577,12 @@ export default function ClinicalNutritionPage() {
                   {/* Breakfast */}
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center mb-1">
-                      <Label htmlFor="breakfast" className="text-xs font-bold text-indigo-700 flex items-center gap-1.5">
+                      <Label htmlFor="breakfast" className="text-xs font-bold text-teal-700 flex items-center gap-1.5">
                         🌅 {isRtl ? "وجبة الإفطار (Breakfast)" : "Breakfast Meal"}
                       </Label>
                       {getOptions("breakfast").length > 0 && (
                         <select 
-                          className="text-[10px] bg-background border border-indigo-200 text-indigo-800 rounded px-1.5 py-0.5 outline-none max-w-[200px]"
+                          className="text-[10px] bg-background border border-teal-200 text-teal-800 rounded px-1.5 py-0.5 outline-none max-w-[200px]"
                           onChange={(e) => {
                             if (e.target.value) {
                               setDietPlan({ ...dietPlan, breakfast: e.target.value });
@@ -611,12 +611,12 @@ export default function ClinicalNutritionPage() {
                   {/* Lunch */}
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center mb-1">
-                      <Label htmlFor="lunch" className="text-xs font-bold text-indigo-700 flex items-center gap-1.5">
+                      <Label htmlFor="lunch" className="text-xs font-bold text-teal-700 flex items-center gap-1.5">
                         ☀️ {isRtl ? "وجبة الغداء (Lunch)" : "Lunch Meal"}
                       </Label>
                       {getOptions("lunch").length > 0 && (
                         <select 
-                          className="text-[10px] bg-background border border-indigo-200 text-indigo-800 rounded px-1.5 py-0.5 outline-none max-w-[200px]"
+                          className="text-[10px] bg-background border border-teal-200 text-teal-800 rounded px-1.5 py-0.5 outline-none max-w-[200px]"
                           onChange={(e) => {
                             if (e.target.value) {
                               setDietPlan({ ...dietPlan, lunch: e.target.value });
@@ -645,12 +645,12 @@ export default function ClinicalNutritionPage() {
                   {/* Dinner */}
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center mb-1">
-                      <Label htmlFor="dinner" className="text-xs font-bold text-indigo-700 flex items-center gap-1.5">
+                      <Label htmlFor="dinner" className="text-xs font-bold text-teal-700 flex items-center gap-1.5">
                         🌌 {isRtl ? "وجبة العشاء (Dinner)" : "Dinner Meal"}
                       </Label>
                       {getOptions("dinner").length > 0 && (
                         <select 
-                          className="text-[10px] bg-background border border-indigo-200 text-indigo-800 rounded px-1.5 py-0.5 outline-none max-w-[200px]"
+                          className="text-[10px] bg-background border border-teal-200 text-teal-800 rounded px-1.5 py-0.5 outline-none max-w-[200px]"
                           onChange={(e) => {
                             if (e.target.value) {
                               setDietPlan({ ...dietPlan, dinner: e.target.value });
@@ -679,12 +679,12 @@ export default function ClinicalNutritionPage() {
                   {/* Snacks */}
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center mb-1">
-                      <Label htmlFor="snacks" className="text-xs font-bold text-indigo-700 flex items-center gap-1.5">
+                      <Label htmlFor="snacks" className="text-xs font-bold text-teal-700 flex items-center gap-1.5">
                         🍎 {isRtl ? "الوجبات الخفيفة (Snacks)" : "Snacks & Fruits"}
                       </Label>
                       {getOptions("snacks").length > 0 && (
                         <select 
-                          className="text-[10px] bg-background border border-indigo-200 text-indigo-800 rounded px-1.5 py-0.5 outline-none max-w-[200px]"
+                          className="text-[10px] bg-background border border-teal-200 text-teal-800 rounded px-1.5 py-0.5 outline-none max-w-[200px]"
                           onChange={(e) => {
                             if (e.target.value) {
                               setDietPlan({ ...dietPlan, snacks: e.target.value });
@@ -715,9 +715,9 @@ export default function ClinicalNutritionPage() {
 
             {/* Macro Goals & Targets Sidebar */}
             <div className="lg:col-span-4 space-y-4">
-              <Card className="border-indigo-100 bg-indigo-50/20">
+              <Card className="border-teal-150 bg-teal-50/20">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-bold text-[#4F46BA]">
+                  <CardTitle className="text-sm font-bold text-[#0d8a8a]">
                     {isRtl ? "الأهداف الحيوية والسعرات" : "Macronutrient Targets"}
                   </CardTitle>
                 </CardHeader>
@@ -772,7 +772,7 @@ export default function ClinicalNutritionPage() {
                     </div>
                   </div>
 
-                  <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 rounded-xl text-[10px] text-indigo-800 dark:text-indigo-300 leading-relaxed">
+                  <div className="p-3 bg-teal-50/50 dark:bg-teal-950/20 border border-teal-100 rounded-xl text-[10px] text-teal-800 dark:text-teal-300 leading-relaxed">
                     💡 {isRtl 
                       ? "يُنصح بزيادة حصة البروتين (٣٠٪ - ٣٥٪) لدعم بناء الأنسجة العضلية التالفة وتسريع التأهيل البدني." 
                       : "Higher protein intake (30%-35%) is recommended for clinical tissue recovery during rehabilitation."}

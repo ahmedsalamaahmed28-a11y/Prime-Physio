@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const { email, code, clinicName, phone, password, role } = await req.json();
 
-    if (!email || !code || !clinicName || password === undefined || !role) {
+    if (!email || !code || !clinicName || !phone || !password || !role) {
       return NextResponse.json({ error: "جميع الحقول مطلوبة" }, { status: 400 });
     }
 
@@ -45,20 +45,14 @@ export async function POST(req: NextRequest) {
       value: { ...stored, used: true },
     });
 
-    // Check race condition - check both auth_accounts and staff tables
-    const { data: existingAuth } = await admin
+    // Check race condition
+    const { data: existing } = await admin
       .from("auth_accounts")
       .select("id")
       .eq("email", cleanEmail)
       .maybeSingle();
 
-    const { data: existingStaff } = await admin
-      .from("staff")
-      .select("id")
-      .eq("email", cleanEmail)
-      .maybeSingle();
-
-    if (existingAuth || existingStaff) {
+    if (existing) {
       return NextResponse.json({ error: "البريد الإلكتروني مسجل بالفعل" }, { status: 400 });
     }
 
@@ -81,9 +75,10 @@ export async function POST(req: NextRequest) {
     const { error: clinicError } = await admin.from("clinics").insert({
       id: clinicId,
       name: clinicName,
-      admin_email: cleanEmail,
-      phone: phone || null,
-      status: "active",
+      email,
+      phone,
+      is_active: true,
+      created_at: new Date().toISOString(),
     });
 
     if (clinicError) {
@@ -96,8 +91,8 @@ export async function POST(req: NextRequest) {
     const { error: staffError } = await admin.from("staff").insert({
       clinic_id: clinicId,
       name: clinicName,
-      email: cleanEmail,
-      phone: phone || null,
+      email,
+      phone,
       role: roleKey,
       status: "نشط",
     });

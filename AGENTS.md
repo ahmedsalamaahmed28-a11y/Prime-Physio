@@ -50,13 +50,7 @@ Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (
 - **Staff form updated**: Both add and edit dialogs on `/staff` page no longer include "مدير العياده" in the role dropdown. Admins can only create doctors and receptionists.
 - **Build verified**: `npm run build` passes with zero errors.
 
-### Session: Protocol Activation via SelectMenu + Library Protocols (2026-06-17)
-- **Replaced hardcoded protocol buttons**: In EMR page (`patients/[id]/page.tsx`), replaced the `CLINICAL_PROTOCOLS` button list with a searchable `SelectMenu` component that loads protocols from both `CLINICAL_PROTOCOLS` (hardcoded) and `treatment_templates` (clinical library, `kind = 'clinical_library'`).
-- **Library protocol loading**: Added `useEffect` to fetch library protocols from Supabase, parse `payload.contentAr` JSON into structured `ProtocolPhase` objects (goals, precautions, criteria), and merge via `allProtocols = [...CLINICAL_PROTOCOLS, ...libraryProtocols]`.
-- **TDZ refactor**: Removed `matchedProtocolIds` and `patientDiagnosis` (no longer needed); moved `activeProtocol` and `activePhase` from `useMemo` (defined at top) to plain `const` after `allProtocols` to avoid Temporal Dead Zone.
-- **Build verified**: `npm run build` passes with zero errors.
-
-### Previous work (pre-2026-06-17)
+### Previous work (pre-2026-06-16)
 - Multi-tenant migration SQL created and run (platform_admins, clinics, clinic_id columns, RLS, data migration)
 - Paymob integration (env vars in Vercel, subscription plans, callback handling)
 - Arabic-first UI, calendar colors, print styles, EMR medical data, rehab protocols

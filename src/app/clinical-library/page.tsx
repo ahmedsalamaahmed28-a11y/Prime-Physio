@@ -13,20 +13,9 @@ import { Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 
-interface ProtocolPhase {
-  phaseNumber: number;
-  weeks: string;
-  goalsAr: string;
-  goalsEn: string;
-  precautionsAr: string;
-  precautionsEn: string;
-  criteriaAr: string;
-  criteriaEn: string;
-}
-
 interface LibraryItem {
   id: string;
-  type: "nutrition" | "exercise" | "device" | "protocol";
+  type: "nutrition" | "exercise" | "device";
   subType?: "breakfast" | "lunch" | "dinner" | "snacks";
   category?: "الرأس" | "الرقبة" | "الجزع" | "الطرف العلوي" | "الطرف السفلي";
   titleAr: string;
@@ -248,56 +237,6 @@ const DEFAULT_TEMPLATES: LibraryItem[] = [
     contentAr: "تطبيق الشد الفقري للرقبة أو أسفل الظهر لتخفيف الضغط على جذور الأعصاب وتقليل الألم الناجم عن الانزلاق الغضروفي. يستخدم لـ ١٥-٢٠ دقيقة بوزن متدرج حسب توجيهات الأخصائي.",
     contentEn: "Apply spinal traction to the neck or lower back to relieve pressure on nerve roots and reduce pain from herniated discs. Used for 15-20 minutes with graded weight.",
   },
-  {
-    id: "t-prot-1",
-    type: "protocol",
-    titleAr: "بروتوكول إعادة تأهيل الرباط الصليبي الأمامي",
-    titleEn: "ACL Reconstruction Rehabilitation Protocol",
-    contentAr: JSON.stringify([
-      { phaseNumber: 1, weeks: "0-2", goalsAr: "تقليل الألم والتورم\nاستعادة التمدد الكامل للركبة\nتفعيل العضلة الرباعية", goalsEn: "Reduce pain and swelling\nRegain full knee extension\nQuadriceps activation", precautionsAr: "بدون مقاومة\nتجنب التحميل الكامل", precautionsEn: "No resistance\nAvoid full weight bearing", criteriaAr: "تمدد كامل للركبة\nقدرة على رفع الساق مستقيمة", criteriaEn: "Full knee extension\nAble to do straight leg raise" },
-      { phaseNumber: 2, weeks: "2-6", goalsAr: "استعادة نطاق الحركة الكامل\nتقوية العضلة الرباعية وأوتار الركبة\nتحسين التوازن", goalsEn: "Regain full ROM\nStrengthen quads and hamstrings\nImprove balance", precautionsAr: "تجنب القفز\nتجنب الدوران المفاجئ", precautionsEn: "Avoid jumping\nAvoid sudden pivoting", criteriaAr: "نطاق حركة ٠-١٢٠ درجة\nقدرة على صعود الدرج", criteriaEn: "ROM 0-120 degrees\nAble to climb stairs" },
-      { phaseNumber: 3, weeks: "6-12", goalsAr: "تقوية متقدمة\nتدريب المشي والجري الخفيف\nالتحكم العصبي العضلي", goalsEn: "Advanced strengthening\nWalk to light jog training\nNeuromuscular control", precautionsAr: "تجنب الرياضات التنافسية", precautionsEn: "Avoid competitive sports", criteriaAr: "قوة ٧٠٪ مقارنة بالساق السليمة\nالجري دون عرج", criteriaEn: "70% strength compared to healthy leg\nJog without limping" },
-      { phaseNumber: 4, weeks: "12+", goalsAr: "العودة الكاملة للرياضة\nالوقاية من الإصابات المستقبلية", goalsEn: "Full return to sport\nFuture injury prevention", precautionsAr: "", precautionsEn: "", criteriaAr: "قوة ٩٠٪+\nاجتياز اختبارات العودة للرياضة", criteriaEn: "90%+ strength\nPass return-to-sport tests" },
-    ]),
-    contentEn: JSON.stringify([
-      { phaseNumber: 1, weeks: "0-2", goalsAr: "تقليل الألم والتورم\nاستعادة التمدد الكامل للركبة\nتفعيل العضلة الرباعية", goalsEn: "Reduce pain and swelling\nRegain full knee extension\nQuadriceps activation", precautionsAr: "بدون مقاومة\nتجنب التحميل الكامل", precautionsEn: "No resistance\nAvoid full weight bearing", criteriaAr: "تمدد كامل للركبة\nقدرة على رفع الساق مستقيمة", criteriaEn: "Full knee extension\nAble to do straight leg raise" },
-      { phaseNumber: 2, weeks: "2-6", goalsAr: "استعادة نطاق الحركة الكامل\nتقوية العضلة الرباعية وأوتار الركبة\nتحسين التوازن", goalsEn: "Regain full ROM\nStrengthen quads and hamstrings\nImprove balance", precautionsAr: "تجنب القفز\nتجنب الدوران المفاجئ", precautionsEn: "Avoid jumping\nAvoid sudden pivoting", criteriaAr: "نطاق حركة ٠-١٢٠ درجة\nقدرة على صعود الدرج", criteriaEn: "ROM 0-120 degrees\nAble to climb stairs" },
-      { phaseNumber: 3, weeks: "6-12", goalsAr: "تقوية متقدمة\nتدريب المشي والجري الخفيف\nالتحكم العصبي العضلي", goalsEn: "Advanced strengthening\nWalk to light jog training\nNeuromuscular control", precautionsAr: "تجنب الرياضات التنافسية", precautionsEn: "Avoid competitive sports", criteriaAr: "قوة ٧٠٪ مقارنة بالساق السليمة\nالجري دون عرج", criteriaEn: "70% strength compared to healthy leg\nJog without limping" },
-      { phaseNumber: 4, weeks: "12+", goalsAr: "العودة الكاملة للرياضة\nالوقاية من الإصابات المستقبلية", goalsEn: "Full return to sport\nFuture injury prevention", precautionsAr: "", precautionsEn: "", criteriaAr: "قوة ٩٠٪+\nاجتياز اختبارات العودة للرياضة", criteriaEn: "90%+ strength\nPass return-to-sport tests" },
-    ]),
-  },
-  {
-    id: "t-prot-2",
-    type: "protocol",
-    titleAr: "بروتوكول الانزلاق الغضروفي القطني",
-    titleEn: "Lumbar Disc Herniation Protocol",
-    contentAr: JSON.stringify([
-      { phaseNumber: 1, weeks: "1-2", goalsAr: "تقليل الألم الحاد\nتقليل الالتهاب\nالراحة النسبية", goalsEn: "Reduce acute pain\nReduce inflammation\nRelative rest", precautionsAr: "تجنب الجلوس الطويل\nتجنب الانحناء\nتجنب حمل الأوزان", precautionsEn: "Avoid prolonged sitting\nAvoid bending\nAvoid lifting", criteriaAr: "انخفاض الألم إلى ٣/١٠\nقدرة على المشي ١٠ دقائق", criteriaEn: "Pain reduced to 3/10\nAble to walk 10 minutes" },
-      { phaseNumber: 2, weeks: "2-6", goalsAr: "استعادة الحركة القطنية\nتقوية عضلات الجذع\nتحسين الوضعية", goalsEn: "Restore lumbar mobility\nStrengthen core muscles\nImprove posture", precautionsAr: "تجنب التمدد المفرط للظهر", precautionsEn: "Avoid excessive back extension", criteriaAr: "نطاق حركة طبيعي\nقدرة على الجلوس ٣٠ دقيقة", criteriaEn: "Normal ROM\nAble to sit 30 minutes" },
-      { phaseNumber: 3, weeks: "6-12", goalsAr: "تقوية متقدمة\nالعودة للأنشطة اليومية\nالوقاية", goalsEn: "Advanced strengthening\nReturn to daily activities\nPrevention", precautionsAr: "", precautionsEn: "", criteriaAr: "ألم أقل من ٢/١٠\nالعودة للعمل", criteriaEn: "Pain less than 2/10\nReturn to work" },
-    ]),
-    contentEn: JSON.stringify([
-      { phaseNumber: 1, weeks: "1-2", goalsAr: "تقليل الألم الحاد\nتقليل الالتهاب\nالراحة النسبية", goalsEn: "Reduce acute pain\nReduce inflammation\nRelative rest", precautionsAr: "تجنب الجلوس الطويل\nتجنب الانحناء\nتجنب حمل الأوزان", precautionsEn: "Avoid prolonged sitting\nAvoid bending\nAvoid lifting", criteriaAr: "انخفاض الألم إلى ٣/١٠\nقدرة على المشي ١٠ دقائق", criteriaEn: "Pain reduced to 3/10\nAble to walk 10 minutes" },
-      { phaseNumber: 2, weeks: "2-6", goalsAr: "استعادة الحركة القطنية\nتقوية عضلات الجذع\nتحسين الوضعية", goalsEn: "Restore lumbar mobility\nStrengthen core muscles\nImprove posture", precautionsAr: "تجنب التمدد المفرط للظهر", precautionsEn: "Avoid excessive back extension", criteriaAr: "نطاق حركة طبيعي\nقدرة على الجلوس ٣٠ دقيقة", criteriaEn: "Normal ROM\nAble to sit 30 minutes" },
-      { phaseNumber: 3, weeks: "6-12", goalsAr: "تقوية متقدمة\nالعودة للأنشطة اليومية\nالوقاية", goalsEn: "Advanced strengthening\nReturn to daily activities\nPrevention", precautionsAr: "", precautionsEn: "", criteriaAr: "ألم أقل من ٢/١٠\nالعودة للعمل", criteriaEn: "Pain less than 2/10\nReturn to work" },
-    ]),
-  },
-  {
-    id: "t-prot-3",
-    type: "protocol",
-    titleAr: "بروتوكول الكتف المتجمد",
-    titleEn: "Frozen Shoulder Protocol",
-    contentAr: JSON.stringify([
-      { phaseNumber: 1, weeks: "1-4", goalsAr: "تقليل الألم\nتحسين نطاق الحركة السلبي", goalsEn: "Reduce pain\nImprove passive ROM", precautionsAr: "تجنب التمدد القسري", precautionsEn: "Avoid forceful stretching", criteriaAr: "تحسن في نطاق الحركة ٢٠٪", criteriaEn: "20% improvement in ROM" },
-      { phaseNumber: 2, weeks: "4-8", goalsAr: "زيادة نطاق الحركة النشط\nتقوية عضلات الكتف", goalsEn: "Increase active ROM\nStrengthen shoulder muscles", precautionsAr: "تجنب الحركات فوق الرأس", precautionsEn: "Avoid overhead movements", criteriaAr: "نطاق حركة ٧٥٪ من الطبيعي", criteriaEn: "75% of normal ROM" },
-      { phaseNumber: 3, weeks: "8-12", goalsAr: "الحركة الكاملة\nالعودة للأنشطة", goalsEn: "Full ROM\nReturn to activities", precautionsAr: "", precautionsEn: "", criteriaAr: "نطاق حركة كامل\nلا ألم", criteriaEn: "Full ROM\nNo pain" },
-    ]),
-    contentEn: JSON.stringify([
-      { phaseNumber: 1, weeks: "1-4", goalsAr: "تقليل الألم\nتحسين نطاق الحركة السلبي", goalsEn: "Reduce pain\nImprove passive ROM", precautionsAr: "تجنب التمدد القسري", precautionsEn: "Avoid forceful stretching", criteriaAr: "تحسن في نطاق الحركة ٢٠٪", criteriaEn: "20% improvement in ROM" },
-      { phaseNumber: 2, weeks: "4-8", goalsAr: "زيادة نطاق الحركة النشط\nتقوية عضلات الكتف", goalsEn: "Increase active ROM\nStrengthen shoulder muscles", precautionsAr: "تجنب الحركات فوق الرأس", precautionsEn: "Avoid overhead movements", criteriaAr: "نطاق حركة ٧٥٪ من الطبيعي", criteriaEn: "75% of normal ROM" },
-      { phaseNumber: 3, weeks: "8-12", goalsAr: "الحركة الكاملة\nالعودة للأنشطة", goalsEn: "Full ROM\nReturn to activities", precautionsAr: "", precautionsEn: "", criteriaAr: "نطاق حركة كامل\nلا ألم", criteriaEn: "Full ROM\nNo pain" },
-    ]),
-  },
 ];
 
 export default function ClinicalLibraryPage() {
@@ -306,7 +245,7 @@ export default function ClinicalLibraryPage() {
   const { user } = useAuth(); const clinicId = user?.clinicId;
 
   const [items, setItems] = useState<LibraryItem[]>([]);
-  const [mainTab, setMainTab] = useState<"nutrition" | "exercise" | "device" | "protocol">("nutrition");
+  const [mainTab, setMainTab] = useState<"nutrition" | "exercise" | "device">("nutrition");
   const [nutritionTab, setNutritionTab] = useState<"breakfast" | "lunch" | "dinner" | "snacks">("breakfast");
   const [deleteTemplateId, setDeleteTemplateId] = useState<string | null>(null);
 
@@ -315,10 +254,6 @@ export default function ClinicalLibraryPage() {
   const [contentAr, setContentAr] = useState("");
   const [contentEn, setContentEn] = useState("");
   const [exerciseCategory, setExerciseCategory] = useState<LibraryItem["category"]>("الرقبة");
-
-  const [protocolPhases, setProtocolPhases] = useState<ProtocolPhase[]>([
-    { phaseNumber: 1, weeks: "", goalsAr: "", goalsEn: "", precautionsAr: "", precautionsEn: "", criteriaAr: "", criteriaEn: "" },
-  ]);
 
   useEffect(() => {
     async function loadTemplates() {
@@ -356,33 +291,10 @@ export default function ClinicalLibraryPage() {
     loadTemplates();
   }, []);
 
-  const addPhase = () => {
-    setProtocolPhases(prev => [...prev, {
-      phaseNumber: prev.length + 1,
-      weeks: "", goalsAr: "", goalsEn: "", precautionsAr: "", precautionsEn: "", criteriaAr: "", criteriaEn: "",
-    }]);
-  };
-
-  const removePhase = (idx: number) => {
-    setProtocolPhases(prev => prev.filter((_, i) => i !== idx).map((p, i) => ({ ...p, phaseNumber: i + 1 })));
-  };
-
-  const updatePhase = (idx: number, field: keyof ProtocolPhase, value: string) => {
-    setProtocolPhases(prev => prev.map((p, i) => i === idx ? { ...p, [field]: value } : p));
-  };
-
   const handleAddItem = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!titleAr) {
-      alert(isRtl ? "الرجاء تعبئة الاسم باللغة العربية." : "Please fill in at least the Arabic name.");
-      return;
-    }
-    if (mainTab === "protocol" && protocolPhases.length === 0) {
-      alert(isRtl ? "الرجاء إضافة مرحلة واحدة على الأقل." : "Please add at least one phase.");
-      return;
-    }
-    if (mainTab !== "protocol" && !contentAr) {
-      alert(isRtl ? "الرجاء تعبئة المحتوى باللغة العربية كحد أدنى." : "Please fill in at least Arabic content.");
+    if (!titleAr || !contentAr) {
+      alert(isRtl ? "الرجاء تعبئة العنوان والمحتوى باللغة العربية كحد أدنى." : "Please fill in at least Arabic title and content.");
       return;
     }
 
@@ -393,8 +305,8 @@ export default function ClinicalLibraryPage() {
       category: mainTab === "exercise" ? exerciseCategory : undefined,
       titleAr,
       titleEn: titleEn || titleAr,
-      contentAr: mainTab === "protocol" ? JSON.stringify(protocolPhases) : contentAr,
-      contentEn: mainTab === "protocol" ? JSON.stringify(protocolPhases) : (contentEn || contentAr),
+      contentAr,
+      contentEn: contentEn || contentAr,
     };
 
     const { error } = await supabase.from("treatment_templates").insert({
@@ -413,7 +325,6 @@ export default function ClinicalLibraryPage() {
     setTitleEn("");
     setContentAr("");
     setContentEn("");
-    setProtocolPhases([{ phaseNumber: 1, weeks: "", goalsAr: "", goalsEn: "", precautionsAr: "", precautionsEn: "", criteriaAr: "", criteriaEn: "" }]);
   };
 
   const handleDeleteItemClick = (id: string) => {
@@ -443,7 +354,7 @@ export default function ClinicalLibraryPage() {
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6" dir={isRtl ? "rtl" : "ltr"}>
       <div>
-        <h1 className="text-xl font-bold tracking-tight text-[#4F46BA]">
+        <h1 className="text-xl font-bold tracking-tight text-[#0d8a8a]">
           {isRtl ? "المكتبة القوالبية العلاجية" : "Clinical Templates Library"}
         </h1>
         <p className="text-xs text-muted-foreground mt-1">
@@ -455,7 +366,7 @@ export default function ClinicalLibraryPage() {
 
       <div className="space-y-4">
         <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as typeof mainTab)} className="w-full">
-          <TabsList className="grid w-full grid-cols-4 bg-muted/60 p-1">
+          <TabsList className="grid w-full grid-cols-3 bg-muted/60 p-1">
             <TabsTrigger value="nutrition" className="text-xs font-bold">
               {isRtl ? "تغذية علاجية 🍏" : "Clinical Nutrition 🍏"}
             </TabsTrigger>
@@ -465,15 +376,12 @@ export default function ClinicalLibraryPage() {
             <TabsTrigger value="device" className="text-xs font-bold">
               {isRtl ? "أجهزة علاجية ⚡" : "Modalities ⚡"}
             </TabsTrigger>
-            <TabsTrigger value="protocol" className="text-xs font-bold">
-              {isRtl ? "بروتوكولات 📋" : "Protocols 📋"}
-            </TabsTrigger>
           </TabsList>
         </Tabs>
 
         {mainTab === "nutrition" && (
           <Tabs value={nutritionTab} onValueChange={(v) => setNutritionTab(v as typeof nutritionTab)} className="w-full">
-            <TabsList className="grid w-full grid-cols-4 bg-indigo-50/50 p-1">
+            <TabsList className="grid w-full grid-cols-4 bg-teal-50/50 p-1">
               <TabsTrigger value="breakfast" className="text-xs">{isRtl ? "إفطار" : "Breakfast"}</TabsTrigger>
               <TabsTrigger value="lunch" className="text-xs">{isRtl ? "غداء" : "Lunch"}</TabsTrigger>
               <TabsTrigger value="dinner" className="text-xs">{isRtl ? "عشاء" : "Dinner"}</TabsTrigger>
@@ -483,7 +391,7 @@ export default function ClinicalLibraryPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-4">
-          <Card className="lg:col-span-5 border-indigo-100 h-fit">
+          <Card className="lg:col-span-5 border-teal-150 h-fit">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-bold text-slate-800 dark:text-white">
                 {isRtl ? "إضافة قالب جديد" : "Add New Template"}
@@ -503,7 +411,7 @@ export default function ClinicalLibraryPage() {
                       id="exerciseCategory"
                       value={exerciseCategory}
                       onChange={(e) => setExerciseCategory(e.target.value as LibraryItem["category"])}
-                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-[#4F46BA]"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs text-slate-700 focus:outline-none focus:ring-1 focus:ring-teal-600"
                     >
                       <option value="الرأس">{isRtl ? "الرأس" : "Head"}</option>
                       <option value="الرقبة">{isRtl ? "الرقبة" : "Neck"}</option>
@@ -515,9 +423,7 @@ export default function ClinicalLibraryPage() {
                 )}
 
                 <div className="space-y-1">
-                  <Label htmlFor="titleAr" className="text-xs">
-                    {mainTab === "protocol" ? (isRtl ? "اسم البروتوكول بالعربية *" : "Protocol Name (Arabic) *") : (isRtl ? "العنوان بالعربية *" : "Title (Arabic) *")}
-                  </Label>
+                  <Label htmlFor="titleAr" className="text-xs">{isRtl ? "العنوان بالعربية *" : "Title (Arabic) *"}</Label>
                   <Input
                     id="titleAr"
                     value={titleAr}
@@ -527,9 +433,7 @@ export default function ClinicalLibraryPage() {
                         ? isRtl ? "تمرين استطالة الظهر" : "e.g. Back stretching exercise"
                         : mainTab === "device"
                           ? isRtl ? "جهاز تحفيز كهربائي" : "e.g. TENS Machine"
-                          : mainTab === "protocol"
-                            ? isRtl ? "بروتوكول إعادة تأهيل الرباط الصليبي" : "e.g. ACL Rehab Protocol"
-                            : isRtl ? "مثال: شوفان بالتوت وزبدة الفول" : "e.g. Oatmeal with berries and peanut butter"
+                          : isRtl ? "مثال: شوفان بالتوت وزبدة الفول" : "e.g. Oatmeal with berries and peanut butter"
                     }
                     className="text-xs"
                     required
@@ -538,7 +442,7 @@ export default function ClinicalLibraryPage() {
 
                 <div className="space-y-1">
                   <Label htmlFor="titleEn" className="text-xs">
-                    {mainTab === "protocol" ? (isRtl ? "اسم البروتوكول بالإنجليزية (اختياري)" : "Protocol Name (English - Optional)") : (isRtl ? "العنوان بالإنجليزية (اختياري)" : "Title (English - Optional)")}
+                    {isRtl ? "العنوان بالإنجليزية (اختياري)" : "Title (English - Optional)"}
                   </Label>
                   <Input
                     id="titleEn"
@@ -547,97 +451,48 @@ export default function ClinicalLibraryPage() {
                     placeholder={
                       mainTab === "exercise" ? "Lumbar Stretch"
                         : mainTab === "device" ? "TENS Machine"
-                          : mainTab === "protocol" ? "ACL Reconstruction Protocol"
-                            : "e.g. Berry Peanut Butter Oatmeal"
+                          : "e.g. Berry Peanut Butter Oatmeal"
                     }
                     className="text-xs"
                   />
                 </div>
 
-                {mainTab === "protocol" ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label className="text-xs font-bold">{isRtl ? "مراحل البروتوكول" : "Protocol Phases"}</Label>
-                      <Button type="button" variant="outline" size="sm" onClick={addPhase} className="text-xs">
-                        ➕ {isRtl ? "إضافة مرحلة" : "Add Phase"}
-                      </Button>
-                    </div>
-                    {protocolPhases.map((phase, idx) => (
-                      <div key={idx} className="border border-indigo-100 rounded-xl p-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-[#4F46BA]">
-                            {isRtl ? `المرحلة ${phase.phaseNumber}` : `Phase ${phase.phaseNumber}`}
-                          </span>
-                          {protocolPhases.length > 1 && (
-                            <button type="button" onClick={() => removePhase(idx)} className="text-rose-500 text-xs hover:underline">
-                              ❌ {isRtl ? "حذف" : "Remove"}
-                            </button>
-                          )}
-                        </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="space-y-1">
-                            <Label className="text-[10px]">{isRtl ? "المدة (أسابيع)" : "Weeks"}</Label>
-                            <Input value={phase.weeks} onChange={(e) => updatePhase(idx, "weeks", e.target.value)} placeholder="1-2" className="text-xs" />
-                          </div>
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px]">{isRtl ? "الأهداف (عربي)" : "Goals (Arabic)"}</Label>
-                          <Textarea value={phase.goalsAr} onChange={(e) => updatePhase(idx, "goalsAr", e.target.value)} rows={2} className="text-xs" placeholder={isRtl ? "كل هدف في سطر منفصل" : "One goal per line"} />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px]">{isRtl ? "الأهداف (إنجليزي - اختياري)" : "Goals (English - Optional)"}</Label>
-                          <Textarea value={phase.goalsEn} onChange={(e) => updatePhase(idx, "goalsEn", e.target.value)} rows={2} className="text-xs" placeholder="One goal per line" />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px]">{isRtl ? "الاحتياطات (عربي)" : "Precautions (Arabic)"}</Label>
-                          <Textarea value={phase.precautionsAr} onChange={(e) => updatePhase(idx, "precautionsAr", e.target.value)} rows={1} className="text-xs" placeholder={isRtl ? "كل احتياط في سطر" : "One precaution per line"} />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-[10px]">{isRtl ? "معايير التقدم (عربي)" : "Progression Criteria (Arabic)"}</Label>
-                          <Textarea value={phase.criteriaAr} onChange={(e) => updatePhase(idx, "criteriaAr", e.target.value)} rows={1} className="text-xs" placeholder={isRtl ? "كل معيار في سطر" : "One criterion per line"} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <>
-                    <div className="space-y-1">
-                      <Label htmlFor="contentAr" className="text-xs">
-                        {isRtl ? "الوصف والتفاصيل (عربي) *" : "Description (Arabic) *"}
-                      </Label>
-                      <Textarea
-                        id="contentAr"
-                        value={contentAr}
-                        onChange={(e) => setContentAr(e.target.value)}
-                        placeholder={
-                          mainTab === "exercise"
-                            ? isRtl ? "اكتب طريقة أداء التمرين وعدد المرات..." : "Write execution instructions and reps..."
-                            : mainTab === "device"
-                              ? isRtl ? "اكتب إعدادات الجهاز وفترة الاستخدام..." : "Write device settings and duration..."
-                              : isRtl ? "اكتب تفاصيل المكونات والسعرات..." : "Write ingredients details..."
-                        }
-                        rows={3}
-                        className="text-xs"
-                        required
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label htmlFor="contentEn" className="text-xs">
-                        {isRtl ? "الوصف والتفاصيل (إنجليزي - اختياري)" : "Description (English - Optional)"}
-                      </Label>
-                      <Textarea
-                        id="contentEn"
-                        value={contentEn}
-                        onChange={(e) => setContentEn(e.target.value)}
-                        placeholder="Write description in English..."
-                        rows={3}
-                        className="text-xs"
-                      />
-                    </div>
-                  </>
-                )}
+                <div className="space-y-1">
+                  <Label htmlFor="contentAr" className="text-xs">
+                    {isRtl ? "الوصف والتفاصيل (عربي) *" : "Description (Arabic) *"}
+                  </Label>
+                  <Textarea
+                    id="contentAr"
+                    value={contentAr}
+                    onChange={(e) => setContentAr(e.target.value)}
+                    placeholder={
+                      mainTab === "exercise"
+                        ? isRtl ? "اكتب طريقة أداء التمرين وعدد المرات..." : "Write execution instructions and reps..."
+                        : mainTab === "device"
+                          ? isRtl ? "اكتب إعدادات الجهاز وفترة الاستخدام..." : "Write device settings and duration..."
+                          : isRtl ? "اكتب تفاصيل المكونات والسعرات..." : "Write ingredients details..."
+                    }
+                    rows={3}
+                    className="text-xs"
+                    required
+                  />
+                </div>
 
-                <Button type="submit" className="w-full bg-[#4F46BA] hover:bg-[#4338ca] text-white text-xs py-2">
+                <div className="space-y-1">
+                  <Label htmlFor="contentEn" className="text-xs">
+                    {isRtl ? "الوصف والتفاصيل (إنجليزي - اختياري)" : "Description (English - Optional)"}
+                  </Label>
+                  <Textarea
+                    id="contentEn"
+                    value={contentEn}
+                    onChange={(e) => setContentEn(e.target.value)}
+                    placeholder="Write description in English..."
+                    rows={3}
+                    className="text-xs"
+                  />
+                </div>
+
+                <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white text-xs py-2">
                   ➕ {isRtl ? "إضافة إلى المكتبة" : "Save to Library"}
                 </Button>
               </form>
@@ -665,7 +520,7 @@ export default function ClinicalLibraryPage() {
                           <h4 className="font-bold text-xs text-slate-800 dark:text-white">
                             {isRtl ? item.titleAr : item.titleEn}
                           </h4>
-                          <span className="text-[9px] text-[#4F46BA] bg-indigo-50 dark:bg-indigo-950/20 px-2 py-0.5 rounded-full border border-indigo-100/50">
+                          <span className="text-[9px] text-[#0d8a8a] bg-teal-50 dark:bg-teal-950/20 px-2 py-0.5 rounded-full border border-teal-100/50">
                             {item.type.toUpperCase()}
                           </span>
                           {item.subType && (
@@ -679,29 +534,9 @@ export default function ClinicalLibraryPage() {
                             </span>
                           )}
                         </div>
-                        {item.type === "protocol" ? (() => {
-                          const phases: ProtocolPhase[] = (() => { try { return JSON.parse(isRtl ? item.contentAr : item.contentEn); } catch { return []; } })();
-                          return (
-                            <div className="space-y-2 mt-1">
-                              {phases.map((ph, i) => (
-                                <details key={i} className="text-[11px] border border-indigo-50 rounded-lg p-2">
-                                  <summary className="cursor-pointer font-semibold text-slate-700">
-                                    {isRtl ? `المرحلة ${ph.phaseNumber}` : `Phase ${ph.phaseNumber}`}{ph.weeks ? ` (${ph.weeks})` : ""}
-                                  </summary>
-                                  <div className="mt-2 space-y-1 pr-2 text-slate-600">
-                                    <p><span className="font-semibold text-slate-700">{isRtl ? "الأهداف:" : "Goals:"}</span> {isRtl ? ph.goalsAr : ph.goalsEn}</p>
-                                    {ph.precautionsAr && <p><span className="font-semibold text-slate-700">{isRtl ? "الاحتياطات:" : "Precautions:"}</span> {isRtl ? ph.precautionsAr : ph.precautionsEn}</p>}
-                                    {ph.criteriaAr && <p><span className="font-semibold text-slate-700">{isRtl ? "معايير التقدم:" : "Criteria:"}</span> {isRtl ? ph.criteriaAr : ph.criteriaEn}</p>}
-                                  </div>
-                                </details>
-                              ))}
-                            </div>
-                          );
-                        })() : (
-                          <p className="text-[11px] text-slate-600 dark:text-slate-350 leading-relaxed font-sans">
-                            {isRtl ? item.contentAr : item.contentEn}
-                          </p>
-                        )}
+                        <p className="text-[11px] text-slate-600 dark:text-slate-350 leading-relaxed font-sans">
+                          {isRtl ? item.contentAr : item.contentEn}
+                        </p>
                       </div>
                       <Button
                         variant="ghost"

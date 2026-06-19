@@ -19,9 +19,9 @@ export async function sendVerificationCode(email: string, code: string): Promise
       text: `رمز التحقق الخاص بك هو: ${code}\n\nيستخدم هذا الرمز لمرة واحدة فقط وينتهي بعد 10 دقائق.`,
       html: `
         <div dir="rtl" style="font-family: Arial, sans-serif; padding: 24px;">
-          <h2 style="color: #4F46BA;">Prime Physio - رمز التحقق</h2>
+          <h2 style="color: #0d8a8a;">Prime Physio - رمز التحقق</h2>
           <p>رمز التحقق الخاص بك هو:</p>
-          <div style="font-size: 32px; font-weight: bold; color: #4F46BA; letter-spacing: 8px; text-align: center; padding: 16px; background: #eef2ff; border-radius: 12px; margin: 16px 0;">
+          <div style="font-size: 32px; font-weight: bold; color: #085454; letter-spacing: 8px; text-align: center; padding: 16px; background: #f0fdfa; border-radius: 12px; margin: 16px 0;">
             ${code}
           </div>
           <p style="color: #666;">يستخدم هذا الرمز لمرة واحدة فقط وينتهي بعد 10 دقائق.</p>

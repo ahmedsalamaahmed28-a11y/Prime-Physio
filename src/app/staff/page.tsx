@@ -239,8 +239,8 @@ export default function StaffPage() {
       <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${isRtl ? "" : "flex-row-reverse"}`}>
         <div>
           <h1 className={`text-2xl font-bold text-slate-800 flex items-center gap-2 ${isRtl ? "" : "flex-row-reverse"}`}>
-            <div className="bg-indigo-50 p-2 rounded-xl">
-              <Users className="w-6 h-6 text-[#4F46BA]" />
+            <div className="bg-teal-50 p-2 rounded-xl">
+              <Users className="w-6 h-6 text-[#0d8a8a]" />
             </div>
             {isRtl ? "إدارة الطاقم الطبي والموظفين" : "Medical Staff & Employees"}
           </h1>
@@ -249,7 +249,7 @@ export default function StaffPage() {
           </p>
         </div>
         {hasPermission("manage_staff") && (
-          <Button onClick={() => setIsOpen(true)} className="bg-[#4F46BA] hover:bg-[#4338ca] text-white gap-2 self-start sm:self-auto rounded-xl font-bold px-6 shadow-md transition-all active:scale-95">
+          <Button onClick={() => setIsOpen(true)} className="bg-[#0d8a8a] hover:bg-[#085454] text-white gap-2 self-start sm:self-auto rounded-xl font-bold px-6 shadow-md transition-all active:scale-95">
             <Users className="w-4 h-4" />
             {isRtl ? "إضافة موظف جديد" : "Add New Employee"}
           </Button>
@@ -260,7 +260,7 @@ export default function StaffPage() {
         <section id="doctors" className="space-y-3">
           <div className={`flex items-center justify-between ${isRtl ? "" : "flex-row-reverse"}`}>
             <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-              <Stethoscope className="w-4 h-4 text-[#4F46BA]" />
+              <Stethoscope className="w-4 h-4 text-[#0d8a8a]" />
               {isRtl ? `الأطباء (${doctorRows.length})` : `Doctors (${doctorRows.length})`}
             </h2>
           </div>
@@ -268,7 +268,7 @@ export default function StaffPage() {
             {doctorRows.map((doc) => (
               <Card key={doc.email} className="shadow-xs hover:shadow-md transition-shadow">
                 <CardHeader className={`flex flex-row items-center gap-4 pb-3 ${isRtl ? "" : "flex-row-reverse"}`}>
-                  <div className="w-14 h-14 rounded-full bg-indigo-100 text-[#4F46BA] flex items-center justify-center font-bold text-xl">
+                  <div className="w-14 h-14 rounded-full bg-teal-100 text-[#0d8a8a] flex items-center justify-center font-bold text-xl">
                     {getDoctorTitle(doc).split(" ").filter(Boolean)[1]?.[0] || getDoctorTitle(doc)[0]}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -317,7 +317,7 @@ export default function StaffPage() {
 
         <section id="employees" className="space-y-3">
           <h2 className="text-base font-bold text-slate-800 flex items-center gap-2">
-            <Users className="w-4 h-4 text-[#4F46BA]" />
+            <Users className="w-4 h-4 text-[#0d8a8a]" />
             {isRtl ? `الموظفون (${employeeRows.length})` : `Employees (${employeeRows.length})`}
           </h2>
           <Card className="shadow-xs border-slate-100">
@@ -460,7 +460,7 @@ export default function StaffPage() {
             </div>
             <DialogFooter className="mt-6 flex gap-2 justify-end">
                   <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl font-bold">{isRtl ? "إلغاء" : "Cancel"}</Button>
-                  <Button type="submit" className="bg-[#4F46BA] hover:bg-[#4338ca] text-white rounded-xl font-bold px-6">{isRtl ? "إضافة" : "Add"}</Button>
+                  <Button type="submit" className="bg-[#0d8a8a] hover:bg-[#085454] text-white rounded-xl font-bold px-6">{isRtl ? "إضافة" : "Add"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -523,7 +523,7 @@ export default function StaffPage() {
             </div>
             <DialogFooter className="mt-6 flex gap-2 justify-end">
                   <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="rounded-xl font-bold">{isRtl ? "إلغاء" : "Cancel"}</Button>
-                  <Button type="submit" className="bg-[#4F46BA] hover:bg-[#4338ca] text-white rounded-xl font-bold px-6">{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
+                  <Button type="submit" className="bg-[#0d8a8a] hover:bg-[#085454] text-white rounded-xl font-bold px-6">{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

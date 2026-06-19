@@ -74,7 +74,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-slate-50" dir="rtl">
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         <div className="flex items-center gap-3">
-          <ShieldAlert className="w-6 h-6 text-[#4F46BA]" />
+          <ShieldAlert className="w-6 h-6 text-[#0d8a8a]" />
           <h1 className="text-xl font-bold text-slate-800">لوحة تحكم المنصة</h1>
           <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">مدير المنصة</span>
         </div>

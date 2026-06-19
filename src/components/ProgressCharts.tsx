@@ -81,7 +81,7 @@ export default function ProgressCharts({ data }: ProgressChartsProps) {
               : "Tracking pain decrease over physical therapy sessions"}
           </p>
         </div>
-        <span className="text-[10px] font-bold text-[#4F46BA] bg-indigo-50 dark:bg-indigo-950/20 px-2 py-0.5 rounded-full">
+        <span className="text-[10px] font-bold text-teal-600 bg-teal-50 dark:bg-teal-950/20 px-2 py-0.5 rounded-full">
           {isRtl ? "نشط" : "Active"}
         </span>
       </div>
@@ -91,8 +91,8 @@ export default function ProgressCharts({ data }: ProgressChartsProps) {
           <defs>
             {/* Smooth color gradient for Area under line */}
             <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#4F46BA" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#4F46BA" stopOpacity="0.00" />
+              <stop offset="0%" stopColor="#0d8a8a" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#0d8a8a" stopOpacity="0.00" />
             </linearGradient>
           </defs>
 
@@ -116,7 +116,7 @@ export default function ProgressCharts({ data }: ProgressChartsProps) {
             <path 
               d={pathD} 
               fill="none" 
-              stroke="#4F46BA" 
+              stroke="#0d8a8a" 
               strokeWidth="2.5" 
               strokeLinecap="round" 
               className="drop-shadow-[0_2px_4px_rgba(13,138,138,0.2)]" 
@@ -131,7 +131,7 @@ export default function ProgressCharts({ data }: ProgressChartsProps) {
                 cy={p.y} 
                 r="4" 
                 fill="#ffffff" 
-                stroke="#4F46BA" 
+                stroke="#0d8a8a" 
                 strokeWidth="2" 
                 className="transition-transform group-hover:scale-125"
               />
@@ -141,7 +141,7 @@ export default function ProgressCharts({ data }: ProgressChartsProps) {
                 cx={p.x} 
                 cy={p.y} 
                 r="8" 
-                fill="#4F46BA" 
+                fill="#0d8a8a" 
                 className="opacity-0 group-hover:opacity-10 transition-opacity"
               />
 

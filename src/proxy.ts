@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const AUTH_ROUTES = ["/login", "/signup"];
-const PUBLIC_PATHS = ["/_next/", "/api/auth/", "/favicon.ico", "/icon.png", "/logo.png", "/robots.txt", "/sitemap.xml", "/manifest.json", "/sw.js"];
+const PUBLIC_PATHS = ["/_next/", "/api/auth/", "/favicon.ico", "/icon.png", "/logo.png", "/robots.txt", "/sitemap.xml", "/manifest.json"];
 
 const SUPABASE_PROJECT_REF = "pnqwkdqldfmcqozqrdeo";
 
@@ -42,6 +42,6 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|icon.png|logo.png$|manifest.json$|sw.js$).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|icon.png|logo.png$|manifest.json$).*)",
   ],
 };

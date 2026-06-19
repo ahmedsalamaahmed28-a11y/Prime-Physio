@@ -41,6 +41,7 @@ import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import { usePermissions } from "@/lib/usePermissions";
 import { usePWA } from "@/components/PWAProvider";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { supabase } from "@/lib/supabase";
 
 interface SystemNotification {
@@ -105,28 +106,6 @@ export default function DashboardLayout({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
 
-  const [mounted, setMounted] = useState(false);
-
-  // Public pages: render without auth guard
-  if (pathname === "/login" || pathname === "/signup") {
-    return <>{children}</>;
-  }
-
-  if (!activeAccount) return null;
-
-  const displayAccountName = activeAccount.roleKey === "receptionist"
-    ? activeAccount.name
-    : activeAccount.name.startsWith("╪».")
-    ? activeAccount.name
-    : `╪». ${activeAccount.name}`;
-  const displayAccountNameEn = activeAccount.roleKey === "receptionist"
-    ? (activeAccount.nameEn || activeAccount.name)
-    : activeAccount.roleKey === "admin"
-    ? activeAccount.name
-    : (activeAccount.nameEn || activeAccount.name).startsWith("Dr.")
-    ? (activeAccount.nameEn || activeAccount.name)
-    : `Dr. ${activeAccount.nameEn || activeAccount.name}`;
-
   // Close profile dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -142,27 +121,6 @@ export default function DashboardLayout({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const isActive = (href: string) => {
-    if (!pathname) return false;
-    if (href === "/") {
-      return pathname === "/";
-    }
-    return pathname.startsWith(href);
-  };
-
-  const toggleSidebar = () => setIsOpen(!isOpen);
-  const closeSidebar = () => setIsOpen(false);
-  const toggleProfile = () => {
-    setIsProfileOpen(prev => !prev);
-  };
-  const toggleNotifications = () => {
-    setIsNotificationsOpen(prev => !prev);
-  };
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
   useEffect(() => {
     let active = true;
 
@@ -171,27 +129,27 @@ export default function DashboardLayout({
       const module = String(row.module || row.entity || "").toUpperCase();
       const details = String(row.details || row.entity_id || "");
 
-      let titleAr = "╪¬┘å╪¿┘è┘ç ╪¼╪»┘è╪»";
+      let titleAr = "تنبيه جديد";
       let titleEn = "New activity";
       if (action.includes("CREATE")) {
-        titleAr = "╪¬┘à╪¬ ╪Ñ╪╢╪º┘ü╪⌐ ╪│╪¼┘ä ╪¼╪»┘è╪»";
+        titleAr = "تمت إضافة سجل جديد";
         titleEn = "New record created";
       } else if (action.includes("UPDATE")) {
-        titleAr = "╪¬┘à ╪¬╪¡╪»┘è╪½ ╪│╪¼┘ä";
+        titleAr = "تم تحديث سجل";
         titleEn = "Record updated";
       } else if (action.includes("DELETE")) {
-        titleAr = "╪¬┘à ╪¡╪░┘ü ╪│╪¼┘ä";
+        titleAr = "تم حذف سجل";
         titleEn = "Record deleted";
       } else if (action.includes("LOGIN")) {
-        titleAr = "╪¬╪│╪¼┘è┘ä ╪»╪«┘ê┘ä ╪¼╪»┘è╪»";
+        titleAr = "تسجيل دخول جديد";
         titleEn = "New login";
       }
 
       return {
         id: row.id,
-        titleAr: module ? `${titleAr} ΓÇó ${module}` : titleAr,
-        titleEn: module ? `${titleEn} ΓÇó ${module}` : titleEn,
-        detailsAr: details || "╪¬┘à ╪¬┘å┘ü┘è╪░ ╪╣┘à┘ä┘è╪⌐ ╪»╪º╪«┘ä ╪º┘ä┘å╪╕╪º┘à",
+        titleAr: module ? `${titleAr} • ${module}` : titleAr,
+        titleEn: module ? `${titleEn} • ${module}` : titleEn,
+        detailsAr: details || "تم تنفيذ عملية داخل النظام",
         detailsEn: details || "An action was performed in the system",
         createdAt: row.created_at || new Date().toISOString(),
       };
@@ -226,25 +184,53 @@ export default function DashboardLayout({
       )
       .subscribe();
 
-    const interval = window.setInterval(loadNotifications, 60000);
-
     return () => {
       active = false;
-      window.clearInterval(interval);
       supabase.removeChannel(channel);
     };
   }, []);
 
-  if (!mounted || isLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#0d8a8a]"></div>
-      </div>
-    );
+  const isAuthPage = pathname === "/login" || pathname === "/signup";
+
+  if (isAuthPage) {
+    return <>{children}</>;
   }
 
-  // Route protection: auth.tsx redirects unauthenticated users to /login
-  if (!user) return null;
+  // Wait for enrichUserWithClinic to set clinicId before rendering pages
+  if (activeAccount && activeAccount.clinicId === undefined) {
+    return <LoadingSpinner />;
+  }
+
+  if (!activeAccount) {
+    if (isLoading) {
+      return <LoadingSpinner />;
+    }
+    return null;
+  }
+
+  const displayAccountName = activeAccount.roleKey === "receptionist"
+    ? activeAccount.name
+    : activeAccount.name.startsWith("د.")
+    ? activeAccount.name
+    : `د. ${activeAccount.name}`;
+  const displayAccountNameEn = activeAccount.roleKey === "receptionist"
+    ? (activeAccount.nameEn || activeAccount.name)
+    : activeAccount.roleKey === "admin"
+    ? activeAccount.name
+    : (activeAccount.nameEn || activeAccount.name).startsWith("Dr.")
+    ? (activeAccount.nameEn || activeAccount.name)
+    : `Dr. ${activeAccount.nameEn || activeAccount.name}`;
+
+  const isActive = (href: string) => {
+    if (!pathname) return false;
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
+  };
+
+  const toggleSidebar = () => setIsOpen(!isOpen);
+  const closeSidebar = () => setIsOpen(false);
+  const toggleProfile = () => setIsProfileOpen(prev => !prev);
+  const toggleNotifications = () => setIsNotificationsOpen(prev => !prev);
 
   const isRtl = language === "ar";
 
@@ -263,7 +249,7 @@ export default function DashboardLayout({
         </svg>
       </div>
       
-      {/* ΓöÇΓöÇΓöÇ DESKTOP SIDEBAR ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ─── DESKTOP SIDEBAR ─────────────────────────────────── */}
       <aside className={`hidden md:flex print:hidden flex-col w-[210px] ${
         isRtl ? "border-l right-0" : "border-r left-0"
       } border-white/10 bg-gradient-to-b from-[#085454] to-[#0d8a8a] text-white fixed top-0 bottom-0 z-10 pt-8 pb-4 shadow-xl`}>
@@ -365,10 +351,10 @@ export default function DashboardLayout({
         </div>
       </aside>
 
-      {/* ΓöÇΓöÇΓöÇ MAIN CONTENT CONTAINER ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+      {/* ─── MAIN CONTENT CONTAINER ────────────────────────────────────────── */}
       <div className={`flex-1 flex flex-col print:pr-0 print:pl-0 ${isRtl ? "md:pr-[210px]" : "md:pl-[210px]"}`}>
         
-        {/* ΓöÇΓöÇΓöÇ GLOBAL HEADER ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        {/* ─── GLOBAL HEADER ────────── */}
         <header className="h-16 border-b border-slate-200/80 bg-card text-card-foreground flex items-center justify-between px-6 sticky top-0 z-50 overflow-visible print:hidden" dir={isRtl ? "rtl" : "ltr"}>
           
           {/* Right Side: Quick Search & Mobile Hamburger */}
@@ -430,10 +416,10 @@ export default function DashboardLayout({
               )}
               <span className="hidden sm:inline">
                 {isSyncing 
-                  ? (isRtl ? "╪¼╪º╪▒┘è ╪º┘ä┘à╪▓╪º┘à┘å╪⌐..." : "Syncing...") 
+                  ? (isRtl ? "جاري المزامنة..." : "Syncing...") 
                   : isOnline 
-                    ? (isRtl ? "┘à╪¬╪╡┘ä" : "Online") 
-                    : (isRtl ? "┘ê╪╢╪╣ ╪╣╪»┘à ╪º┘ä╪º╪¬╪╡╪º┘ä" : "Offline")
+                    ? (isRtl ? "متصل" : "Online") 
+                    : (isRtl ? "وضع عدم الاتصال" : "Offline")
                 }
               </span>
               {pendingCount > 0 && (
@@ -443,7 +429,7 @@ export default function DashboardLayout({
                     : "bg-amber-200 text-amber-900 dark:bg-amber-800 dark:text-white"
                   }`}
                 >
-                  {pendingCount} {isRtl ? "┘à╪╣┘ä┘é╪⌐" : "pending"}
+                  {pendingCount} {isRtl ? "معلقة" : "pending"}
                 </span>
               )}
             </button>
@@ -461,7 +447,7 @@ export default function DashboardLayout({
                <button 
                  onClick={toggleNotifications}
                  className="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
-                 title="╪º┘ä╪Ñ╪┤╪╣╪º╪▒╪º╪¬"
+                 title="الإشعارات"
                >
                  <Bell className="w-5 h-5" />
                  {notifications.length > 0 && (                   <span className="absolute top-1 right-1 min-w-4 h-4 px-0.5 rounded-full bg-rose-500 text-[9px] font-bold text-white flex items-center justify-center border border-white">                     {notifications.length}                   </span>                 )}
@@ -471,13 +457,13 @@ export default function DashboardLayout({
                {isNotificationsOpen && (
                  <div className={`absolute ${isRtl ? "left-0" : "right-0"} top-11 w-80 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 shadow-2xl z-50 p-4 space-y-3 animate-in fade-in slide-in-from-top-3 duration-200`} dir={isRtl ? "rtl" : "ltr"}>
                    <div className="flex items-center justify-between border-b pb-2">
-                     <span className="font-bold text-sm text-slate-800 dark:text-white">{isRtl ? "╪º┘ä╪Ñ╪┤╪╣╪º╪▒╪º╪¬ ┘ê╪º┘ä╪¬┘å╪¿┘è┘ç╪º╪¬" : "Notifications & Alerts"}</span>
-                     <span className="text-[10px] text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full font-bold">{notifications.length} {isRtl ? "╪¼╪»┘è╪»╪⌐" : "new"}</span>
+                     <span className="font-bold text-sm text-slate-800 dark:text-white">{isRtl ? "الإشعارات والتنبيهات" : "Notifications & Alerts"}</span>
+                     <span className="text-[10px] text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full font-bold">{notifications.length} {isRtl ? "جديدة" : "new"}</span>
                    </div>
                    <div className="space-y-2.5 max-h-72 overflow-y-auto">
                      {notifications.length === 0 ? (
                        <div className="p-4 text-center text-xs text-slate-500">
-                         {isRtl ? "┘ä╪º ╪¬┘ê╪¼╪» ╪Ñ╪┤╪╣╪º╪▒╪º╪¬ ╪¡╪»┘è╪½╪⌐ ╪¿╪╣╪»" : "No recent notifications yet"}
+                         {isRtl ? "لا توجد إشعارات حديثة بعد" : "No recent notifications yet"}
                        </div>
                      ) : notifications.map((item) => (
                        <div key={item.id} className="flex gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100/50 cursor-pointer">
@@ -499,7 +485,7 @@ export default function DashboardLayout({
                        }}
                        className="text-xs font-bold text-[#0d8a8a] hover:text-[#085454] transition-colors"
                      >
-                       {isRtl ? "╪╣╪▒╪╢ ┘â╪º┘ü╪⌐ ╪º┘ä╪Ñ╪┤╪╣╪º╪▒╪º╪¬" : "View All Notifications"}
+                       {isRtl ? "عرض كافة الإشعارات" : "View All Notifications"}
                      </button>
                    </div>
                  </div>
@@ -528,7 +514,7 @@ export default function DashboardLayout({
                   {/* Platform Header */}
                   <div className="text-center pb-2 border-b">
                     <div className="text-sm font-extrabold text-[#0d8a8a] tracking-wider mb-1">Prime Physio</div>
-                    <p className="text-[10px] text-muted-foreground">{isRtl ? "╪¡╪│╪º╪¿ ╪Ñ╪»╪º╪▒╪⌐ ╪º┘ä┘à╪▒┘â╪▓ ╪º┘ä╪╖╪¿┘è" : "Medical Center Management"}</p>
+                    <p className="text-[10px] text-muted-foreground">{isRtl ? "حساب إدارة المركز الطبي" : "Medical Center Management"}</p>
                   </div>
 
                   {/* Section 1: Current Account */}
@@ -558,9 +544,9 @@ export default function DashboardLayout({
                       { label: t("profile"), href: "/profile", icon: User },
                       { label: t("nav_analytics"), href: "/analytics", icon: BarChart3, adminOnly: true },
                       { label: t("nav_clinic_settings"), href: "/clinic-settings", icon: Building, adminOnly: true },
-                      { label: isRtl ? "╪Ñ╪»╪º╪▒╪⌐ ╪º┘ä┘à╪│╪¬╪«╪»┘à┘è┘å ┘ê╪º┘ä╪╡┘ä╪º╪¡┘è╪º╪¬" : "Permissions & Users", href: "/users-permissions", icon: Shield, adminOnly: true },
+                      { label: isRtl ? "إدارة المستخدمين والصلاحيات" : "Permissions & Users", href: "/users-permissions", icon: Shield, adminOnly: true },
                       { label: t("nav_billing"), href: "/billing", icon: CreditCard, staffOnly: true },
-                      { label: isRtl ? "╪º┘ä╪ú┘à╪º┘å" : "Security & Signin", href: "/security", icon: Lock },
+                      { label: isRtl ? "الأمان" : "Security & Signin", href: "/security", icon: Lock },
                     ].filter((link) => {
                       const role = activeAccount?.roleKey || "doctor";
                       if (role === "admin") return true;
@@ -590,9 +576,9 @@ export default function DashboardLayout({
                     <>
                       <hr className="border-slate-100" />
                       <div className="space-y-1">
-                        <div className="text-[10px] font-bold text-slate-400 px-1">{isRtl ? "╪Ñ╪»╪º╪▒╪⌐ ╪º┘ä┘à┘å╪╡╪⌐" : "Platform"}</div>
+                        <div className="text-[10px] font-bold text-slate-400 px-1">{isRtl ? "إدارة المنصة" : "Platform"}</div>
                         {[
-                          { label: isRtl ? "┘ä┘ê╪¡╪⌐ ╪º┘ä╪¬╪¡┘â┘à" : "Admin Panel", href: "/admin", icon: ShieldAlert },
+                          { label: isRtl ? "لوحة التحكم" : "Admin Panel", href: "/admin", icon: ShieldAlert },
                         ].map((link) => {
                           const Icon = link.icon;
                           return (
@@ -618,18 +604,18 @@ export default function DashboardLayout({
                   {/* Section 3: Staff Management */}
                   {activeAccount?.roleKey === "admin" && (
                     <div className="space-y-2">
-                      <div className="text-[10px] font-bold text-slate-400 px-1">{isRtl ? "╪╖╪º┘é┘à ╪º┘ä╪╣┘à┘ä" : "Staff"}</div>
+                      <div className="text-[10px] font-bold text-slate-400 px-1">{isRtl ? "طاقم العمل" : "Staff"}</div>
                       <div className="flex gap-2">
                         <Link href="/staff#doctors" className="flex-1" onClick={() => setIsProfileOpen(false)}>
                           <Button variant="outline" size="sm" className={`w-full text-xs gap-1.5 h-9 rounded-lg border-slate-200 hover:bg-slate-50 ${isRtl ? "" : "flex-row-reverse"}`}>
                             <Stethoscope className="w-3.5 h-3.5 text-slate-500" />
-                            {isRtl ? "╪º┘ä╪ú╪╖╪¿╪º╪í" : "Doctors"}
+                            {isRtl ? "الأطباء" : "Doctors"}
                           </Button>
                         </Link>
                         <Link href="/staff#employees" className="flex-1" onClick={() => setIsProfileOpen(false)}>
                           <Button variant="outline" size="sm" className={`w-full text-xs gap-1.5 h-9 rounded-lg border-slate-200 hover:bg-slate-50 ${isRtl ? "" : "flex-row-reverse"}`}>
                             <Users className="w-3.5 h-3.5 text-slate-500" />
-                            {isRtl ? "╪º┘ä┘à┘ê╪╕┘ü┘ê┘å" : "Staff"}
+                            {isRtl ? "الموظفون" : "Staff"}
                           </Button>
                         </Link>
                       </div>
@@ -657,7 +643,7 @@ export default function DashboardLayout({
         </div>
       </header>
 
-        {/* ΓöÇΓöÇΓöÇ MOBILE DRAWER (Slide-in RTL/LTR Overlay) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        {/* ─── MOBILE DRAWER (Slide-in RTL/LTR Overlay) ─────────────────────────── */}
         {isOpen && (
           <div className="md:hidden fixed inset-0 z-40 flex">
             {/* Backdrop */}
@@ -762,7 +748,7 @@ export default function DashboardLayout({
           </div>
         )}
 
-        {/* ΓöÇΓöÇΓöÇ MAIN CONTENT AREA ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ */}
+        {/* ─── MAIN CONTENT AREA ────────────────────────────────────────────── */}
         <main className="flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto print:p-0">
           {children}
         </main>

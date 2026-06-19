@@ -14,18 +14,6 @@ as $$
   );
 $$;
 
--- 1.5. Security definer function to get clinic_id without triggering RLS on staff
-create or replace function public.get_my_clinic_id()
-returns uuid
-language sql
-stable
-security definer
-as $$
-  select clinic_id from public.staff
-  where email = current_setting('request.jwt.claims', true)::json ->> 'email'
-  limit 1;
-$$;
-
 -- 2. Drop conflicting old policies
 do $$
 declare
@@ -47,10 +35,10 @@ begin
 end;
 $$;
 
--- 3. Create clinic-scoped policies for tenant tables (except staff, which needs special handling)
+-- 3. Create clinic-scoped policies for tenant tables
 do $$
 declare
-  tables text[] := array['clinic_settings', 'patients', 'appointments', 'invoices', 'sessions', 'rom_assessments', 'mmt_assessments', 'gait_tests', 'balance_tests', 'special_tests', 'patient_nutrition', 'audit_logs', 'subscriptions'];
+  tables text[] := array['clinic_settings', 'staff', 'patients', 'appointments', 'invoices', 'sessions', 'rom_assessments', 'mmt_assessments', 'gait_tests', 'balance_tests', 'special_tests', 'patient_nutrition', 'audit_logs', 'subscriptions'];
   tbl text;
 begin
   foreach tbl in array tables
@@ -82,20 +70,6 @@ begin
 end;
 $$;
 
--- 3.5. Staff table needs special clinic_access policy using security definer function
--- to avoid infinite recursion (the subquery would otherwise trigger RLS on staff)
-create policy "clinic_access" on public.staff
-  for all using (
-    public.is_platform_admin() or auth.role() = 'service_role'
-    or
-    clinic_id = public.get_my_clinic_id()
-  )
-  with check (
-    public.is_platform_admin() or auth.role() = 'service_role'
-    or
-    clinic_id = public.get_my_clinic_id()
-  );
-
 -- 4. Policies for clinics table
 create policy "platform_admin_bypass" on public.clinics
   for all using (public.is_platform_admin() or auth.role() = 'service_role')
@@ -103,9 +77,11 @@ create policy "platform_admin_bypass" on public.clinics
 
 create policy "clinic_access" on public.clinics
   for select using (
-    public.is_platform_admin() or auth.role() = 'service_role'
-    or
-    id = public.get_my_clinic_id()
+    id = (
+      select clinic_id from public.staff
+      where email = current_setting('request.jwt.claims', true)::json ->> 'email'
+      limit 1
+    )
   );
 
 -- 5. Policies for platform_admins table

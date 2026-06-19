@@ -1,129 +1,73 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase";
-import { supabase } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}));
-    const { email, name } = body;
+    const { email, name } = await req.json();
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
 
-    const normalizedEmail = email.toLowerCase().trim();
-
-    // Debug: Log env vars (first 10 chars only)
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-    console.log("[AutoProvision] Env check:", {
-      hasServiceKey: !!serviceKey,
-      serviceKeyPrefix: serviceKey.substring(0, 10),
-      supabaseUrlPrefix: supabaseUrl.substring(0, 30),
-    });
-
-    if (!serviceKey) {
-      console.error("[AutoProvision] MISSING SUPABASE_SERVICE_ROLE_KEY env var");
-      return NextResponse.json(
-        { error: "Service role key not configured", detail: "SUPABASE_SERVICE_ROLE_KEY is missing" },
-        { status: 500 }
-      );
-    }
-
     const admin = getAdminClient();
 
-    // Check if already provisioned (staff record exists)
-    const { data: existing, error: lookupError } = await admin
+    // Check if already provisioned
+    const { data: existing } = await admin
       .from("staff")
       .select("clinic_id")
-      .eq("email", normalizedEmail)
+      .eq("email", email.toLowerCase().trim())
       .maybeSingle();
 
-    if (lookupError) {
-      console.error("[AutoProvision] Staff lookup error:", JSON.stringify(lookupError));
-      return NextResponse.json(
-        { error: "Staff lookup failed", detail: lookupError.message },
-        { status: 500 }
-      );
-    }
-
     if (existing?.clinic_id) {
-      console.log("[AutoProvision] Staff already exists for", normalizedEmail, "clinic:", existing.clinic_id);
       return NextResponse.json({ clinicId: existing.clinic_id });
     }
 
-    // Guard: check if a clinic already exists for this admin_email
-    const { data: existingClinic } = await admin
-      .from("clinics")
-      .select("id")
-      .eq("admin_email", normalizedEmail)
-      .maybeSingle();
+    // Create clinic
+    const clinicId = crypto.randomUUID();
+    const clinicName = name || email.split("@")[0];
 
-    let clinicId = existingClinic?.id || crypto.randomUUID();
-    const clinicName = name || normalizedEmail.split("@")[0];
+    const { error: clinicError } = await admin.from("clinics").insert({
+      id: clinicId,
+      name: clinicName,
+      email,
+      is_active: true,
+      created_at: new Date().toISOString(),
+    });
 
-    if (!existingClinic) {
-      const { error: clinicError } = await admin.from("clinics").insert({
-        id: clinicId,
-        name: clinicName,
-        admin_email: normalizedEmail,
-        status: "active",
-      });
-
-      if (clinicError) {
-        console.error("[AutoProvision] Failed to create clinic:", JSON.stringify(clinicError));
-        return NextResponse.json(
-          { error: "فشل إنشاء العيادة", detail: clinicError.message },
-          { status: 500 }
-        );
-      }
-      console.log("[AutoProvision] Created clinic", clinicId, "for", normalizedEmail);
-    } else {
-      console.log("[AutoProvision] Clinic already exists for", normalizedEmail, "id:", clinicId);
+    if (clinicError) {
+      console.error("[AutoProvision] Failed to create clinic:", clinicError.message);
+      return NextResponse.json({ error: "فشل إنشاء العيادة" }, { status: 500 });
     }
 
     // Create staff record (admin)
-    const staffRole = "admin";
     const { error: staffError } = await admin.from("staff").insert({
       clinic_id: clinicId,
-      name: clinicName || normalizedEmail,
-      email: normalizedEmail,
-      role: staffRole,
+      name: clinicName,
+      email,
+      role: "admin",
       status: "نشط",
     });
 
     if (staffError) {
-      console.error("[AutoProvision] Failed to create staff:", JSON.stringify(staffError));
-      // Rollback clinic only if we created it fresh
-      if (!existingClinic) {
-        try { await admin.from("clinics").delete().eq("id", clinicId); } catch {}
-      }
-      return NextResponse.json(
-        { error: "فشل إنشاء بيانات الموظف", detail: staffError.message },
-        { status: 500 }
-      );
+      try { await admin.from("clinics").delete().eq("id", clinicId); } catch {}
+      console.error("[AutoProvision] Failed to create staff:", staffError.message);
+      return NextResponse.json({ error: "فشل إنشاء بيانات الموظف" }, { status: 500 });
     }
 
-    // Create default clinic_settings (best-effort)
+    // Create default clinic_settings
     try {
       await admin.from("clinic_settings").upsert({
         clinic_id: clinicId,
         clinic_name: clinicName,
         phone: "",
       });
-    } catch (settingsErr) {
-      console.warn("[AutoProvision] Clinic settings upsert failed (non-fatal):", settingsErr);
-    }
+    } catch {}
 
-    console.log("[AutoProvision] Success for", normalizedEmail, "clinic:", clinicId);
     return NextResponse.json({ clinicId, clinicName });
   } catch (err) {
-    console.error("[AutoProvision] Unhandled error:", err);
+    console.error("[AutoProvision] Error:", err);
     return NextResponse.json(
-      {
-        error: err instanceof Error ? err.message : "Internal server error",
-        detail: err instanceof Error ? err.stack : String(err),
-      },
+      { error: err instanceof Error ? err.message : "Internal server error" },
       { status: 500 }
     );
   }

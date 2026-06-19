@@ -258,7 +258,7 @@ export default function SubscriptionPage() {
           </h1>
           <p className="text-sm text-slate-500 mt-1">{isRtl ? "اختر الخطة المناسبة لحجم عيادتك واحتياجاتك" : "Choose the right plan for your clinic's size and needs"}</p>
         </div>
-        <div className={`flex items-center gap-2 bg-[#4F46BA]/8 border border-[#4F46BA]/20 rounded-2xl px-4 py-2.5 ${isRtl ? "" : "flex-row-reverse"}`}>
+        <div className={`flex items-center gap-2 bg-[#0d8a8a]/8 border border-[#0d8a8a]/20 rounded-2xl px-4 py-2.5 ${isRtl ? "" : "flex-row-reverse"}`}>
           <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           <div className={isRtl ? "text-right" : "text-left"}>
             <p className="text-[10px] text-slate-500 font-medium">{isRtl ? "خطتك الحالية" : "Current Plan"}</p>
@@ -273,7 +273,7 @@ export default function SubscriptionPage() {
       {/* ── Usage Bar ───────────────────────────────────────────────────── */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
         <h3 className={`text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-4 flex items-center gap-2 ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
-          <TrendingUp className="w-4 h-4 text-[#4F46BA]" />
+          <TrendingUp className="w-4 h-4 text-[#0d8a8a]" />
           {isRtl ? "استهلاك الخطة الحالية" : "Current Plan Usage"}
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -333,64 +333,152 @@ export default function SubscriptionPage() {
       </div>
 
       {/* ── Plans Grid ──────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-center gap-6">
+      <div>
+        <div className={`flex items-center gap-2 mb-6 ${isRtl ? "flex-row-reverse" : ""}`}>
+          <div className="h-px flex-1 bg-slate-200" />
+          <h2 className={`text-sm font-extrabold text-slate-700 ${isRtl ? "text-right" : "text-left"}`}>{isRtl ? "اختر خطة اشتراك" : "Choose a Subscription Plan"}</h2>
+          <div className="h-px flex-1 bg-slate-200" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
           {PLANS.map((plan) => {
-          const isPro = plan.id === "silver";
+            const PlanIcon = plan.icon;
+            const isSilver = plan.id === "silver";
+            const isGold = plan.id === "gold";
 
-          return (
-            <div key={plan.id} className={`w-72 text-center p-6 ${isPro ? "pb-14" : "pb-16"} rounded-lg relative ${isPro ? "bg-[#4F46BA] text-white border border-white/30" : "bg-white text-gray-800/80 border border-gray-200"}`}>
-              {/* Most Popular Badge */}
-              {isPro && (
-                <p className="absolute px-3 text-xs -top-3.5 left-3.5 py-1 bg-[#8789FB] rounded-full">
-                  {isRtl ? "الأكثر طلباً" : "Most Popular"}
-                </p>
-              )}
+            return (
+              <div
+                key={plan.id}
+                className={`relative rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-1.5
+                  ${isGold
+                    ? "bg-gradient-to-b from-slate-900 to-slate-950 border border-amber-500/30 shadow-[0_0_50px_-12px_rgba(245,158,11,0.35)] ring-1 ring-amber-500/10"
+                    : isSilver
+                    ? "bg-white border-2 border-cyan-400 shadow-2xl shadow-cyan-900/10 z-10 md:scale-[1.04]"
+                    : "bg-white border border-slate-300 shadow-sm opacity-85 hover:opacity-100"
+                  }
+                  ${plan.isCurrent ? "ring-2 ring-[#0d8a8a]" : ""}
+                `}
+              >
+                {isSilver && (
+                  <div className="absolute -top-px left-1/2 -translate-x-1/2 z-20">
+                    <div className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-[10px] font-extrabold px-5 py-1.5 rounded-b-xl shadow-lg flex items-center gap-1.5 tracking-wider">
+                      <Star className="w-3 h-3 fill-current" />
+                      {plan.badge}
+                      <Star className="w-3 h-3 fill-current" />
+                    </div>
+                  </div>
+                )}
 
-              {/* Plan Name */}
-              <p className={`font-semibold ${isPro ? "pt-2" : ""}`}>{plan.name}</p>
+                {isGold && (
+                  <div className="absolute -top-px left-1/2 -translate-x-1/2 z-20">
+                    <div className="bg-gradient-to-r from-[#FF8C00] via-[#FFC300] to-[#FFF082] text-white text-[10px] font-extrabold px-5 py-1.5 rounded-b-xl shadow-lg flex items-center gap-1.5 tracking-wider">
+                      <Crown className="w-3 h-3" />
+                      {plan.badge}
+                    </div>
+                  </div>
+                )}
 
-              {/* Price */}
-              <h1 className="text-3xl font-semibold">
-                {plan.price.toLocaleString()}
-                <span className={`text-sm font-normal ${isPro ? "text-white/70" : "text-gray-500"}`}>{isRtl ? " ج.م/شهر" : " EGP/month"}</span>
-              </h1>
+                {/* Card body */}
+                <div className={`p-6 md:p-7 space-y-5 ${isGold ? "" : "pt-8"}`}>
+                  {/* Icon + Name row */}
+                  <div className={`flex items-center gap-3 ${isRtl ? "" : "flex-row-reverse justify-between"}`}>
+                    <div className={`${isGold ? "w-14 h-14 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/20" : isSilver ? "w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-md" : "w-10 h-10 rounded-lg bg-gradient-to-br from-slate-400 to-slate-500"} flex items-center justify-center`}>
+                      <PlanIcon className={`${isGold ? "w-7 h-7" : isSilver ? "w-6 h-6" : "w-5 h-5"} text-white`} />
+                    </div>
+                    <div className={isRtl ? "text-right" : "text-left"}>
+                      <p className={`text-[9px] font-bold tracking-[0.15em] uppercase ${isGold ? "text-amber-400/70" : isSilver ? "text-cyan-600" : "text-slate-400"}`}>
+                        {plan.nameEn}
+                      </p>
+                      <h3 className={`font-black ${isGold ? "text-white text-xl" : isSilver ? "text-slate-800 text-lg" : "text-slate-600 text-base"}`}>
+                        {plan.name}
+                      </h3>
+                      {plan.subtitle && (
+                        <p className={`text-[10px] mt-0.5 ${isGold ? "text-slate-500" : isSilver ? "text-slate-400" : "text-slate-400"}`}>
+                          {plan.subtitle}
+                        </p>
+                      )}
+                    </div>
+                  </div>
 
-              {/* Features */}
-              <ul className="list-none text-sm mt-6 space-y-1">
-                {plan.features.filter(f => f.included).map((f) => (
-                  <li key={f.label} className="flex items-center gap-2">
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.162 13.5 2.887 9.225l1.07-1.069 3.205 3.207 6.882-6.882 1.069 1.07z" fill={isPro ? "currentColor" : "#6366F1"}/>
-                    </svg>
-                    <p className={isPro ? "text-white" : "text-gray-500"}>
-                      {f.label}
-                      {f.limit && <span className={`text-[10px] ${isPro ? "text-white/70" : "text-indigo-400"}`}> ({f.limit})</span>}
-                    </p>
-                  </li>
-                ))}
-              </ul>
+                  {/* Price strip */}
+                  <div className={`py-4 ${isGold ? "border-y border-amber-500/10" : "border-y border-slate-100"}`}>
+                    <div className={`flex items-end gap-1.5 ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
+                      <span className={`font-black ${isGold ? "text-5xl text-white" : isSilver ? "text-4xl text-slate-800" : "text-3xl text-slate-600"}`}>
+                        {plan.price.toLocaleString()}
+                      </span>
+                      <div className={`mb-1 ${isRtl ? "text-right" : "text-left"}`}>
+                        <span className={`text-xs font-bold block ${isGold ? "text-amber-300" : isSilver ? "text-cyan-600" : "text-slate-500"}`}>{isRtl ? "ج.م" : "EGP"}</span>
+                        <span className={`text-[9px] ${isGold ? "text-slate-500" : "text-slate-400"}`}>{isRtl ? "/ شهرياً" : "/ month"}</span>
+                      </div>
+                    </div>
+                  </div>
 
-              {/* CTA Button */}
-              {plan.isCurrent ? (
-                <div className={`mt-7 w-full py-2 rounded text-sm font-medium text-center ${isPro ? "bg-white/20 text-white" : "bg-indigo-100 text-indigo-600"}`}>
-                  {isRtl ? "خطتك الحالية" : "Current Plan"}
+                  {/* Features — unified list per plan */}
+                  <ul className="space-y-2.5">
+                    {plan.features.map((f) => {
+                      const isIncluded = f.included;
+                      if (isIncluded) {
+                        return (
+                          <li key={f.label} className={`flex items-center gap-2.5 text-sm ${isRtl ? "" : "flex-row-reverse justify-end"} ${isGold ? "text-slate-200 font-medium" : isSilver ? "text-slate-700 font-medium" : "text-slate-500"}`}>
+                            <div className={`shrink-0 flex items-center justify-center ${isGold ? "w-5 h-5 rounded-full bg-amber-500/20" : isSilver ? "w-5 h-5 rounded-full bg-cyan-100" : "w-4 h-4 rounded-full bg-slate-100"}`}>
+                              <CheckCircle2 className={`${isGold ? "w-3.5 h-3.5 text-amber-400" : isSilver ? "w-3.5 h-3.5 text-cyan-600" : "w-3 h-3 text-slate-400"}`} />
+                            </div>
+                            <span className="flex items-center gap-1">
+                              {f.label}
+                              {f.limit && <span className={`text-[10px] ${isGold ? "text-amber-400/80" : isSilver ? "text-cyan-500" : "text-slate-400"}`}>({f.limit})</span>}
+                            </span>
+                          </li>
+                        );
+                      }
+                      return (
+                        <li key={f.label} className={`flex items-center gap-2.5 text-xs ${isRtl ? "" : "flex-row-reverse justify-end"} ${isGold ? "text-slate-500" : isSilver ? "text-slate-300" : "text-slate-300"}`}>
+                          <div className="shrink-0 w-4 h-4 rounded-full bg-slate-100/50 flex items-center justify-center">
+                            <X className="w-3 h-3 text-slate-300" />
+                          </div>
+                          <span className="line-through">{f.label}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+
+                  {/* Divider before CTA */}
+                  <div className={`pt-2 ${isGold ? "border-t border-amber-500/10" : "border-t border-slate-100"}`}>
+                    {plan.isCurrent ? (
+                      <div className={`w-full text-center py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2
+                        ${isGold
+                          ? "text-amber-400 bg-amber-400/10 border border-amber-400/20"
+                          : "text-[#0d8a8a] bg-[#0d8a8a]/10 border border-[#0d8a8a]/20"}`}
+                      >
+                        <Check className="w-4 h-4" />
+                        {isRtl ? "خطتك الحالية" : "Current Plan"}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleUpgrade(plan.id)}
+                        className={`w-full py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.97] flex items-center justify-center gap-2
+                          ${isGold
+                            ? "bg-gradient-to-b from-[#FF8C00] via-[#FFC300] to-[#FFF082] text-white shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30"
+                            : isSilver
+                            ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20 hover:shadow-xl hover:shadow-cyan-500/30"
+                            : "bg-gradient-to-r from-slate-500 to-slate-600 text-white shadow hover:shadow-md"
+                          }
+                        `}
+                      >
+                        <CreditCard className="w-4 h-4" />
+                        {isRtl ? `اشتراك ${plan.name}` : `Subscribe ${plan.name}`}
+                      </button>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <button type="button" onClick={() => handleUpgrade(plan.id)}
-                  className={`text-sm w-full py-2 rounded font-medium mt-7 transition-all ${isPro ? "bg-white text-indigo-600 hover:bg-gray-200" : "bg-indigo-500 text-white hover:bg-indigo-600"}`}
-                >
-                  {isRtl ? `اشتراك ${plan.name}` : `Get ${plan.nameEn || plan.name}`}
-                </button>
-              )}
-            </div>
-          );
-        })}
+              </div>
+            );
+          })}
+        </div>
       </div>
       {/* ── Compare Toggle ───────────────────────────────────────────────── */}
       <div className="text-center">
         <button
           onClick={() => setShowCompare((v) => !v)}
-          className={`inline-flex items-center gap-2 text-slate-500 hover:text-[#4F46BA] border border-slate-200 hover:border-[#4F46BA]/30 rounded-full px-6 py-2 text-xs font-bold transition-all ${isRtl ? "" : "flex-row-reverse"}`}
+          className={`inline-flex items-center gap-2 text-slate-500 hover:text-[#0d8a8a] border border-slate-200 hover:border-[#0d8a8a]/30 rounded-full px-6 py-2 text-xs font-bold transition-all ${isRtl ? "" : "flex-row-reverse"}`}
         >
           {showCompare ? (isRtl ? "إخفاء جدول المقارنة" : "Hide Comparison Table") : (isRtl ? "مقارنة الخطط بالتفصيل" : "Compare Plans in Detail")}
         </button>
@@ -505,7 +593,7 @@ export default function SubscriptionPage() {
                     <input
                       required value={firstName} onChange={(e) => setFirstName(e.target.value)}
                       placeholder={isRtl ? "محمد" : "John"}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#4F46BA] transition-colors"
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#0d8a8a] transition-colors"
                     />
                   </div>
                   <div className="space-y-1">
@@ -513,7 +601,7 @@ export default function SubscriptionPage() {
                     <input
                       required value={lastName} onChange={(e) => setLastName(e.target.value)}
                       placeholder={isRtl ? "أحمد" : "Doe"}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#4F46BA] transition-colors"
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#0d8a8a] transition-colors"
                     />
                   </div>
                 </div>
@@ -522,7 +610,7 @@ export default function SubscriptionPage() {
                   <input
                     required type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                     placeholder="clinic@example.com" dir="ltr"
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#4F46BA] transition-colors text-left"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#0d8a8a] transition-colors text-left"
                   />
                 </div>
                 <div className="space-y-1">
@@ -530,7 +618,7 @@ export default function SubscriptionPage() {
                   <input
                     required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
                     placeholder="+201000000000" dir="ltr"
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#4F46BA] transition-colors text-left font-mono"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#0d8a8a] transition-colors text-left font-mono"
                   />
                 </div>
                 <p className={`text-[10px] text-slate-400 ${isRtl ? "" : "text-left"}`}>

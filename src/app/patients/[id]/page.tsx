@@ -19,7 +19,6 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Lock, Trash2 } from "lucide-react";
-import SelectMenu from "@/components/SelectMenu";
 const LockIcon = Lock;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -1935,6 +1934,24 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
     }
   };
 
+  const activeProtocol = useMemo(() => {
+    if (!activeProtocolState) return null;
+    return CLINICAL_PROTOCOLS.find(p => p.id === activeProtocolState.protocolId) || null;
+  }, [activeProtocolState]);
+
+  const activePhase = useMemo(() => {
+    if (!activeProtocol || !activeProtocolState) return null;
+    return activeProtocol.phases.find(p => p.phaseNumber === activeProtocolState.currentPhase) || null;
+  }, [activeProtocol, activeProtocolState]);
+
+  const patientDiagnosis = patient.diagnosis || "";
+  const matchedProtocolIds = useMemo(() => {
+    if (!patientDiagnosis.trim()) return new Set<string>();
+    const lower = patientDiagnosis.toLowerCase();
+    return new Set(
+      CLINICAL_PROTOCOLS.filter(p => p.keywords.some(kw => lower.includes(kw))).map(p => p.id)
+    );
+  }, [patientDiagnosis]);
 
   // Assign protocol
   const handleAssignProtocol = async (protocolId: string) => {
@@ -1945,7 +1962,8 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
     };
     await persistProtocolState(initialState);
     
-    const proto = allProtocols.find(p => p.id === protocolId);
+    // Seed initial goals from phase 1
+    const proto = CLINICAL_PROTOCOLS.find(p => p.id === protocolId);
     if (proto && proto.phases[0]) {
       const initialGoals = isRtl 
         ? proto.phases[0].goalsAr.join(" - ") 
@@ -2005,7 +2023,6 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const [dbTab, setDbTab] = useState<"exercise" | "device">("exercise");
   const [customLibraryItems, setCustomLibraryItems] = useState<Exercise[]>([]);
-  const [libraryProtocols, setLibraryProtocols] = useState<ClinicalProtocol[]>([]);
 
   useEffect(() => {
     const saved = localStorage.getItem("prime_physio_templates_v3");
@@ -2030,51 +2047,7 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
         console.error(e);
       }
     }
-  }, []);
-
-  useEffect(() => {
-    async function loadLibraryProtocols() {
-      const { data, error } = await supabase.from("treatment_templates").select("payload").eq("kind", "clinical_library");
-      if (error || !data) return;
-      const protocols: ClinicalProtocol[] = data
-        .map((row: any) => row.payload as any)
-        .filter((item: any) => item.type === "protocol")
-        .map((item: any) => {
-          let phases: ProtocolPhase[] = [];
-          try {
-            const rawPhases = JSON.parse(item.contentAr);
-            phases = rawPhases.map((p: any, idx: number) => ({
-              phaseNumber: p.phaseNumber,
-              weeks: p.weeks,
-              goalsAr: p.goalsAr ? p.goalsAr.split("\n").filter(Boolean) : [],
-              goalsEn: p.goalsEn ? p.goalsEn.split("\n").filter(Boolean) : [],
-              precautionsAr: p.precautionsAr ? p.precautionsAr.split("\n").filter(Boolean) : [],
-              precautionsEn: p.precautionsEn ? p.precautionsEn.split("\n").filter(Boolean) : [],
-              criteria: (p.criteriaAr ? p.criteriaAr.split("\n").filter(Boolean) : []).map((c: string, i: number) => ({
-                key: `${item.id}_crit_${idx}_${i}`,
-                labelAr: c,
-                labelEn: p.criteriaEn ? (p.criteriaEn.split("\n").filter(Boolean)[i] || c) : c,
-              })),
-            }));
-          } catch { phases = []; }
-          return {
-            id: item.id,
-            nameAr: item.titleAr,
-            nameEn: item.titleEn,
-            keywords: [item.titleAr, item.titleEn],
-            phases,
-          } as ClinicalProtocol;
-        });
-      setLibraryProtocols(protocols);
-    }
-    loadLibraryProtocols();
-  }, []);
-
-  const allProtocols = [...CLINICAL_PROTOCOLS, ...libraryProtocols];
-  const activeProtocol = activeProtocolState ? allProtocols.find(p => p.id === activeProtocolState.protocolId) || null : null;
-  const activePhase = activeProtocol && activeProtocolState ? activeProtocol.phases.find(p => p.phaseNumber === activeProtocolState.currentPhase) || null : null;
-
-  const addExercise = (ex: Exercise) => {
+  }, []);  const addExercise = (ex: Exercise) => {
     if (selectedExercises.some((e) => e.id === ex.id)) return;    const allPatientData = [
       patient.medicalHistory,
       patient.chronicDiseases,
@@ -2199,18 +2172,24 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
           <CardContent className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-3">
             <p className="text-xs text-slate-500 max-w-xl">
               {isRtl 
-                ? "اختر بروتوكولاً علاجياً من القائمة أو المكتبة السريرية."
-                : "Select a protocol from the list or clinical library."}
+                ? (patientDiagnosis.trim() ? `تم اقتراح البروتوكولات المناسبة بناءً على تشخيص المريض.` : "حدد بروتوكولاً علاجياً لمتابعة تأهيل المريض.")
+                : (patientDiagnosis.trim() ? `Protocols are auto-suggested based on the patient's diagnosis.` : "Select a protocol to track patient rehabilitation.")}
             </p>
-            <div className="w-full sm:w-64">
-              <SelectMenu
-                items={allProtocols.map(p => ({ value: p.id, label: isRtl ? p.nameAr : p.nameEn }))}
-                value=""
-                onValueChange={handleAssignProtocol}
-                placeholder={isRtl ? "اختر بروتوكولاً..." : "Select a protocol..."}
-                searchPlaceholder={isRtl ? "بحث..." : "Search..."}
-                nothingFound={isRtl ? "لا يوجد بروتوكولات مطابقة" : "No matching protocols"}
-              />
+            <div className="flex flex-wrap gap-2">
+              {CLINICAL_PROTOCOLS.map(proto => {
+                const isMatch = matchedProtocolIds.has(proto.id);
+                const hasMatches = matchedProtocolIds.size > 0;
+                return (
+                  <Button
+                    key={proto.id}
+                    onClick={() => handleAssignProtocol(proto.id)}
+                    className={`text-xs font-semibold px-4 h-9 ${isMatch ? "bg-teal-600 hover:bg-teal-700 text-white ring-2 ring-teal-300" : hasMatches ? "bg-slate-100 hover:bg-slate-200 text-slate-500" : "bg-teal-600 hover:bg-teal-700 text-white"}`}
+                  >
+                    {isRtl ? proto.nameAr : proto.nameEn}
+                    {isMatch && <span className="mr-1.5 text-[10px] opacity-80">{isRtl ? "✓ موصى به" : "✓ Recommended"}</span>}
+                  </Button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

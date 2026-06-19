@@ -130,7 +130,7 @@ export default function BodyPainMapper({ selectedRegions, onChange, onRegionSele
   return (
     <div className="flex flex-col items-center bg-slate-50 dark:bg-slate-900/50 p-4 rounded-2xl border border-slate-200/50 w-full [perspective:900px]">
       <div className="text-center mb-3">
-        <h3 className="text-xs font-bold text-[#4F46BA] uppercase tracking-wider">
+        <h3 className="text-xs font-bold text-[#0d8a8a] uppercase tracking-wider">
           {isRtl ? "مخطط خريطة الألم العضلي التفاعلي" : "Interactive Muscle Pain Map"}
         </h3>
         <p className="text-[10px] text-slate-400 mt-0.5">
@@ -164,7 +164,7 @@ export default function BodyPainMapper({ selectedRegions, onChange, onRegionSele
       {/* Floating dynamic Muscle name preview */}
       <div className="mt-3 min-h-6 text-center">
         {hoveredRegion ? (
-          <span className="text-xs font-bold text-[#4F46BA] bg-indigo-50 dark:bg-indigo-950/20 px-2.5 py-1 rounded-full border border-indigo-200">
+          <span className="text-xs font-bold text-[#0d8a8a] bg-teal-50 dark:bg-teal-950/20 px-2.5 py-1 rounded-full border border-teal-150">
             {isRtl ? hoveredRegion.nameAr : hoveredRegion.nameEn}
           </span>
         ) : selectedRegions.length > 0 ? (
