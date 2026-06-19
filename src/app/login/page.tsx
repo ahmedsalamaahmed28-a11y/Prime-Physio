@@ -39,13 +39,13 @@ export default function LoginPage() {
 
     if (result?.error) {
       setError(result.error === "CredentialsSignin"
-        ? (isRtl ? "???????????? ???????????? ?????? ??????????" : "Invalid login credentials")
+        ? (isRtl ? "بيانات الدخول غير صحيحة" : "Invalid login credentials")
         : result.error);
       setIsSubmitting(false);
       return;
     }
 
-    setSuccessMsg(isRtl ? "???? ?????????? ???????????? ??????????" : "Logged in successfully");
+    setSuccessMsg(isRtl ? "تم تسجيل الدخول بنجاح" : "Logged in successfully");
     setIsSubmitting(false);
     window.location.href = "/";
   };
@@ -69,8 +69,8 @@ export default function LoginPage() {
               <img src="/logo.png" alt="Prime Physio Logo" className="h-24 w-auto object-contain drop-shadow-md brightness-110" />
             </div>
           </div>
-          <h1 className="text-lg font-bold text-slate-800">{isRtl ? "?????????? ?????????? ???????????? ??????????" : "Secure Login"}</h1>
-          <p className="text-[10px] text-slate-500">{isRtl ? "???????? ?????????? ???????????? ???????????? ??????????????" : "Clinic management system"}</p>
+          <h1 className="text-lg font-bold text-slate-800">{isRtl ? "بوابة تسجيل الدخول الآمن" : "Secure Login"}</h1>
+          <p className="text-[10px] text-slate-500">{isRtl ? "نظام إدارة عيادات العلاج الطبيعي" : "Clinic management system"}</p>
         </div>
 
         {error && (
@@ -96,7 +96,7 @@ export default function LoginPage() {
                 activeRole === role ? "bg-[#0d8a8a] text-white shadow-sm" : "text-slate-500 hover:text-slate-800"
               }`}
             >
-              {role === "admin" ? (isRtl ? "????????" : "Admin") : role === "doctor" ? (isRtl ? "???????? ??????????" : "Doctor") : (isRtl ? "??????????????" : "Reception")}
+              {role === "admin" ? (isRtl ? "مدير" : "Admin") : role === "doctor" ? (isRtl ? "طبيب معالج" : "Doctor") : (isRtl ? "استقبال" : "Reception")}
             </button>
           ))}
         </div>
@@ -105,7 +105,7 @@ export default function LoginPage() {
           <div className="space-y-4">
             <div className="bg-amber-50 border border-amber-200 text-amber-700 text-xs rounded-xl p-3 text-center">
               {isRtl
-                ? "???????????? ?????????? ?????? ?????? ???????? Google ?????? ???????????? ?????? ???????? ?????????? ????????"
+                ? "الدخول كمدير يتم عبر حساب Google فقط للحفاظ على أعلى مستوى أمان"
                 : "Admin access is only available via Google login for maximum security"}
             </div>
             <Button
@@ -120,14 +120,14 @@ export default function LoginPage() {
                 <path fill="#FBBC05" d="M3.1 6.6A10 10 0 0 0 2 12c0 .8.1 1.6.3 2.3l4-3.1a6 6 0 0 1 0-1.7l-3.2-2.9z" />
                 <path fill="#4285F4" d="M12 5c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.8 9.8 0 0 0 12 2a10 10 0 0 0-8.9 5.5l4 3.1A5.8 5.8 0 0 1 12 5z" />
               </svg>
-              {isRtl ? "???????????? ?????????? ?????? Google" : "Sign in as Admin with Google"}
+              {isRtl ? "الدخول كمدير عبر Google" : "Sign in as Admin with Google"}
             </Button>
           </div>
         ) : (
           <>
             <form onSubmit={handleManualLogin} className="space-y-4">
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 block pr-1">{isRtl ? "???????????? ????????????????????" : "Email"}</label>
+                <label className="text-xs font-bold text-slate-700 block pr-1">{isRtl ? "البريد الإلكتروني" : "Email"}</label>
                 <Input
                   type="email"
                   value={email}
@@ -140,13 +140,13 @@ export default function LoginPage() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 block pr-1">{isRtl ? "???????? ????????????" : "Password"}</label>
+                <label className="text-xs font-bold text-slate-700 block pr-1">{isRtl ? "كلمة المرور" : "Password"}</label>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="????????????????????????"
+                    placeholder="••••••••"
                     autoComplete="current-password"
                     className="bg-slate-50 border-slate-200 focus-visible:ring-[#0d8a8a] rounded-xl pr-10"
                     disabled={isSubmitting}
@@ -164,22 +164,22 @@ export default function LoginPage() {
               <div className="flex items-center justify-between text-xs mt-1 px-1">
                 <label className="flex items-center gap-1.5 cursor-pointer text-slate-600 hover:text-slate-800 transition-colors">
                   <input type="checkbox" className="rounded text-[#0d8a8a] focus:ring-[#0d8a8a]" />
-                  <span>{isRtl ? "???????????? ?????? ?????? ????????????" : "Remember me"}</span>
+                  <span>{isRtl ? "تذكرني على هذا الجهاز" : "Remember me"}</span>
                 </label>
                 <Link href="/security" className="text-[#0d8a8a] font-bold hover:underline">
-                  {isRtl ? "????????????" : "Security"}
+                  {isRtl ? "الأمان" : "Security"}
                 </Link>
               </div>
 
               <Button type="submit" disabled={isSubmitting} className="w-full bg-[#0d8a8a] hover:bg-[#085454] text-white font-bold py-2 rounded-xl transition-all shadow-md active:scale-[0.98] text-sm">
                 <Lock className="w-4 h-4" />
-                {isSubmitting ? (isRtl ? "???????? ????????????..." : "Signing in...") : (isRtl ? "?????????? ????????????" : "Sign In")}
+                {isSubmitting ? (isRtl ? "جارِ التحقق..." : "Signing in...") : (isRtl ? "تسجيل الدخول" : "Sign In")}
               </Button>
             </form>
 
             <div className="flex items-center gap-3">
               <span className="h-[1px] bg-slate-100 flex-grow" />
-              <span className="text-[10px] font-bold text-slate-400">{isRtl ? "???? ??????" : "Or continue with"}</span>
+              <span className="text-[10px] font-bold text-slate-400">{isRtl ? "أو عبر" : "Or continue with"}</span>
               <span className="h-[1px] bg-slate-100 flex-grow" />
             </div>
 
@@ -194,21 +194,21 @@ export default function LoginPage() {
                 <path fill="#FBBC05" d="M3.1 6.6A10 10 0 0 0 2 12c0 .8.1 1.6.3 2.3l4-3.1a6 6 0 0 1 0-1.7l-3.2-2.9z" />
                 <path fill="#4285F4" d="M12 5c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.8 9.8 0 0 0 12 2a10 10 0 0 0-8.9 5.5l4 3.1A5.8 5.8 0 0 1 12 5z" />
               </svg>
-              {isRtl ? "???????????? ?????? Google" : "Continue with Google"}
+              {isRtl ? "الدخول عبر Google" : "Continue with Google"}
             </button>
           </>
         )}
 
         <div className="text-center text-xs text-slate-500">
-          {isRtl ? "???? ???????? ??????????????" : "Don't have an account?"}{" "}
+          {isRtl ? "لا تملك حساباً؟" : "Don't have an account?"}{" "}
           <Link href="/signup" className="font-bold text-[#0d8a8a] hover:underline">
-            {isRtl ? "???????? ???????????? ????????????" : "Create one"}
+            {isRtl ? "أنشئ حساباً جديداً" : "Create one"}
           </Link>
         </div>
 
         <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3 text-[11px] text-slate-600 leading-5">
-          <p className="font-bold text-slate-700 mb-1">{isRtl ? "??????????" : "Note"}</p>
-          <p>{isRtl ? "???????? ???????????????? ?????????? ??????????. ?????? ?????????? ???????????? ?????? ?????????? ????????." : "All data is encrypted and secure."}</p>
+          <p className="font-bold text-slate-700 mb-1">{isRtl ? "تنبيه" : "Note"}</p>
+          <p>{isRtl ? "جميع البيانات مشفرة وآمنة. يتم تسجيل الدخول عبر خوادم آمنة." : "All data is encrypted and secure."}</p>
         </div>
       </div>
     </div>
