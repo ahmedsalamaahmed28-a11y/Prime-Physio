@@ -386,7 +386,7 @@ export default function ClinicalNutritionPage() {
         </div>
         <Button 
           onClick={handleSavePatientNutrition}
-          className="bg-[#4F46BA] hover:bg-[#4338ca] text-white"
+          className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white"
         >
           💾 {isRtl ? "حفظ في ملف المريض المختار" : "Save to Selected Patient's File"}
         </Button>

@@ -637,7 +637,7 @@ export default function ClinicalLibraryPage() {
                   </>
                 )}
 
-                <Button type="submit" className="w-full bg-[#4F46BA] hover:bg-[#4338ca] text-white text-xs py-2">
+                <Button type="submit" className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white text-xs py-2">
                   ➕ {isRtl ? "إضافة إلى المكتبة" : "Save to Library"}
                 </Button>
               </form>

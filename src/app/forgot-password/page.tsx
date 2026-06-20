@@ -146,7 +146,7 @@ export default function ForgotPasswordPage() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-[#4F46BA] hover:bg-[#4338ca] text-white font-medium h-10 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
+                className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
               >
                 {isLoading ? (
                   <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
@@ -196,7 +196,7 @@ export default function ForgotPasswordPage() {
               <button
                 onClick={handleVerify}
                 disabled={otp.join("").length !== 4}
-                className="w-full bg-[#4F46BA] hover:bg-[#4338ca] text-white font-medium h-10 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
+                className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
               >
                 {isRtl ? "تأكيد" : "Confirm"}
               </button>

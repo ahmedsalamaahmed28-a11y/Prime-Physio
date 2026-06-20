@@ -155,7 +155,7 @@ export default function ClinicSettingsPage() {
                     {isRtl ? "تم حفظ الإعدادات بنجاح!" : "Settings saved successfully!"}
                   </span>
                 )}
-                <Button type="submit" className={`bg-[#4F46BA] hover:bg-[#4338ca] text-white ${isRtl ? "mr-auto" : "ml-auto"} rounded-xl gap-1.5 font-bold px-6 shadow-md transition-all active:scale-95 ${isRtl ? "" : "flex-row-reverse"}`}>
+                <Button type="submit" className={`bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white ${isRtl ? "mr-auto" : "ml-auto"} rounded-xl gap-1.5 font-bold px-6 shadow-md transition-all active:scale-95 ${isRtl ? "" : "flex-row-reverse"}`}>
                   <Save className="w-4 h-4" />
                   {isRtl ? "حفظ التغييرات" : "Save Changes"}
                 </Button>

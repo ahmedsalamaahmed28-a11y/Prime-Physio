@@ -493,7 +493,7 @@ export default function ProfileSettingsPage() {
                     {isRtl ? "تم حفظ البيانات بنجاح!" : "Data saved successfully!"}
                   </span>
                 )}
-                <Button type="submit" className={`bg-[#4F46BA] hover:bg-[#0b7878] text-white rounded-xl px-6 ${isRtl ? "mr-auto" : "ml-auto"}`}>
+                <Button type="submit" className={`bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white rounded-xl px-6 ${isRtl ? "mr-auto" : "ml-auto"}`}>
                   {isRtl ? "حفظ البيانات" : "Save Details"}
                 </Button>
               </div>
@@ -537,7 +537,7 @@ export default function ProfileSettingsPage() {
               <div className="pt-2 flex items-center gap-3">
                 <Button
                   type="button"
-                  className="bg-[#4F46BA] hover:bg-[#0b7878] text-white rounded-xl text-xs gap-1.5 h-10 px-5"
+                  className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white rounded-xl text-xs gap-1.5 h-10 px-5"
                   onClick={async () => {
                     try {
                       const { data: { user } } = await supabase.auth.getUser();
@@ -621,7 +621,7 @@ export default function ProfileSettingsPage() {
                 </div>
 
                 <div className="pt-2 flex flex-row-reverse gap-3 items-center">
-                  <Button type="submit" className={`bg-[#4F46BA] hover:bg-[#0b7878] text-white rounded-xl text-xs gap-1.5 h-10 px-5 ${isRtl ? "" : "flex-row-reverse"}`}>
+                  <Button type="submit" className={`bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white rounded-xl text-xs gap-1.5 h-10 px-5 ${isRtl ? "" : "flex-row-reverse"}`}>
                     <Save className="w-4 h-4" />
                     {isRtl ? "حفظ التغييرات" : "Save Changes"}
                   </Button>
@@ -882,7 +882,7 @@ export default function ProfileSettingsPage() {
             </div>
 
             <div className={`pt-2 border-t flex ${isRtl ? "justify-start" : "justify-end"}`}>
-              <Button className={`bg-[#4F46BA] hover:bg-[#0b7878] text-white rounded-xl text-xs gap-1.5 h-9 ${isRtl ? "" : "flex-row-reverse"}`}>
+              <Button className={`bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white rounded-xl text-xs gap-1.5 h-9 ${isRtl ? "" : "flex-row-reverse"}`}>
                 <FileCheck className="w-4 h-4" />
                 {isRtl ? "تقديم المستندات للمراجعة" : "Submit Documents for Review"}
               </Button>
@@ -916,7 +916,7 @@ export default function ProfileSettingsPage() {
                       {isRtl ? "تم تحديث كلمة المرور بنجاح!" : "Password updated successfully!"}
                     </span>
                   )}
-                  <Button type="submit" className={`bg-[#4F46BA] hover:bg-[#0b7878] text-white rounded-xl ${isRtl ? "mr-auto" : "ml-auto"}`}>
+                  <Button type="submit" className={`bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white rounded-xl ${isRtl ? "mr-auto" : "ml-auto"}`}>
                     {isRtl ? "حفظ كلمة المرور" : "Save Password"}
                   </Button>
                 </div>

@@ -226,7 +226,7 @@ function NewAppointmentDialog({
 
         <DialogFooter className={`gap-3 sm:gap-3 flex w-full ${isRtl ? "flex-row" : "flex-row-reverse"}`}>
           <Button variant="outline" onClick={onClose} className="rounded-xl font-bold flex-1 transition-all active:scale-95">{isRtl ? "إلغاء" : "Cancel"}</Button>
-          <Button onClick={handleSave} className="bg-[#4F46BA] hover:bg-[#4338ca] text-white rounded-xl font-bold flex-1 shadow-md transition-all active:scale-95">
+          <Button onClick={handleSave} className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white rounded-xl font-bold flex-1 shadow-md transition-all active:scale-95">
             {isRtl ? "تأكيد الحجز" : "Confirm Booking"}
           </Button>
         </DialogFooter>
@@ -367,7 +367,7 @@ function EventDetailsDialog({
             {editing ? (
               <>
                 <Button variant="outline" className="flex-1 rounded-xl transition-all active:scale-95" onClick={() => setEditing(false)}>{isRtl ? "تراجع" : "Back"}</Button>
-                <Button className="flex-1 rounded-xl bg-[#4F46BA] hover:bg-[#4338ca] text-white shadow-md transition-all active:scale-95" onClick={saveEdit}>{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
+                <Button className="flex-1 rounded-xl bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white shadow-md transition-all active:scale-95" onClick={saveEdit}>{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
               </>
             ) : (
               <>
@@ -613,7 +613,7 @@ export default function CalendarPage() {
           </div>
           {hasPermission("edit_appointments") && (
             <Button
-              className="bg-[#4F46BA] hover:bg-[#4338ca] text-white gap-2 rounded-xl font-bold px-6 shadow-md transition-all active:scale-95"
+              className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white gap-2 rounded-xl font-bold px-6 shadow-md transition-all active:scale-95"
               onClick={() => setSelectedDate(new Date())}
             >
               ＋ {isRtl ? "حجز موعد جديد" : "Book New Appointment"}

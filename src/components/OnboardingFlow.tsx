@@ -333,7 +333,7 @@ export default function OnboardingFlow({ step, setStep, clinicId, isRtl }: Props
                   </ul>
                   <button onClick={(e) => { e.stopPropagation(); handleSelectPlan(plan.id) }}
                     disabled={isActivating}
-                    className={`w-full py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 ${plan.id === "silver" ? "bg-[#4F46BA] text-white hover:bg-[#4338ca] shadow-md" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
+                    className={`w-full py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 ${plan.id === "silver" ? "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] shadow-md" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
                   >
                     {isActivating && selectedPlan === plan.id ? (
                       <Loader2 className="w-4 h-4 animate-spin" />

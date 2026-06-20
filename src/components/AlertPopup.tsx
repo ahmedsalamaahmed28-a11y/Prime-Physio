@@ -41,7 +41,7 @@ export default function AlertPopup({ message, isOpen, onClose }: AlertPopupProps
           </p>
           <button
             onClick={onClose}
-            className="mt-6 w-full py-2.5 rounded-xl bg-[#4F46BA] text-white text-sm font-semibold hover:bg-[#4338ca] transition-colors"
+            className="mt-6 w-full py-2.5 rounded-xl bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white text-sm font-semibold hover:from-[#4338ca] hover:to-[#6d28d9] transition-colors"
           >
             حسناً
           </button>
