@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     connectionTimeoutMillis: 15000,
   });
 
-  const sqlPath = join(process.cwd(), "supabase-rls-patch.sql");
+  const sqlPath = join(process.cwd(), "supabase-full-setup.sql");
   const sql = readFileSync(sqlPath, "utf-8");
 
   const client = await pool.connect();
