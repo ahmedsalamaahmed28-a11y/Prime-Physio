@@ -259,7 +259,7 @@ export default function DoctorsPage() {
       </Dialog>
 
       {/* Delete Doctor Confirmation Modal */}
-      <Dialog open={deleteDoctorEmail !== null} onOpenChange={(open) => !open && setDeleteDoctorEmail(null)}>
+      <Dialog open={deleteDoctorEmail !== null} onOpenChange={(open: boolean) => !open && setDeleteDoctorEmail(null)}>
         <DialogContent className="sm:max-w-sm text-center" showCloseButton={false}>
           <div className="flex flex-col items-center justify-center space-y-4 pt-4">
             <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-2">

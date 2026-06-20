@@ -500,7 +500,7 @@ export default function BillingPage() {
       </Card>
 
       {/* Discount Modal */}
-      <Dialog open={discountModalOpen} onOpenChange={(open) => !open && setDiscountModalOpen(false)}>
+      <Dialog open={discountModalOpen} onOpenChange={(open: boolean) => !open && setDiscountModalOpen(false)}>
         <DialogContent className="sm:max-w-md text-center">
           <div className="flex flex-col items-center justify-center space-y-4 pt-4">
             <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-2">
@@ -582,7 +582,7 @@ export default function BillingPage() {
       </Dialog>
 
       {/* Delete Invoice Confirmation Modal */}
-      <Dialog open={!!deleteInvoiceId} onOpenChange={(open) => !open && setDeleteInvoiceId(null)}>
+      <Dialog open={!!deleteInvoiceId} onOpenChange={(open: boolean) => !open && setDeleteInvoiceId(null)}>
         <DialogContent className="sm:max-w-sm text-center" showCloseButton={false}>
           <div className="flex flex-col items-center justify-center space-y-4 pt-4">
             <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-2">

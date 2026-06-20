@@ -1407,7 +1407,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
       ) : null}
 
       {/* Delete Session Confirmation Dialog */}
-      <Dialog open={!!deletingSessionId} onOpenChange={(open) => !open && setDeletingSessionId(null)}>
+      <Dialog open={!!deletingSessionId} onOpenChange={(open: boolean) => !open && setDeletingSessionId(null)}>
         <DialogContent className="sm:max-w-sm text-center" showCloseButton={false}>
           <div className="flex flex-col items-center justify-center space-y-4 pt-4">
             <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-2">
@@ -1508,7 +1508,7 @@ function RadiologyTab() {
       </div>
 
       {/* Delete File Confirmation Modal */}
-      <Dialog open={deleteFileIdx !== null} onOpenChange={(open) => !open && setDeleteFileIdx(null)}>
+      <Dialog open={deleteFileIdx !== null} onOpenChange={(open: boolean) => !open && setDeleteFileIdx(null)}>
         <DialogContent className="sm:max-w-sm text-center" showCloseButton={false}>
           <div className="flex flex-col items-center justify-center space-y-4 pt-4">
             <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-2">
@@ -1534,7 +1534,7 @@ function RadiologyTab() {
       </Dialog>
 
       {/* View File Modal Simulator */}
-      <Dialog open={viewFileIdx !== null} onOpenChange={(open) => !open && setViewFileIdx(null)}>
+      <Dialog open={viewFileIdx !== null} onOpenChange={(open: boolean) => !open && setViewFileIdx(null)}>
         <DialogContent className="sm:max-w-2xl min-h-[500px] flex flex-col p-0 overflow-hidden" showCloseButton={true}>
           <DialogHeader className="p-4 border-b bg-slate-50/50">
             <DialogTitle className="text-lg font-bold flex items-center gap-2">
@@ -2131,7 +2131,7 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
   });  return (
     <div className="pt-4 space-y-6 print:p-0">
       {/* Contraindication Alert Dialog */}
-      <Dialog open={contraindicationAlert.open} onOpenChange={(open) => !open && setContraindicationAlert({ open: false, exercise: null, reason: "" })}>
+      <Dialog open={contraindicationAlert.open} onOpenChange={(open: boolean) => !open && setContraindicationAlert({ open: false, exercise: null, reason: "" })}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="text-rose-600 flex items-center gap-2">

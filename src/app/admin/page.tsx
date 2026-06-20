@@ -26,7 +26,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (!user) return;
     if (user.roleKey !== "platform_admin") {
-      router.replace("/");
+      router.replace("/home");
       return;
     }
     loadClinics();
@@ -39,7 +39,7 @@ export default function AdminPage() {
         const data = await res.json();
         setClinics(data.clinics || []);
       }
-    } catch {}
+    } catch { }
     setLoading(false);
   };
 
@@ -54,7 +54,7 @@ export default function AdminPage() {
       setClinics((prev) =>
         prev.map((c) => (c.id === clinicId ? { ...c, is_active: !currentActive } : c))
       );
-    } catch {}
+    } catch { }
     setToggling(null);
   };
 
@@ -74,7 +74,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-slate-50" dir="rtl">
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         <div className="flex items-center gap-3">
-          <ShieldAlert className="w-6 h-6 text-[#0d8a8a]" />
+          <ShieldAlert className="w-6 h-6 text-[#4F46BA]" />
           <h1 className="text-xl font-bold text-slate-800">لوحة تحكم المنصة</h1>
           <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">مدير المنصة</span>
         </div>
@@ -90,9 +90,8 @@ export default function AdminPage() {
             {clinics.map((clinic) => (
               <div
                 key={clinic.id}
-                className={`bg-white rounded-2xl border p-5 transition-all ${
-                  clinic.is_active ? "border-slate-200" : "border-red-200 bg-red-50/30"
-                }`}
+                className={`bg-white rounded-2xl border p-5 transition-all ${clinic.is_active ? "border-slate-200" : "border-red-200 bg-red-50/30"
+                  }`}
               >
                 <div className="flex items-start justify-between">
                   <div className="space-y-2">
@@ -121,8 +120,8 @@ export default function AdminPage() {
                           ? clinic.subscription.plan_name === "basic"
                             ? "Basic"
                             : clinic.subscription.plan_name === "silver"
-                            ? "Silver"
-                            : "Gold"
+                              ? "Silver"
+                              : "Gold"
                           : "بدون اشتراك"}
                       </span>
                       <span className={`flex items-center gap-1 ${clinic.subscription?.status === "active" ? "text-emerald-600" : "text-slate-400"}`}>
@@ -138,11 +137,10 @@ export default function AdminPage() {
                   <button
                     onClick={() => toggleClinic(clinic.id, clinic.is_active)}
                     disabled={toggling === clinic.id}
-                    className={`text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer ${
-                      clinic.is_active
+                    className={`text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer ${clinic.is_active
                         ? "bg-red-50 text-red-600 hover:bg-red-100"
                         : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                    } disabled:opacity-50`}
+                      } disabled:opacity-50`}
                   >
                     {toggling === clinic.id ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />

@@ -464,7 +464,7 @@ export default function UsersPermissionsPage() {
       </Dialog>
 
       {/* Delete User Confirmation Modal */}
-      <Dialog open={!!deleteUserEmail} onOpenChange={(open) => !open && setDeleteUserEmail(null)}>
+      <Dialog open={!!deleteUserEmail} onOpenChange={(open: boolean) => !open && setDeleteUserEmail(null)}>
         <DialogContent className="sm:max-w-sm text-center" showCloseButton={false}>
           <div className="flex flex-col items-center justify-center space-y-4 pt-4">
             <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-2">

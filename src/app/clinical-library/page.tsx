@@ -365,7 +365,7 @@ export default function ClinicalLibraryPage() {
       </div>
 
       <div className="space-y-4">
-        <Tabs value={mainTab} onValueChange={(v) => setMainTab(v as typeof mainTab)} className="w-full">
+        <Tabs value={mainTab} onValueChange={(v: string) => setMainTab(v as typeof mainTab)} className="w-full">
           <TabsList className="grid w-full grid-cols-3 bg-muted/60 p-1">
             <TabsTrigger value="nutrition" className="text-xs font-bold">
               {isRtl ? "تغذية علاجية 🍏" : "Clinical Nutrition 🍏"}
@@ -380,7 +380,7 @@ export default function ClinicalLibraryPage() {
         </Tabs>
 
         {mainTab === "nutrition" && (
-          <Tabs value={nutritionTab} onValueChange={(v) => setNutritionTab(v as typeof nutritionTab)} className="w-full">
+          <Tabs value={nutritionTab} onValueChange={(v: string) => setNutritionTab(v as typeof nutritionTab)} className="w-full">
             <TabsList className="grid w-full grid-cols-4 bg-teal-50/50 p-1">
               <TabsTrigger value="breakfast" className="text-xs">{isRtl ? "إفطار" : "Breakfast"}</TabsTrigger>
               <TabsTrigger value="lunch" className="text-xs">{isRtl ? "غداء" : "Lunch"}</TabsTrigger>
@@ -555,7 +555,7 @@ export default function ClinicalLibraryPage() {
         </div>
       </div>
 
-      <Dialog open={!!deleteTemplateId} onOpenChange={(open) => !open && setDeleteTemplateId(null)}>
+      <Dialog open={!!deleteTemplateId} onOpenChange={(open: boolean) => !open && setDeleteTemplateId(null)}>
         <DialogContent className="sm:max-w-sm text-center" showCloseButton={false}>
           <div className="flex flex-col items-center justify-center space-y-4 pt-4">
             <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-2">

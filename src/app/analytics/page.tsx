@@ -84,7 +84,7 @@ export default function AnalyticsPage() {
   }, []);
 
   const localizedStats = [
-    { title: isRtl ? "إجمالي المرضى بالعيادة" : "Total Clinic Patients", value: `${stats.totalPatients} ${isRtl ? 'مريض' : 'Patients'}`, desc: isRtl ? `نشط: ${stats.activePatients} | غير نشط: ${stats.inactivePatients}` : `Active: ${stats.activePatients} | Inactive: ${stats.inactivePatients}`, icon: Users, color: "text-[#0d8a8a] bg-teal-50 dark:bg-teal-950/20 ring-1 ring-teal-100/50" },
+    { title: isRtl ? "إجمالي المرضى بالعيادة" : "Total Clinic Patients", value: `${stats.totalPatients} ${isRtl ? 'مريض' : 'Patients'}`, desc: isRtl ? `نشط: ${stats.activePatients} | غير نشط: ${stats.inactivePatients}` : `Active: ${stats.activePatients} | Inactive: ${stats.inactivePatients}`, icon: Users, color: "text-[#4F46BA] bg-indigo-50 dark:bg-indigo-950/20 ring-1 ring-indigo-100/50" },
     { title: isRtl ? "الجلسات المنفذة" : "Completed Sessions", value: `${stats.totalSessions} ${isRtl ? 'جلسة' : 'Sessions'}`, desc: isRtl ? "من واقع سجلات العلاج الطبيعي" : "Based on physiotherapy records", icon: Calendar, color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 ring-1 ring-indigo-100/50" },
     { title: isRtl ? "صافي الإيرادات (المدفوعة)" : "Net Revenue (Paid)", value: `${stats.netRevenue.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}`, desc: isRtl ? "جميع المدفوعات نقدية (نقدي)" : "All payments are cash", icon: DollarSign, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 ring-1 ring-emerald-100/50" },
     { title: isRtl ? "معدل رضا المرضى" : "Patient Satisfaction", value: stats.satisfactionRate !== null ? `${stats.satisfactionRate}٪` : "—", desc: isRtl ? "لا توجد تقييمات بعد" : "No reviews yet", icon: stats.satisfactionRate !== null ? TrendingUp : Minus, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/20 ring-1 ring-blue-100/50" },
@@ -95,8 +95,8 @@ export default function AnalyticsPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-          <div className="bg-teal-50 p-2 rounded-xl">
-            <BarChart3 className="w-6 h-6 text-[#0d8a8a]" />
+          <div className="bg-indigo-50 p-2 rounded-xl">
+            <BarChart3 className="w-6 h-6 text-[#4F46BA]" />
           </div>
           {isRtl ? "التحليلات والإحصائيات" : "Analytics & Statistics"}
         </h1>
@@ -129,7 +129,7 @@ export default function AnalyticsPage() {
         <Card className="lg:col-span-1 shadow-sm border-slate-100 rounded-2xl overflow-hidden">
           <CardHeader className="border-b pb-4">
             <CardTitle className="text-base font-bold flex items-center gap-2 text-slate-800 dark:text-white">
-              <Activity className="w-5 h-5 text-[#0d8a8a]" />
+              <Activity className="w-5 h-5 text-[#4F46BA]" />
               {isRtl ? "توزيع مبيعات الباقات" : "Package Sales Distribution"}
             </CardTitle>
           </CardHeader>
@@ -141,7 +141,7 @@ export default function AnalyticsPage() {
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                 <div 
-                  className="bg-[#0d8a8a] h-full rounded-full transition-all duration-500" 
+                  className="bg-[#4F46BA] h-full rounded-full transition-all duration-500" 
                   style={{ width: `${stats.totalPatients > 0 ? (stats.backPackageCount / stats.totalPatients) * 100 : 0}%` }}
                 />
               </div>
@@ -179,7 +179,7 @@ export default function AnalyticsPage() {
         <Card className="lg:col-span-2 shadow-sm border-slate-100 rounded-2xl overflow-hidden">
           <CardHeader className="border-b pb-4">
             <CardTitle className="text-base font-bold flex items-center gap-2 text-slate-800 dark:text-white">
-              <TrendingUp className="w-5 h-5 text-[#0d8a8a]" />
+              <TrendingUp className="w-5 h-5 text-[#4F46BA]" />
               {isRtl ? "مقارنة الإيرادات وحالة الدفع" : "Revenue vs Payment Status Comparison"}
             </CardTitle>
           </CardHeader>
@@ -187,7 +187,7 @@ export default function AnalyticsPage() {
             <div className="flex justify-around items-end h-48 px-4 border-b border-slate-100 pb-4">
               <div className="flex flex-col items-center gap-2 w-1/3 group">
                 <div 
-                  className="bg-[#0d8a8a] rounded-t-xl w-14 group-hover:bg-[#0a6c6c] transition-all duration-500 shadow-md" 
+                  className="bg-[#4F46BA] rounded-t-xl w-14 group-hover:bg-[#4338ca] transition-all duration-500 shadow-md" 
                   style={{ height: `${stats.netRevenue > 0 ? 140 : 10}px` }} 
                 />
                 <span className="text-xs font-bold text-slate-700">{isRtl ? `إيرادات مدفوعة (${stats.netRevenue.toLocaleString()} ج.م)` : `Paid Revenue (${stats.netRevenue.toLocaleString()} EGP)`}</span>

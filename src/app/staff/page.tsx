@@ -530,7 +530,7 @@ export default function StaffPage() {
       </Dialog>
 
       {/* Delete Staff Confirmation Modal */}
-      <Dialog open={deleteStaffEmail !== null} onOpenChange={(open) => !open && setDeleteStaffEmail(null)}>
+      <Dialog open={deleteStaffEmail !== null} onOpenChange={(open: boolean) => !open && setDeleteStaffEmail(null)}>
         <DialogContent className="sm:max-w-sm text-center" showCloseButton={false}>
           <div className="flex flex-col items-center justify-center space-y-4 pt-4">
             <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-2">
