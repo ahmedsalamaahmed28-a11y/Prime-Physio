@@ -71,6 +71,8 @@ function mapStaffRoleToRoleKey(staffRole: string): "admin" | "doctor" | "recepti
   }
 }
 
+let autoProvisionAttempted = false;
+
 async function enrichUserWithClinic(user: User): Promise<User> {
   try {
     // Check if platform super admin
@@ -107,7 +109,8 @@ async function enrichUserWithClinic(user: User): Promise<User> {
 
     // First-time Google signup — auto-provision clinic + staff
     const pendingSignup = await getAppValue<string>("pending_google_signup", "");
-    if (pendingSignup === "true") {
+    if (pendingSignup === "true" && !autoProvisionAttempted) {
+      autoProvisionAttempted = true;
       try {
         const res = await fetch("/api/auth/auto-provision", {
           method: "POST",
@@ -117,14 +120,13 @@ async function enrichUserWithClinic(user: User): Promise<User> {
         if (res.ok) {
           const data = await res.json();
           user.clinicId = data.clinicId;
+          setAppValue("pending_google_signup", "").catch(() => {});
         } else {
           console.warn("[AutoProvision] API returned", res.status, await res.text().catch(() => ""));
         }
       } catch (e) {
         console.warn("[AutoProvision] Network error:", e);
       }
-      // Clear flag regardless — avoids infinite retry loop on failure
-      setAppValue("pending_google_signup", "").catch(() => {});
     }
   } catch {
     // If table doesn't exist yet (pre-migration), just proceed
