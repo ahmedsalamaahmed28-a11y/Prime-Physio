@@ -345,21 +345,33 @@ as $$
   );
 $$;
 
+-- === Helper: get_clinic_id (bypasses RLS to avoid recursion) ===
+create or replace function public.get_clinic_id_for_email(target_email text)
+returns uuid
+language sql
+stable
+security definer
+as $$
+  select clinic_id from public.staff where email = target_email limit 1;
+$$;
+
 -- === Drop all existing policies ===
 do $$ declare tbl text; tables text[] := array['clinic_settings', 'staff', 'patients', 'appointments', 'invoices', 'sessions', 'rom_assessments', 'mmt_assessments', 'gait_tests', 'balance_tests', 'special_tests', 'patient_nutrition', 'audit_logs', 'subscriptions', 'treatment_templates', 'app_key_values', 'clinics', 'platform_admins']; begin foreach tbl in array tables loop execute format('drop policy if exists "service role full access %s" on public.%I', tbl, tbl); execute format('drop policy if exists "platform_admin_bypass" on public.%I', tbl); execute format('drop policy if exists "clinic_access" on public.%I', tbl); end loop; end; $$;
 
 -- === Service role policies (for admin client) ===
-do $$ declare tbl text; tables text[] := array['clinic_settings', 'staff', 'patients', 'appointments', 'invoices', 'sessions', 'rom_assessments', 'mmt_assessments', 'gait_tests', 'balance_tests', 'special_tests', 'patient_nutrition', 'audit_logs', 'subscriptions', 'treatment_templates', 'app_key_values', 'clinics', 'platform_admins', 'auth_accounts']; begin foreach tbl in array tables loop execute format('create policy "service_role_access_%s" on public.%I for all to service_role using (true) with check (true)', tbl, tbl); end loop; end; $$;
+do $$ declare tbl text; tables text[] := array['clinic_settings', 'staff', 'patients', 'appointments', 'invoices', 'sessions', 'rom_assessments', 'mmt_assessments', 'gait_tests', 'balance_tests', 'special_tests', 'patient_nutrition', 'audit_logs', 'subscriptions', 'treatment_templates', 'app_key_values', 'clinics']; begin foreach tbl in array tables loop execute format('create policy "service_role_access_%s" on public.%I for all to service_role using (true) with check (true)', tbl, tbl); end loop; end; $$;
+create policy "service_role_access_platform_admins" on public.platform_admins for all to service_role using (true) with check (true);
+create policy "service_role_access_auth_accounts" on public.auth_accounts for all to service_role using (true) with check (true);
 
 -- === Platform admin bypass policies ===
-do $$ declare tbl text; tables text[] := array['clinic_settings', 'staff', 'patients', 'appointments', 'invoices', 'sessions', 'rom_assessments', 'mmt_assessments', 'gait_tests', 'balance_tests', 'special_tests', 'patient_nutrition', 'audit_logs', 'subscriptions', 'treatment_templates', 'app_key_values', 'clinics', 'platform_admins']; begin foreach tbl in array tables loop execute format('create policy "platform_admin_bypass" on public.%I for all using (public.is_platform_admin() or auth.role() = ''service_role'') with check (public.is_platform_admin() or auth.role() = ''service_role'')', tbl); end loop; end; $$;
+do $$ declare tbl text; tables text[] := array['clinic_settings', 'staff', 'patients', 'appointments', 'invoices', 'sessions', 'rom_assessments', 'mmt_assessments', 'gait_tests', 'balance_tests', 'special_tests', 'patient_nutrition', 'audit_logs', 'subscriptions', 'treatment_templates', 'app_key_values', 'clinics']; begin foreach tbl in array tables loop execute format('create policy "platform_admin_bypass" on public.%I for all using (public.is_platform_admin() or auth.role() = ''service_role'') with check (public.is_platform_admin() or auth.role() = ''service_role'')', tbl); end loop; end; $$;
 
 -- === Clinic-scoped policies ===
-do $$ declare tbl text; tables text[] := array['clinic_settings', 'staff', 'patients', 'appointments', 'invoices', 'sessions', 'rom_assessments', 'mmt_assessments', 'gait_tests', 'balance_tests', 'special_tests', 'patient_nutrition', 'audit_logs', 'subscriptions']; begin foreach tbl in array tables loop execute format('create policy "clinic_access" on public.%I for all using (clinic_id = (select clinic_id from public.staff where email = current_setting(''request.jwt.claims'', true)::json ->> ''email'' limit 1)) with check (clinic_id = (select clinic_id from public.staff where email = current_setting(''request.jwt.claims'', true)::json ->> ''email'' limit 1))', tbl); end loop; end; $$;
+do $$ declare tbl text; tables text[] := array['clinic_settings', 'staff', 'patients', 'appointments', 'invoices', 'sessions', 'rom_assessments', 'mmt_assessments', 'gait_tests', 'balance_tests', 'special_tests', 'patient_nutrition', 'audit_logs', 'subscriptions']; begin foreach tbl in array tables loop execute format('create policy "clinic_access" on public.%I for all using (clinic_id = public.get_clinic_id_for_email(current_setting(''request.jwt.claims'', true)::json ->> ''email'')) with check (clinic_id = public.get_clinic_id_for_email(current_setting(''request.jwt.claims'', true)::json ->> ''email''))', tbl); end loop; end; $$;
 
 -- === Clinics specific policies ===
 create policy "clinic_access" on public.clinics
-  for select using (id = (select clinic_id from public.staff where email = current_setting('request.jwt.claims', true)::json ->> 'email' limit 1));
+  for select using (id = public.get_clinic_id_for_email(current_setting('request.jwt.claims', true)::json ->> 'email'));
 
 -- === Platform admins specific policy ===
 create policy "platform_admin_bypass" on public.platform_admins
