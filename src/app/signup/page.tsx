@@ -42,7 +42,6 @@ export default function SignupPage() {
   const [error, setError] = useState("");
 
   const [otp, setOtp] = useState(["", "", "", ""]);
-  const [devCode, setDevCode] = useState("");
   const otpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
@@ -88,7 +87,6 @@ export default function SignupPage() {
 
       if (data.devCode) {
         setOtp(data.devCode.split("").slice(0, 4));
-        setDevCode(data.devCode);
       }
 
       setIsLoading(false);
@@ -161,7 +159,7 @@ export default function SignupPage() {
         return;
       }
 
-      window.location.href = "/";
+      window.location.href = "/home";
     } catch (err: any) {
       setError(err?.message || (isRtl ? "حدث خطأ" : "An error occurred"));
       setIsLoading(false);
@@ -350,14 +348,6 @@ export default function SignupPage() {
                   {isRtl ? "تم إرسال رمز التحقق إلى بريدك الإلكتروني" : "A verification code has been sent to your email"}
                 </span>
               </div>
-
-              {devCode && (
-                <div className="bg-amber-50 border border-amber-200 text-amber-700 text-xs rounded-lg p-3 text-center">
-                  {isRtl
-                    ? `⚠️ وضع التطوير: رمز التحقق هو ${devCode}`
-                    : `⚠️ Dev mode: verification code is ${devCode}`}
-                </div>
-              )}
 
               <div className="flex items-center justify-center gap-3" dir="ltr">
                 {otp.map((digit, idx) => (
