@@ -108,18 +108,23 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     // First-time Google signup — auto-provision clinic + staff
     const pendingSignup = await getAppValue<string>("pending_google_signup", "");
     if (pendingSignup === "true") {
-      const res = await fetch("/api/auth/auto-provision", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email, name: user.name }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        user.clinicId = data.clinicId;
-        // roleKey remains "admin" (set from pending_role before redirect)
-        // Clear the flag so it only runs once
-        setAppValue("pending_google_signup", "").catch(() => {});
+      try {
+        const res = await fetch("/api/auth/auto-provision", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: user.email, name: user.name }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          user.clinicId = data.clinicId;
+        } else {
+          console.warn("[AutoProvision] API returned", res.status, await res.text().catch(() => ""));
+        }
+      } catch (e) {
+        console.warn("[AutoProvision] Network error:", e);
       }
+      // Clear flag regardless — avoids infinite retry loop on failure
+      setAppValue("pending_google_signup", "").catch(() => {});
     }
   } catch {
     // If table doesn't exist yet (pre-migration), just proceed
