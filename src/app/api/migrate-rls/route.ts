@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { Pool } from "pg";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -12,51 +13,31 @@ export async function GET(request: Request) {
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const ref = supabaseUrl.replace("https://", "").replace(".supabase.co", "");
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
-  const sqlPath = join(process.cwd(), "supabase-full-setup.sql");
+  const pool = new Pool({
+    host: `db.${ref}.supabase.co`,
+    port: 6543,
+    database: "postgres",
+    user: "postgres",
+    password: serviceKey,
+    ssl: { rejectUnauthorized: false },
+    max: 1,
+    connectionTimeoutMillis: 15000,
+  });
+
+  const sqlPath = join(process.cwd(), "supabase-rls-patch.sql");
   const sql = readFileSync(sqlPath, "utf-8");
 
-  // Split SQL into individual statements
-  const statements = sql
-    .split(";")
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0);
-
-  let successCount = 0;
-  let errorCount = 0;
-  const errors: { index: number; message: string }[] = [];
-
-  for (let i = 0; i < statements.length; i++) {
-    try {
-      const res = await fetch(`${supabaseUrl}/sql/v1/sql`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: serviceKey,
-          Authorization: `Bearer ${serviceKey}`,
-        },
-        body: JSON.stringify({ query: statements[i] + ";" }),
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        errors.push({ index: i, message: text.slice(0, 200) });
-        errorCount++;
-      } else {
-        successCount++;
-      }
-    } catch (err: any) {
-      errors.push({ index: i, message: err.message });
-      errorCount++;
-    }
+  const client = await pool.connect();
+  try {
+    await client.query(sql);
+    return NextResponse.json({ success: true, message: "RLS patch applied successfully" });
+  } catch (err: any) {
+    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+  } finally {
+    client.release();
+    await pool.end();
   }
-
-  return NextResponse.json({
-    success: errorCount === 0,
-    total: statements.length,
-    successCount,
-    errorCount,
-    errors: errors.slice(0, 10),
-  });
 }
