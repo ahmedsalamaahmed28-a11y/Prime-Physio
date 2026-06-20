@@ -215,7 +215,7 @@ function LoginContent() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center py-4 gap-3">
             <div className="flex items-center gap-2">
-              <img src="/logo.png" alt="Prime Physio" className="w-8 h-8 object-contain" />
+              <img src="/logo.png" alt="Prime Physio" fetchPriority="high" className="w-8 h-8 object-contain" />
               <span className="text-sm font-bold text-[#4F46BA]">Prime Physio</span>
             </div>
             {!isOnboarding && (
@@ -255,8 +255,7 @@ function LoginContent() {
       )}
       {!isOnboarding && (
       <main className="flex-1 px-4 py-8 sm:py-12">
-        {activeTab === "centers" && (
-          <div className="max-w-6xl mx-auto space-y-8">
+        <div className={activeTab === "centers" ? "max-w-6xl mx-auto space-y-8" : "hidden"}>
             <div className="text-center space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46BA]/10 rounded-full">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#4F46BA]" />
@@ -276,7 +275,7 @@ function LoginContent() {
             </div>
             <div className="bg-white border border-slate-100 rounded-2xl p-6 sm:p-8 max-w-xl mx-auto shadow-sm">
               <div className="flex items-center gap-3 mb-4">
-                <img src="/logo.png" alt="" className="w-8 h-8 object-contain" />
+                <img src="/logo.png" alt="" fetchPriority="high" className="w-8 h-8 object-contain" />
                 <span className="text-sm font-semibold text-[#4F46BA]">Prime Physio</span>
               </div>
               <input
@@ -302,11 +301,9 @@ function LoginContent() {
                 </div>
               </div>
             </div>
-          </div>
-        )}
+        </div>
 
-        {activeTab === "manage" && (
-          <div className="max-w-6xl mx-auto">
+        <div className={activeTab === "manage" ? "max-w-6xl mx-auto" : "hidden"}>
             <div className="flex flex-col lg:flex-row items-start gap-10 lg:gap-16 justify-center">
               <div className="flex-1 max-w-md space-y-4 pt-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46BA]/10 rounded-full">
@@ -461,11 +458,9 @@ function LoginContent() {
                 </div>
               </div>
             </div>
-          </div>
-        )}
+        </div>
 
-        {activeTab === "plans" && (
-          <div className="max-w-4xl mx-auto text-center space-y-6">
+        <div className={activeTab === "plans" ? "max-w-4xl mx-auto text-center space-y-6" : "hidden"}>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46BA]/10 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4F46BA]" />
               <span className="text-[11px] font-medium text-[#4F46BA]">
@@ -500,11 +495,9 @@ function LoginContent() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+        </div>
 
-        {activeTab === "about" && (
-          <div className="max-w-3xl mx-auto text-center space-y-6">
+        <div className={activeTab === "about" ? "max-w-3xl mx-auto text-center space-y-6" : "hidden"}>
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46BA]/10 rounded-full">
               <span className="w-1.5 h-1.5 rounded-full bg-[#4F46BA]" />
               <span className="text-[11px] font-medium text-[#4F46BA]">
@@ -532,11 +525,9 @@ function LoginContent() {
                 </div>
               ))}
             </div>
-          </div>
-        )}
+        </div>
 
-        {activeTab === "support" && (
-          <div className="max-w-3xl mx-auto space-y-6">
+        <div className={activeTab === "support" ? "max-w-3xl mx-auto space-y-6" : "hidden"}>
             <div className="text-center space-y-4">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46BA]/10 rounded-full">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#4F46BA]" />
@@ -591,8 +582,7 @@ function LoginContent() {
                 ))}
               </div>
             </div>
-          </div>
-        )}
+        </div>
 
         {/* Forgot Password Modal */}
         {showForgotModal && (
