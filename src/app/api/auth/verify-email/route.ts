@@ -75,10 +75,9 @@ export async function POST(req: NextRequest) {
     const { error: clinicError } = await admin.from("clinics").insert({
       id: clinicId,
       name: clinicName,
-      email,
+      admin_email: cleanEmail,
       phone: phone || null,
-      is_active: true,
-      created_at: new Date().toISOString(),
+      status: "active",
     });
 
     if (clinicError) {
