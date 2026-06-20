@@ -183,7 +183,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         setAppValue("pending_role", "doctor").catch(() => {});
 
         if (window.location.pathname === "/login" || window.location.pathname === "/signup") {
-          window.location.href = "/";
+          window.location.href = "/home";
         }
       } else if (event === "SIGNED_OUT") {
         setUser(null);
@@ -231,7 +231,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         });
 
         if (window.location.pathname === "/login" || window.location.pathname === "/signup") {
-          window.location.href = "/";
+          window.location.href = "/home";
         }
       };
 
@@ -247,7 +247,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       if (!user && status !== "authenticated" && !isAuthPage) {
         window.location.href = "/login";
       } else if ((user || status === "authenticated") && isAuthPage) {
-        window.location.href = "/";
+        window.location.href = "/home";
       }
     }
   }, [user, pathname, isAuthLoading, status]);
@@ -269,7 +269,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     const enriched = await enrichUserWithClinic(newUser);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-    window.location.href = "/";
+    window.location.href = "/home";
   };
 
   const loginWithCredentials = async (email: string, name: string, role: string) => {
@@ -294,7 +294,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     const enriched = await enrichUserWithClinic(newUser);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-    window.location.href = "/";
+    window.location.href = "/home";
   };
 
   const registerWithSupabase = async (email: string, pass: string, meta: any) => {

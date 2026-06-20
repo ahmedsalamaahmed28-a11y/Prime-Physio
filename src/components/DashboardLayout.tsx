@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+
 import { 
   Home, 
   Calendar, 
@@ -43,6 +44,7 @@ import { usePermissions } from "@/lib/usePermissions";
 import { usePWA } from "@/components/PWAProvider";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { supabase } from "@/lib/supabase";
+import { UserDropdown } from "@/components/UserDropdown";
 
 interface SystemNotification {
   id: string;
@@ -60,7 +62,7 @@ interface SidebarItem {
 }
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
-  { nameKey: "nav_home", href: "/", icon: Home },
+  { nameKey: "nav_home", href: "/home", icon: Home },
   { nameKey: "nav_patients", href: "/patients", icon: Users },
   { nameKey: "nav_billing", href: "/billing", icon: CreditCard },
   { nameKey: "nav_staff", href: "/staff", icon: Stethoscope },
@@ -92,27 +94,23 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout, isLoading, loginWithGoogle, loginWithCredentials } = useAuth();
   const { hasPermission } = usePermissions();
   const { language, toggleLanguage, t } = useLanguage();
   const { isOnline, pendingCount, isSyncing, syncNow } = usePWA();
   const [isOpen, setIsOpen] = useState(false); // Mobile sidebar state
-  const [isProfileOpen, setIsProfileOpen] = useState(false); // Profile dropdown state
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false); // Notifications popover state
   const [notifications, setNotifications] = useState<SystemNotification[]>([]);
   
   const activeAccount = user;
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationsRef = useRef<HTMLDivElement>(null);
 
-  // Close profile dropdown when clicking outside
+  // Close notifications popover when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
-      if (dropdownRef.current && !dropdownRef.current.contains(target)) {
-        setIsProfileOpen(false);
-      }
       if (notificationsRef.current && !notificationsRef.current.contains(target)) {
         setIsNotificationsOpen(false);
       }
@@ -190,7 +188,7 @@ export default function DashboardLayout({
     };
   }, []);
 
-  const isAuthPage = pathname === "/login" || pathname === "/signup";
+    const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password" || pathname === "/reset-password";
 
   if (isAuthPage) {
     return <>{children}</>;
@@ -223,13 +221,12 @@ export default function DashboardLayout({
 
   const isActive = (href: string) => {
     if (!pathname) return false;
-    if (href === "/") return pathname === "/";
+    if (href === "/home") return pathname === "/home";
     return pathname.startsWith(href);
   };
 
   const toggleSidebar = () => setIsOpen(!isOpen);
   const closeSidebar = () => setIsOpen(false);
-  const toggleProfile = () => setIsProfileOpen(prev => !prev);
   const toggleNotifications = () => setIsNotificationsOpen(prev => !prev);
 
   const isRtl = language === "ar";
@@ -237,22 +234,10 @@ export default function DashboardLayout({
   return (
     <div className={`min-h-screen bg-slate-50/50 flex flex-col ${isRtl ? "md:flex-row-reverse" : "md:flex-row"} text-slate-800`} dir={isRtl ? "rtl" : "ltr"}>
       
-      {/* SVG Gradient Definition for Icons (Wrapped in a display: none container) */}
-      <div style={{ display: 'none' }} aria-hidden="true">
-        <svg>
-          <defs>
-            <linearGradient id="tealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#159C9E" />
-              <stop offset="100%" stopColor="#119094" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-      
       {/* ─── DESKTOP SIDEBAR ─────────────────────────────────── */}
       <aside className={`hidden md:flex print:hidden flex-col w-[210px] ${
         isRtl ? "border-l right-0" : "border-r left-0"
-      } border-white/10 bg-gradient-to-b from-[#085454] to-[#0d8a8a] text-white fixed top-0 bottom-0 z-10 pt-8 pb-4 shadow-xl`}>
+      } border-white/10 bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white fixed top-0 bottom-0 z-10 pt-8 pb-4 shadow-xl`}>
         {/* Clinic Brand / Logo in Center */}
         <div className="flex flex-col items-center justify-center mb-5 px-1">
           <img 
@@ -295,7 +280,7 @@ export default function DashboardLayout({
               return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
             }
             if (role === "receptionist") {
-              return ["/", "/patients", "/billing", "/logout"].includes(item.href);
+              return ["/home", "/patients", "/billing", "/logout"].includes(item.href);
             }
             return true;
           }).map((item) => {
@@ -458,7 +443,7 @@ export default function DashboardLayout({
                  <div className={`absolute ${isRtl ? "left-0" : "right-0"} top-11 w-80 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 shadow-2xl z-50 p-4 space-y-3 animate-in fade-in slide-in-from-top-3 duration-200`} dir={isRtl ? "rtl" : "ltr"}>
                    <div className="flex items-center justify-between border-b pb-2">
                      <span className="font-bold text-sm text-slate-800 dark:text-white">{isRtl ? "الإشعارات والتنبيهات" : "Notifications & Alerts"}</span>
-                     <span className="text-[10px] text-teal-600 bg-teal-50 px-2 py-0.5 rounded-full font-bold">{notifications.length} {isRtl ? "جديدة" : "new"}</span>
+                     <span className="text-[10px] text-[#4F46BA] bg-indigo-50 px-2 py-0.5 rounded-full font-bold">{notifications.length} {isRtl ? "جديدة" : "new"}</span>
                    </div>
                    <div className="space-y-2.5 max-h-72 overflow-y-auto">
                      {notifications.length === 0 ? (
@@ -467,7 +452,7 @@ export default function DashboardLayout({
                        </div>
                      ) : notifications.map((item) => (
                        <div key={item.id} className="flex gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100/50 cursor-pointer">
-                         <div className="w-8 h-8 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                          <div className="w-8 h-8 rounded-full bg-indigo-50 text-[#4F46BA] flex items-center justify-center shrink-0">
                            <Bell className="w-4.5 h-4.5" />
                          </div>
                          <div className="flex-1 min-w-0">
@@ -483,7 +468,7 @@ export default function DashboardLayout({
                        onClick={() => {
                          setIsNotificationsOpen(false);
                        }}
-                       className="text-xs font-bold text-[#0d8a8a] hover:text-[#085454] transition-colors"
+                        className="text-xs font-bold text-[#4F46BA] hover:text-[#4338ca] transition-colors"
                      >
                        {isRtl ? "عرض كافة الإشعارات" : "View All Notifications"}
                      </button>
@@ -493,152 +478,37 @@ export default function DashboardLayout({
              </div>
 
             {/* Profile Avatar Trigger */}
-            <div className="relative mr-1" ref={dropdownRef}>
-              <button
-                onClick={toggleProfile}
-                className={`w-9 h-9 rounded-full ${activeAccount.bg} text-white font-bold text-sm flex items-center justify-center cursor-pointer shadow-md hover:scale-105 active:scale-95 transition-transform border border-white/20 p-0 overflow-hidden`}
-              >
-                {activeAccount.image ? (
-                  <img src={activeAccount.image} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  isRtl ? activeAccount.initials : activeAccount.initialsEn
-                )}
-              </button>
-
-              {/* Google-Style Dropdown Menu */}
-              {isProfileOpen && (
-                <div 
-                  className={`absolute ${isRtl ? "left-0" : "right-0"} top-11 w-80 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 shadow-2xl z-50 p-4 space-y-4 animate-in fade-in slide-in-from-top-3 duration-200`}
-                  dir={isRtl ? "rtl" : "ltr"}
-                >
-                  {/* Platform Header */}
-                  <div className="text-center pb-2 border-b">
-                    <div className="text-sm font-extrabold text-[#0d8a8a] tracking-wider mb-1">Prime Physio</div>
-                    <p className="text-[10px] text-muted-foreground">{isRtl ? "حساب إدارة المركز الطبي" : "Medical Center Management"}</p>
-                  </div>
-
-                  {/* Section 1: Current Account */}
-                  <div className="space-y-2.5">
-                    {activeAccount && (
-                      <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-150">
-                        <div className={`w-8 h-8 rounded-full ${activeAccount.bg} text-white text-xs font-bold flex items-center justify-center overflow-hidden`}>
-                          {activeAccount.image ? (
-                            <img src={activeAccount.image} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            isRtl ? activeAccount.initials : (activeAccount.initialsEn || activeAccount.initials)
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-xs font-bold text-slate-800 truncate ${isRtl ? "text-right" : "text-left"} ${isRtl ? "" : "font-sans"}`}>{isRtl ? activeAccount.name : (activeAccount.nameEn || activeAccount.name)}</p>
-                          <p className={`text-[10px] text-muted-foreground truncate ${isRtl ? "text-right" : "text-left"} ${isRtl ? "" : "font-sans"}`}>{activeAccount.email}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  <hr className="border-slate-100" />
-
-                  {/* Section 2: Management Links */}
-                  <div className="space-y-1">
-                    {[
-                      { label: t("profile"), href: "/profile", icon: User },
-                      { label: t("nav_analytics"), href: "/analytics", icon: BarChart3, adminOnly: true },
-                      { label: t("nav_clinic_settings"), href: "/clinic-settings", icon: Building, adminOnly: true },
-                      { label: isRtl ? "إدارة المستخدمين والصلاحيات" : "Permissions & Users", href: "/users-permissions", icon: Shield, adminOnly: true },
-                      { label: t("nav_billing"), href: "/billing", icon: CreditCard, staffOnly: true },
-                      { label: isRtl ? "الأمان" : "Security & Signin", href: "/security", icon: Lock },
-                    ].filter((link) => {
-                      const role = activeAccount?.roleKey || "doctor";
-                      if (role === "admin") return true;
-                      if (link.adminOnly) return false;
-                      if (link.staffOnly && role === "doctor") return false;
-                      return true;
-                    }).map((link) => {
-                      const Icon = link.icon;
-                      return (
-                        <Link key={link.href} href={link.href} onClick={() => setIsProfileOpen(false)}>
-                          <div className={`flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700 hover:text-slate-900 transition-colors border border-transparent hover:border-slate-100 ${
-                            isRtl ? "" : "flex-row-reverse"
-                          }`}>
-                            <div className={`flex items-center gap-2 ${isRtl ? "" : "flex-row-reverse"}`}>
-                              <Icon className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                              <span className="text-xs font-medium">{link.label}</span>
-                            </div>
-                            <ChevronLeft className={`w-3.5 h-3.5 text-slate-300 ${isRtl ? "" : "rotate-180"}`} />
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
-
-                  {/* Platform Admin section */}
-                  {activeAccount?.roleKey === "platform_admin" && (
-                    <>
-                      <hr className="border-slate-100" />
-                      <div className="space-y-1">
-                        <div className="text-[10px] font-bold text-slate-400 px-1">{isRtl ? "إدارة المنصة" : "Platform"}</div>
-                        {[
-                          { label: isRtl ? "لوحة التحكم" : "Admin Panel", href: "/admin", icon: ShieldAlert },
-                        ].map((link) => {
-                          const Icon = link.icon;
-                          return (
-                            <Link key={link.href} href={link.href} onClick={() => setIsProfileOpen(false)}>
-                              <div className={`flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 cursor-pointer text-slate-700 hover:text-slate-900 transition-colors border border-transparent hover:border-slate-100 ${
-                                isRtl ? "" : "flex-row-reverse"
-                              }`}>
-                                <div className={`flex items-center gap-2 ${isRtl ? "" : "flex-row-reverse"}`}>
-                                  <Icon className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                                  <span className="text-xs font-medium">{link.label}</span>
-                                </div>
-                                <ChevronLeft className={`w-3.5 h-3.5 text-slate-300 ${isRtl ? "" : "rotate-180"}`} />
-                              </div>
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
-
-                  <hr className="border-slate-100" />
-
-                  {/* Section 3: Staff Management */}
-                  {activeAccount?.roleKey === "admin" && (
-                    <div className="space-y-2">
-                      <div className="text-[10px] font-bold text-slate-400 px-1">{isRtl ? "طاقم العمل" : "Staff"}</div>
-                      <div className="flex gap-2">
-                        <Link href="/staff#doctors" className="flex-1" onClick={() => setIsProfileOpen(false)}>
-                          <Button variant="outline" size="sm" className={`w-full text-xs gap-1.5 h-9 rounded-lg border-slate-200 hover:bg-slate-50 ${isRtl ? "" : "flex-row-reverse"}`}>
-                            <Stethoscope className="w-3.5 h-3.5 text-slate-500" />
-                            {isRtl ? "الأطباء" : "Doctors"}
-                          </Button>
-                        </Link>
-                        <Link href="/staff#employees" className="flex-1" onClick={() => setIsProfileOpen(false)}>
-                          <Button variant="outline" size="sm" className={`w-full text-xs gap-1.5 h-9 rounded-lg border-slate-200 hover:bg-slate-50 ${isRtl ? "" : "flex-row-reverse"}`}>
-                            <Users className="w-3.5 h-3.5 text-slate-500" />
-                            {isRtl ? "الموظفون" : "Staff"}
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Logout Button */}
-                  <div className="pt-2 border-t flex justify-start">
-                    <Button 
-                      onClick={() => {
-                        setIsProfileOpen(false);
-                        logout();
-                      }}
-                      variant="ghost" 
-                      size="sm" 
-                      className={`text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-50 gap-1.5 h-8 rounded-lg px-2 ${isRtl ? "" : "flex-row-reverse"}`}
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                      {t("nav_logout")}
-                    </Button>
-                  </div>
-                </div>
-              )}
+            <div className="relative mr-1">
+              <UserDropdown
+                user={{
+                  name: isRtl ? activeAccount.name : (activeAccount.nameEn || activeAccount.name),
+                  username: activeAccount.email,
+                  avatar: activeAccount.image,
+                  initials: isRtl ? activeAccount.initials : (activeAccount.initialsEn || activeAccount.initials),
+                  status: "online",
+                }}
+                onAction={(action) => {
+                  switch (action) {
+                    case "profile":
+                      router.push("/profile");
+                      break;
+                    case "settings":
+                      router.push("/clinic-settings");
+                      break;
+                    case "notifications":
+                      toggleNotifications();
+                      break;
+                    case "upgrade":
+                      router.push("/subscription");
+                      break;
+                    case "logout":
+                      logout();
+                      break;
+                    default:
+                      break;
+                  }
+                }}
+              />
             </div>
         </div>
       </header>
@@ -650,7 +520,7 @@ export default function DashboardLayout({
             <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" onClick={closeSidebar} />
 
             {/* Drawer content */}
-            <div className={`relative flex-1 flex flex-col max-w-xs w-full bg-gradient-to-b from-[#085454] to-[#0d8a8a] border-white/10 h-full pt-8 pb-4 shadow-2xl duration-200 pr-0 text-white ${
+            <div className={`relative flex-1 flex flex-col max-w-xs w-full bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] border-white/10 h-full pt-8 pb-4 shadow-2xl duration-200 pr-0 text-white ${
               isRtl ? "border-l mr-auto animate-in slide-in-from-right" : "border-r ml-auto animate-in slide-in-from-left"
             }`}>
               <div className={`flex items-center justify-between px-3 mb-5 ${isRtl ? "" : "flex-row-reverse"}`}>
@@ -694,7 +564,7 @@ export default function DashboardLayout({
                     return !["/billing", "/staff", "/analytics", "/clinic-settings"].includes(item.href);
                   }
                   if (role === "receptionist") {
-                    return ["/", "/messages", "/patients", "/billing", "/logout"].includes(item.href);
+                    return ["/home", "/patients", "/billing", "/logout"].includes(item.href);
                   }
                   return true;
                 }).map((item) => {
@@ -758,7 +628,3 @@ export default function DashboardLayout({
     </div>
   );
 }
-
-
-
-
