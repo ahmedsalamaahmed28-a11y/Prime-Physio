@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
   try {
     const { email, code, clinicName, phone, password, role } = await req.json();
 
-    if (!email || !code || !clinicName || !phone || !password || !role) {
+    if (!email || !code || !clinicName || phone === undefined || !password || !role) {
       return NextResponse.json({ error: "جميع الحقول مطلوبة" }, { status: 400 });
     }
 
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest) {
       id: clinicId,
       name: clinicName,
       email,
-      phone,
+      phone: phone || null,
       is_active: true,
       created_at: new Date().toISOString(),
     });
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
       clinic_id: clinicId,
       name: clinicName,
       email,
-      phone,
+      phone: phone || null,
       role: roleKey,
       status: "نشط",
     });
