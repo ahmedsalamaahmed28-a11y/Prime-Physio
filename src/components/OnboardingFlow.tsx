@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 interface OnboardingFlowProps {
   step: "plan" | "clinic" | "done";
   setStep: (s: "plan" | "clinic" | "done") => void;
-  clinicId?: string;
+  clinicId?: string | null;
   isRtl: boolean;
 }
 
