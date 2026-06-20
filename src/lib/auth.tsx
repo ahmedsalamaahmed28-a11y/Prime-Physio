@@ -130,7 +130,6 @@ async function enrichUserWithClinic(user: User): Promise<User> {
 function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [adminError, setAdminError] = useState(false);
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
@@ -202,26 +201,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       const loadRoleState = async () => {
         const currentUser = session.user!;
         const email = currentUser.email || "";
-        const pendingRole = (await getAppValue<string>("pending_role", "doctor")) || "doctor";
-        const existingAdmin = await getAppValue<string>("admin_email", "");
-        const finalRoleKey = pendingRole as "admin" | "doctor" | "receptionist";
-
-        if (pendingRole === "admin") {
-          if (existingAdmin && existingAdmin !== email) {
-            setAdminError(true);
-            signOut({ redirect: false }).then(() => {
-              setAppValue("current_user", null).catch(() => {});
-            });
-            return;
-          }
-          if (!existingAdmin) {
-            setAppValue("admin_email", email).catch(() => {});
-          }
-        } else if (existingAdmin === email) {
-          setAdminError(true);
-          signOut({ redirect: false });
-          return;
-        }
+        const finalRoleKey = ((await getAppValue<string>("pending_role", "doctor")) || "doctor") as "admin" | "doctor" | "receptionist" | "platform_admin";
 
         const name = currentUser.name || email.split("@")[0];
         const initials = name.substring(0, 2).toUpperCase();
@@ -379,32 +359,6 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   return (
     <AuthContext.Provider value={{ user, loginWithGoogle, loginWithCredentials, registerWithSupabase, loginWithSupabase, logout, isLoading: isAuthLoading }}>
       {children}
-      {adminError && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-2xl shadow-2xl p-6 max-w-sm w-full text-center space-y-4 border border-rose-100 animate-in zoom-in-95 duration-200" dir="rtl">
-            <div className="w-14 h-14 bg-rose-50 rounded-full flex items-center justify-center mx-auto border border-rose-100">
-              <svg className="w-7 h-7 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            <div>
-              <h3 className="text-lg font-bold text-slate-800">تم رفض الوصول</h3>
-              <p className="text-sm text-slate-500 mt-1 leading-relaxed">
-                تم تسجيل دخول مدير للنظام من قبل. النظام يقبل مديراً واحداً فقط للحفاظ على أمان وسرية العيادة.
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                setAdminError(false);
-                window.location.href = "/login";
-              }}
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-2.5 rounded-xl transition-all shadow-md active:scale-95"
-            >
-              العودة للصفحة السابقة
-            </button>
-          </div>
-        </div>
-      )}
     </AuthContext.Provider>
   );
 }

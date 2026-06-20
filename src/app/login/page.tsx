@@ -197,7 +197,7 @@ function LoginContent() {
     }
 
     setIsLoading(false);
-    window.location.href = "/home";
+    window.location.href = "/";
   };
 
   const handleGoogleLogin = async () => {
