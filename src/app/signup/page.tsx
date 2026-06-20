@@ -161,7 +161,7 @@ export default function SignupPage() {
         return;
       }
 
-      window.location.href = "/home";
+      window.location.href = "/";
     } catch (err: any) {
       setError(err?.message || (isRtl ? "حدث خطأ" : "An error occurred"));
       setIsLoading(false);
