@@ -44,8 +44,8 @@ export async function POST(req: NextRequest) {
       id: clinicId,
       name: clinicName,
       phone,
-      email,
-      is_active: true,
+      admin_email: email,
+      status: true,
       created_at: new Date().toISOString(),
     });
 
