@@ -17,10 +17,10 @@ export async function GET(request: Request) {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 
   const pool = new Pool({
-    host: `db.${ref}.supabase.co`,
+    host: `aws-0-us-east-1.pooler.supabase.com`,
     port: 6543,
     database: "postgres",
-    user: "postgres",
+    user: `postgres.${ref}`,
     password: serviceKey,
     ssl: { rejectUnauthorized: false },
     max: 1,
