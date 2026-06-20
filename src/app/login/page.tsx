@@ -205,7 +205,18 @@ function LoginContent() {
     setIsLoading(true);
     await setAppValue("pending_role", "admin");
     await setAppValue("pending_google_signup", "true");
-    signIn("google", { callbackUrl: "/" });
+    try {
+      const result = await signIn("google", { callbackUrl: "/", redirect: false });
+      if (result?.error) {
+        setError(isRtl ? "فشل الاتصال بخدمة Google. تأكد من إعدادات الحساب." : "Failed to connect to Google. Check account configuration.");
+        setIsLoading(false);
+      } else if (result?.url) {
+        window.location.href = result.url;
+      }
+    } catch (e) {
+      setError(isRtl ? "حدث خطأ أثناء الاتصال بخدمة Google" : "An error occurred while connecting to Google");
+      setIsLoading(false);
+    }
   };
 
   return (
