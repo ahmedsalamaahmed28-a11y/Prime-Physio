@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (authError || !authRecord) {
-      return NextResponse.json({ error: "فشل إنشاء الحساب" }, { status: 500 });
+      return NextResponse.json({ error: "فشل إنشاء الحساب", details: authError?.message }, { status: 500 });
     }
 
     const userId = authRecord.id;
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
 
     if (clinicError) {
       try { await admin.from("auth_accounts").delete().eq("id", userId); } catch {}
-      return NextResponse.json({ error: "فشل إنشاء العيادة" }, { status: 500 });
+      return NextResponse.json({ error: "فشل إنشاء العيادة", details: clinicError.message }, { status: 500 });
     }
 
     // Create staff record
