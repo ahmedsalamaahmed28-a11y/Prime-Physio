@@ -45,8 +45,7 @@ export async function POST(req: NextRequest) {
       name: clinicName,
       phone,
       admin_email: email,
-      status: true,
-      created_at: new Date().toISOString(),
+      status: "active",
     });
 
     if (clinicError) {
