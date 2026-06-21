@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
 
     const admin = getAdminClient();
 
-    // Check if already provisioned
+    // Check if already provisioned (staff record exists)
     const { data: existing, error: lookupErr } = await admin
       .from("staff")
       .select("clinic_id")
@@ -24,21 +24,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ clinicId: existing.clinic_id });
     }
 
-    // Create clinic
-    const clinicId = crypto.randomUUID();
+    // Check if a clinic already exists for this email (from a previous partial attempt)
+    let clinicId = crypto.randomUUID();
     const clinicName = name || email.split("@")[0];
-    const { error: clinicError } = await admin.from("clinics").insert({
-      id: clinicId, name: clinicName, admin_email: email, status: "active",
-    });
-    if (clinicError) {
-      console.error("[AutoProvision] Clinic insert error:", clinicError.message);
-      return NextResponse.json({ error: clinicError.message }, { status: 500 });
+    const { data: existingClinic } = await admin
+      .from("clinics")
+      .select("id")
+      .eq("admin_email", email.toLowerCase().trim())
+      .maybeSingle();
+    if (existingClinic?.id) {
+      clinicId = existingClinic.id;
+    } else {
+      const { error: clinicError } = await admin.from("clinics").insert({
+        id: clinicId, name: clinicName, admin_email: email, status: "active",
+      });
+      if (clinicError) {
+        console.error("[AutoProvision] Clinic insert error:", clinicError.message);
+        return NextResponse.json({ error: clinicError.message }, { status: 500 });
+      }
     }
 
-    // Create staff record (admin)
-    const { error: staffError } = await admin.from("staff").insert({
+    // Create or update staff record (admin)
+    const { error: staffError } = await admin.from("staff").upsert({
       clinic_id: clinicId, name: clinicName, email, role: "admin", status: "نشط",
-    });
+    }, { onConflict: "email" });
     if (staffError) {
       try { await admin.from("clinics").delete().eq("id", clinicId); } catch {}
       console.error("[AutoProvision] Staff insert error:", staffError.message);

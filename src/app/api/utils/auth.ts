@@ -5,6 +5,7 @@ import { getAdminClient } from "@/lib/supabase";
 export interface AuthUser {
   email: string;
   userId?: string;
+  clinicId?: string;
 }
 
 function mapStaffRoleToRoleKey(role: string): "admin" | "doctor" | "receptionist" {
@@ -61,7 +62,7 @@ export async function requireRole(
 
   const { data: staff } = await admin
     .from("staff")
-    .select("role")
+    .select("role, clinic_id")
     .eq("email", authed.email)
     .maybeSingle();
 
@@ -75,5 +76,5 @@ export async function requireRole(
     throw new Error("غير مصرح — صلاحية غير كافية");
   }
 
-  return { ...authed, roleKey };
+  return { ...authed, roleKey, clinicId: staff.clinic_id };
 }

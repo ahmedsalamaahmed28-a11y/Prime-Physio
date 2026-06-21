@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -11,7 +12,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils"
-import { Icon } from "@iconify/react";
+import { Icon } from "@iconify/react"
+import { useLanguage } from "@/lib/LanguageContext";
 
 const MENU_ITEMS = {
   profile: [
@@ -29,7 +31,8 @@ const MENU_ITEMS = {
     },
   ],
   account: [
-    { icon: "solar:logout-2-bold-duotone", label: "Log out", action: "logout" }
+    { icon: "solar:logout-2-bold-duotone", label: "Log out", action: "logout" },
+    { icon: "solar:trash-bin-minimalistic-line-duotone", label: "Delete Account", action: "delete_account" }
   ]
 };
 
@@ -56,11 +59,21 @@ export const UserDropdown = ({
   onAction = () => {},
   promoDiscount = "20% off",
 }: UserDropdownProps) => {
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const { language } = useLanguage();
+  
   const renderMenuItem = (item: any, index: number) => (
     <DropdownMenuItem 
       key={index}
       className={cn(item.badge ? "justify-between" : "", "p-2 rounded-lg cursor-pointer")}
-      onClick={() => onAction(item.action)}
+      onClick={() => {
+        if (item.action === "delete_account") {
+          setShowDeleteConfirmation(true);
+        } else {
+          onAction(item.action);
+        }
+      }}
     >
       <span className="flex items-center gap-1.5 font-medium">
         <Icon
@@ -120,6 +133,67 @@ export const UserDropdown = ({
           </DropdownMenuGroup>
         </section>
       </DropdownMenuContent>
+      
+      {/* Delete Account Confirmation Dialog */}
+      {showDeleteConfirmation && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-6 max-w-md mx-4 shadow-2xl">
+          <h3 className="text-lg font-bold mb-2">
+            {language === "ar" ? "تأكيد حذف الحساب" : "Confirm Account Deletion"}
+          </h3>
+          <p className="text-sm text-gray-600 mb-4">
+            {language === "ar" 
+              ? "هل أنت متأكد من أنك تريد حذف حسابك؟ هذا الإجراء لا يمكن التراجع عنه. سيتم حذف جميع بياناتك، بما في ذلك المرضى والمواعيد والفواتير وغيرها."
+              : "Are you sure you want to delete your account? This action cannot be undone. All your data, including patients, appointments, invoices, and more, will be permanently deleted."
+            }
+          </p>
+          <div className="flex gap-3 justify-end">
+            <button
+              onClick={() => setShowDeleteConfirmation(false)}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              disabled={isDeleting}
+            >
+              {language === "ar" ? "إلغاء" : "Cancel"}
+            </button>
+            <button
+              onClick={async () => {
+                if (isDeleting) return;
+                
+                setIsDeleting(true);
+                
+                try {
+                  const response = await fetch("/api/account/delete", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                  });
+                  
+                  if (response.ok) {
+                    // Redirect to login page or show success message
+                    window.location.href = "/login?deleted=true";
+                  } else {
+                    const error = await response.json();
+                    alert(language === "ar" ? `فشل حذف الحساب: ${error.error}` : `Failed to delete account: ${error.error}`);
+                  }
+                } catch (error) {
+                  console.error("Error deleting account:", error);
+                  alert(language === "ar" ? "حدث خطأ أثناء محاولة حذف الحساب" : "An error occurred while trying to delete your account");
+                } finally {
+                  setIsDeleting(false);
+                  setShowDeleteConfirmation(false);
+                }
+              }}
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              disabled={isDeleting}
+            >
+              {isDeleting
+                ? (language === "ar" ? "جارِ الحذف..." : "Deleting...")
+                : (language === "ar" ? "حذف الحساب" : "Delete Account")
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
     </DropdownMenu>
   );
 };

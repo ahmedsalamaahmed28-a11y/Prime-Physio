@@ -40,7 +40,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
-type TabType = "profile" | "clinic" | "verification" | "security";
+type TabType = "profile" | "clinic" | "verification" | "security" | "delete_account";
 
 export default function ProfileSettingsPage() {
   const [activeTab, setActiveTab] = useState<TabType>("profile");
@@ -344,6 +344,7 @@ export default function ProfileSettingsPage() {
             { id: "clinic", label: isRtl ? "العيادة" : "Clinic Settings" },
             { id: "verification", label: isRtl ? "مركز التحقق" : "Verification Center" },
             { id: "security", label: isRtl ? "الأمان" : "Security" },
+            { id: "delete_account", label: isRtl ? "حذف الحساب" : "Delete Account" },
           ].map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -935,6 +936,51 @@ export default function ProfileSettingsPage() {
                   <p className="text-[10px] text-slate-400 mt-1 font-mono">{isRtl ? "النشط حالياً" : "Currently Active"}</p>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── Tab Content: DELETE ACCOUNT ──────────────────────────────── */}
+        {activeTab === "delete_account" && (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+            <h2 className="text-lg font-bold text-red-800 mb-2">
+              {isRtl ? "حذف الحساب" : "Delete Account"}
+            </h2>
+            <p className="text-sm text-red-700 mb-4">
+              {isRtl
+                ? "حذف حسابك سيؤدي إلى إزالة جميع بياناتك بشكل دائم. لا يمكن التراجع عن هذا الإجراء."
+                : "Deleting your account will permanently remove all your data. This action cannot be undone."
+              }
+            </p>
+            
+            <div className="bg-white rounded-xl p-4 mb-4">
+              <h3 className="text-sm font-semibold mb-2">
+                {isRtl ? "سيتم حذف:" : "Will be deleted:"}
+              </h3>
+              <ul className="text-xs text-gray-600 space-y-1">
+                <li>• {isRtl ? "جميع بيانات العيادة" : "All clinic data"}</li>
+                <li>• {isRtl ? "سجلات المرضى" : "Patient records"}</li>
+                <li>• {isRtl ? "المواعيد والجلسات" : "Appointments and sessions"}</li>
+                <li>• {isRtl ? "الفواتير والمدفوعات" : "Invoices and payments"}</li>
+                <li>• {isRtl ? "إعدادات العيادة" : "Clinic settings"}</li>
+                <li>• {isRtl ? "سجلات الموظفين" : "Staff records"}</li>
+                <li>• {isRtl ? "الحساب الشخصي" : "Personal account"}</li>
+              </ul>
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={() => setActiveTab("profile")}
+                className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+              >
+                {isRtl ? "تأكيد حذف الحساب" : "Confirm Account Deletion"}
+              </button>
+              <button
+                onClick={() => setActiveTab("profile")}
+                className="px-4 py-2 bg-gray-100 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                {isRtl ? "العودة" : "Cancel"}
+              </button>
             </div>
           </div>
         )}

@@ -2,97 +2,139 @@
 
 import React, { useState } from "react";
 import {
-  Zap, Shield, Crown, Users, UserCheck, Building,
-  Calendar, Mail, Phone, Sparkles, CheckCircle2,
-  X, Star, Check, TrendingUp, Clock, CreditCard,
-  Loader2, AlertCircle, BookOpen,
+  Briefcase, Database, Server, CheckCheck, Crown, Star,
+  CreditCard, Loader2, AlertCircle, X, Check, TrendingUp, Clock,
+  Users, UserCheck, Calendar, BookOpen,
 } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { motion } from "motion/react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { useRef } from "react";
 
 const ALL_FEATURES = (isRtl: boolean) => [
   {
     label: isRtl ? "المرضى (سجلات طبية)" : "Patients (EHR)",
     limits: { basic: isRtl ? "50" : "50", silver: isRtl ? "200" : "200", gold: isRtl ? "∞" : "∞" },
     included: { basic: true, silver: true, gold: true },
+    icon: <Users size={20} />,
   },
   {
     label: isRtl ? "الجلسات الشهرية" : "Monthly Sessions",
     limits: { basic: isRtl ? "100" : "100", silver: isRtl ? "500" : "500", gold: isRtl ? "∞" : "∞" },
     included: { basic: true, silver: true, gold: true },
+    icon: <Calendar size={20} />,
   },
   {
     label: isRtl ? "حسابات الأخصائيين" : "Therapist Accounts",
     limits: { basic: isRtl ? "20" : "20", silver: isRtl ? "50" : "50", gold: isRtl ? "∞" : "∞" },
     included: { basic: true, silver: true, gold: true },
+    icon: <UserCheck size={20} />,
   },
   {
     label: isRtl ? "إدارة المواعيد" : "Appointment Management",
     limits: { basic: null, silver: null, gold: null },
     included: { basic: true, silver: true, gold: true },
+    icon: <Briefcase size={20} />,
   },
   {
     label: isRtl ? "التقارير والتحليلات" : "Reports & Analytics",
     limits: { basic: null, silver: null, gold: null },
     included: { basic: false, silver: true, gold: true },
+    icon: <Server size={20} />,
   },
   {
     label: isRtl ? "التغذية العلاجية" : "Clinical Nutrition",
     limits: { basic: null, silver: null, gold: null },
     included: { basic: false, silver: true, gold: true },
+    icon: <Database size={20} />,
   },
   {
     label: isRtl ? "المكتبة العلاجية" : "Rehab Library",
     limits: { basic: null, silver: null, gold: null },
     included: { basic: false, silver: false, gold: true },
+    icon: <BookOpen size={20} />,
   },
   {
     label: isRtl ? "رسائل التذكير (SMS/WA)" : "Reminders (SMS/WA)",
     limits: { basic: null, silver: null, gold: null },
     included: { basic: false, silver: false, gold: true },
+    icon: <Clock size={20} />,
   },
   {
     label: isRtl ? "الدعم الفني" : "Support",
     limits: { basic: isRtl ? "بريد إلكتروني" : "Email", silver: isRtl ? "هاتفي سريع" : "Phone", gold: isRtl ? "VIP 24/7" : "VIP 24/7" },
     included: { basic: true, silver: true, gold: true },
+    icon: <Crown size={20} />,
   },
   {
     label: isRtl ? "فروع العيادة" : "Clinic Branches",
     limits: { basic: isRtl ? "1" : "1", silver: isRtl ? "1" : "1", gold: isRtl ? "2" : "2" },
     included: { basic: true, silver: true, gold: true },
+    icon: <BuildingIcon size={20} />,
   },
 ];
+
+function BuildingIcon(props: { size?: number }) {
+  return (
+    <svg width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+      <path d="M9 22v-4h6v4" />
+      <path d="M8 6h.01" />
+      <path d="M16 6h.01" />
+      <path d="M12 6h.01" />
+      <path d="M12 10h.01" />
+      <path d="M12 14h.01" />
+      <path d="M16 10h.01" />
+      <path d="M16 14h.01" />
+      <path d="M8 10h.01" />
+      <path d="M8 14h.01" />
+    </svg>
+  );
+}
 
 const getPlans = (isRtl: boolean) => {
   const allFeatures = ALL_FEATURES(isRtl);
   return [
     {
-      id: "basic", name: isRtl ? "الأساسية" : "Basic", nameEn: "STARTER", price: 500,
-      subtitle: isRtl ? "للعيادات الصغيرة والناشئة" : "For small & startup clinics",
-      icon: Zap, gradient: "from-slate-400 to-slate-500",
-      ringColor: "ring-slate-300", glow: "shadow-slate-100",
-      isCurrent: false, badge: isRtl ? "أساسي" : "Essential",
-      badgeStyle: "bg-slate-100 text-slate-600 border-slate-200",
-      features: allFeatures.map((f) => ({ ...f, included: f.included.basic, limit: f.limits.basic })),
+      id: "basic", name: isRtl ? "الأساسية" : "Starter", price: 500,
+      description: isRtl ? "مثالية للعيادات الصغيرة والناشئة" : "Great for small businesses and startups",
+      buttonText: isRtl ? "ابدأ الآن" : "Get started",
+      popular: false,
+      features: allFeatures.filter((f) => f.included.basic).map((f) => ({ text: `${f.label} (${f.limits.basic})`, icon: f.icon })),
+      includes: [
+        isRtl ? "تشمل:": "Free includes:",
+        isRtl ? "إدارة المواعيد" : "Appointment Management",
+        isRtl ? "دعم عبر البريد الإلكتروني" : "Email Support",
+        isRtl ? "فرع واحد" : "1 Branch",
+      ],
     },
     {
-      id: "silver", name: isRtl ? "الفضية" : "Silver", nameEn: "PROFESSIONAL", price: 1000,
-      subtitle: isRtl ? "للعيادات المتوسطة والنشطة" : "For growing active clinics",
-      icon: Shield, gradient: "from-cyan-500 to-blue-600",
-      ringColor: "ring-cyan-400", glow: "shadow-cyan-100",
-      isCurrent: false, badge: isRtl ? "الأكثر طلباً" : "Most Popular",
-      badgeStyle: "bg-cyan-100 text-cyan-700 border-cyan-200",
-      features: allFeatures.map((f) => ({ ...f, included: f.included.silver, limit: f.limits.silver })),
+      id: "silver", name: isRtl ? "الأعمال" : "Business", price: 1000,
+      description: isRtl ? "قيمة ممتازة للعيادات المتوسطة والنشطة" : "Best value for growing clinics",
+      buttonText: isRtl ? "ابدأ الآن" : "Get started",
+      popular: true,
+      features: allFeatures.filter((f) => f.included.silver).map((f) => ({ text: `${f.label}${f.limits.silver ? ` (${f.limits.silver})` : ""}`, icon: f.icon })),
+      includes: [
+        isRtl ? "كل ما في الأساسية +:" : "Everything in Starter, plus:",
+        isRtl ? "التقارير والتحليلات" : "Reports & Analytics",
+        isRtl ? "التغذية العلاجية" : "Clinical Nutrition",
+        isRtl ? "دعم هاتفي" : "Phone Support",
+      ],
     },
     {
-      id: "gold", name: isRtl ? "الذهبية" : "Gold", nameEn: "ENTERPRISE", price: 1500,
-      subtitle: isRtl ? "للمراكز الطبية الكبرى والسلاسل" : "For large clinics & chains",
-      icon: Crown, gradient: "from-[#FF8C00] via-[#FFC300] to-[#FFF082]",
-      ringColor: "ring-amber-400", glow: "shadow-amber-100",
-      isCurrent: false, badge: isRtl ? "كامل" : "Full",
-      badgeStyle: "bg-amber-100 text-amber-700 border-amber-200",
-      features: allFeatures.map((f) => ({ ...f, included: f.included.gold, limit: f.limits.gold })),
+      id: "gold", name: isRtl ? "المؤسسات" : "Enterprise", price: 1500,
+      description: isRtl ? "خطة متقدمة مع أمان معزز وصول غير محدود" : "Advanced plan with enhanced security",
+      buttonText: isRtl ? "ابدأ الآن" : "Get started",
+      popular: false,
+      features: allFeatures.filter((f) => f.included.gold).map((f) => ({ text: `${f.label}${f.limits.gold ? ` (${f.limits.gold})` : ""}`, icon: f.icon })),
+      includes: [
+        isRtl ? "كل ما في الأعمال +:" : "Everything in Business, plus:",
+        isRtl ? "المكتبة العلاجية" : "Rehab Library",
+        isRtl ? "رسائل التذكير (SMS/WA)" : "Reminders (SMS/WA)",
+        isRtl ? "دعم VIP 24/7" : "VIP 24/7 Support",
+      ],
     },
   ];
 };
@@ -110,12 +152,70 @@ const getCompareRows = (isRtl: boolean) => [
   { label: isRtl ? "مستوى الدعم الفني" : "Support Level",      values: [isRtl ? "Email/تذاكر" : "Email/Tickets", isRtl ? "هاتف/سريع" : "Phone/Fast", isRtl ? "VIP 24/7" : "VIP 24/7"] },
 ];
 
+const PricingSwitch = ({ onSwitch, isRtl }: { onSwitch: (value: string) => void; isRtl: boolean }) => {
+  const [selected, setSelected] = useState("0");
+
+  const handleSwitch = (value: string) => {
+    setSelected(value);
+    onSwitch(value);
+  };
+
+  return (
+    <div className="flex justify-center">
+      <div className="relative z-50 mx-auto flex w-fit rounded-full bg-neutral-50 border border-gray-200 p-1">
+        <button
+          onClick={() => handleSwitch("0")}
+          className={`relative z-10 w-fit sm:h-12 h-10 rounded-full sm:px-6 px-3 sm:py-2 py-1 font-medium transition-colors ${
+            selected === "0"
+              ? "text-white"
+              : "text-muted-foreground hover:text-black"
+          }`}
+        >
+          {selected === "0" && (
+            <motion.span
+              layoutId={"switch"}
+              className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-blue-600 border-blue-600 bg-gradient-to-t from-blue-500 via-blue-400 to-blue-600"
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            />
+          )}
+          <span className="relative">{isRtl ? "شهري" : "Monthly"}</span>
+        </button>
+
+        <button
+          onClick={() => handleSwitch("1")}
+          className={`relative z-10 w-fit sm:h-12 h-10 flex-shrink-0 rounded-full sm:px-6 px-3 sm:py-2 py-1 font-medium transition-colors ${
+            selected === "1"
+              ? "text-white"
+              : "text-muted-foreground hover:text-black"
+          }`}
+          disabled
+        >
+          {selected === "1" && (
+            <motion.span
+              layoutId={"switch"}
+              className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-blue-600 border-blue-600 bg-gradient-to-t from-blue-500 via-blue-400 to-blue-600"
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            />
+          )}
+          <span className="relative flex items-center gap-2 opacity-50 cursor-not-allowed">
+            {isRtl ? "سنوي" : "Yearly"}
+            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-black">
+              {isRtl ? "وفّر 20%" : "Save 20%"}
+            </span>
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+};
+
 export default function SubscriptionPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { user } = useAuth();
   const clinicId = user?.clinicId;
-  
+  const pricingRef = useRef<HTMLDivElement>(null);
+
   const [activePlanId, setActivePlanId] = useState("basic");
   const [patientCount, setPatientCount] = useState(0);
   const [sessionCount, setSessionCount] = useState(0);
@@ -178,12 +278,11 @@ export default function SubscriptionPage() {
     ...p,
     isCurrent: p.id === activePlanId
   }));
-  
+
   const COMPARE_ROWS = getCompareRows(isRtl);
 
   const [showCompare, setShowCompare] = useState(false);
 
-  // ── Payment State ────────────────────────────────────────────────────────
   const [payingPlan, setPayingPlan]             = useState<string | null>(null);
   const [isLoading, setIsLoading]               = useState(false);
   const [payError, setPayError]                 = useState("");
@@ -191,7 +290,6 @@ export default function SubscriptionPage() {
   const [showBillingModal, setShowBillingModal] = useState(false);
   const [showIframeModal, setShowIframeModal]   = useState(false);
 
-  // Billing form
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName]   = useState("");
   const [email, setEmail]         = useState("");
@@ -246,39 +344,193 @@ export default function SubscriptionPage() {
 
   const selectedPlan = PLANS.find((p) => p.id === payingPlan);
 
-  return (
-    <div className="space-y-8 animate-in fade-in duration-300" dir={isRtl ? "rtl" : "ltr"}>
+  const revealVariants = {
+    visible: (i: number) => ({
+      y: 0,
+      opacity: 1,
+      filter: "blur(0px)",
+      transition: {
+        delay: i * 0.4,
+        duration: 0.5,
+      },
+    }),
+    hidden: {
+      filter: "blur(10px)",
+      y: -20,
+      opacity: 0,
+    },
+  };
 
-      {/* ── Page Header ─────────────────────────────────────────────────── */}
-      <div className={`flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 ${isRtl ? "" : "flex-row-reverse"}`}>
-        <div>
-          <h1 className={`text-2xl font-extrabold text-slate-800 flex items-center gap-2 ${isRtl ? "" : "flex-row-reverse"}`}>
-            <Crown className="w-6 h-6 text-amber-500" />
-            {isRtl ? "خطط الاشتراك" : "Subscription Plans"}
-          </h1>
-          <p className="text-sm text-slate-500 mt-1">{isRtl ? "اختر الخطة المناسبة لحجم عيادتك واحتياجاتك" : "Choose the right plan for your clinic's size and needs"}</p>
-        </div>
-        <div className={`flex items-center gap-2 bg-[#0d8a8a]/8 border border-[#0d8a8a]/20 rounded-2xl px-4 py-2.5 ${isRtl ? "" : "flex-row-reverse"}`}>
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <div className={isRtl ? "text-right" : "text-left"}>
-            <p className="text-[10px] text-slate-500 font-medium">{isRtl ? "خطتك الحالية" : "Current Plan"}</p>
-            <p className="text-sm font-extrabold text-slate-800">
-              {PLANS.find(p => p.isCurrent)?.name || "Basic"} — {PLANS.find(p => p.isCurrent)?.price} {isRtl ? "ج.م / شهر" : "EGP / month"}
-            </p>
-          </div>
-          <span className={`text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold px-2 py-0.5 rounded-full ${isRtl ? "mr-2" : "ml-2"}`}>{isRtl ? "✓ نشطة" : "✓ Active"}</span>
-        </div>
+  const togglePricingPeriod = (value: string) => {};
+
+  return (
+    <div className="px-4 pt-20 min-h-screen mx-auto relative bg-neutral-100" ref={pricingRef} dir={isRtl ? "rtl" : "ltr"}>
+      <div
+        className="absolute top-0 left-[10%] right-[10%] w-[80%] h-full z-0 pointer-events-none"
+        style={{
+          backgroundImage: `
+        radial-gradient(circle at center, #206ce8 0%, transparent 70%)
+      `,
+          opacity: 0.6,
+          mixBlendMode: "multiply",
+        }}
+      />
+
+      <div className="text-center mb-6 max-w-3xl mx-auto relative z-10">
+        <motion.h2
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={revealVariants}
+          custom={0}
+          className="md:text-6xl sm:text-4xl text-3xl font-medium text-gray-900 mb-4"
+        >
+          {isRtl ? "خطط تناسب احتياجات " : "Plans that works best for your "}
+          <motion.span
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={revealVariants}
+            custom={1}
+            className="border border-dashed border-blue-500 px-2 py-1 rounded-xl bg-blue-100 capitalize inline-block"
+          >
+            {isRtl ? "عيادتك" : "business"}
+          </motion.span>
+        </motion.h2>
+
+        <motion.p
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={revealVariants}
+          custom={2}
+          className="sm:text-base text-sm text-gray-600 sm:w-[70%] w-[80%] mx-auto"
+        >
+          {isRtl
+            ? "موثوق من قبل آلاف العيادات حول العالم، نساعدك على اختيار الخطة المناسبة لاحتياجاتك"
+            : "Trusted by millions, We help teams all around the world, Explore which option is right for you."}
+        </motion.p>
       </div>
 
-      {/* ── Usage Bar ───────────────────────────────────────────────────── */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
-        <h3 className={`text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-4 flex items-center gap-2 ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
-          <TrendingUp className="w-4 h-4 text-[#0d8a8a]" />
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={revealVariants}
+        custom={3}
+        className="relative z-10"
+      >
+        <PricingSwitch onSwitch={togglePricingPeriod} isRtl={isRtl} />
+      </motion.div>
+
+      <div className="grid md:grid-cols-3 max-w-7xl gap-4 py-6 mx-auto relative z-10">
+        {PLANS.map((plan, index) => (
+          <motion.div
+            key={plan.id}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={revealVariants}
+            custom={4 + index}
+          >
+            <Card
+              className={`relative border-neutral-200 ${
+                plan.popular ? "ring-2 ring-blue-500 bg-blue-50" : "bg-white"
+              } ${plan.isCurrent ? "ring-2 ring-emerald-500" : ""}`}
+            >
+              <CardHeader className="text-left">
+                <div className={`flex ${isRtl ? "" : "justify-between"}`}>
+                  <h3 className="text-3xl font-semibold text-gray-900 mb-2">
+                    {plan.name}
+                  </h3>
+                  {plan.popular && (
+                    <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                      {isRtl ? "الأكثر طلباً" : "Popular"}
+                    </span>
+                  )}
+                  {plan.isCurrent && !plan.popular && (
+                    <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
+                      {isRtl ? "حالياً" : "Current"}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
+                <div className={`flex items-baseline ${isRtl ? "" : ""}`}>
+                  <span className="text-gray-900 ml-1">{isRtl ? "ج.م" : "EGP"}</span>
+                  <span className="text-4xl font-semibold text-gray-900">
+                    {plan.price.toLocaleString()}
+                  </span>
+                  <span className="text-gray-600 mr-1">
+                    /{isRtl ? "شهر" : "month"}
+                  </span>
+                </div>
+              </CardHeader>
+
+              <CardContent className="pt-0">
+                {plan.isCurrent ? (
+                  <div className="w-full mb-6 p-4 text-xl rounded-xl text-center bg-emerald-50 border border-emerald-300 text-emerald-700 font-bold flex items-center justify-center gap-2">
+                    <Check className="w-5 h-5" />
+                    {isRtl ? "خطتك الحالية" : "Current Plan"}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleUpgrade(plan.id)}
+                    className={`w-full mb-6 p-4 text-xl rounded-xl ${
+                      plan.popular
+                        ? "bg-gradient-to-t from-blue-500 to-blue-600 shadow-lg shadow-blue-500 border border-blue-400 text-white"
+                        : "bg-gradient-to-t from-neutral-900 to-neutral-600 shadow-lg shadow-neutral-900 border border-neutral-700 text-white"
+                    }`}
+                  >
+                    {isRtl ? "اشتراك " : "Subscribe "}{plan.name}
+                  </button>
+                )}
+                <ul className="space-y-2 font-semibold py-5">
+                  {plan.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className={`flex items-center ${isRtl ? "" : ""}`}>
+                      <span className={`text-neutral-800 grid place-content-center mt-0.5 ${isRtl ? "ml-3" : "mr-3"}`}>
+                        {feature.icon}
+                      </span>
+                      <span className="text-sm text-gray-600">{feature.text}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <div className="space-y-3 pt-4 border-t border-neutral-200">
+                  <h4 className="font-medium text-base text-gray-900 mb-3">
+                    {plan.includes[0]}
+                  </h4>
+                  <ul className="space-y-2 font-semibold">
+                    {plan.includes.slice(1).map((feature, featureIndex) => (
+                      <li key={featureIndex} className={`flex items-center ${isRtl ? "" : ""}`}>
+                        <span className={`h-6 w-6 bg-green-50 border border-blue-500 rounded-full grid place-content-center mt-0.5 ${isRtl ? "ml-3" : "mr-3"}`}>
+                          <CheckCheck className="h-4 w-4 text-blue-500" />
+                        </span>
+                        <span className="text-sm text-gray-600">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={revealVariants}
+        custom={7}
+        className="max-w-7xl mx-auto relative z-10 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs mb-6"
+      >
+        <h3 className={`text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-6 flex items-center gap-2 ${isRtl ? "" : ""}`}>
+          <TrendingUp className="w-4 h-4 text-blue-600" />
           {isRtl ? "استهلاك الخطة الحالية" : "Current Plan Usage"}
         </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-          <div className="space-y-1.5">
-            <div className={`flex justify-between text-xs ${isRtl ? "" : "flex-row-reverse"}`}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <div className={`flex justify-between text-xs ${isRtl ? "" : ""}`}>
               <span className="text-slate-600 font-medium">{isRtl ? "المرضى المسجلين" : "Registered Patients"}</span>
               {planLimits.patients === -1 ? (
                 <span className="font-mono font-bold text-slate-800">{patientCount.toLocaleString()} / ∞</span>
@@ -286,11 +538,11 @@ export default function SubscriptionPage() {
                 <span className="font-mono font-bold text-slate-800">{patientCount} / {planLimits.patients.toLocaleString()}</span>
               )}
             </div>
-            <div className={`bg-slate-100 rounded-full h-2.5 overflow-hidden ${isRtl ? "" : "transform rotate-180"}`}>
+            <div className="bg-slate-100 rounded-full h-2.5 overflow-hidden">
               {planLimits.patients === -1 ? (
-                <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: "100%" }} />
+                <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-full rounded-full" style={{ width: "100%" }} />
               ) : (
-                <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: `${Math.min(100, (patientCount / planLimits.patients) * 100)}%` }} />
+                <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-full rounded-full" style={{ width: `${Math.min(100, (patientCount / planLimits.patients) * 100)}%` }} />
               )}
             </div>
             <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>
@@ -298,13 +550,14 @@ export default function SubscriptionPage() {
                 ? (isRtl ? "مرضى غير محدودين" : "Unlimited patients")
                 : (planLimits.patients - patientCount > 0
                   ? (isRtl
-                    ? `${(planLimits.patients - patientCount).toLocaleString()} مريض متبقي قبل الوصول للحد الأقصى`
-                    : `${(planLimits.patients - patientCount).toLocaleString()} patients left before reaching the limit`)
-                  : (isRtl ? "تم الوصول للحد الأقصى من المرضى" : "Maximum patient limit reached"))}
+                    ? `${(planLimits.patients - patientCount).toLocaleString()} مريض متبقي`
+                    : `${(planLimits.patients - patientCount).toLocaleString()} patients left`)
+                  : (isRtl ? "تم الوصول للحد الأقصى" : "Limit reached"))}
             </p>
           </div>
-          <div className="space-y-1.5">
-            <div className={`flex justify-between text-xs ${isRtl ? "" : "flex-row-reverse"}`}>
+
+          <div className="space-y-2">
+            <div className={`flex justify-between text-xs ${isRtl ? "" : ""}`}>
               <span className="text-slate-600 font-medium">{isRtl ? "الجلسات هذا الشهر" : "Sessions this Month"}</span>
               {planLimits.sessions === -1 ? (
                 <span className="font-mono font-bold text-slate-800">{sessionCount.toLocaleString()} / ∞</span>
@@ -312,11 +565,11 @@ export default function SubscriptionPage() {
                 <span className="font-mono font-bold text-slate-800">{sessionCount.toLocaleString()} / {planLimits.sessions.toLocaleString()}</span>
               )}
             </div>
-            <div className={`bg-slate-100 rounded-full h-2.5 overflow-hidden ${isRtl ? "" : "transform rotate-180"}`}>
+            <div className="bg-slate-100 rounded-full h-2.5 overflow-hidden">
               {planLimits.sessions === -1 ? (
-                <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: "100%" }} />
+                <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-full rounded-full" style={{ width: "100%" }} />
               ) : (
-                <div className="bg-gradient-to-r from-slate-500 to-slate-700 h-full rounded-full" style={{ width: `${Math.min(100, (sessionCount / planLimits.sessions) * 100)}%` }} />
+                <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-full rounded-full" style={{ width: `${Math.min(100, (sessionCount / planLimits.sessions) * 100)}%` }} />
               )}
             </div>
             <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>
@@ -324,202 +577,70 @@ export default function SubscriptionPage() {
                 ? (isRtl ? "جلسات غير محدودة" : "Unlimited sessions")
                 : (planLimits.sessions - sessionCount > 0
                   ? (isRtl
-                    ? `${(planLimits.sessions - sessionCount).toLocaleString()} جلسة متبقية هذا الشهر`
-                    : `${(planLimits.sessions - sessionCount).toLocaleString()} sessions left this month`)
-                  : (isRtl ? "تم الوصول للحد الأقصى من الجلسات" : "Maximum session limit reached"))}
+                    ? `${(planLimits.sessions - sessionCount).toLocaleString()} جلسة متبقية`
+                    : `${(planLimits.sessions - sessionCount).toLocaleString()} sessions left`)
+                  : (isRtl ? "تم الوصول للحد الأقصى" : "Limit reached"))}
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* ── Plans Grid ──────────────────────────────────────────────────── */}
-      <div>
-        <div className={`flex items-center gap-2 mb-6 ${isRtl ? "flex-row-reverse" : ""}`}>
-          <div className="h-px flex-1 bg-slate-200" />
-          <h2 className={`text-sm font-extrabold text-slate-700 ${isRtl ? "text-right" : "text-left"}`}>{isRtl ? "اختر خطة اشتراك" : "Choose a Subscription Plan"}</h2>
-          <div className="h-px flex-1 bg-slate-200" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-start">
-          {PLANS.map((plan) => {
-            const PlanIcon = plan.icon;
-            const isSilver = plan.id === "silver";
-            const isGold = plan.id === "gold";
-
-            return (
-              <div
-                key={plan.id}
-                className={`relative rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-1.5
-                  ${isGold
-                    ? "bg-gradient-to-b from-slate-900 to-slate-950 border border-amber-500/30 shadow-[0_0_50px_-12px_rgba(245,158,11,0.35)] ring-1 ring-amber-500/10"
-                    : isSilver
-                    ? "bg-white border-2 border-cyan-400 shadow-2xl shadow-cyan-900/10 z-10 md:scale-[1.04]"
-                    : "bg-white border border-slate-300 shadow-sm opacity-85 hover:opacity-100"
-                  }
-                  ${plan.isCurrent ? "ring-2 ring-[#0d8a8a]" : ""}
-                `}
-              >
-                {isSilver && (
-                  <div className="absolute -top-px left-1/2 -translate-x-1/2 z-20">
-                    <div className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-[10px] font-extrabold px-5 py-1.5 rounded-b-xl shadow-lg flex items-center gap-1.5 tracking-wider">
-                      <Star className="w-3 h-3 fill-current" />
-                      {plan.badge}
-                      <Star className="w-3 h-3 fill-current" />
-                    </div>
-                  </div>
-                )}
-
-                {isGold && (
-                  <div className="absolute -top-px left-1/2 -translate-x-1/2 z-20">
-                    <div className="bg-gradient-to-r from-[#FF8C00] via-[#FFC300] to-[#FFF082] text-white text-[10px] font-extrabold px-5 py-1.5 rounded-b-xl shadow-lg flex items-center gap-1.5 tracking-wider">
-                      <Crown className="w-3 h-3" />
-                      {plan.badge}
-                    </div>
-                  </div>
-                )}
-
-                {/* Card body */}
-                <div className={`p-6 md:p-7 space-y-5 ${isGold ? "" : "pt-8"}`}>
-                  {/* Icon + Name row */}
-                  <div className={`flex items-center gap-3 ${isRtl ? "" : "flex-row-reverse justify-between"}`}>
-                    <div className={`${isGold ? "w-14 h-14 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/20" : isSilver ? "w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 shadow-md" : "w-10 h-10 rounded-lg bg-gradient-to-br from-slate-400 to-slate-500"} flex items-center justify-center`}>
-                      <PlanIcon className={`${isGold ? "w-7 h-7" : isSilver ? "w-6 h-6" : "w-5 h-5"} text-white`} />
-                    </div>
-                    <div className={isRtl ? "text-right" : "text-left"}>
-                      <p className={`text-[9px] font-bold tracking-[0.15em] uppercase ${isGold ? "text-amber-400/70" : isSilver ? "text-cyan-600" : "text-slate-400"}`}>
-                        {plan.nameEn}
-                      </p>
-                      <h3 className={`font-black ${isGold ? "text-white text-xl" : isSilver ? "text-slate-800 text-lg" : "text-slate-600 text-base"}`}>
-                        {plan.name}
-                      </h3>
-                      {plan.subtitle && (
-                        <p className={`text-[10px] mt-0.5 ${isGold ? "text-slate-500" : isSilver ? "text-slate-400" : "text-slate-400"}`}>
-                          {plan.subtitle}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Price strip */}
-                  <div className={`py-4 ${isGold ? "border-y border-amber-500/10" : "border-y border-slate-100"}`}>
-                    <div className={`flex items-end gap-1.5 ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
-                      <span className={`font-black ${isGold ? "text-5xl text-white" : isSilver ? "text-4xl text-slate-800" : "text-3xl text-slate-600"}`}>
-                        {plan.price.toLocaleString()}
-                      </span>
-                      <div className={`mb-1 ${isRtl ? "text-right" : "text-left"}`}>
-                        <span className={`text-xs font-bold block ${isGold ? "text-amber-300" : isSilver ? "text-cyan-600" : "text-slate-500"}`}>{isRtl ? "ج.م" : "EGP"}</span>
-                        <span className={`text-[9px] ${isGold ? "text-slate-500" : "text-slate-400"}`}>{isRtl ? "/ شهرياً" : "/ month"}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Features — unified list per plan */}
-                  <ul className="space-y-2.5">
-                    {plan.features.map((f) => {
-                      const isIncluded = f.included;
-                      if (isIncluded) {
-                        return (
-                          <li key={f.label} className={`flex items-center gap-2.5 text-sm ${isRtl ? "" : "flex-row-reverse justify-end"} ${isGold ? "text-slate-200 font-medium" : isSilver ? "text-slate-700 font-medium" : "text-slate-500"}`}>
-                            <div className={`shrink-0 flex items-center justify-center ${isGold ? "w-5 h-5 rounded-full bg-amber-500/20" : isSilver ? "w-5 h-5 rounded-full bg-cyan-100" : "w-4 h-4 rounded-full bg-slate-100"}`}>
-                              <CheckCircle2 className={`${isGold ? "w-3.5 h-3.5 text-amber-400" : isSilver ? "w-3.5 h-3.5 text-cyan-600" : "w-3 h-3 text-slate-400"}`} />
-                            </div>
-                            <span className="flex items-center gap-1">
-                              {f.label}
-                              {f.limit && <span className={`text-[10px] ${isGold ? "text-amber-400/80" : isSilver ? "text-cyan-500" : "text-slate-400"}`}>({f.limit})</span>}
-                            </span>
-                          </li>
-                        );
-                      }
-                      return (
-                        <li key={f.label} className={`flex items-center gap-2.5 text-xs ${isRtl ? "" : "flex-row-reverse justify-end"} ${isGold ? "text-slate-500" : isSilver ? "text-slate-300" : "text-slate-300"}`}>
-                          <div className="shrink-0 w-4 h-4 rounded-full bg-slate-100/50 flex items-center justify-center">
-                            <X className="w-3 h-3 text-slate-300" />
-                          </div>
-                          <span className="line-through">{f.label}</span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-
-                  {/* Divider before CTA */}
-                  <div className={`pt-2 ${isGold ? "border-t border-amber-500/10" : "border-t border-slate-100"}`}>
-                    {plan.isCurrent ? (
-                      <div className={`w-full text-center py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2
-                        ${isGold
-                          ? "text-amber-400 bg-amber-400/10 border border-amber-400/20"
-                          : "text-[#0d8a8a] bg-[#0d8a8a]/10 border border-[#0d8a8a]/20"}`}
-                      >
-                        <Check className="w-4 h-4" />
-                        {isRtl ? "خطتك الحالية" : "Current Plan"}
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleUpgrade(plan.id)}
-                        className={`w-full py-3 rounded-xl text-sm font-bold transition-all active:scale-[0.97] flex items-center justify-center gap-2
-                          ${isGold
-                            ? "bg-gradient-to-b from-[#FF8C00] via-[#FFC300] to-[#FFF082] text-white shadow-lg shadow-orange-500/25 hover:shadow-xl hover:shadow-orange-500/30"
-                            : isSilver
-                            ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20 hover:shadow-xl hover:shadow-cyan-500/30"
-                            : "bg-gradient-to-r from-slate-500 to-slate-600 text-white shadow hover:shadow-md"
-                          }
-                        `}
-                      >
-                        <CreditCard className="w-4 h-4" />
-                        {isRtl ? `اشتراك ${plan.name}` : `Subscribe ${plan.name}`}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-      {/* ── Compare Toggle ───────────────────────────────────────────────── */}
-      <div className="text-center">
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={revealVariants}
+        custom={8}
+        className="text-center max-w-7xl mx-auto relative z-10 mb-6"
+      >
         <button
           onClick={() => setShowCompare((v) => !v)}
-          className={`inline-flex items-center gap-2 text-slate-500 hover:text-[#0d8a8a] border border-slate-200 hover:border-[#0d8a8a]/30 rounded-full px-6 py-2 text-xs font-bold transition-all ${isRtl ? "" : "flex-row-reverse"}`}
+          className={`inline-flex items-center gap-2 text-slate-500 hover:text-blue-600 border border-slate-200 hover:border-blue-300 rounded-full px-6 py-2 text-xs font-bold transition-all ${isRtl ? "" : ""}`}
         >
-          {showCompare ? (isRtl ? "إخفاء جدول المقارنة" : "Hide Comparison Table") : (isRtl ? "مقارنة الخطط بالتفصيل" : "Compare Plans in Detail")}
+          {showCompare ? (isRtl ? "إخفاء الجدول" : "Hide Comparison") : (isRtl ? "مقارنة تفصيلية" : "Compare All Plans")}
         </button>
-      </div>
+      </motion.div>
 
-      {/* ── Comparison Table ─────────────────────────────────────────────── */}
       {showCompare && (
-        <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={revealVariants}
+          custom={9}
+          className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-lg max-w-7xl mx-auto relative z-10 mb-6"
+        >
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className={`p-4 text-slate-500 text-xs font-bold w-1/4 ${isRtl ? "text-right" : "text-left"}`}>{isRtl ? "الميزة" : "Feature"}</th>
-                  {PLANS.map((plan) => {
-                    const Icon = plan.icon;
-                    return (
-                      <th key={plan.id} className="p-4 text-center">
-                        <div className="flex flex-col items-center gap-1">
-                          <div className={`w-7 h-7 rounded-lg bg-gradient-to-br ${plan.gradient} flex items-center justify-center`}>
-                            <Icon className="w-3.5 h-3.5 text-white" />
-                          </div>
-                          <span className="text-xs font-extrabold text-slate-700">{isRtl ? `الخطة ${plan.name}` : `${plan.name} Plan`}</span>
-                          <span className={`text-[10px] font-bold bg-gradient-to-r ${plan.gradient} bg-clip-text text-transparent`}>
-                            {plan.price.toLocaleString()} {isRtl ? "ج.م" : "EGP"}
-                          </span>
-                        </div>
-                      </th>
-                    );
-                  })}
+                  <th className={`p-4 text-slate-500 text-xs font-bold w-1/4 ${isRtl ? "text-right" : "text-left"}`}>
+                    {isRtl ? "الميزة" : "Feature"}
+                  </th>
+                  {PLANS.map((plan) => (
+                    <th key={plan.id} className="p-4 text-center">
+                      <div className="flex flex-col items-center gap-1">
+                        <span className="text-xs font-extrabold text-slate-700">{plan.name}</span>
+                        <span className="text-[10px] font-bold text-blue-600">
+                          {plan.price.toLocaleString()} {isRtl ? "ج.م" : "EGP"}
+                        </span>
+                      </div>
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
                 {COMPARE_ROWS.map((row, i) => (
                   <tr key={row.label} className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors ${i % 2 === 0 ? "bg-white" : "bg-slate-50/30"}`}>
-                    <td className={`p-4 text-slate-600 text-xs font-medium ${isRtl ? "text-right" : "text-left"}`}>{row.label}</td>
+                    <td className={`p-4 text-slate-600 text-xs font-medium ${isRtl ? "text-right" : "text-left"}`}>
+                      {row.label}
+                    </td>
                     {row.values.map((val, vi) => (
                       <td key={vi} className="p-4 text-center">
                         {typeof val === "boolean" ? (
                           <div className="flex justify-center">
                             {val ? (
-                              <div className={`w-5 h-5 rounded-full bg-gradient-to-br ${PLANS[vi].gradient} flex items-center justify-center`}>
+                              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
                                 <Check className="w-3 h-3 text-white" />
                               </div>
                             ) : (
@@ -529,7 +650,7 @@ export default function SubscriptionPage() {
                             )}
                           </div>
                         ) : (
-                          <span className={`text-xs font-bold bg-gradient-to-r ${PLANS[vi].gradient} bg-clip-text text-transparent`}>
+                          <span className="text-xs font-bold text-blue-600">
                             {val}
                           </span>
                         )}
@@ -540,31 +661,36 @@ export default function SubscriptionPage() {
               </tbody>
             </table>
           </div>
-        </div>
+        </motion.div>
       )}
 
-      {/* ── Renewal Info ─────────────────────────────────────────────────── */}
-      <div className={`flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-4 ${isRtl ? "" : "flex-row-reverse justify-end text-left"}`}>
-        <Clock className="w-5 h-5 text-slate-400 shrink-0" />
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={revealVariants}
+        custom={10}
+        className={`flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-2xl p-4 max-w-7xl mx-auto relative z-10 mb-6 ${isRtl ? "" : ""}`}
+      >
+        <Clock className="w-5 h-5 text-blue-500 shrink-0" />
         <div>
-          <p className="text-xs font-bold text-slate-700">{isRtl ? "التجديد التلقائي" : "Auto-Renewal"}</p>
-          <p className="text-[11px] text-slate-500 mt-0.5">
-            {isRtl ? "تتجدد خطتك الحالية تلقائياً في" : "Your current plan will auto-renew on"}{" "}
-            <span className="font-bold text-slate-700">{isRtl ? "1 يوليو 2026" : "July 1, 2026"}</span>.{" "}
-            {isRtl ? "يمكنك إلغاء أو تغيير الخطة في أي وقت قبل موعد التجديد." : "You can cancel or change your plan at any time before the renewal date."}
+          <p className="text-xs font-bold text-blue-900">{isRtl ? "التجديد التلقائي" : "Auto-Renewal"}</p>
+          <p className="text-[11px] text-blue-700 mt-0.5">
+            {isRtl ? "تتجدد خطتك تلقائياً في" : "Your current plan will auto-renew on"}{" "}
+            <span className="font-bold">{isRtl ? "1 يوليو 2026" : "July 1, 2026"}</span>.{" "}
+            {isRtl ? "يمكنك إلغاء أو تغيير الخطة في أي وقت." : "You can cancel or change anytime."}
           </p>
         </div>
-      </div>
+      </motion.div>
 
-      {/* ══ Billing Form Modal ═══════════════════════════════════════════════ */}
       {showBillingModal && selectedPlan && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
-            <div className={`h-1.5 w-full bg-gradient-to-r ${selectedPlan.gradient}`} />
+            <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 to-blue-600" />
             <div className="p-6 space-y-5">
               <div className="flex items-center justify-between">
-                <div className={`flex items-center gap-3 ${isRtl ? "" : "flex-row-reverse"}`}>
-                  <div className={`w-9 h-9 rounded-xl bg-gradient-to-br ${selectedPlan.gradient} flex items-center justify-center`}>
+                <div className={`flex items-center gap-3 ${isRtl ? "" : ""}`}>
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
                     <CreditCard className="w-4 h-4 text-white" />
                   </div>
                   <div className={isRtl ? "text-right" : "text-left"}>
@@ -593,7 +719,7 @@ export default function SubscriptionPage() {
                     <input
                       required value={firstName} onChange={(e) => setFirstName(e.target.value)}
                       placeholder={isRtl ? "محمد" : "John"}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#0d8a8a] transition-colors"
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-600 transition-colors"
                     />
                   </div>
                   <div className="space-y-1">
@@ -601,7 +727,7 @@ export default function SubscriptionPage() {
                     <input
                       required value={lastName} onChange={(e) => setLastName(e.target.value)}
                       placeholder={isRtl ? "أحمد" : "Doe"}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#0d8a8a] transition-colors"
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-600 transition-colors"
                     />
                   </div>
                 </div>
@@ -610,7 +736,7 @@ export default function SubscriptionPage() {
                   <input
                     required type="email" value={email} onChange={(e) => setEmail(e.target.value)}
                     placeholder="clinic@example.com" dir="ltr"
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#0d8a8a] transition-colors text-left"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-600 transition-colors text-left"
                   />
                 </div>
                 <div className="space-y-1">
@@ -618,21 +744,21 @@ export default function SubscriptionPage() {
                   <input
                     required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
                     placeholder="+201000000000" dir="ltr"
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#0d8a8a] transition-colors text-left font-mono"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-600 transition-colors text-left font-mono"
                   />
                 </div>
                 <p className={`text-[10px] text-slate-400 ${isRtl ? "" : "text-left"}`}>
-                  {isRtl ? "🔒 دفعك محمي بتشفير TLS 1.3 عبر Paymob — لا نحتفظ ببيانات بطاقتك" : "🔒 Your payment is secured by TLS 1.3 via Paymob — We do not store your card data"}
+                  🔒 {isRtl ? "دفعك محمي بتشفير TLS 1.3 عبر Paymob" : "Your payment is secured by TLS 1.3 via Paymob"}
                 </p>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className={`w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r ${selectedPlan.gradient} hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-all`}
+                  className="w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-all"
                 >
                   {isLoading ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> {isRtl ? "جاري إعداد الدفع..." : "Preparing Payment..."}</>
+                    <><Loader2 className="w-4 h-4 animate-spin" /> {isRtl ? "جاري الإعداد..." : "Preparing..."}</>
                   ) : (
-                    <><CreditCard className="w-4 h-4" /> {isRtl ? "إتمام الدفع عبر Paymob" : "Complete Payment via Paymob"}</>
+                    <><CreditCard className="w-4 h-4" /> {isRtl ? "إتمام الدفع" : "Complete Payment"}</>
                   )}
                 </button>
               </form>
@@ -641,14 +767,13 @@ export default function SubscriptionPage() {
         </div>
       )}
 
-      {/* ══ Paymob iFrame Modal ══════════════════════════════════════════════ */}
       {showIframeModal && iframeUrl && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden">
             <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-sm font-bold text-slate-700">دفع آمن عبر Paymob</span>
+                <span className="text-sm font-bold text-slate-700">{isRtl ? "دفع آمن عبر Paymob" : "Secure Payment"}</span>
               </div>
               <button
                 onClick={() => { setShowIframeModal(false); setIframeUrl(""); }}
@@ -666,7 +791,6 @@ export default function SubscriptionPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }

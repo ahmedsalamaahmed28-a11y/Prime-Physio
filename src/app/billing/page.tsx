@@ -22,27 +22,29 @@ import { Label } from "@/components/ui/label";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
+const PURPLE_COLOR = "text-purple-600 bg-purple-50 dark:bg-purple-950/20";
+
 const BILLING_STATS = [
   {
     title: "مبيعات الباقات النشطة",
     value: "24,800 ج.م",
     description: "دخل مبيعات 18 باقة حالية",
     icon: TrendingUp,
-    color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20",
+    color: PURPLE_COLOR,
   },
   {
     title: "مبالغ مستحقة (غير مدفوعة)",
     value: "1,600 ج.م",
     description: "4 فواتير قيد الانتظار",
     icon: DollarSign,
-    color: "text-amber-600 bg-amber-50 dark:bg-amber-950/20",
+    color: PURPLE_COLOR,
   },
   {
     title: "جلسات باقات مستهلكة",
     value: "108 جلسة",
     description: "من أصل 180 جلسة إجمالية",
     icon: CreditCard,
-    color: "text-blue-600 bg-blue-50 dark:bg-blue-950/20",
+    color: PURPLE_COLOR,
   },
 ];
 
@@ -304,21 +306,21 @@ export default function BillingPage() {
       value: `${paidSales.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}`,
       description: isRtl ? `دخل مبيعات ${invoices.filter((inv) => inv.status === "مدفوع").length} باقة حالية` : `Sales income of ${invoices.filter((inv) => inv.status === "مدفوع").length} active packages`,
       icon: TrendingUp,
-      color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20",
+      color: PURPLE_COLOR,
     },
     {
       title: isRtl ? "مبالغ مستحقة (غير مدفوعة)" : "Pending Amounts",
       value: `${pendingAmount.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}`,
       description: isRtl ? `${invoices.filter((inv) => inv.status === "انتظار").length} فواتير قيد الانتظار` : `${invoices.filter((inv) => inv.status === "انتظار").length} pending invoices`,
       icon: DollarSign,
-      color: "text-amber-600 bg-amber-50 dark:bg-amber-950/20",
+      color: PURPLE_COLOR,
     },
     {
       title: isRtl ? "إجمالي الفواتير الصادرة" : "Total Invoices Issued",
       value: `${invoices.length} ${isRtl ? 'فاتورة' : 'Invoices'}`,
       description: isRtl ? `نشط: ${invoices.filter((inv) => inv.status === "مدفوع").length} | انتظار: ${invoices.filter((inv) => inv.status === "انتظار").length}` : `Paid: ${invoices.filter((inv) => inv.status === "مدفوع").length} | Pending: ${invoices.filter((inv) => inv.status === "انتظار").length}`,
       icon: CreditCard,
-      color: "text-blue-600 bg-blue-50 dark:bg-blue-950/20",
+      color: PURPLE_COLOR,
     },
   ];
 
@@ -377,7 +379,7 @@ export default function BillingPage() {
             </CardTitle>
             <p className="text-xs text-muted-foreground">{isRtl ? "قائمة التسويات وحجوزات الباقات الصادرة حديثاً للعيادة" : "List of recent settlements and package bookings"}</p>
           </div>
-          <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200">
+          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
             {isRtl ? "نشط" : "Active"}
           </Badge>
         </CardHeader>
