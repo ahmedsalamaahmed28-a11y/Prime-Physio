@@ -44,6 +44,7 @@ export default function SubscribePage() {
   const { user } = useAuth();
   const email = user?.email;
   const name = user?.name;
+  const clinicId = user?.clinicId;
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -57,7 +58,7 @@ export default function SubscribePage() {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name: name || email.split("@")[0], planId }),
+        body: JSON.stringify({ email, name: name || email.split("@")[0], planId, clinicId }),
       });
       const data = await res.json();
 
@@ -65,7 +66,7 @@ export default function SubscribePage() {
         throw new Error(data.error || "Subscription failed");
       }
 
-      window.location.href = "/centers";
+      window.location.href = "/home";
     } catch (err: any) {
       setError(err?.message || "An error occurred");
     } finally {
@@ -76,6 +77,13 @@ export default function SubscribePage() {
   return (
     <div className="min-h-screen bg-neutral-100 flex flex-col items-center justify-center p-4" dir={isRtl ? "rtl" : "ltr"}>
       <div className="max-w-4xl mx-auto text-center space-y-6">
+        <div className="flex items-center justify-center gap-2 mb-4 text-xs">
+          <span className="text-emerald-600 font-medium">✓ {isRtl ? "الحساب" : "Account"}</span>
+          <span className="text-slate-300">→</span>
+          <span className="text-emerald-600 font-medium">✓ {isRtl ? "المركز" : "Center"}</span>
+          <span className="text-slate-300">→</span>
+          <span className="text-[#4F46BA] font-semibold">{isRtl ? "الباقة" : "Plan"}</span>
+        </div>
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46BA]/10 rounded-full">
           <span className="w-1.5 h-1.5 rounded-full bg-[#4F46BA]" />
           <span className="text-[11px] font-medium text-[#4F46BA]">
@@ -150,7 +158,7 @@ export default function SubscribePage() {
         </div>
 
         <p className="text-xs text-slate-400">
-          <Link href="/centers" className="text-[#4F46BA] hover:underline">
+          <Link href="/home" className="text-[#4F46BA] hover:underline">
             {isRtl ? "سأفعل ذلك لاحقاً" : "I'll do this later"}
           </Link>
         </p>

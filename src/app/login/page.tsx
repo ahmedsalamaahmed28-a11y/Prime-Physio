@@ -539,6 +539,29 @@ function LoginContent() {
               </div>
 
               <div className="w-full max-w-[380px]">
+                <div className="flex items-center justify-between mb-3 px-1">
+                  <div className="flex items-center gap-1">
+                    {[
+                      { num: "1", labelAr: "الحساب", labelEn: "Account" },
+                      { num: "2", labelAr: "المركز", labelEn: "Center" },
+                      { num: "3", labelAr: "الباقة", labelEn: "Plan" },
+                      { num: "4", labelAr: "الدخول", labelEn: "Login" },
+                    ].map((s, i) => (
+                      <React.Fragment key={i}>
+                        {i > 0 && <span className="text-[10px] text-slate-300 mx-0.5">—</span>}
+                        <span className="text-[10px] font-medium text-slate-400 whitespace-nowrap">
+                          {s.num}. {isRtl ? s.labelAr : s.labelEn}
+                        </span>
+                      </React.Fragment>
+                    ))}
+                  </div>
+                  <Link
+                    href="/signup"
+                    className="text-[10px] font-medium text-[#4F46BA] hover:text-[#4338ca] whitespace-nowrap"
+                  >
+                    {isRtl ? "حساب جديد؟" : "New?"}
+                  </Link>
+                </div>
                 <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 sm:p-8">
                   <div className="text-center mb-6">
                     <h2 className="text-lg font-bold text-slate-800">
