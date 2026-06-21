@@ -192,8 +192,6 @@ function SignupPageContent() {
   const handleGoogleSignup = async () => {
     setError("");
     setIsLoading(true);
-    await setAppValue("pending_google_signup", "true");
-    await setAppValue("pending_role", "admin");
     try {
       const result = await signIn("google", { callbackUrl: "/", redirect: false });
       if (result?.error) {

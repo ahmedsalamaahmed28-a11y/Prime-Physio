@@ -30,7 +30,6 @@ export default function SetupSteps() {
     <div className="flex items-center justify-center gap-1 mb-6" dir="ltr">
       {STEPS.map((step, idx) => {
         const isActive = idx <= activeIdx;
-        const isCurrent = pathname === "/signup" ? idx <= 1 : idx === currentIdx;
         return (
           <React.Fragment key={step.key}>
             <div className="flex flex-col items-center">

@@ -230,7 +230,7 @@ export default function DashboardLayout({
           if (!data) {
             window.location.href = "/subscribe";
           }
-        } catch {}
+        } catch (e) { console.warn("[Dashboard] Subscription check failed:", e); }
       };
       checkSub();
     }
