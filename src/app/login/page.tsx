@@ -3,7 +3,7 @@ import React, { useState, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Mail, Lock, Eye, EyeClosed, ArrowRight, X, Shield } from 'lucide-react';
-import { signIn } from "next-auth/react";
+import { signIn, signOut } from "next-auth/react";
 import { setAppValue } from "@/lib/appStorage";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
@@ -338,28 +338,58 @@ function LoginContent() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setIsLoading(true);
 
-    const cleanEmail = email.trim().toLowerCase();
-    const cleanPassword = password.trim();
-
-    await setAppValue("pending_role", "doctor");
-    const result = await signIn("credentials", {
-      email: cleanEmail,
-      password: cleanPassword,
-      redirect: false,
-    });
-
-    if (result?.error) {
-      setError(result.error === "CredentialsSignin"
-        ? (isRtl ? "بيانات الدخول غير صحيحة" : "Invalid login credentials")
-        : result.error);
-      setIsLoading(false);
+    if (!email.trim() || !password.trim()) {
+      setError(isRtl ? "يرجى إدخال البريد الإلكتروني وكلمة المرور" : "Please enter email and password");
       return;
     }
 
-    setIsLoading(false);
-    window.location.href = "/home";
+    setIsLoading(true);
+
+    try {
+      const result = await signIn("credentials", {
+        email: email.trim().toLowerCase(),
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError(isRtl ? "البريد الإلكتروني أو كلمة المرور غير صحيحة" : "Invalid email or password");
+        setIsLoading(false);
+        return;
+      }
+
+      // Check if account is verified
+      try {
+        const checkRes = await fetch("/api/auth/check-verified", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim().toLowerCase() }),
+        });
+        const checkData = await checkRes.json();
+        if (!checkData.verified) {
+          await signOut({ redirect: false });
+          setError(isRtl ? "يرجى التحقق من بريدك الإلكتروني أولاً" : "Please verify your email first");
+          setIsLoading(false);
+          return;
+        }
+      } catch {}
+
+      // Check if user has a clinic
+      try {
+        const clinicRes = await fetch(`/api/has-clinic?email=${encodeURIComponent(email.trim().toLowerCase())}`);
+        const clinicData = await clinicRes.json();
+        if (!clinicData.hasClinic) {
+          window.location.href = "/subscribe";
+          return;
+        }
+      } catch {}
+
+      window.location.href = "/centers";
+    } catch (err) {
+      setError(isRtl ? "حدث خطأ في الاتصال" : "Connection error");
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleLogin = async () => {
