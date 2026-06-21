@@ -10,8 +10,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { centers } = await req.json();
-    if (!centers || !Array.isArray(centers) || centers.length === 0) {
+    const body = await req.json();
+    let centers = body.centers;
+    if (!Array.isArray(centers)) {
+      const { short_name, full_name, slug, logo_url } = body;
+      if (!short_name || !slug) {
+        return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      }
+      centers = [{ short_name, full_name, slug, logo_url }];
+    }
+    if (centers.length === 0) {
       return NextResponse.json({ error: "At least one center is required" }, { status: 400 });
     }
 
