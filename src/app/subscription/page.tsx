@@ -110,7 +110,7 @@ const getPlans = (isRtl: boolean) => {
       ],
     },
     {
-      id: "silver", name: isRtl ? "الأعمال" : "Business", price: 1000,
+      id: "silver", name: isRtl ? "الفضية" : "Silver", price: 1000,
       description: isRtl ? "قيمة ممتازة للعيادات المتوسطة والنشطة" : "Best value for growing clinics",
       buttonText: isRtl ? "ابدأ الآن" : "Get started",
       popular: true,
@@ -123,7 +123,7 @@ const getPlans = (isRtl: boolean) => {
       ],
     },
     {
-      id: "gold", name: isRtl ? "المؤسسات" : "Enterprise", price: 1500,
+      id: "gold", name: isRtl ? "الذهبية" : "Gold", price: 1500,
       description: isRtl ? "خطة متقدمة مع أمان معزز وصول غير محدود" : "Advanced plan with enhanced security",
       buttonText: isRtl ? "ابدأ الآن" : "Get started",
       popular: false,
