@@ -435,8 +435,6 @@ function LoginContent() {
   const handleGoogleLogin = async () => {
     setError("");
     setIsLoading(true);
-    await setAppValue("pending_role", "admin");
-    await setAppValue("pending_google_signup", "true");
     try {
       const result = await signIn("google", { callbackUrl: "/", redirect: false });
       if (result?.error) {
