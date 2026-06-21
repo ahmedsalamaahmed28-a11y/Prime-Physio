@@ -95,13 +95,14 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout, isLoading, loginWithGoogle, loginWithCredentials } = useAuth();
+  const { user, logout, isLoading, loginWithGoogle, loginWithCredentials, activeBranchId, setActiveBranchId } = useAuth();
   const { hasPermission } = usePermissions();
   const { language, toggleLanguage, t } = useLanguage();
   const { isOnline, pendingCount, isSyncing, syncNow } = usePWA();
   const [isOpen, setIsOpen] = useState(false); // Mobile sidebar state
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false); // Notifications popover state
   const [notifications, setNotifications] = useState<SystemNotification[]>([]);
+  const [branchLogo, setBranchLogo] = useState<string | null>(null);
   
   const activeAccount = user;
 
@@ -188,6 +189,26 @@ export default function DashboardLayout({
     };
   }, []);
 
+  useEffect(() => {
+    if (!user?.clinicId || !activeBranchId) {
+      setBranchLogo(null);
+      return;
+    }
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from("branches")
+          .select("logo_url")
+          .eq("id", activeBranchId)
+          .single();
+        if (data?.logo_url) setBranchLogo(data.logo_url);
+        else setBranchLogo(null);
+      } catch {
+        setBranchLogo(null);
+      }
+    })();
+  }, [user?.clinicId, activeBranchId]);
+
     const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password" || pathname === "/reset-password";
 
   if (isAuthPage) {
@@ -241,7 +262,7 @@ export default function DashboardLayout({
         {/* Clinic Brand / Logo in Center */}
         <div className="flex flex-col items-center justify-center mb-5 px-1">
           <img 
-            src="/logo.png" 
+            src={branchLogo || "/logo.png"} 
             alt="Prime Physio" 
             className="h-20 w-full object-contain" 
             onError={(e) => {
@@ -527,7 +548,7 @@ export default function DashboardLayout({
                 {/* Logo or Title */}
                 <div className="flex flex-col items-center justify-center w-full">
                   <img 
-                    src="/logo.png" 
+                    src={branchLogo || "/logo.png"} 
                     alt="Prime Physio" 
                     className="h-18 object-contain mb-2" 
                     onError={(e) => {

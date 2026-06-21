@@ -23,6 +23,8 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
+  activeBranchId: string | null;
+  setActiveBranchId: (id: string | null) => void;
   loginWithGoogle: (email: string) => void;
   loginWithCredentials: (email: string, name: string, role: string) => void;
   registerWithSupabase: (email: string, pass: string, meta: any) => Promise<{ error?: string }>;
@@ -136,6 +138,7 @@ async function enrichUserWithClinic(user: User): Promise<User> {
 
 function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [activeBranchId, setActiveBranchId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const pathname = usePathname();
   const { data: session, status } = useSession();
@@ -364,7 +367,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   }, [user, status]);
 
   return (
-    <AuthContext.Provider value={{ user, loginWithGoogle, loginWithCredentials, registerWithSupabase, loginWithSupabase, logout, isLoading: isAuthLoading }}>
+    <AuthContext.Provider value={{ user, activeBranchId, setActiveBranchId, loginWithGoogle, loginWithCredentials, registerWithSupabase, loginWithSupabase, logout, isLoading: isAuthLoading }}>
       {children}
     </AuthContext.Provider>
   );
