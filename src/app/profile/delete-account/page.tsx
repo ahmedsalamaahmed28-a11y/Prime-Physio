@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
+import { signOut } from "next-auth/react";
+import { setAppValue } from "@/lib/appStorage";
 
 export default function AccountDeletionPage() {
   const [isDeleting, setIsDeleting] = useState(false);
@@ -30,8 +32,8 @@ export default function AccountDeletionPage() {
       });
       
       if (response.ok) {
-        // Redirect to login page
-        window.location.href = "/login?deleted=true";
+        setAppValue("current_user", null).catch(() => {});
+        signOut({ callbackUrl: "/login?deleted=true" });
       } else {
         const error = await response.json();
         alert(language === "ar" ? `فشل حذف الحساب: ${error.error}` : `Failed to delete account: ${error.error}`);
