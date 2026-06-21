@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import { ArrowRight, Upload, X } from "lucide-react";
+import SetupSteps from "@/components/SetupSteps";
 
 export default function SetupCenterPage() {
   const { language } = useLanguage();
@@ -104,6 +105,8 @@ export default function SetupCenterPage() {
   };
 
   return (
+    <>
+    <SetupSteps />
     <div className="min-h-screen bg-gradient-to-b from-[#f8f9ff] to-white flex flex-col items-center justify-center p-4" dir={isRtl ? "rtl" : "ltr"}>
       <div className="w-full max-w-[420px]">
         <div className="text-center mb-6">
@@ -269,5 +272,6 @@ export default function SetupCenterPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

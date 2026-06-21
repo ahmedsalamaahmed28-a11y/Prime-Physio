@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Mail, Lock, Eye, EyeClosed, ArrowRight, User, Shield } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
+import SetupSteps from "@/components/SetupSteps";
 
 import { cn } from "@/lib/utils"
 
@@ -208,6 +209,8 @@ function SignupPageContent() {
   };
 
   return (
+    <>
+    <SetupSteps />
     <div className="min-h-screen bg-gradient-to-b from-[#f8f9ff] to-white flex flex-col items-center justify-center p-4" dir={isRtl ? "rtl" : "ltr"}>
       <div className="w-full max-w-[420px]">
         <div className="text-center mb-6">
@@ -443,6 +446,7 @@ function SignupPageContent() {
         </p>
       </div>
     </div>
+    </>
   );
 }
 
