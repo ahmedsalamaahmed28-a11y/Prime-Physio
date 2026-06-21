@@ -83,6 +83,8 @@ Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (
 - **Fix #1**: Created dedicated `/setup/center` page (copied center form from login page; not affected by auth redirect since it's not in `isAuthPage`). Changed auto-login redirect from `/login?setup=center` to `/setup/center`.
 - **Fix #2**: Added `/setup/center`, `/subscribe`, and `/centers/new` to `DashboardLayout`'s `isAuthPage` list so children render without the `clinicId === undefined` loading spinner guard.
 - **Changed redirect target**: auth.tsx guard now redirects to `/setup/center` (instead of `/login?setup=center`). Added `/setup/center` to both `isSetupPage` and `setupPaths`.
+- **Root cause #3**: `src/app/page.tsx` redirected EVERYONE (`redirect("/home")`) unconditionally at the server level, regardless of auth status. Authenticated users without a clinic were sent to `/home` where the client-side auth context would fight with the DashboardLayout guard.
+- **Fix #3**: Replaced unconditional `redirect("/home")` with server-side auth guard using `getServerSession(authOptions)`: no session → `/login`, has clinic → `/home`, no clinic yet → `/setup/center`.
 
 ## Relevant Files
 - `src/app/api/utils/auth.ts`: `requireAuth()` + `requireRole()` helpers for API routes
