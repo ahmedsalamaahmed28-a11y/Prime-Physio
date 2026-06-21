@@ -44,6 +44,14 @@ export async function GET() {
       return NextResponse.json({ clinicId: null, role: null });
     }
 
+    const { data: branch } = await admin
+      .from("branches")
+      .select("short_name, logo_url")
+      .eq("clinic_id", staff.clinic_id)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
     const roleKey = mapStaffRoleToRoleKey(staff.role);
     return NextResponse.json({
       clinicId: staff.clinic_id,
@@ -51,6 +59,8 @@ export async function GET() {
       roleKey,
       roleAr: getArabicRoleLabel(roleKey),
       roleEn: getEnglishRoleLabel(roleKey),
+      shortName: branch?.short_name || null,
+      logoUrl: branch?.logo_url || null,
     });
   } catch {
     return NextResponse.json({ clinicId: null, role: null });

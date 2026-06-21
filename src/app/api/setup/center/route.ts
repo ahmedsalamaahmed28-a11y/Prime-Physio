@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { short_name, full_name, slug } = await req.json();
+    const { short_name, full_name, slug, logo_url } = await req.json();
     if (!short_name || !slug) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     const cleanSlug = slug.toLowerCase().replace(/[^a-z0-9-]/g, "");
     const { data: branch, error: branchErr } = await admin
       .from("branches")
-      .insert({ clinic_id: clinicId, short_name, full_name, slug: cleanSlug })
+      .insert({ clinic_id: clinicId, short_name, full_name, slug: cleanSlug, logo_url: logo_url || null })
       .select()
       .single();
 

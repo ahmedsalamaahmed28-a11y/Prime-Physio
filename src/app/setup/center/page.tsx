@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Upload, X } from "lucide-react";
 
 export default function SetupCenterPage() {
   const { language } = useLanguage();
@@ -13,8 +13,11 @@ export default function SetupCenterPage() {
   const [shortName, setShortName] = useState("");
   const [fullName, setFullName] = useState("");
   const [slug, setSlug] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user?.clinicId) {
@@ -25,12 +28,41 @@ export default function SetupCenterPage() {
   const generateSlug = (name: string) =>
     name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").slice(0, 30);
 
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setLogoFile(file);
+    const reader = new FileReader();
+    reader.onload = () => setLogoPreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const uploadLogo = async (): Promise<string | null> => {
+    if (!logoFile) return null;
+    const formData = new FormData();
+    formData.append("file", logoFile);
+    const res = await fetch("/api/upload/logo", {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Failed to upload logo");
+    }
+    const data = await res.json();
+    return data.url || null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!shortName.trim() || !slug.trim()) return;
     setLoading(true);
     setError("");
     try {
+      let logoUrl: string | null = null;
+      if (logoFile) {
+        logoUrl = await uploadLogo();
+      }
       const res = await fetch("/api/setup/center", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -38,6 +70,7 @@ export default function SetupCenterPage() {
           short_name: shortName.trim(),
           full_name: fullName.trim() || shortName.trim(),
           slug: slug.trim(),
+          logo_url: logoUrl,
         }),
       });
       const data = await res.json();
@@ -128,6 +161,52 @@ export default function SetupCenterPage() {
               <p className="text-[10px] text-slate-400 mt-1">
                 {isRtl ? "أحرف إنجليزية وأرقام فقط" : "English letters and numbers only"}
               </p>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium text-slate-500">
+                {isRtl ? "شعار المركز" : "Clinic Logo"}
+              </label>
+              <div className="flex items-center gap-3">
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-200 hover:border-[#4F46BA] cursor-pointer flex items-center justify-center overflow-hidden bg-slate-50/50 transition-colors"
+                >
+                  {logoPreview ? (
+                    <img src={logoPreview} alt="Preview" className="w-full h-full object-contain" />
+                  ) : (
+                    <Upload className="w-6 h-6 text-slate-300" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-slate-500">
+                    {logoFile
+                      ? logoFile.name
+                      : isRtl
+                        ? "اختر صورة للمركز"
+                        : "Choose a clinic logo"}
+                  </p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">
+                    {isRtl ? "PNG, JPG — مقاس مربع" : "PNG, JPG — square preferred"}
+                  </p>
+                </div>
+                {logoPreview && (
+                  <button
+                    type="button"
+                    onClick={() => { setLogoFile(null); setLogoPreview(null); }}
+                    className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-red-500 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleLogoChange}
+                className="hidden"
+              />
             </div>
 
             <button

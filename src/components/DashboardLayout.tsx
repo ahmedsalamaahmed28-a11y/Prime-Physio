@@ -103,6 +103,7 @@ export default function DashboardLayout({
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false); // Notifications popover state
   const [notifications, setNotifications] = useState<SystemNotification[]>([]);
   const [branchLogo, setBranchLogo] = useState<string | null>(null);
+  const [branchName, setBranchName] = useState<string | null>(null);
   
   const activeAccount = user;
 
@@ -191,23 +192,30 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!user?.clinicId || !activeBranchId) {
-      setBranchLogo(null);
+      setBranchLogo(user?.logoUrl || null);
+      setBranchName(user?.shortName || null);
       return;
     }
     (async () => {
       try {
         const { data } = await supabase
           .from("branches")
-          .select("logo_url")
+          .select("logo_url, short_name")
           .eq("id", activeBranchId)
           .single();
-        if (data?.logo_url) setBranchLogo(data.logo_url);
-        else setBranchLogo(null);
+        if (data) {
+          setBranchLogo(data.logo_url || user?.logoUrl || null);
+          setBranchName(data.short_name || user?.shortName || null);
+        } else {
+          setBranchLogo(user?.logoUrl || null);
+          setBranchName(user?.shortName || null);
+        }
       } catch {
-        setBranchLogo(null);
+        setBranchLogo(user?.logoUrl || null);
+        setBranchName(user?.shortName || null);
       }
     })();
-  }, [user?.clinicId, activeBranchId]);
+  }, [user?.clinicId, activeBranchId, user?.logoUrl, user?.shortName]);
 
     const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password" || pathname === "/reset-password" || pathname === "/setup/center" || pathname === "/subscribe" || pathname === "/centers/new";
 
@@ -260,11 +268,11 @@ export default function DashboardLayout({
         isRtl ? "border-l right-0" : "border-r left-0"
       } border-white/10 bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white fixed top-0 bottom-0 z-10 pt-8 pb-4 shadow-xl`}>
         {/* Clinic Brand / Logo in Center */}
-        <div className="flex flex-col items-center justify-center mb-5 px-1">
+        <div className="flex flex-col items-center justify-center mb-5 px-3">
           <img 
             src={branchLogo || "/logo.png"} 
             alt="Prime Physio" 
-            className="h-20 w-full object-contain" 
+            className="h-16 object-contain mb-1.5" 
             onError={(e) => {
               e.currentTarget.style.display = 'none';
               const fallback = document.getElementById('brand-fallback');
@@ -272,9 +280,14 @@ export default function DashboardLayout({
             }}
           />
           <div id="brand-fallback" className="hidden text-center">
-            <h1 className="text-xl font-bold tracking-wider text-white">PRIME PHYSIO</h1>
+            <h1 className="text-lg font-bold tracking-wider text-white">PRIME PHYSIO</h1>
             <p className="text-[10px] text-white/60">Clinic Management</p>
           </div>
+          {branchName && (
+            <span className="text-[11px] text-white/70 text-center leading-tight max-w-full truncate px-1">
+              {branchName}
+            </span>
+          )}
         </div>
 
         {/* Divider line */}
@@ -550,7 +563,7 @@ export default function DashboardLayout({
                   <img 
                     src={branchLogo || "/logo.png"} 
                     alt="Prime Physio" 
-                    className="h-18 object-contain mb-2" 
+                    className="h-14 object-contain mb-1.5" 
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                       const fallback = document.getElementById('mobile-brand-fallback');
@@ -558,8 +571,13 @@ export default function DashboardLayout({
                     }}
                   />
                   <div id="mobile-brand-fallback" className="hidden text-center">
-                    <span className="font-bold text-lg text-white">PRIME PHYSIO</span>
+                    <span className="font-bold text-base text-white">PRIME PHYSIO</span>
                   </div>
+                  {branchName && (
+                    <span className="text-[11px] text-white/70 text-center leading-tight max-w-full truncate px-1">
+                      {branchName}
+                    </span>
+                  )}
                 </div>
                 <button 
                   onClick={closeSidebar}

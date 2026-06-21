@@ -19,6 +19,8 @@ interface User {
   image?: string;
   clinicId?: string | null;
   isPlatformAdmin?: boolean;
+  shortName?: string | null;
+  logoUrl?: string | null;
 }
 
 interface AuthContextType {
@@ -86,6 +88,8 @@ async function enrichUserWithClinic(user: User): Promise<User> {
         user.roleKey = data.roleKey as User["roleKey"];
         user.role = data.roleAr;
         user.roleEn = data.roleEn;
+        user.shortName = data.shortName || null;
+        user.logoUrl = data.logoUrl || null;
         return user;
       }
     }
