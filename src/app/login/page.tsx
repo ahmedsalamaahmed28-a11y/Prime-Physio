@@ -212,6 +212,7 @@ function LoginContent() {
   const { user } = useAuth();
   const isOnboarding = searchParams?.get("onboard") === "1";
   const isSetupCenter = searchParams?.get("setup") === "center";
+  const isDeleted = searchParams?.get("deleted") === "true";
   const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
   const [activeTab, setActiveTab] = useState("centers");
   const [centerShortName, setCenterShortName] = useState("");
@@ -702,6 +703,11 @@ function LoginContent() {
                     </p>
                   </div>
 
+                  {isDeleted && (
+                    <div className="bg-emerald-50 border border-emerald-300 text-emerald-700 text-sm font-bold rounded-lg p-4 mb-4 text-center animate-in fade-in slide-in-from-top-2 duration-500">
+                      {isRtl ? "✅ تم حذف الحساب بنجاح" : "✅ Account deleted successfully"}
+                    </div>
+                  )}
                   {error && (
                     <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg p-3 mb-4 text-center">
                       {error}

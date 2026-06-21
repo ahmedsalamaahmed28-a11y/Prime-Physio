@@ -209,7 +209,7 @@ export default function DashboardLayout({
     })();
   }, [user?.clinicId, activeBranchId]);
 
-    const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password" || pathname === "/reset-password";
+    const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password" || pathname === "/reset-password" || pathname === "/setup/center" || pathname === "/subscribe" || pathname === "/centers/new";
 
   if (isAuthPage) {
     return <>{children}</>;

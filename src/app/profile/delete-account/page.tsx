@@ -1,15 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
-import { useAuth } from "@/lib/auth";
-import { signOut } from "next-auth/react";
 
 export default function AccountDeletionPage() {
   const [isDeleting, setIsDeleting] = useState(false);
-  const { language, t } = useLanguage();
-  const { user } = useAuth();
+  const { language } = useLanguage();
   const isRtl = language === "ar";
+
+  const doSignOut = () => {
+    try {
+      const csrfReq = new XMLHttpRequest();
+      csrfReq.open("GET", "/api/auth/csrf", false);
+      csrfReq.send();
+      const { csrfToken } = JSON.parse(csrfReq.responseText);
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = "/api/auth/signout";
+      form.innerHTML = `<input name="csrfToken" value="${csrfToken}" /><input name="callbackUrl" value="/login?deleted=true" />`;
+      document.body.appendChild(form);
+      form.submit();
+    } catch {
+      window.location.href = "/login?deleted=true";
+    }
+  };
   
   const handleDeleteAccount = async () => {
     if (isDeleting) return;
@@ -33,31 +47,19 @@ export default function AccountDeletionPage() {
       if (response.ok) {
         try { localStorage.clear(); } catch {}
         try { sessionStorage.clear(); } catch {}
-        // Fetch CSRF token and submit signout form to clear NextAuth cookie
-        try {
-          const csrfRes = await fetch("/api/auth/csrf");
-          const { csrfToken } = await csrfRes.json();
-          const form = document.createElement("form");
-          form.method = "POST";
-          form.action = "/api/auth/signout";
-          form.innerHTML = `<input name="csrfToken" value="${csrfToken}" /><input name="callbackUrl" value="/login?deleted=true" />`;
-          document.body.appendChild(form);
-          form.submit();
-        } catch {
-          window.location.href = "/login?deleted=true";
-        }
+        doSignOut();
       } else {
         const error = await response.json();
         alert(language === "ar" ? `فشل حذف الحساب: ${error.error}` : `Failed to delete account: ${error.error}`);
+        setIsDeleting(false);
       }
     } catch (error) {
       console.error("Error deleting account:", error);
       alert(language === "ar" ? "حدث خطأ أثناء محاولة حذف الحساب" : "An error occurred while trying to delete your account");
-    } finally {
       setIsDeleting(false);
     }
   };
-  
+
   return (
     <div className="space-y-6 animate-in fade-in duration-300" dir={isRtl ? "rtl" : "ltr"}>
       <div className="bg-red-50 border border-red-200 rounded-2xl p-6">

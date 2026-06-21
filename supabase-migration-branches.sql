@@ -19,6 +19,7 @@ create table if not exists public.branches (
 alter table public.branches enable row level security;
 
 -- Clinic access policy
+drop policy if exists "clinic_access_branches" on public.branches;
 create policy "clinic_access_branches" on public.branches
   for all using (
     clinic_id in (
@@ -27,6 +28,7 @@ create policy "clinic_access_branches" on public.branches
   );
 
 -- Platform admin bypass
+drop policy if exists "platform_admin_bypass_branches" on public.branches;
 create policy "platform_admin_bypass_branches" on public.branches
   for all using (
     (select is_platform_admin())

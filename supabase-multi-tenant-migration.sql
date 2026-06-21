@@ -258,6 +258,8 @@ begin
 end;
 $$;
 
+drop policy if exists "clinic_access" on public.clinics;
+
 -- Police for clinics table (platform_admin can see all, staff can see their own)
 create policy "platform_admin_bypass" on public.clinics
   for all using (public.is_platform_admin() or auth.role() = 'service_role')
@@ -271,6 +273,8 @@ create policy "clinic_access" on public.clinics
       limit 1
     )
   );
+
+drop policy if exists "clinic_access" on public.platform_admins;
 
 -- Police for platform_admins table (only platform_admins and service_role)
 create policy "platform_admin_bypass" on public.platform_admins
@@ -293,6 +297,7 @@ create policy "platform_admin_bypass" on public.treatment_templates
   for all using (public.is_platform_admin() or auth.role() = 'service_role')
   with check (public.is_platform_admin() or auth.role() = 'service_role');
 
+drop policy if exists "clinic_access" on public.treatment_templates;
 create policy "clinic_access" on public.treatment_templates
   for select using (true);  -- all clinics can read shared templates
 

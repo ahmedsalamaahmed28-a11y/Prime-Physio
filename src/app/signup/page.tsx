@@ -53,6 +53,8 @@ export default function SignupPage() {
 
   const handleSendOtp = async () => {
     setError("");
+    // Clear stale Google signup flag so auto-provision doesn't fire after email/password signup
+    await setAppValue("pending_google_signup", "");
 
     if (!firstName.trim() || !lastName.trim()) {
       setError(isRtl ? "يرجى إدخال الاسم" : "Please enter your name");
@@ -156,7 +158,7 @@ export default function SignupPage() {
             redirect: false,
           });
           if (result?.ok) {
-            window.location.href = "/login?setup=center";
+            window.location.href = "/setup/center";
           } else {
             window.location.href = "/login";
           }

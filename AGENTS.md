@@ -77,6 +77,13 @@ Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (
 - DashboardLayout shows loading spinner when `clinicId === undefined` — prevents all pages from rendering with stale clinicId before `enrichUserWithClinic` completes
 - Error boundary conventions in this Next.js version: `error.tsx` (route-level, preserves layout, uses `unstable_retry` prop), `global-error.tsx` (catches root layout, defines own html/body)
 
+### Session: Setup/center Onboarding Fix (2026-06-21)
+- **Root cause #1**: `auth.tsx:270-272` redirected authenticated users from `/login` (including `/login?setup=center`) to `/home` before the center form could render — the auth guard's `isAuthPage` redirect didn't account for setup flows.
+- **Root cause #2**: `DashboardLayout.tsx:212` did not include `/setup/center` (or `/subscribe` or `/centers/new`) in its `isAuthPage` list. When `clinicId === undefined`, it rendered `LoadingSpinner` instead of `{children}`, making the setup form invisible. The combination of #1 and #2 left users stuck on a permanent loading spinner.
+- **Fix #1**: Created dedicated `/setup/center` page (copied center form from login page; not affected by auth redirect since it's not in `isAuthPage`). Changed auto-login redirect from `/login?setup=center` to `/setup/center`.
+- **Fix #2**: Added `/setup/center`, `/subscribe`, and `/centers/new` to `DashboardLayout`'s `isAuthPage` list so children render without the `clinicId === undefined` loading spinner guard.
+- **Changed redirect target**: auth.tsx guard now redirects to `/setup/center` (instead of `/login?setup=center`). Added `/setup/center` to both `isSetupPage` and `setupPaths`.
+
 ## Relevant Files
 - `src/app/api/utils/auth.ts`: `requireAuth()` + `requireRole()` helpers for API routes
 - `src/app/api/signup/route.ts`: Server-side signup (creates auth user + clinic + staff)

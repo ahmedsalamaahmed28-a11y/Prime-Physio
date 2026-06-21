@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS public.auth_accounts (
 
 ALTER TABLE public.auth_accounts ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "service_role_access" ON public.auth_accounts;
 CREATE POLICY "service_role_access" ON public.auth_accounts
   FOR ALL
   TO service_role
@@ -33,6 +34,7 @@ CREATE TABLE IF NOT EXISTS public.verification_codes (
 
 ALTER TABLE public.verification_codes ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "service_role_access_verification" ON public.verification_codes;
 CREATE POLICY "service_role_access_verification" ON public.verification_codes
   FOR ALL
   TO service_role

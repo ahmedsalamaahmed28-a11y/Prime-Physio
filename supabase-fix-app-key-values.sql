@@ -3,6 +3,10 @@
 
 drop policy if exists "platform_admin_bypass" on public.app_key_values;
 drop policy if exists "service role full access app_key_values" on public.app_key_values;
+drop policy if exists "anyone_can_read_app_key_values" on public.app_key_values;
+drop policy if exists "platform_admin_insert_app_key_values" on public.app_key_values;
+drop policy if exists "platform_admin_update_app_key_values" on public.app_key_values;
+drop policy if exists "platform_admin_delete_app_key_values" on public.app_key_values;
 
 -- Allow reads for any user (including anon for signup flow)
 create policy "anyone_can_read_app_key_values" on public.app_key_values
