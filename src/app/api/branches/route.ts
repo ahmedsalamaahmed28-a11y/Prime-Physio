@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ branches });
+    return NextResponse.json({ branches: branches });
   } catch (err) {
     console.error("[Branches GET] Error:", err);
     return NextResponse.json(
