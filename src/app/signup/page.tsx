@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
-import { signIn } from "next-auth/react";
+import React, { useState, useRef, useEffect, Suspense } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { setAppValue } from "@/lib/appStorage";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { Mail, Lock, Eye, EyeClosed, ArrowRight, User, Shield } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 
@@ -25,7 +26,7 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   )
 }
 
-export default function SignupPage() {
+function SignupPageContent() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
 
@@ -44,6 +45,19 @@ export default function SignupPage() {
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [showSuccess, setShowSuccess] = useState(false);
   const otpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+
+  const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const isGoogleFlow = searchParams?.get("google") === "1";
+
+  useEffect(() => {
+    if (isGoogleFlow && session?.user) {
+      setEmail(session.user.email || "");
+      const nameParts = (session.user.name || "").split(" ");
+      setFirstName(nameParts[0] || "");
+      setLastName(nameParts.slice(1).join(" ") || "");
+    }
+  }, [isGoogleFlow, session]);
 
   useEffect(() => {
     if (step === "otp") {
@@ -136,10 +150,12 @@ export default function SignupPage() {
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
           code,
+          name: `${firstName.trim()} ${lastName.trim()}`,
           clinicName: `${firstName.trim()} ${lastName.trim()}`,
           phone: "",
           password,
           role: "admin",
+          provider: isGoogleFlow ? "google" : "email",
         }),
       });
 
@@ -427,5 +443,13 @@ export default function SignupPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupPageContent />
+    </Suspense>
   );
 }
