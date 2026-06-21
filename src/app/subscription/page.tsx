@@ -188,7 +188,6 @@ const PricingSwitch = ({ onSwitch, isRtl }: { onSwitch: (value: string) => void;
               ? "text-white"
               : "text-muted-foreground hover:text-black"
           }`}
-          disabled
         >
           {selected === "1" && (
             <motion.span
@@ -197,7 +196,7 @@ const PricingSwitch = ({ onSwitch, isRtl }: { onSwitch: (value: string) => void;
               transition={{ type: "spring", stiffness: 500, damping: 30 }}
             />
           )}
-          <span className="relative flex items-center gap-2 opacity-50 cursor-not-allowed">
+          <span className="relative flex items-center gap-2">
             {isRtl ? "سنوي" : "Yearly"}
             <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-black">
               {isRtl ? "وفّر 20%" : "Save 20%"}
@@ -276,11 +275,13 @@ export default function SubscriptionPage() {
 
   const PLANS = getPlans(isRtl).map(p => ({
     ...p,
-    isCurrent: p.id === activePlanId
+    isCurrent: p.id === activePlanId,
+    yearlyPrice: Math.round(p.price * 12 * 0.8),
   }));
 
   const COMPARE_ROWS = getCompareRows(isRtl);
 
+  const [billingPeriod, setBillingPeriod] = useState("monthly");
   const [showCompare, setShowCompare] = useState(false);
 
   const [payingPlan, setPayingPlan]             = useState<string | null>(null);
@@ -313,6 +314,7 @@ export default function SubscriptionPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           planId: payingPlan,
+          billingPeriod,
           billingData: {
             first_name: firstName, last_name: lastName,
             email, phone_number: phone,
@@ -361,7 +363,9 @@ export default function SubscriptionPage() {
     },
   };
 
-  const togglePricingPeriod = (value: string) => {};
+  const togglePricingPeriod = (value: string) => {
+    setBillingPeriod(value === "0" ? "monthly" : "yearly");
+  };
 
   return (
     <div className="px-4 pt-20 min-h-screen mx-auto relative bg-neutral-100" ref={pricingRef} dir={isRtl ? "rtl" : "ltr"}>
@@ -455,15 +459,34 @@ export default function SubscriptionPage() {
                   )}
                 </div>
                 <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
-                <div className={`flex items-baseline ${isRtl ? "" : ""}`}>
-                  <span className="text-gray-900 ml-1">{isRtl ? "ج.م" : "EGP"}</span>
-                  <span className="text-4xl font-semibold text-gray-900">
-                    {plan.price.toLocaleString()}
-                  </span>
-                  <span className="text-gray-600 mr-1">
-                    /{isRtl ? "شهر" : "month"}
-                  </span>
-                </div>
+                {billingPeriod === "yearly" ? (
+                  <div>
+                    <div className={`flex items-baseline ${isRtl ? "" : ""}`}>
+                      <span className="text-gray-900 ml-1">{isRtl ? "ج.م" : "EGP"}</span>
+                      <span className="text-4xl font-semibold text-gray-900">
+                        {plan.yearlyPrice.toLocaleString()}
+                      </span>
+                      <span className="text-gray-600 mr-1">
+                        /{isRtl ? "سنة" : "year"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-green-600 font-medium mt-1">
+                      {isRtl
+                        ? `يعني ${Math.round(plan.yearlyPrice / 12).toLocaleString()} ج.م/شهر`
+                        : `${Math.round(plan.yearlyPrice / 12).toLocaleString()} EGP/month`}
+                    </p>
+                  </div>
+                ) : (
+                  <div className={`flex items-baseline ${isRtl ? "" : ""}`}>
+                    <span className="text-gray-900 ml-1">{isRtl ? "ج.م" : "EGP"}</span>
+                    <span className="text-4xl font-semibold text-gray-900">
+                      {plan.price.toLocaleString()}
+                    </span>
+                    <span className="text-gray-600 mr-1">
+                      /{isRtl ? "شهر" : "month"}
+                    </span>
+                  </div>
+                )}
               </CardHeader>
 
               <CardContent className="pt-0">
@@ -622,8 +645,11 @@ export default function SubscriptionPage() {
                       <div className="flex flex-col items-center gap-1">
                         <span className="text-xs font-extrabold text-slate-700">{plan.name}</span>
                         <span className="text-[10px] font-bold text-blue-600">
-                          {plan.price.toLocaleString()} {isRtl ? "ج.م" : "EGP"}
+                          {(billingPeriod === "yearly" ? plan.yearlyPrice : plan.price).toLocaleString()} {isRtl ? "ج.م" : "EGP"}
                         </span>
+                        {billingPeriod === "yearly" && (
+                          <span className="text-[8px] text-green-600">{isRtl ? "سنوي" : "yearly"}</span>
+                        )}
                       </div>
                     </th>
                   ))}
@@ -696,7 +722,7 @@ export default function SubscriptionPage() {
                   <div className={isRtl ? "text-right" : "text-left"}>
                     <p className="text-[10px] text-slate-400 font-bold">{isRtl ? "دفع آمن عبر Paymob" : "Secure Payment via Paymob"}</p>
                     <h3 className="text-sm font-extrabold text-slate-800">
-                      {isRtl ? `الخطة ${selectedPlan.name}` : `${selectedPlan.name} Plan`} — {selectedPlan.price.toLocaleString()} {isRtl ? "ج.م" : "EGP"}
+                      {isRtl ? `الخطة ${selectedPlan.name}` : `${selectedPlan.name} Plan`} — {(billingPeriod === "yearly" ? selectedPlan.yearlyPrice : selectedPlan.price).toLocaleString()} {isRtl ? "ج.م" : "EGP"} /{billingPeriod === "yearly" ? (isRtl ? "سنة" : "year") : (isRtl ? "شهر" : "month")}
                     </h3>
                   </div>
                 </div>

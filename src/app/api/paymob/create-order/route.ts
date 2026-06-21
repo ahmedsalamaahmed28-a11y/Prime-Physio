@@ -19,11 +19,15 @@ const PLAN_NAMES: Record<string, string> = {
 export async function POST(req: NextRequest) {
   try {
     await requireRole(req, ["admin"]);
-    const { planId, billingData } = await req.json();
+    const { planId, billingData, billingPeriod } = await req.json();
 
-    const amountCents = PLAN_PRICES[planId];
+    let amountCents = PLAN_PRICES[planId];
     if (!amountCents) {
       return NextResponse.json({ error: "خطة غير صحيحة" }, { status: 400 });
+    }
+
+    if (billingPeriod === "yearly") {
+      amountCents = Math.round(amountCents * 12 * 0.8);
     }
 
     const apiKey          = process.env.PAYMOB_API_KEY!;
@@ -58,7 +62,7 @@ export async function POST(req: NextRequest) {
           {
             name:        PLAN_NAMES[planId],
             amount_cents: amountCents,
-            description: `اشتراك شهري - ${PLAN_NAMES[planId]}`,
+            description: `اشتراك ${billingPeriod === "yearly" ? "سنوي" : "شهري"} - ${PLAN_NAMES[planId]}`,
             quantity:    1,
           },
         ],
@@ -78,7 +82,7 @@ export async function POST(req: NextRequest) {
       const admin = getAdminClient();
       await admin.from("app_key_values").upsert({
         key: `paymob_order_${orderId}`,
-        value: { planId, planName: PLAN_NAMES[planId], price: amountCents / 100, email: billingData?.email || "" },
+        value: { planId, planName: PLAN_NAMES[planId], price: amountCents / 100, email: billingData?.email || "", billingPeriod },
         updated_at: new Date().toISOString(),
       }, { onConflict: "key" });
     } catch (e) {
