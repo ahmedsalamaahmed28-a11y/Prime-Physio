@@ -9,8 +9,169 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
 import OnboardingFlow from "@/components/OnboardingFlow";
 
+import { Users, UserCheck, Calendar, Briefcase, Database, Server, BookOpen, Clock, Crown } from 'lucide-react';
 import { cn } from "@/lib/utils"
 import { CustomCheckbox } from "@/components/ui/checkbox"
+import { motion } from "motion/react";
+
+const ALL_FEATURES = (isRtl: boolean) => [
+  {
+    label: isRtl ? "المرضى (سجلات طبية)" : "Patients (EHR)",
+    limits: { basic: isRtl ? "50" : "50", silver: isRtl ? "200" : "200", gold: isRtl ? "∞" : "∞" },
+    included: { basic: true, silver: true, gold: true },
+    icon: <Users size={20} />,
+  },
+  {
+    label: isRtl ? "الجلسات الشهرية" : "Monthly Sessions",
+    limits: { basic: isRtl ? "100" : "100", silver: isRtl ? "500" : "500", gold: isRtl ? "∞" : "∞" },
+    included: { basic: true, silver: true, gold: true },
+    icon: <Calendar size={20} />,
+  },
+  {
+    label: isRtl ? "حسابات الأخصائيين" : "Therapist Accounts",
+    limits: { basic: isRtl ? "20" : "20", silver: isRtl ? "50" : "50", gold: isRtl ? "∞" : "∞" },
+    included: { basic: true, silver: true, gold: true },
+    icon: <UserCheck size={20} />,
+  },
+  {
+    label: isRtl ? "إدارة المواعيد" : "Appointment Management",
+    limits: { basic: null, silver: null, gold: null },
+    included: { basic: true, silver: true, gold: true },
+    icon: <Briefcase size={20} />,
+  },
+  {
+    label: isRtl ? "التقارير والتحليلات" : "Reports & Analytics",
+    limits: { basic: null, silver: null, gold: null },
+    included: { basic: false, silver: true, gold: true },
+    icon: <Server size={20} />,
+  },
+  {
+    label: isRtl ? "التغذية العلاجية" : "Clinical Nutrition",
+    limits: { basic: null, silver: null, gold: null },
+    included: { basic: false, silver: true, gold: true },
+    icon: <Database size={20} />,
+  },
+  {
+    label: isRtl ? "المكتبة العلاجية" : "Rehab Library",
+    limits: { basic: null, silver: null, gold: null },
+    included: { basic: false, silver: false, gold: true },
+    icon: <BookOpen size={20} />,
+  },
+  {
+    label: isRtl ? "رسائل التذكير (SMS/WA)" : "Reminders (SMS/WA)",
+    limits: { basic: null, silver: null, gold: null },
+    included: { basic: false, silver: false, gold: true },
+    icon: <Clock size={20} />,
+  },
+  {
+    label: isRtl ? "الدعم الفني" : "Support",
+    limits: { basic: isRtl ? "بريد إلكتروني" : "Email", silver: isRtl ? "هاتفي سريع" : "Phone", gold: isRtl ? "VIP 24/7" : "VIP 24/7" },
+    included: { basic: true, silver: true, gold: true },
+    icon: <Crown size={20} />,
+  },
+  {
+    label: isRtl ? "فروع العيادة" : "Clinic Branches",
+    limits: { basic: isRtl ? "1" : "1", silver: isRtl ? "1" : "1", gold: isRtl ? "2" : "2" },
+    included: { basic: true, silver: true, gold: true },
+    icon: <BuildingIcon size={20} />,
+  },
+];
+
+function BuildingIcon(props: { size?: number }) {
+  return (
+    <svg width={props.size} height={props.size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+      <path d="M9 22v-4h6v4" />
+      <path d="M8 6h.01" /><path d="M16 6h.01" /><path d="M12 6h.01" />
+      <path d="M12 10h.01" /><path d="M12 14h.01" />
+      <path d="M16 10h.01" /><path d="M16 14h.01" />
+      <path d="M8 10h.01" /><path d="M8 14h.01" />
+    </svg>
+  );
+}
+
+const getPlans = (isRtl: boolean) => {
+  const allFeatures = ALL_FEATURES(isRtl);
+  return [
+    {
+      id: "basic", name: isRtl ? "الأساسية" : "Starter", price: 500,
+      description: isRtl ? "مثالية للعيادات الصغيرة والناشئة" : "Great for small businesses and startups",
+      buttonText: isRtl ? "ابدأ الآن" : "Get started",
+      popular: false,
+      features: allFeatures.filter((f) => f.included.basic).map((f) => ({ text: `${f.label} (${f.limits.basic})`, icon: f.icon })),
+    },
+    {
+      id: "silver", name: isRtl ? "الفضية" : "Silver", price: 1000,
+      description: isRtl ? "قيمة ممتازة للعيادات المتوسطة والنشطة" : "Best value for growing clinics",
+      buttonText: isRtl ? "ابدأ الآن" : "Get started",
+      popular: true,
+      features: allFeatures.filter((f) => f.included.silver).map((f) => ({ text: `${f.label}${f.limits.silver ? ` (${f.limits.silver})` : ""}`, icon: f.icon })),
+    },
+    {
+      id: "gold", name: isRtl ? "الذهبية" : "Gold", price: 1500,
+      description: isRtl ? "خطة متقدمة مع أمان معزز وصول غير محدود" : "Advanced plan with enhanced security",
+      buttonText: isRtl ? "ابدأ الآن" : "Get started",
+      popular: false,
+      features: allFeatures.filter((f) => f.included.gold).map((f) => ({ text: `${f.label}${f.limits.gold ? ` (${f.limits.gold})` : ""}`, icon: f.icon })),
+    },
+  ];
+};
+
+const PricingSwitch = ({ onSwitch, isRtl }: { onSwitch: (value: string) => void; isRtl: boolean }) => {
+  const [selected, setSelected] = useState("0");
+
+  const handleSwitch = (value: string) => {
+    setSelected(value);
+    onSwitch(value);
+  };
+
+  return (
+    <div className="flex justify-center">
+      <div className="relative z-50 mx-auto flex w-fit rounded-full bg-neutral-50 border border-gray-200 p-1">
+        <button
+          onClick={() => handleSwitch("0")}
+          className={`relative z-10 w-fit sm:h-12 h-10 rounded-full sm:px-6 px-3 sm:py-2 py-1 font-medium transition-colors ${
+            selected === "0"
+              ? "text-white"
+              : "text-muted-foreground hover:text-black"
+          }`}
+        >
+          {selected === "0" && (
+            <motion.span
+              layoutId={"switch"}
+              className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-blue-600 border-blue-600 bg-gradient-to-t from-blue-500 via-blue-400 to-blue-600"
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            />
+          )}
+          <span className="relative">{isRtl ? "شهري" : "Monthly"}</span>
+        </button>
+
+        <button
+          onClick={() => handleSwitch("1")}
+          className={`relative z-10 w-fit sm:h-12 h-10 flex-shrink-0 rounded-full sm:px-6 px-3 sm:py-2 py-1 font-medium transition-colors ${
+            selected === "1"
+              ? "text-white"
+              : "text-muted-foreground hover:text-black"
+          }`}
+        >
+          {selected === "1" && (
+            <motion.span
+              layoutId={"switch"}
+              className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-blue-600 border-blue-600 bg-gradient-to-t from-blue-500 via-blue-400 to-blue-600"
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            />
+          )}
+          <span className="relative flex items-center gap-2">
+            {isRtl ? "سنوي" : "Yearly"}
+            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-black">
+              {isRtl ? "وفّر 20%" : "Save 20%"}
+            </span>
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+};
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
@@ -52,6 +213,7 @@ function LoginContent() {
   const isOnboarding = searchParams?.get("onboard") === "1";
   const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
   const [activeTab, setActiveTab] = useState("centers");
+  const [billingPeriod, setBillingPeriod] = useState("monthly");
 
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -486,79 +648,74 @@ function LoginContent() {
                 ? "الباقة الأساسية مثالية للعيادات الصغيرة. الباقة الفضية للنمو. والباقة الذهبية لكل الإمكانيات."
                 : "Basic is ideal for small clinics. Silver for growth. Gold unlocks everything."}
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-6 pt-4">
-              {[
-                { id: "basic", name: isRtl ? "أساسي" : "Basic", price: isRtl ? "مجاني" : "Free", features: [
-                    isRtl ? "50 مريض (سجلات طبية)" : "50 Patients (EHR)",
-                    isRtl ? "100 جلسة/شهر" : "100 Sessions/month",
-                    isRtl ? "20 حساب أخصائي" : "20 Therapist Accounts",
-                    isRtl ? "إدارة المواعيد" : "Appointment Management",
-                    isRtl ? "دعم عبر البريد الإلكتروني" : "Email Support",
-                    isRtl ? "فرع واحد" : "1 Branch",
-                  ], popular: false },
-                { id: "silver", name: isRtl ? "فضي" : "Silver", price: isRtl ? "مدفوع" : "Paid", features: [
-                    isRtl ? "200 مريض (سجلات طبية)" : "200 Patients (EHR)",
-                    isRtl ? "500 جلسة/شهر" : "500 Sessions/month",
-                    isRtl ? "50 حساب أخصائي" : "50 Therapist Accounts",
-                    isRtl ? "إدارة المواعيد" : "Appointment Management",
-                    isRtl ? "التقارير والتحليلات" : "Reports & Analytics",
-                    isRtl ? "التغذية العلاجية" : "Clinical Nutrition",
-                    isRtl ? "دعم هاتفي" : "Phone Support",
-                  ], popular: true },
-                { id: "gold", name: isRtl ? "ذهبي" : "Gold", price: isRtl ? "غير محدود" : "Unlimited", features: [
-                    isRtl ? "مرضى غير محدودين" : "Unlimited Patients",
-                    isRtl ? "جلسات غير محدودة" : "Unlimited Sessions",
-                    isRtl ? "حسابات غير محدودة" : "Unlimited Accounts",
-                    isRtl ? "إدارة المواعيد" : "Appointment Management",
-                    isRtl ? "التقارير والتحليلات" : "Reports & Analytics",
-                    isRtl ? "التغذية العلاجية" : "Clinical Nutrition",
-                    isRtl ? "المكتبة العلاجية" : "Rehab Library",
-                    isRtl ? "رسائل تذكير (SMS/WA)" : "Reminders (SMS/WA)",
-                    isRtl ? "دعم VIP 24/7" : "VIP 24/7 Support",
-                    isRtl ? "فرعين" : "2 Branches",
-                  ], popular: false },
-              ].map((plan) => (
-                <div
-                  key={plan.id}
-                  className={`w-72 relative text-center border p-6 rounded-lg ${
-                    plan.popular
-                      ? "bg-indigo-500 text-white border-gray-500/30"
-                      : "bg-white text-gray-800/80 border-gray-200"
-                  }`}
-                >
-                  {plan.popular && (
-                    <p className="absolute px-3 text-sm -top-3.5 left-3.5 py-1 bg-[#8789FB] rounded-full text-white">
-                      {isRtl ? "الأكثر طلباً" : "Most Popular"}
-                    </p>
-                  )}
-                  <p className={`font-semibold ${plan.popular ? "pt-2" : ""}`}>{plan.name}</p>
-                  <h1 className="text-3xl font-semibold mt-1">
-                    {plan.price}
-                  </h1>
-                  <ul className="list-none text-sm mt-6 space-y-1">
-                    {plan.features.map((feat, fi) => (
-                      <li key={fi} className={`flex items-center gap-2 ${isRtl ? "flex-row-reverse" : ""}`}>
-                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
-                          <path d="M7.162 13.5 2.887 9.225l1.07-1.069 3.205 3.207 6.882-6.882 1.069 1.07z" fill={plan.popular ? "currentColor" : "#6366F1"}/>
-                        </svg>
-                        <p className={`text-sm ${plan.popular ? "text-white" : "text-gray-500"}`}>{feat}</p>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href="/signup">
-                    <button
-                      type="button"
-                      className={`text-sm w-full py-2 rounded font-medium mt-7 transition-all ${
-                        plan.popular
-                          ? "bg-white text-indigo-500 hover:bg-gray-200"
-                          : "bg-indigo-500 text-white hover:bg-indigo-600"
-                      }`}
-                    >
-                      {isRtl ? "ابدأ الآن" : "Get Started"}
-                    </button>
-                  </Link>
-                </div>
-              ))}
+            <div className="pb-2 pt-4">
+              <PricingSwitch onSwitch={(v) => setBillingPeriod(v === "0" ? "monthly" : "yearly")} isRtl={isRtl} />
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-6 py-6 mx-auto relative z-10">
+              {(() => {
+                const PLANS = getPlans(isRtl).map(p => ({ ...p, yearlyPrice: Math.round(p.price * 12 * 0.8) }));
+                return PLANS.map((plan) => (
+                  <div
+                    key={plan.id}
+                    className={`w-72 relative text-center border p-6 rounded-lg ${
+                      plan.popular
+                        ? "bg-indigo-500 text-white border-gray-500/30"
+                        : "bg-white text-gray-800/80 border-gray-200"
+                    }`}
+                  >
+                    {plan.popular && (
+                      <p className="absolute px-3 text-sm -top-3.5 left-3.5 py-1 bg-[#8789FB] rounded-full text-white">
+                        {isRtl ? "الأكثر طلباً" : "Most Popular"}
+                      </p>
+                    )}
+                    <p className={`font-semibold ${plan.popular ? "pt-2" : ""}`}>{plan.name}</p>
+                    {billingPeriod === "yearly" ? (
+                      <div>
+                        <h1 className="text-3xl font-semibold">
+                          {plan.yearlyPrice.toLocaleString()}
+                          <span className={`text-sm font-normal ${plan.popular ? "text-white/70" : "text-gray-500"}`}>
+                            /{isRtl ? "سنة" : "year"}
+                          </span>
+                        </h1>
+                        <p className={`text-xs font-medium mt-1 ${plan.popular ? "text-white/70" : "text-green-600"}`}>
+                          {isRtl
+                            ? `يعني ${Math.round(plan.yearlyPrice / 12).toLocaleString()} ج.م/شهر`
+                            : `${Math.round(plan.yearlyPrice / 12).toLocaleString()} EGP/month`}
+                        </p>
+                      </div>
+                    ) : (
+                      <h1 className="text-3xl font-semibold">
+                        {plan.price.toLocaleString()}
+                        <span className={`text-sm font-normal ${plan.popular ? "text-white/70" : "text-gray-500"}`}>
+                          /{isRtl ? "شهر" : "month"}
+                        </span>
+                      </h1>
+                    )}
+                    <ul className="list-none text-sm mt-6 space-y-1">
+                      {plan.features.map((feature, featureIndex) => (
+                        <li key={featureIndex} className={`flex items-center gap-2 ${isRtl ? "flex-row-reverse" : ""}`}>
+                          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+                            <path d="M7.162 13.5 2.887 9.225l1.07-1.069 3.205 3.207 6.882-6.882 1.069 1.07z" fill={plan.popular ? "currentColor" : "#6366F1"}/>
+                          </svg>
+                          <p className={`text-sm ${plan.popular ? "text-white" : "text-gray-500"}`}>{feature.text}</p>
+                        </li>
+                      ))}
+                    </ul>
+                    <Link href="/signup">
+                      <button
+                        type="button"
+                        className={`text-sm w-full py-2 rounded font-medium mt-7 transition-all ${
+                          plan.popular
+                            ? "bg-white text-indigo-500 hover:bg-gray-200"
+                            : "bg-indigo-500 text-white hover:bg-indigo-600"
+                        }`}
+                      >
+                        {isRtl ? "ابدأ الآن" : "Get Started"}
+                      </button>
+                    </Link>
+                  </div>
+                ));
+              })()}
             </div>
         </div>
 
