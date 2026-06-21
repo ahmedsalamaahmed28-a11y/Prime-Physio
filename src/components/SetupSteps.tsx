@@ -5,8 +5,8 @@ import { usePathname } from "next/navigation";
 import { useLanguage } from "@/lib/LanguageContext";
 
 const STEPS = [
-  { key: "signup", labelAr: "التسجيل", labelEn: "Sign Up" },
-  { key: "login", labelAr: "الدخول", labelEn: "Login" },
+  { key: "signup", labelAr: "إنشاء الحساب", labelEn: "Create Account" },
+  { key: "login", labelAr: "تسجيل", labelEn: "Register" },
   { key: "center", labelAr: "إنشاء مركز", labelEn: "Create Center" },
   { key: "plan", labelAr: "الباقة", labelEn: "Plan" },
 ];
