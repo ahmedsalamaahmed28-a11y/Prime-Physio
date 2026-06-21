@@ -1,86 +1,85 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase";
+import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, name, planId, clinicId: providedClinicId } = await req.json();
-    if (!email || !planId) {
+    const { email, name, planId, clinicId } = await req.json();
+
+    if (!email || !name || !planId || !clinicId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const admin = getAdminClient();
-    const cleanEmail = email.toLowerCase().trim();
 
-    const plans: Record<string, { price: number }> = {
-      basic: { price: 500 },
-      silver: { price: 1000 },
-      gold: { price: 1500 },
-    };
-    const plan = plans[planId];
-    if (!plan) {
-      return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+    // Check if clinic exists
+    const { data: clinic, error: clinicError } = await admin
+      .from("clinics")
+      .select("id, name, status")
+      .eq("id", clinicId)
+      .single();
+
+    if (clinicError || !clinic) {
+      return NextResponse.json({ error: "Clinic not found" }, { status: 404 });
     }
 
-    let clinicId = providedClinicId;
-
-    if (!clinicId) {
-      const { data: existingClinic } = await admin
-        .from("clinics")
-        .select("id")
-        .eq("admin_email", cleanEmail)
-        .maybeSingle();
-      if (existingClinic) {
-        clinicId = existingClinic.id;
-      }
+    if (clinic.status !== "active") {
+      return NextResponse.json({ error: "Clinic is not active" }, { status: 400 });
     }
 
-    if (!clinicId) {
-      clinicId = crypto.randomUUID();
-      const clinicName = name || cleanEmail.split("@")[0];
-
-      const { error: clinicErr } = await admin.from("clinics").insert({
-        id: clinicId, name: clinicName, admin_email: cleanEmail, status: "active",
-      });
-      if (clinicErr) {
-        return NextResponse.json({ error: clinicErr.message }, { status: 500 });
-      }
-
-      const { error: staffErr } = await admin.from("staff").insert({
-        clinic_id: clinicId, name: clinicName, email: cleanEmail, role: "admin", status: "نشط",
-      });
-      if (staffErr) {
-        await admin.from("clinics").delete().eq("id", clinicId);
-        return NextResponse.json({ error: staffErr.message }, { status: 500 });
-      }
-
-      try {
-        await admin.from("clinic_settings").upsert({
-          clinic_id: clinicId, clinic_name: clinicName,
-        }, { onConflict: "clinic_id" });
-      } catch {}
-    }
-
-    const { data: existingSub } = await admin
-      .from("subscriptions")
-      .select("id")
+    // Get staff record for this email
+    const { data: staff, error: staffError } = await admin
+      .from("staff")
+      .select("id, role")
+      .eq("email", email.toLowerCase().trim())
       .eq("clinic_id", clinicId)
-      .eq("plan_name", planId)
-      .eq("status", "active")
-      .maybeSingle();
+      .single();
 
-    if (!existingSub) {
-      const { error: subErr } = await admin.from("subscriptions").insert({
-        clinic_id: clinicId, user_email: cleanEmail, plan_name: planId,
-        plan_price: plan.price, status: "active", is_trial: false,
-      });
-      if (subErr) {
-        console.warn("[Subscribe] Subscription error:", subErr);
-      }
+    if (staffError || !staff) {
+      return NextResponse.json({ error: "Staff record not found for this clinic" }, { status: 404 });
     }
 
-    return NextResponse.json({ clinicId });
+    // Create subscription based on plan
+    const subscriptionData: any = {
+      clinic_id: clinicId,
+      plan_id: planId,
+      status: "active",
+      start_date: new Date().toISOString(),
+      end_date: planId === "basic" 
+        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year for basic
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 1 month for paid plans
+    };
+
+    const { data: subscription, error: subscriptionError } = await admin
+      .from("subscriptions")
+      .insert(subscriptionData)
+      .select("id")
+      .single();
+
+    if (subscriptionError || !subscription) {
+      return NextResponse.json({ error: "Failed to create subscription" }, { status: 500 });
+    }
+
+    // Update clinic_settings with subscription info
+    await admin
+      .from("clinic_settings")
+      .update({
+        subscription_id: subscription.id,
+        subscription_status: "active",
+        subscription_plan: planId,
+      })
+      .eq("clinic_id", clinicId);
+
+    return NextResponse.json({
+      success: true,
+      clinicId,
+      subscriptionId: subscription.id,
+    });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("[Subscribe] Error:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Internal server error" },
+      { status: 500 }
+    );
   }
 }

@@ -73,7 +73,7 @@ export default function SubscribePage() {
         throw new Error(data.error || "Subscription failed");
       }
 
-      window.location.href = "/home";
+      window.location.href = "/centers";
     } catch (err: any) {
       setError(err?.message || "An error occurred");
     } finally {

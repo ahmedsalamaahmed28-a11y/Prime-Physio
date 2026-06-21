@@ -2,84 +2,86 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase";
 
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const clinicId = searchParams.get("clinic_id");
-
-  if (!clinicId) {
-    return NextResponse.json({ error: "clinic_id is required" }, { status: 400 });
-  }
-
-  const admin = getAdminClient();
-  const { data, error } = await admin
-    .from("branches")
-    .select("*")
-    .eq("clinic_id", clinicId)
-    .order("created_at", { ascending: true });
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json({ branches: data || [] });
-}
-
-export async function POST(req: NextRequest) {
   try {
-    const { clinic_id, short_name, full_name, slug, logo_url } = await req.json();
+    const { searchParams } = new URL(req.url);
+    const clinicId = searchParams.get("clinicId");
 
-    if (!clinic_id || !short_name || !full_name || !slug) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!clinicId) {
+      return NextResponse.json({ error: "Clinic ID is required" }, { status: 400 });
     }
 
     const admin = getAdminClient();
 
-    // Check plan limit for branches
-    const { data: subs } = await admin
-      .from("subscriptions")
-      .select("plan_name")
-      .eq("clinic_id", clinic_id)
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .limit(1);
-    const planName = (subs && subs[0]?.plan_name) || "basic";
-    const maxBranches = planName === "gold" ? 2 : 1;
-
-    const { count } = await admin
+    const { data: branches, error } = await admin
       .from("branches")
-      .select("*", { count: "exact", head: true })
-      .eq("clinic_id", clinic_id);
+      .select("id, short_name, full_name, slug, logo_url")
+      .eq("clinic_id", clinicId)
+      .order("created_at", { ascending: true });
 
-    if (count !== null && count >= maxBranches) {
-      return NextResponse.json({
-        error: `Plan limit reached. Max ${maxBranches} centers allowed on ${planName} plan.`,
-      }, { status: 403 });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Check slug uniqueness within clinic
-    const { data: existing } = await admin
+    return NextResponse.json({ branches });
+  } catch (err) {
+    console.error("[Branches GET] Error:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Internal server error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const { clinicId, shortName, fullName, slug, logoUrl } = await req.json();
+
+    if (!clinicId || !shortName || !fullName || !slug) {
+      return NextResponse.json(
+        { error: "Clinic ID, short name, full name, and slug are required" },
+        { status: 400 }
+      );
+    }
+
+    const admin = getAdminClient();
+
+    // Check if slug already exists for this clinic
+    const { data: existingBranch } = await admin
       .from("branches")
       .select("id")
-      .eq("clinic_id", clinic_id)
+      .eq("clinic_id", clinicId)
       .eq("slug", slug)
-      .maybeSingle();
+      .single();
 
-    if (existing) {
-      return NextResponse.json({ error: "Slug already exists in this clinic" }, { status: 400 });
+    if (existingBranch) {
+      return NextResponse.json(
+        { error: "A branch with this slug already exists for this clinic" },
+        { status: 400 }
+      );
     }
 
-    const { data, error } = await admin
+    const { data: branch, error } = await admin
       .from("branches")
-      .insert({ clinic_id, short_name, full_name, slug: slug.toLowerCase().replace(/[^a-z0-9-]/g, ""), logo_url })
-      .select()
+      .insert({
+        clinic_id: clinicId,
+        short_name: shortName,
+        full_name: fullName,
+        slug,
+        logo_url: logoUrl || null,
+      })
+      .select("id, short_name, full_name, slug, logo_url")
       .single();
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ branch: data });
+    return NextResponse.json({ branch }, { status: 201 });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: msg }, { status: 500 });
+    console.error("[Branches POST] Error:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Internal server error" },
+      { status: 500 }
+    );
   }
 }
