@@ -78,3 +78,7 @@ export async function requireRole(
 
   return { ...authed, roleKey, clinicId: staff.clinic_id };
 }
+
+export async function requireAuthOnly(req: NextRequest): Promise<AuthUser> {
+  return requireAuth(req);
+}
