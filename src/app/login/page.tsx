@@ -486,23 +486,77 @@ function LoginContent() {
                 ? "الباقة الأساسية مثالية للعيادات الصغيرة. الباقة الفضية للنمو. والباقة الذهبية لكل الإمكانيات."
                 : "Basic is ideal for small clinics. Silver for growth. Gold unlocks everything."}
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+            <div className="flex flex-wrap items-center justify-center gap-6 pt-4">
               {[
-                { plan: isRtl ? "أساسي" : "Basic", price: isRtl ? "مجاني" : "Free", feat: isRtl ? "50 مريض\n100 جلسة/شهر" : "50 patients\n100 sessions/month", color: "border-slate-200 bg-white", badge: "" },
-                { plan: isRtl ? "فضي" : "Silver", price: isRtl ? "مدفوع" : "Paid", feat: isRtl ? "200 مريض\n500 جلسة/شهر" : "200 patients\n500 sessions/month", color: "border-slate-300 bg-white", badge: "" },
-                { plan: isRtl ? "ذهبي" : "Gold", price: isRtl ? "غير محدود" : "Unlimited", feat: isRtl ? "مرضى غير محدودين\nجلسات غير محدودة" : "Unlimited patients\nUnlimited sessions", color: "border-yellow-300 bg-yellow-50/50", badge: isRtl ? "الأفضل" : "Best" },
-              ].map((p, i) => (
-                <div key={i} className={`relative border-2 ${p.color} rounded-2xl p-6 shadow-sm`}>
-                  {p.badge && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-0.5 bg-yellow-400 text-yellow-900 text-[10px] font-bold rounded-full">
-                      {p.badge}
-                    </div>
+                { id: "basic", name: isRtl ? "أساسي" : "Basic", price: isRtl ? "مجاني" : "Free", features: [
+                    isRtl ? "50 مريض (سجلات طبية)" : "50 Patients (EHR)",
+                    isRtl ? "100 جلسة/شهر" : "100 Sessions/month",
+                    isRtl ? "20 حساب أخصائي" : "20 Therapist Accounts",
+                    isRtl ? "إدارة المواعيد" : "Appointment Management",
+                    isRtl ? "دعم عبر البريد الإلكتروني" : "Email Support",
+                    isRtl ? "فرع واحد" : "1 Branch",
+                  ], popular: false },
+                { id: "silver", name: isRtl ? "فضي" : "Silver", price: isRtl ? "مدفوع" : "Paid", features: [
+                    isRtl ? "200 مريض (سجلات طبية)" : "200 Patients (EHR)",
+                    isRtl ? "500 جلسة/شهر" : "500 Sessions/month",
+                    isRtl ? "50 حساب أخصائي" : "50 Therapist Accounts",
+                    isRtl ? "إدارة المواعيد" : "Appointment Management",
+                    isRtl ? "التقارير والتحليلات" : "Reports & Analytics",
+                    isRtl ? "التغذية العلاجية" : "Clinical Nutrition",
+                    isRtl ? "دعم هاتفي" : "Phone Support",
+                  ], popular: true },
+                { id: "gold", name: isRtl ? "ذهبي" : "Gold", price: isRtl ? "غير محدود" : "Unlimited", features: [
+                    isRtl ? "مرضى غير محدودين" : "Unlimited Patients",
+                    isRtl ? "جلسات غير محدودة" : "Unlimited Sessions",
+                    isRtl ? "حسابات غير محدودة" : "Unlimited Accounts",
+                    isRtl ? "إدارة المواعيد" : "Appointment Management",
+                    isRtl ? "التقارير والتحليلات" : "Reports & Analytics",
+                    isRtl ? "التغذية العلاجية" : "Clinical Nutrition",
+                    isRtl ? "المكتبة العلاجية" : "Rehab Library",
+                    isRtl ? "رسائل تذكير (SMS/WA)" : "Reminders (SMS/WA)",
+                    isRtl ? "دعم VIP 24/7" : "VIP 24/7 Support",
+                    isRtl ? "فرعين" : "2 Branches",
+                  ], popular: false },
+              ].map((plan) => (
+                <div
+                  key={plan.id}
+                  className={`w-72 relative text-center border p-6 rounded-lg ${
+                    plan.popular
+                      ? "bg-indigo-500 text-white border-gray-500/30"
+                      : "bg-white text-gray-800/80 border-gray-200"
+                  }`}
+                >
+                  {plan.popular && (
+                    <p className="absolute px-3 text-sm -top-3.5 left-3.5 py-1 bg-[#8789FB] rounded-full text-white">
+                      {isRtl ? "الأكثر طلباً" : "Most Popular"}
+                    </p>
                   )}
-                  <div className="text-lg font-bold text-slate-800">{p.plan}</div>
-                  <div className="text-2xl font-bold text-[#4F46BA] mt-2">{p.price}</div>
-                  <div className="mt-4 text-xs text-slate-500 space-y-1 whitespace-pre-line">
-                    {p.feat}
-                  </div>
+                  <p className={`font-semibold ${plan.popular ? "pt-2" : ""}`}>{plan.name}</p>
+                  <h1 className="text-3xl font-semibold mt-1">
+                    {plan.price}
+                  </h1>
+                  <ul className="list-none text-sm mt-6 space-y-1">
+                    {plan.features.map((feat, fi) => (
+                      <li key={fi} className={`flex items-center gap-2 ${isRtl ? "flex-row-reverse" : ""}`}>
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+                          <path d="M7.162 13.5 2.887 9.225l1.07-1.069 3.205 3.207 6.882-6.882 1.069 1.07z" fill={plan.popular ? "currentColor" : "#6366F1"}/>
+                        </svg>
+                        <p className={`text-sm ${plan.popular ? "text-white" : "text-gray-500"}`}>{feat}</p>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link href="/signup">
+                    <button
+                      type="button"
+                      className={`text-sm w-full py-2 rounded font-medium mt-7 transition-all ${
+                        plan.popular
+                          ? "bg-white text-indigo-500 hover:bg-gray-200"
+                          : "bg-indigo-500 text-white hover:bg-indigo-600"
+                      }`}
+                    >
+                      {isRtl ? "ابدأ الآن" : "Get Started"}
+                    </button>
+                  </Link>
                 </div>
               ))}
             </div>
