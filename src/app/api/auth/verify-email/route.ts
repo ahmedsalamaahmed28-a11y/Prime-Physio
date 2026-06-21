@@ -60,56 +60,13 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 10);
     const { data: authRecord, error: authError } = await admin
       .from("auth_accounts")
-      .insert({ email: cleanEmail, password_hash: passwordHash })
+      .insert({ email: cleanEmail, password_hash: passwordHash, verified: true })
       .select("id")
       .single();
 
     if (authError || !authRecord) {
       return NextResponse.json({ error: "فشل إنشاء الحساب", details: authError?.message }, { status: 500 });
     }
-
-    const userId = authRecord.id;
-
-    // Create clinic
-    const clinicId = crypto.randomUUID();
-    const { error: clinicError } = await admin.from("clinics").insert({
-      id: clinicId,
-      name: clinicName,
-      admin_email: cleanEmail,
-      phone: phone || null,
-      status: "active",
-    });
-
-    if (clinicError) {
-      try { await admin.from("auth_accounts").delete().eq("id", userId); } catch {}
-      return NextResponse.json({ error: "فشل إنشاء العيادة", details: clinicError.message }, { status: 500 });
-    }
-
-    // Create staff record
-    const roleKey = role === "receptionist" ? "receptionist" : "admin";
-    const { error: staffError } = await admin.from("staff").insert({
-      clinic_id: clinicId,
-      name: clinicName,
-      email,
-      phone: phone || null,
-      role: roleKey,
-      status: "نشط",
-    });
-
-    if (staffError) {
-      try { await admin.from("clinics").delete().eq("id", clinicId); } catch {}
-      try { await admin.from("auth_accounts").delete().eq("id", userId); } catch {}
-      return NextResponse.json({ error: "فشل إنشاء بيانات الموظف" }, { status: 500 });
-    }
-
-    try {
-      await admin.from("clinic_settings").upsert({
-        clinic_id: clinicId,
-        user_id: userId,
-        clinic_name: clinicName,
-        phone,
-      });
-    } catch {}
 
     return NextResponse.json({ success: true });
   } catch (err) {

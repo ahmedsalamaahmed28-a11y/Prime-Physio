@@ -42,6 +42,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
 
   const [otp, setOtp] = useState(["", "", "", ""]);
+  const [showSuccess, setShowSuccess] = useState(false);
   const otpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
@@ -146,20 +147,10 @@ export default function SignupPage() {
         throw new Error(data.error || (isRtl ? "فشل التحقق" : "Verification failed"));
       }
 
-      // Auto-login
-      const result = await signIn("credentials", {
-        email: email.trim().toLowerCase(),
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError(isRtl ? "تم إنشاء الحساب، لكن فشل تسجيل الدخول" : "Account created, but login failed");
-        setIsLoading(false);
-        return;
-      }
-
-      window.location.href = "/home";
+      setShowSuccess(true);
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 2000);
     } catch (err: any) {
       setError(err?.message || (isRtl ? "حدث خطأ" : "An error occurred"));
       setIsLoading(false);
@@ -360,6 +351,10 @@ export default function SignupPage() {
                 </span>
               </div>
 
+              <p className="text-[11px] text-amber-600 text-center -mt-4">
+                {isRtl ? "يرجى التحقق من مجلد Spam إذا لم تجد الكود" : "Check your Spam folder if you don't see the code"}
+              </p>
+
               <div className="flex items-center justify-center gap-3" dir="ltr">
                 {otp.map((digit, idx) => (
                   <input
@@ -399,6 +394,12 @@ export default function SignupPage() {
                   {isRtl ? "تعديل" : "Edit"}
                 </button>
               </div>
+            </div>
+          )}
+
+          {showSuccess && (
+            <div className="bg-emerald-50 border border-emerald-300 text-emerald-700 text-sm font-bold rounded-xl p-4 mt-4 text-center animate-in fade-in slide-in-from-bottom-2 duration-500">
+              {isRtl ? "✅ تم إنشاء الحساب بنجاح! جاري تحويلك إلى صفحة تسجيل الدخول..." : "✅ Account created successfully! Redirecting to login..."}
             </div>
           )}
         </div>
