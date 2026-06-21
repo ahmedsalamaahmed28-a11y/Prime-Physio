@@ -68,7 +68,7 @@ const ALL_FEATURES = (isRtl: boolean) => [
     icon: <Crown size={20} />,
   },
   {
-    label: isRtl ? "فروع العيادة" : "Clinic Branches",
+    label: isRtl ? "المراكز" : "Centers",
     limits: { basic: isRtl ? "1" : "1", silver: isRtl ? "1" : "1", gold: isRtl ? "2" : "2" },
     included: { basic: true, silver: true, gold: true },
     icon: <BuildingIcon size={20} />,
@@ -106,7 +106,7 @@ const getPlans = (isRtl: boolean) => {
         isRtl ? "تشمل:": "Free includes:",
         isRtl ? "إدارة المواعيد" : "Appointment Management",
         isRtl ? "دعم عبر البريد الإلكتروني" : "Email Support",
-        isRtl ? "فرع واحد" : "1 Branch",
+        isRtl ? "مركز واحد" : "1 Center",
       ],
     },
     {
@@ -142,7 +142,7 @@ const getCompareRows = (isRtl: boolean) => [
   { label: isRtl ? "المرضى (سجلات إلكترونية)" : "Patients (EHR)", values: [isRtl ? "50 مريض" : "50 Patients", isRtl ? "200 مريض" : "200 Patients", isRtl ? "∞ غير محدودة" : "∞ Unlimited"] },
   { label: isRtl ? "الجلسات الشهرية" : "Monthly Sessions",        values: [isRtl ? "100" : "100", isRtl ? "500" : "500", isRtl ? "∞ غير محدودة" : "∞ Unlimited"] },
   { label: isRtl ? "حسابات الأخصائيين" : "Therapist Accounts",      values: [isRtl ? "20 حساب" : "20 Accounts", isRtl ? "50 حساب" : "50 Accounts", isRtl ? "∞ غير محدودة" : "∞ Unlimited"] },
-  { label: isRtl ? "الفروع والمراكز" : "Branches & Centers",        values: [isRtl ? "1 فرع" : "1 Branch", isRtl ? "1 فرع" : "1 Branch", isRtl ? "2 فرع (مربوطة)" : "2 Branches (Linked)"] },
+  { label: isRtl ? "المراكز" : "Centers",        values: [isRtl ? "مركز واحد" : "1 Center", isRtl ? "مركز واحد" : "1 Center", isRtl ? "مركزان" : "2 Centers"] },
   { label: isRtl ? "إدارة المواعيد" : "Appointments Mgmt",         values: [true,         true,          true]            },
   { label: isRtl ? "التغذية العلاجية" : "Clinical Nutrition",       values: [false,        true,          true]            },
   { label: isRtl ? "المكتبة العلاجية" : "Rehab Library",       values: [false,        false,         true]            },

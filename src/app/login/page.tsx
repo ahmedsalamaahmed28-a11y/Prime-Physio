@@ -70,7 +70,7 @@ const ALL_FEATURES = (isRtl: boolean) => [
     icon: <Crown size={20} />,
   },
   {
-    label: isRtl ? "فروع العيادة" : "Clinic Branches",
+    label: isRtl ? "المراكز" : "Centers",
     limits: { basic: isRtl ? "1" : "1", silver: isRtl ? "1" : "1", gold: isRtl ? "2" : "2" },
     included: { basic: true, silver: true, gold: true },
     icon: <BuildingIcon size={20} />,
