@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 10);
     const { error: authError } = await admin
       .from("auth_accounts")
-      .insert({ email: email.toLowerCase().trim(), password_hash: passwordHash });
+      .insert({ email: email.toLowerCase().trim(), password_hash: passwordHash, verified: true });
 
     if (authError) {
       console.error("[StaffInvite] Failed to create auth_accounts:", authError.message);

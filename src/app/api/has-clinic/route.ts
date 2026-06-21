@@ -7,13 +7,21 @@ export async function GET(req: NextRequest) {
     if (!email) return NextResponse.json({ hasClinic: false });
 
     const admin = getAdminClient();
-    const { data } = await admin
+    const { data: clinic } = await admin
       .from("clinics")
       .select("id")
       .eq("admin_email", email)
       .maybeSingle();
 
-    return NextResponse.json({ hasClinic: !!data });
+    if (clinic) return NextResponse.json({ hasClinic: true });
+
+    const { data: staff } = await admin
+      .from("staff")
+      .select("clinic_id")
+      .eq("email", email)
+      .maybeSingle();
+
+    return NextResponse.json({ hasClinic: !!staff });
   } catch {
     return NextResponse.json({ hasClinic: false });
   }
