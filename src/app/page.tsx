@@ -10,13 +10,29 @@ export default async function RootPage() {
     redirect("/login");
   }
 
+  const admin = getAdminClient();
+  const email = session.user.email;
+
+  // Check if account still exists in DB — stale JWT (e.g., after DB reset)
+  try {
+    const { data: account } = await admin
+      .from("auth_accounts")
+      .select("email")
+      .eq("email", email)
+      .maybeSingle();
+    if (!account) {
+      redirect("/api/auth/signout?callbackUrl=/login");
+    }
+  } catch {
+    // If query fails, fall through and check staff
+  }
+
   // Check if user has a clinic (server-side, no race conditions)
   try {
-    const admin = getAdminClient();
     const { data: staff } = await admin
       .from("staff")
       .select("clinic_id")
-      .eq("email", session.user.email)
+      .eq("email", email)
       .maybeSingle();
 
     if (staff?.clinic_id) {
