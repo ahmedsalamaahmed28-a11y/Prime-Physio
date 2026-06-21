@@ -20,3 +20,6 @@ create table if not exists public.subscriptions (
 alter table public.subscriptions enable row level security;
 drop policy if exists "service role full access subscriptions" on public.subscriptions;
 create policy "service role full access subscriptions" on public.subscriptions for all using (true) with check (true);
+
+-- Add trial support
+alter table public.subscriptions add column if not exists is_trial boolean not null default false;

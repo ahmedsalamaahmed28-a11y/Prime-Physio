@@ -215,6 +215,8 @@ export default function SubscriptionPage() {
   const pricingRef = useRef<HTMLDivElement>(null);
 
   const [activePlanId, setActivePlanId] = useState("basic");
+  const [isTrial, setIsTrial] = useState(false);
+  const [trialEndDate, setTrialEndDate] = useState<string | null>(null);
   const [patientCount, setPatientCount] = useState(0);
   const [sessionCount, setSessionCount] = useState(0);
   const [planLimits, setPlanLimits] = useState({ patients: 50, sessions: 100 });
@@ -224,7 +226,7 @@ export default function SubscriptionPage() {
       try {
         const { data: subData, error: subErr } = await supabase
           .from('subscriptions')
-          .select('plan_name, plan_price')
+          .select('plan_name, plan_price, is_trial, end_date')
           .eq('clinic_id', clinicId)
           .eq('status', 'active')
           .order('created_at', { ascending: false })
@@ -238,6 +240,8 @@ export default function SubscriptionPage() {
           }
         } else if (subData && subData.length > 0) {
           setActivePlanId(subData[0].plan_name);
+          setIsTrial(!!subData[0].is_trial);
+          setTrialEndDate(subData[0].end_date || null);
           const limits: Record<string, { patients: number; sessions: number }> = {
             basic: { patients: 50, sessions: 100 },
             silver: { patients: 200, sessions: 500 },
@@ -426,6 +430,25 @@ export default function SubscriptionPage() {
         <PricingSwitch onSwitch={togglePricingPeriod} isRtl={isRtl} />
       </motion.div>
 
+      {isTrial && trialEndDate && (
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={revealVariants}
+          custom={4}
+          className="max-w-lg mx-auto relative z-10 mb-2"
+        >
+          <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 rounded-xl px-5 py-3 text-center shadow-lg">
+            <p className="text-sm font-bold">
+              {isRtl
+                ? `🎉 تجربة مجانية للخطة الذهبية — متبقي ${Math.max(0, Math.ceil((new Date(trialEndDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} أيام`
+                : `🎉 Free Gold Trial — ${Math.max(0, Math.ceil((new Date(trialEndDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} days left`}
+            </p>
+          </div>
+        </motion.div>
+      )}
+
       <div className="flex flex-wrap items-center justify-center gap-6 py-6 mx-auto relative z-10">
         {PLANS.map((plan, index) => (
           <motion.div
@@ -434,7 +457,7 @@ export default function SubscriptionPage() {
             whileInView="visible"
             viewport={{ once: true }}
             variants={revealVariants}
-            custom={4 + index}
+            custom={5 + index}
           >
             <div
               className={`w-72 relative text-center border p-6 rounded-lg ${
@@ -520,7 +543,7 @@ export default function SubscriptionPage() {
         whileInView="visible"
         viewport={{ once: true }}
         variants={revealVariants}
-        custom={7}
+        custom={8}
         className="max-w-7xl mx-auto relative z-10 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs mb-6"
       >
         <h3 className={`text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-6 flex items-center gap-2 ${isRtl ? "" : ""}`}>
@@ -589,7 +612,7 @@ export default function SubscriptionPage() {
         whileInView="visible"
         viewport={{ once: true }}
         variants={revealVariants}
-        custom={8}
+        custom={9}
         className="text-center max-w-7xl mx-auto relative z-10 mb-6"
       >
         <button
@@ -606,7 +629,7 @@ export default function SubscriptionPage() {
           whileInView="visible"
           viewport={{ once: true }}
           variants={revealVariants}
-          custom={9}
+          custom={10}
           className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-lg max-w-7xl mx-auto relative z-10 mb-6"
         >
           <div className="overflow-x-auto">
@@ -671,7 +694,7 @@ export default function SubscriptionPage() {
         whileInView="visible"
         viewport={{ once: true }}
         variants={revealVariants}
-        custom={10}
+        custom={11}
         className={`flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-2xl p-4 max-w-7xl mx-auto relative z-10 mb-6 ${isRtl ? "" : ""}`}
       >
         <Clock className="w-5 h-5 text-blue-500 shrink-0" />

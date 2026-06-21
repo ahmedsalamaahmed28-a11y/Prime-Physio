@@ -61,6 +61,23 @@ export async function POST(req: NextRequest) {
       }, { onConflict: "clinic_id" });
     } catch {}
 
+    // Create 7-day free Gold trial subscription
+    try {
+      const trialEnd = new Date();
+      trialEnd.setDate(trialEnd.getDate() + 7);
+      await admin.from("subscriptions").insert({
+        clinic_id: clinicId,
+        user_email: email,
+        plan_name: "gold",
+        plan_price: 0,
+        status: "active",
+        is_trial: true,
+        end_date: trialEnd.toISOString(),
+      });
+    } catch (e) {
+      console.warn("[AutoProvision] Failed to create trial subscription:", e);
+    }
+
     return NextResponse.json({ clinicId, clinicName });
   } catch (err) {
     console.error("[AutoProvision] Unhandled error:", err);
