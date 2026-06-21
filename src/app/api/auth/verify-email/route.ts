@@ -85,16 +85,21 @@ export async function POST(req: NextRequest) {
 
     // Create auth_accounts entry
     const passwordHash = await bcrypt.hash(password, 10);
+
+    const insertPayload = {
+      email: cleanEmail,
+      password_hash: passwordHash,
+      verified: true,
+      name: name || cleanEmail.split("@")[0],
+      provider: provider || "email",
+      role: role || "admin",
+    };
+
+    let recordId: string | null = null;
+
     const { data: authRecord, error: authError } = await admin
       .from("auth_accounts")
-      .insert({
-        email: cleanEmail,
-        password_hash: passwordHash,
-        verified: true,
-        name: name || cleanEmail.split("@")[0],
-        provider: provider || "email",
-        role: role || "admin",
-      })
+      .insert(insertPayload)
       .select("id")
       .single();
 
@@ -103,14 +108,7 @@ export async function POST(req: NextRequest) {
       await ensureVerifiedColumn();
       const { data: retryRecord, error: retryError } = await admin
         .from("auth_accounts")
-        .insert({
-          email: cleanEmail,
-          password_hash: passwordHash,
-          verified: true,
-          name: name || cleanEmail.split("@")[0],
-          provider: provider || "email",
-          role: role || "admin",
-        })
+        .insert(insertPayload)
         .select("id")
         .single();
 
@@ -118,11 +116,14 @@ export async function POST(req: NextRequest) {
         console.error("[VerifyEmail] Retry failed:", retryError);
         return NextResponse.json({ error: "فشل إنشاء الحساب", details: retryError?.message }, { status: 500 });
       }
+      recordId = retryRecord.id;
     } else if (authError || !authRecord) {
       return NextResponse.json({ error: "فشل إنشاء الحساب", details: authError?.message }, { status: 500 });
+    } else {
+      recordId = authRecord.id;
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, id: recordId });
   } catch (err) {
     console.error("[VerifyEmail] Error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
