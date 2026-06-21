@@ -16,6 +16,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [todayIncome, setTodayIncome] = useState(0);
   const [totalPatients, setTotalPatients] = useState(0);
+  const [trialInfo, setTrialInfo] = useState<{ isTrial: boolean; endDate: string | null }>({ isTrial: false, endDate: null });
 
   useEffect(() => {
     if (clinicId === undefined) return;
@@ -71,7 +72,24 @@ export default function HomePage() {
         }
       } catch {
         setTodayIncome(0); setAppointments([]);
-      } finally { setIsLoading(false); }
+      }
+
+      try {
+        if (clinicId) {
+          const { data: subData } = await supabase
+            .from('subscriptions')
+            .select('is_trial, end_date')
+            .eq('clinic_id', clinicId)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(1);
+          if (subData && subData.length > 0 && subData[0].is_trial) {
+            setTrialInfo({ isTrial: true, endDate: subData[0].end_date });
+          }
+        }
+      } catch {}
+
+      setIsLoading(false);
     }
     fetchData();
   }, [clinicId]);
@@ -93,6 +111,19 @@ export default function HomePage() {
             </p>
           </div>
         </div>
+
+        {trialInfo.isTrial && (
+          <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 rounded-xl px-5 py-3 text-center shadow-lg mb-6">
+            <p className="text-sm font-bold">
+              {isRtl
+                ? `🎉 أنت تستخدم الخطة الذهبية مجاناً — متبقي ${trialInfo.endDate ? Math.max(0, Math.ceil((new Date(trialInfo.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 7} أيام`
+                : `🎉 You're on a free Gold trial — ${trialInfo.endDate ? Math.max(0, Math.ceil((new Date(trialInfo.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 7} days left`}
+            </p>
+            <Link href="/subscription" className="text-xs underline font-medium mt-1 inline-block">
+              {isRtl ? "عرض تفاصيل الخطط" : "View plan details"}
+            </Link>
+          </div>
+        )}
 
         {/* Performance Cards */}
         <h2 className="text-base font-bold text-gray-700 mb-4">{isRtl ? "نشاط اليوم" : "Today's Activity"}</h2>

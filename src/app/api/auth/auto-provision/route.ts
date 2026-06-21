@@ -61,21 +61,49 @@ export async function POST(req: NextRequest) {
       }, { onConflict: "clinic_id" });
     } catch {}
 
-    // Create 7-day free Gold trial subscription
+    // Check if this email already used a trial before (prevent duplicate)
+    let alreadyUsedTrial = false;
     try {
-      const trialEnd = new Date();
-      trialEnd.setDate(trialEnd.getDate() + 7);
-      await admin.from("subscriptions").insert({
-        clinic_id: clinicId,
-        user_email: email,
-        plan_name: "gold",
-        plan_price: 0,
-        status: "active",
-        is_trial: true,
-        end_date: trialEnd.toISOString(),
-      });
-    } catch (e) {
-      console.warn("[AutoProvision] Failed to create trial subscription:", e);
+      const { data: prevTrials } = await admin
+        .from("subscriptions")
+        .select("id")
+        .eq("user_email", email.toLowerCase().trim())
+        .eq("is_trial", true)
+        .limit(1);
+      if (prevTrials && prevTrials.length > 0) alreadyUsedTrial = true;
+    } catch {}
+
+    if (alreadyUsedTrial) {
+      // Create basic plan instead (no free trial for returning users)
+      try {
+        await admin.from("subscriptions").insert({
+          clinic_id: clinicId,
+          user_email: email,
+          plan_name: "basic",
+          plan_price: 500,
+          status: "active",
+          is_trial: false,
+        });
+      } catch (e) {
+        console.warn("[AutoProvision] Failed to create basic subscription:", e);
+      }
+    } else {
+      // Create 7-day free Gold trial subscription
+      try {
+        const trialEnd = new Date();
+        trialEnd.setDate(trialEnd.getDate() + 7);
+        await admin.from("subscriptions").insert({
+          clinic_id: clinicId,
+          user_email: email,
+          plan_name: "gold",
+          plan_price: 0,
+          status: "active",
+          is_trial: true,
+          end_date: trialEnd.toISOString(),
+        });
+      } catch (e) {
+        console.warn("[AutoProvision] Failed to create trial subscription:", e);
+      }
     }
 
     return NextResponse.json({ clinicId, clinicName });
