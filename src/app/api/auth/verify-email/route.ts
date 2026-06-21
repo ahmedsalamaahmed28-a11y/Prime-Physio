@@ -31,7 +31,7 @@ async function ensureVerifiedColumn() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, code, clinicName, phone, password, role } = await req.json();
+    const { email, code, clinicName, phone, password, role, name, provider } = await req.json();
 
     if (!email || !code || !clinicName || phone === undefined || !password || !role) {
       return NextResponse.json({ error: "جميع الحقول مطلوبة" }, { status: 400 });
@@ -87,7 +87,14 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 10);
     const { data: authRecord, error: authError } = await admin
       .from("auth_accounts")
-      .insert({ email: cleanEmail, password_hash: passwordHash, verified: true })
+      .insert({
+        email: cleanEmail,
+        password_hash: passwordHash,
+        verified: true,
+        name: name || cleanEmail.split("@")[0],
+        provider: provider || "email",
+        role: role || "admin",
+      })
       .select("id")
       .single();
 
@@ -96,7 +103,14 @@ export async function POST(req: NextRequest) {
       await ensureVerifiedColumn();
       const { data: retryRecord, error: retryError } = await admin
         .from("auth_accounts")
-        .insert({ email: cleanEmail, password_hash: passwordHash, verified: true })
+        .insert({
+          email: cleanEmail,
+          password_hash: passwordHash,
+          verified: true,
+          name: name || cleanEmail.split("@")[0],
+          provider: provider || "email",
+          role: role || "admin",
+        })
         .select("id")
         .single();
 
