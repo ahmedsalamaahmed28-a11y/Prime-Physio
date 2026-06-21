@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
 import Link from "next/link";
-import SetupSteps from "@/components/SetupSteps";
 
 const plans = (isRtl: boolean) => [
   {
@@ -108,7 +107,6 @@ export default function SubscribePage() {
   return (
     <div className="min-h-screen bg-neutral-100 flex flex-col items-center justify-center p-4" dir={isRtl ? "rtl" : "ltr"}>
       <div className="max-w-4xl mx-auto text-center space-y-6">
-        <SetupSteps />
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46BA]/10 rounded-full">
           <span className="w-1.5 h-1.5 rounded-full bg-[#4F46BA]" />
           <span className="text-[11px] font-medium text-[#4F46BA]">

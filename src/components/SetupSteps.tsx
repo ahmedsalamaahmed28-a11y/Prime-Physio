@@ -6,15 +6,14 @@ import { useLanguage } from "@/lib/LanguageContext";
 
 const STEPS = [
   { key: "signup", labelAr: "إنشاء الحساب", labelEn: "Create Account" },
-  { key: "login", labelAr: "تسجيل الدخول", labelEn: "Login" },
-  { key: "center", labelAr: "إنشاء مركز", labelEn: "Create Center" },
   { key: "plan", labelAr: "الباقة", labelEn: "Plan" },
+  { key: "center", labelAr: "إنشاء مركز", labelEn: "Create Center" },
 ];
 
 const STEP_MAP: Record<string, number> = {
   "/signup": 0,
+  "/subscribe": 1,
   "/setup/center": 2,
-  "/subscribe": 3,
 };
 
 export default function SetupSteps() {
@@ -23,7 +22,7 @@ export default function SetupSteps() {
   const isRtl = language === "ar";
   const currentIdx = pathname ? STEP_MAP[pathname] ?? -1 : -1;
 
-  // On /signup, only steps 0 and 1 are active (signup + login)
+  // On /signup, only steps 0 and 1 are active (signup + plan)
   const activeIdx = pathname === "/signup" ? 1 : currentIdx;
 
   return (
