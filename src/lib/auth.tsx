@@ -75,8 +75,6 @@ function mapStaffRoleToRoleKey(staffRole: string): "admin" | "doctor" | "recepti
   }
 }
 
-let autoProvisionAttempted = false;
-
 async function enrichUserWithClinic(user: User): Promise<User> {
   // First, try server API (uses service_role — works for NextAuth users without Supabase session)
   try {
@@ -130,28 +128,6 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     }
   } catch {
     // Supabase queries failed (likely RLS for non-Supabase users) — proceed
-  }
-
-  // First-time Google signup — auto-provision clinic + staff
-  const pendingSignup = await getAppValue<string>("pending_google_signup", "");
-  if (pendingSignup === "true" && !autoProvisionAttempted) {
-    autoProvisionAttempted = true;
-    try {
-      const res = await fetch("/api/auth/auto-provision", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email, name: user.name }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        user.clinicId = data.clinicId;
-        setAppValue("pending_google_signup", "").catch(() => {});
-      } else {
-        console.warn("[AutoProvision] API returned", res.status, await res.text().catch(() => ""));
-      }
-    } catch (e) {
-      console.warn("[AutoProvision] Network error:", e);
-    }
   }
 
   return user;
