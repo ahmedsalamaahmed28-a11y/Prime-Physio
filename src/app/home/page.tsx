@@ -79,7 +79,7 @@ export default function HomePage() {
           const { data: subData } = await supabase
             .from('subscriptions')
             .select('is_trial, end_date')
-            .eq('clinic_id', clinicId)
+            .eq('user_email', user?.email?.toLowerCase().trim())
             .eq('status', 'active')
             .order('created_at', { ascending: false })
             .limit(1);
