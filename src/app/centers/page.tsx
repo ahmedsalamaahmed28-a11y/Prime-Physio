@@ -174,7 +174,7 @@ export default function CentersPage() {
             ))}
 
             {centers.length < 2 && (
-              <div className="bg-white rounded-lg border-2 border-dashed border-slate-300 p-8 text-center hover:border-indigo-300 transition-colors cursor-pointer">
+              <div classCase="bg-white rounded-lg border-2 border-dashed border-slate-300 p-8 text-center hover:border-indigo-300 transition-colors cursor-pointer">
                 <button
                   onClick={() => window.location.href = "/setup/center"}
                   className="flex flex-col items-center gap-4"
