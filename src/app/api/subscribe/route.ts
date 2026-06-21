@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
 
     const subscriptionData: any = {
       user_email: email.toLowerCase().trim(),
+      clinic_id: clinicId,
       plan_name: planId,
       plan_price: planId === "basic" ? 0 : (planId === "silver" ? 1000 : 1500),
       status: "active",

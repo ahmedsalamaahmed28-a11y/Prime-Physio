@@ -12,12 +12,25 @@ async function persistSubscription(orderId: string, transactionId: string, email
       .maybeSingle();
 
     const info = mapping?.value || { planId: "basic", planName: "Prime Physio", price: 0, email: email || "" };
+    const cleanEmail = (info.email || email || "unknown@primephysio.com").toLowerCase().trim();
+
+    // Find clinic_id from email
+    let clinicId = null;
+    try {
+      const { data: clinic } = await admin
+        .from("clinics")
+        .select("id")
+        .eq("admin_email", cleanEmail)
+        .maybeSingle();
+      clinicId = clinic?.id || null;
+    } catch {}
 
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + 1);
 
     const { error } = await admin.from("subscriptions").insert({
-      user_email: info.email || email || "unknown@primephysio.com",
+      user_email: cleanEmail,
+      clinic_id: clinicId,
       plan_name: info.planId || "basic",
       plan_price: info.price || 0,
       status: "active",

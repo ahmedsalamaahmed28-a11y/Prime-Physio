@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
       try {
         await admin.from("subscriptions").insert({
           user_email: email,
+          clinic_id: clinicId,
           plan_name: "basic",
           plan_price: 0,
           status: "active",
@@ -95,6 +96,7 @@ export async function POST(req: NextRequest) {
         trialEnd.setDate(trialEnd.getDate() + 7);
         await admin.from("subscriptions").insert({
           user_email: email,
+          clinic_id: clinicId,
           plan_name: "gold",
           plan_price: 0,
           status: "active",
