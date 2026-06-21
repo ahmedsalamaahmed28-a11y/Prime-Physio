@@ -76,6 +76,23 @@ function mapStaffRoleToRoleKey(staffRole: string): "admin" | "doctor" | "recepti
 let autoProvisionAttempted = false;
 
 async function enrichUserWithClinic(user: User): Promise<User> {
+  // First, try server API (uses service_role — works for NextAuth users without Supabase session)
+  try {
+    const res = await fetch("/api/auth/enrich");
+    if (res.ok) {
+      const data = await res.json();
+      if (data.clinicId) {
+        user.clinicId = data.clinicId;
+        user.roleKey = data.roleKey as User["roleKey"];
+        user.role = data.roleAr;
+        user.roleEn = data.roleEn;
+        return user;
+      }
+    }
+  } catch {
+    // API call failed — fall through to Supabase queries
+  }
+
   try {
     // Check if platform super admin
     const { data: pa } = await supabase
@@ -102,37 +119,37 @@ async function enrichUserWithClinic(user: User): Promise<User> {
 
     if (staff?.clinic_id) {
       user.clinicId = staff.clinic_id;
-      // Derive roleKey from the DB role — not from client-side pending_role
       user.roleKey = mapStaffRoleToRoleKey(staff.role);
       user.role = getArabicRoleLabel(user.roleKey);
       user.roleEn = getEnglishRoleLabel(user.roleKey);
       return user;
     }
-
-    // First-time Google signup — auto-provision clinic + staff
-    const pendingSignup = await getAppValue<string>("pending_google_signup", "");
-    if (pendingSignup === "true" && !autoProvisionAttempted) {
-      autoProvisionAttempted = true;
-      try {
-        const res = await fetch("/api/auth/auto-provision", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: user.email, name: user.name }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          user.clinicId = data.clinicId;
-          setAppValue("pending_google_signup", "").catch(() => {});
-        } else {
-          console.warn("[AutoProvision] API returned", res.status, await res.text().catch(() => ""));
-        }
-      } catch (e) {
-        console.warn("[AutoProvision] Network error:", e);
-      }
-    }
   } catch {
-    // If table doesn't exist yet (pre-migration), just proceed
+    // Supabase queries failed (likely RLS for non-Supabase users) — proceed
   }
+
+  // First-time Google signup — auto-provision clinic + staff
+  const pendingSignup = await getAppValue<string>("pending_google_signup", "");
+  if (pendingSignup === "true" && !autoProvisionAttempted) {
+    autoProvisionAttempted = true;
+    try {
+      const res = await fetch("/api/auth/auto-provision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email, name: user.name }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        user.clinicId = data.clinicId;
+        setAppValue("pending_google_signup", "").catch(() => {});
+      } else {
+        console.warn("[AutoProvision] API returned", res.status, await res.text().catch(() => ""));
+      }
+    } catch (e) {
+      console.warn("[AutoProvision] Network error:", e);
+    }
+  }
+
   return user;
 }
 
@@ -191,10 +208,6 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           return enriched;
         });
         setAppValue("pending_role", "doctor").catch(() => {});
-
-        if (window.location.pathname === "/login" || window.location.pathname === "/signup") {
-          window.location.href = "/home";
-        }
       } else if (event === "SIGNED_OUT") {
         setUser(null);
         setAppValue("current_user", null).catch(() => {});
@@ -239,10 +252,6 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
           return enriched;
         });
-
-        if (window.location.pathname === "/login" || window.location.pathname === "/signup") {
-          window.location.href = "/home";
-        }
       };
 
       loadRoleState();
