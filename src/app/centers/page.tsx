@@ -9,16 +9,16 @@ import SetupSteps from "@/components/SetupSteps";
 export default function CentersPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, isEnriching } = useAuth();
   const email = user?.email;
   const name = user?.name;
   const clinicId = user?.clinicId;
 
   useEffect(() => {
-    if (!authLoading && !clinicId) {
+    if (!authLoading && !isEnriching && !clinicId) {
       window.location.href = "/setup/center";
     }
-  }, [authLoading, clinicId]);
+  }, [authLoading, isEnriching, clinicId]);
 
   const [centers, setCenters] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -72,7 +72,7 @@ export default function CentersPage() {
 
   return (
     <div className="min-h-screen bg-neutral-100 p-4 md:p-8" dir={isRtl ? "rtl" : "ltr"}>
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto min-h-[500px] contain-layout">
         <SetupSteps />
 
         <div className="mb-8">

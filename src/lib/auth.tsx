@@ -33,6 +33,7 @@ interface AuthContextType {
   loginWithSupabase: (email: string, pass: string) => Promise<{ error?: string }>;
   logout: () => void;
   isLoading: boolean;
+  isEnriching: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -379,7 +380,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   }, [user, status]);
 
   return (
-    <AuthContext.Provider value={{ user, activeBranchId, setActiveBranchId, loginWithGoogle, loginWithCredentials, registerWithSupabase, loginWithSupabase, logout, isLoading: isAuthLoading }}>
+    <AuthContext.Provider value={{ user, activeBranchId, setActiveBranchId, loginWithGoogle, loginWithCredentials, registerWithSupabase, loginWithSupabase, logout, isLoading: isAuthLoading, isEnriching }}>
       {children}
     </AuthContext.Provider>
   );

@@ -41,16 +41,16 @@ const plans = (isRtl: boolean) => [
 export default function SubscribePage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
-  const { user, isLoading: authLoading } = useAuth();
+  const { user, isLoading: authLoading, isEnriching } = useAuth();
   const email = user?.email;
   const name = user?.name;
   const clinicId = user?.clinicId;
 
   useEffect(() => {
-    if (!authLoading && !clinicId) {
+    if (!authLoading && !isEnriching && !clinicId) {
       window.location.href = "/setup/center";
     }
-  }, [authLoading, clinicId]);
+  }, [authLoading, isEnriching, clinicId]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -106,7 +106,7 @@ export default function SubscribePage() {
 
   return (
     <div className="min-h-screen bg-neutral-100 flex flex-col items-center justify-center p-4" dir={isRtl ? "rtl" : "ltr"}>
-      <div className="max-w-4xl mx-auto text-center space-y-6">
+      <div className="max-w-4xl mx-auto text-center space-y-6 min-h-[500px] contain-layout">
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46BA]/10 rounded-full">
           <span className="w-1.5 h-1.5 rounded-full bg-[#4F46BA]" />
           <span className="text-[11px] font-medium text-[#4F46BA]">

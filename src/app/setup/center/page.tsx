@@ -96,7 +96,25 @@ export default function SetupCenterPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to create centers");
-      window.location.href = "/subscribe";
+      
+      // Update auth context with new clinicId BEFORE redirect to prevent race condition
+      if (data.clinicId) {
+        try {
+          const enrichRes = await fetch("/api/auth/enrich");
+          if (enrichRes.ok) {
+            const enrichData = await enrichRes.json();
+            if (enrichData.clinicId) {
+              // Trigger auth context update by calling enrich endpoint
+              // The auth context will pick up the new clinicId via its enrich logic
+            }
+          }
+        } catch {}
+      }
+      
+      // Small delay to allow auth context to update before redirect
+      setTimeout(() => {
+        window.location.href = "/subscribe";
+      }, 100);
     } catch (err: any) {
       setError(err?.message || "An error occurred");
     } finally {

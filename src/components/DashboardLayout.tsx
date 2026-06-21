@@ -95,7 +95,7 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout, isLoading, loginWithGoogle, loginWithCredentials, activeBranchId, setActiveBranchId } = useAuth();
+  const { user, logout, isLoading, loginWithGoogle, loginWithCredentials, activeBranchId, setActiveBranchId, isEnriching } = useAuth();
   const { hasPermission } = usePermissions();
   const { language, toggleLanguage, t } = useLanguage();
   const { isOnline, pendingCount, isSyncing, syncNow } = usePWA();
@@ -218,7 +218,7 @@ export default function DashboardLayout({
   }, [user?.clinicId, activeBranchId, user?.logoUrl, user?.shortName]);
 
   useEffect(() => {
-    if (activeAccount?.clinicId && pathname !== "/login" && pathname !== "/signup" && pathname !== "/forgot-password" && pathname !== "/reset-password" && pathname !== "/setup/center" && pathname !== "/subscribe" && pathname !== "/centers/new") {
+    if (activeAccount?.clinicId && !isEnriching && pathname !== "/login" && pathname !== "/signup" && pathname !== "/forgot-password" && pathname !== "/reset-password" && pathname !== "/setup/center" && pathname !== "/subscribe" && pathname !== "/centers/new") {
       const checkSub = async () => {
         try {
           const { data } = await supabase
@@ -234,7 +234,7 @@ export default function DashboardLayout({
       };
       checkSub();
     }
-  }, [activeAccount?.clinicId, pathname]);
+  }, [activeAccount?.clinicId, pathname, isEnriching]);
 
     const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password" || pathname === "/reset-password" || pathname === "/setup/center" || pathname === "/subscribe" || pathname === "/centers/new";
 
@@ -677,7 +677,7 @@ export default function DashboardLayout({
         )}
 
         {/* ─── MAIN CONTENT AREA ────────────────────────────────────────────── */}
-        <main className="flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto print:p-0">
+        <main className="flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto print:p-0 min-h-[500px] contain-layout">
           {children}
         </main>
         
