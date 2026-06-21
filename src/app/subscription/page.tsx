@@ -449,7 +449,7 @@ export default function SubscriptionPage() {
         </motion.div>
       )}
 
-      <div className="flex flex-wrap items-center justify-center gap-6 py-6 mx-auto relative z-10">
+      <div className="grid grid-cols-1 md:grid-cols-3 items-start justify-items-center gap-6 py-6 mx-auto relative z-10">
         {PLANS.map((plan, index) => (
           <motion.div
             key={plan.id}

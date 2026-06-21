@@ -651,7 +651,7 @@ function LoginContent() {
             <div className="pb-2 pt-4">
               <PricingSwitch onSwitch={(v) => setBillingPeriod(v === "0" ? "monthly" : "yearly")} isRtl={isRtl} />
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-6 py-6 mx-auto relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-3 items-start justify-items-center gap-6 py-6 mx-auto relative z-10">
               {(() => {
                 const PLANS = getPlans(isRtl).map(p => ({ ...p, yearlyPrice: Math.round(p.price * 12 * 0.8) }));
                 return PLANS.map((plan) => (
