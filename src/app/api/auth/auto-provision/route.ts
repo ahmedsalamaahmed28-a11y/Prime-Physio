@@ -77,11 +77,12 @@ export async function POST(req: NextRequest) {
       // Create basic plan instead (no free trial for returning users)
       try {
         await admin.from("subscriptions").insert({
-          clinic_id: clinicId,
           user_email: email,
           plan_name: "basic",
-          plan_price: 500,
+          plan_price: 0,
           status: "active",
+          start_date: new Date().toISOString(),
+          end_date: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
           is_trial: false,
         });
       } catch (e) {
@@ -93,13 +94,13 @@ export async function POST(req: NextRequest) {
         const trialEnd = new Date();
         trialEnd.setDate(trialEnd.getDate() + 7);
         await admin.from("subscriptions").insert({
-          clinic_id: clinicId,
           user_email: email,
           plan_name: "gold",
           plan_price: 0,
           status: "active",
-          is_trial: true,
+          start_date: new Date().toISOString(),
           end_date: trialEnd.toISOString(),
+          is_trial: true,
         });
       } catch (e) {
         console.warn("[AutoProvision] Failed to create trial subscription:", e);

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase";
-import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,14 +39,16 @@ export async function POST(req: NextRequest) {
     }
 
     // Create subscription based on plan
+    const endDate = new Date();
+    endDate.setMonth(endDate.getMonth() + 1);
+
     const subscriptionData: any = {
-      clinic_id: clinicId,
-      plan_id: planId,
+      user_email: email.toLowerCase().trim(),
+      plan_name: planId,
+      plan_price: planId === "basic" ? 0 : (planId === "silver" ? 1000 : 1500),
       status: "active",
       start_date: new Date().toISOString(),
-      end_date: planId === "basic" 
-        ? new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year for basic
-        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 1 month for paid plans
+      end_date: endDate.toISOString(),
     };
 
     const { data: subscription, error: subscriptionError } = await admin
