@@ -74,7 +74,14 @@ export default function SubscribePage() {
   };
 
   const handleSubscribe = async (planId: string) => {
-    if (!email) return;
+    if (!email) {
+      setError(isRtl ? "يرجى تسجيل الدخول" : "Please log in");
+      return;
+    }
+    if (!clinicId) {
+      setError(isRtl ? "يرجى إنشاء مركز أولاً" : "Please create a center first");
+      return;
+    }
     setError("");
     setIsLoading(true);
 
