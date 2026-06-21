@@ -137,6 +137,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [activeBranchId, setActiveBranchId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEnriching, setIsEnriching] = useState(false);
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
@@ -147,13 +148,17 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    let mounted = true;
     getAppValue<User | null>("current_user", null)
       .then((savedUser) => {
-        if (savedUser) setUser(savedUser);
+        if (mounted && savedUser) setUser(savedUser);
       })
-      .catch((e) => console.error("Failed to load user session", e));
+      .catch((e) => console.error("Failed to load user session", e))
+      .finally(() => {
+        if (mounted) setIsLoading(false);
+      });
 
-    setIsLoading(false);
+    return () => { mounted = false; };
   }, []);
 
   useEffect(() => {
@@ -180,7 +185,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           initialsEn: name.substring(0, 2).toUpperCase(),
         };
 
+        setIsEnriching(true);
         const enriched = await enrichUserWithClinic(newUser);
+        setIsEnriching(false);
 
         setUser((prev) => {
           if (prev?.email === enriched.email && prev?.clinicId !== undefined) return prev;
@@ -226,7 +233,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           initialsEn: initials,
         };
 
+        setIsEnriching(true);
         const enriched = await enrichUserWithClinic(newUser);
+        setIsEnriching(false);
         setUser((prev) => {
           if (prev?.email === enriched.email && prev?.clinicId !== undefined) return prev;
           setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
@@ -238,11 +247,11 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session, status]);
 
-  const isAuthLoading = isLoading || status === "loading";
+  const isAuthLoading = isLoading || isEnriching || status === "loading";
 
   useEffect(() => {
     if (!isAuthLoading) {
-      const isAuthPage = pathname === "/login" || pathname === "/signup";
+      const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === "/setup/center";
       const isSetupPage = pathname === "/subscribe" || pathname === "/centers/new" || pathname === "/setup/center";
       if (!pathname) return;
       if (!user && status !== "authenticated" && !isAuthPage) {
@@ -275,7 +284,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       roleEn: "Certified Therapist (Google)",
       initialsEn: uppercaseName.substring(0, 2),
     };
+    setIsEnriching(true);
     const enriched = await enrichUserWithClinic(newUser);
+    setIsEnriching(false);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
     window.location.href = "/home";
@@ -300,7 +311,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       roleEn: getEnglishRoleLabel(roleKey),
       initialsEn: initials,
     };
+    setIsEnriching(true);
     const enriched = await enrichUserWithClinic(newUser);
+    setIsEnriching(false);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
     window.location.href = "/home";
