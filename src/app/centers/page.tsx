@@ -24,6 +24,22 @@ export default function CentersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const deleteCenter = async (centerId: string) => {
+    try {
+      const res = await fetch(`/api/branches/${centerId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setCenters(centers.filter(c => c.id !== centerId));
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to delete center");
+      }
+    } catch (err) {
+      setError("An error occurred");
+    }
+  };
+
   useEffect(() => {
     if (!clinicId) return;
 

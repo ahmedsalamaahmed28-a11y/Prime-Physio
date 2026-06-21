@@ -56,6 +56,23 @@ export default function SubscribePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const deleteCenter = async (centerId: string) => {
+    try {
+      const res = await fetch(`/api/branches/${centerId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        // Refresh centers list
+        window.location.reload();
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to delete center");
+      }
+    } catch (err) {
+      setError("An error occurred");
+    }
+  };
+
   const handleSubscribe = async (planId: string) => {
     if (!email) return;
     setError("");
