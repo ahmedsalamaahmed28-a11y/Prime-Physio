@@ -263,11 +263,20 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isAuthLoading) {
       const isAuthPage = pathname === "/login" || pathname === "/signup";
+      const isSetupPage = pathname === "/subscribe" || pathname === "/centers/new";
+      if (!pathname) return;
       if (!user && status !== "authenticated" && !isAuthPage) {
         window.location.href = "/login";
       } else if ((user || status === "authenticated") && isAuthPage) {
         if (pathname === "/signup") return;
         window.location.href = "/home";
+      } else if ((user || status === "authenticated") && !isAuthPage && !isSetupPage) {
+        if (user?.clinicId === undefined && user?.email) {
+          const setupPaths = ["/login", "/signup", "/subscribe", "/centers/new"];
+          if (!setupPaths.includes(pathname)) {
+            window.location.href = "/login?setup=center";
+          }
+        }
       }
     }
   }, [user, pathname, isAuthLoading, status]);

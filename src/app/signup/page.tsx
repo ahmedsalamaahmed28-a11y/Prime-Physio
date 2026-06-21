@@ -156,7 +156,7 @@ export default function SignupPage() {
             redirect: false,
           });
           if (result?.ok) {
-            window.location.href = "/centers/new";
+            window.location.href = "/login?setup=center";
           } else {
             window.location.href = "/login";
           }
