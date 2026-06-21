@@ -266,6 +266,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       if (!user && status !== "authenticated" && !isAuthPage) {
         window.location.href = "/login";
       } else if ((user || status === "authenticated") && isAuthPage) {
+        if (pathname === "/signup") return;
         window.location.href = "/home";
       }
     }
