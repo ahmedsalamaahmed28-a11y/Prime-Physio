@@ -4,12 +4,11 @@ import { useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
 import { signOut } from "next-auth/react";
-import { setAppValue } from "@/lib/appStorage";
 
 export default function AccountDeletionPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const { language, t } = useLanguage();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const isRtl = language === "ar";
   
   const handleDeleteAccount = async () => {
@@ -32,8 +31,21 @@ export default function AccountDeletionPage() {
       });
       
       if (response.ok) {
-        setAppValue("current_user", null).catch(() => {});
-        signOut({ callbackUrl: "/login?deleted=true" });
+        try { localStorage.clear(); } catch {}
+        try { sessionStorage.clear(); } catch {}
+        // Fetch CSRF token and submit signout form to clear NextAuth cookie
+        try {
+          const csrfRes = await fetch("/api/auth/csrf");
+          const { csrfToken } = await csrfRes.json();
+          const form = document.createElement("form");
+          form.method = "POST";
+          form.action = "/api/auth/signout";
+          form.innerHTML = `<input name="csrfToken" value="${csrfToken}" /><input name="callbackUrl" value="/login?deleted=true" />`;
+          document.body.appendChild(form);
+          form.submit();
+        } catch {
+          window.location.href = "/login?deleted=true";
+        }
       } else {
         const error = await response.json();
         alert(language === "ar" ? `فشل حذف الحساب: ${error.error}` : `Failed to delete account: ${error.error}`);
