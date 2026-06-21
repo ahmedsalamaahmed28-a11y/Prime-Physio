@@ -9,7 +9,7 @@ import SetupSteps from "@/components/SetupSteps";
 export default function SetupCenterPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
 
   interface CenterEntry {
     id: string;
@@ -42,10 +42,10 @@ export default function SetupCenterPage() {
   };
 
   useEffect(() => {
-    if (user?.clinicId) {
+    if (!authLoading && user?.clinicId) {
       window.location.href = "/home";
     }
-  }, [user?.clinicId]);
+  }, [authLoading, user?.clinicId]);
 
   const generateSlug = (name: string) =>
     name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").slice(0, 30);

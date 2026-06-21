@@ -42,16 +42,16 @@ const plans = (isRtl: boolean) => [
 export default function SubscribePage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const email = user?.email;
   const name = user?.name;
   const clinicId = user?.clinicId;
 
   useEffect(() => {
-    if (!clinicId) {
+    if (!authLoading && !clinicId) {
       window.location.href = "/setup/center";
     }
-  }, [clinicId]);
+  }, [authLoading, clinicId]);
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
