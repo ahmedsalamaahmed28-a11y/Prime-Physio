@@ -23,8 +23,8 @@ export default function SetupSteps() {
   const isRtl = language === "ar";
   const currentIdx = pathname ? STEP_MAP[pathname] ?? -1 : -1;
 
-  // On /signup, steps 0, 1, and 2 are active (signup + login + center)
-  const activeIdx = pathname === "/signup" ? 2 : currentIdx;
+  // On /signup, only steps 0 and 1 are active (signup + login)
+  const activeIdx = pathname === "/signup" ? 1 : currentIdx;
 
   return (
     <div className="flex items-center justify-center gap-1 mb-6" dir="ltr">
