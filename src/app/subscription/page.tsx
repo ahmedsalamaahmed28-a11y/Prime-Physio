@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import {
-  Briefcase, Database, Server, CheckCheck, Crown, Star,
+  Briefcase, Database, Server, Crown,
   CreditCard, Loader2, AlertCircle, X, Check, TrendingUp, Clock,
   Users, UserCheck, Calendar, BookOpen,
 } from "lucide-react";
@@ -10,7 +10,6 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { motion } from "motion/react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useRef } from "react";
 
 const ALL_FEATURES = (isRtl: boolean) => [
@@ -427,7 +426,7 @@ export default function SubscriptionPage() {
         <PricingSwitch onSwitch={togglePricingPeriod} isRtl={isRtl} />
       </motion.div>
 
-      <div className="grid md:grid-cols-3 max-w-7xl gap-4 py-6 mx-auto relative z-10">
+      <div className="flex flex-wrap items-center justify-center gap-6 py-6 mx-auto relative z-10">
         {PLANS.map((plan, index) => (
           <motion.div
             key={plan.id}
@@ -437,104 +436,81 @@ export default function SubscriptionPage() {
             variants={revealVariants}
             custom={4 + index}
           >
-            <Card
-              className={`relative border-neutral-200 ${
-                plan.popular ? "ring-2 ring-blue-500 bg-blue-50" : "bg-white"
+            <div
+              className={`w-72 relative text-center border p-6 rounded-lg ${
+                plan.popular
+                  ? "bg-indigo-500 text-white border-gray-500/30"
+                  : "bg-white text-gray-800/80 border-gray-200"
               } ${plan.isCurrent ? "ring-2 ring-emerald-500" : ""}`}
             >
-              <CardHeader className="text-left">
-                <div className={`flex ${isRtl ? "" : "justify-between"}`}>
-                  <h3 className="text-3xl font-semibold text-gray-900 mb-2">
-                    {plan.name}
-                  </h3>
-                  {plan.popular && (
-                    <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
-                      {isRtl ? "الأكثر طلباً" : "Popular"}
-                    </span>
-                  )}
-                  {plan.isCurrent && !plan.popular && (
-                    <span className="bg-emerald-500 text-white px-3 py-1 rounded-full text-sm font-medium whitespace-nowrap">
-                      {isRtl ? "حالياً" : "Current"}
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-600 mb-4">{plan.description}</p>
-                {billingPeriod === "yearly" ? (
-                  <div>
-                    <div className={`flex items-baseline ${isRtl ? "" : ""}`}>
-                      <span className="text-gray-900 ml-1">{isRtl ? "ج.م" : "EGP"}</span>
-                      <span className="text-4xl font-semibold text-gray-900">
-                        {plan.yearlyPrice.toLocaleString()}
-                      </span>
-                      <span className="text-gray-600 mr-1">
-                        /{isRtl ? "سنة" : "year"}
-                      </span>
-                    </div>
-                    <p className="text-xs text-green-600 font-medium mt-1">
-                      {isRtl
-                        ? `يعني ${Math.round(plan.yearlyPrice / 12).toLocaleString()} ج.م/شهر`
-                        : `${Math.round(plan.yearlyPrice / 12).toLocaleString()} EGP/month`}
-                    </p>
-                  </div>
-                ) : (
-                  <div className={`flex items-baseline ${isRtl ? "" : ""}`}>
-                    <span className="text-gray-900 ml-1">{isRtl ? "ج.م" : "EGP"}</span>
-                    <span className="text-4xl font-semibold text-gray-900">
-                      {plan.price.toLocaleString()}
-                    </span>
-                    <span className="text-gray-600 mr-1">
-                      /{isRtl ? "شهر" : "month"}
-                    </span>
-                  </div>
-                )}
-              </CardHeader>
+              {plan.popular && (
+                <p className="absolute px-3 text-sm -top-3.5 left-3.5 py-1 bg-[#8789FB] rounded-full text-white">
+                  {isRtl ? "الأكثر طلباً" : "Most Popular"}
+                </p>
+              )}
+              {plan.isCurrent && !plan.popular && (
+                <p className="absolute px-3 text-sm -top-3.5 left-3.5 py-1 bg-emerald-500 rounded-full text-white">
+                  {isRtl ? "حالياً" : "Current"}
+                </p>
+              )}
 
-              <CardContent className="pt-0">
-                {plan.isCurrent ? (
-                  <div className="w-full mb-6 p-4 text-xl rounded-xl text-center bg-emerald-50 border border-emerald-300 text-emerald-700 font-bold flex items-center justify-center gap-2">
-                    <Check className="w-5 h-5" />
-                    {isRtl ? "خطتك الحالية" : "Current Plan"}
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => handleUpgrade(plan.id)}
-                    className={`w-full mb-6 p-4 text-xl rounded-xl ${
-                      plan.popular
-                        ? "bg-gradient-to-t from-blue-500 to-blue-600 shadow-lg shadow-blue-500 border border-blue-400 text-white"
-                        : "bg-gradient-to-t from-neutral-900 to-neutral-600 shadow-lg shadow-neutral-900 border border-neutral-700 text-white"
-                    }`}
-                  >
-                    {isRtl ? "اشتراك " : "Subscribe "}{plan.name}
-                  </button>
-                )}
-                <ul className="space-y-2 font-semibold py-5">
-                  {plan.features.map((feature, featureIndex) => (
-                    <li key={featureIndex} className={`flex items-center ${isRtl ? "" : ""}`}>
-                      <span className={`text-neutral-800 grid place-content-center mt-0.5 ${isRtl ? "ml-3" : "mr-3"}`}>
-                        {feature.icon}
-                      </span>
-                      <span className="text-sm text-gray-600">{feature.text}</span>
-                    </li>
-                  ))}
-                </ul>
+              <p className={`font-semibold ${plan.popular ? "pt-2" : ""}`}>{plan.name}</p>
 
-                <div className="space-y-3 pt-4 border-t border-neutral-200">
-                  <h4 className="font-medium text-base text-gray-900 mb-3">
-                    {plan.includes[0]}
-                  </h4>
-                  <ul className="space-y-2 font-semibold">
-                    {plan.includes.slice(1).map((feature, featureIndex) => (
-                      <li key={featureIndex} className={`flex items-center ${isRtl ? "" : ""}`}>
-                        <span className={`h-6 w-6 bg-green-50 border border-blue-500 rounded-full grid place-content-center mt-0.5 ${isRtl ? "ml-3" : "mr-3"}`}>
-                          <CheckCheck className="h-4 w-4 text-blue-500" />
-                        </span>
-                        <span className="text-sm text-gray-600">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
+              {billingPeriod === "yearly" ? (
+                <div>
+                  <h1 className="text-3xl font-semibold">
+                    {plan.yearlyPrice.toLocaleString()}
+                    <span className={`text-sm font-normal ${plan.popular ? "text-white/70" : "text-gray-500"}`}>
+                      /{isRtl ? "سنة" : "year"}
+                    </span>
+                  </h1>
+                  <p className={`text-xs font-medium mt-1 ${plan.popular ? "text-white/70" : "text-green-600"}`}>
+                    {isRtl
+                      ? `يعني ${Math.round(plan.yearlyPrice / 12).toLocaleString()} ج.م/شهر`
+                      : `${Math.round(plan.yearlyPrice / 12).toLocaleString()} EGP/month`}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
+              ) : (
+                <h1 className="text-3xl font-semibold">
+                  {plan.price.toLocaleString()}
+                  <span className={`text-sm font-normal ${plan.popular ? "text-white/70" : "text-gray-500"}`}>
+                    /{isRtl ? "شهر" : "month"}
+                  </span>
+                </h1>
+              )}
+
+              <ul className="list-none text-sm mt-6 space-y-1">
+                {plan.features.map((feature, featureIndex) => (
+                  <li key={featureIndex} className={`flex items-center gap-2 ${isRtl ? "flex-row-reverse" : ""}`}>
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg" className="shrink-0">
+                      <path d="M7.162 13.5 2.887 9.225l1.07-1.069 3.205 3.207 6.882-6.882 1.069 1.07z" fill={plan.popular ? "currentColor" : "#6366F1"}/>
+                    </svg>
+                    <p className={`text-sm ${plan.popular ? "text-white" : "text-gray-500"}`}>{feature.text}</p>
+                  </li>
+                ))}
+              </ul>
+
+              {plan.isCurrent ? (
+                <div className={`w-full mt-7 py-2 rounded text-sm font-medium flex items-center justify-center gap-2 ${
+                  plan.popular ? "bg-white text-indigo-500" : "bg-emerald-50 text-emerald-700 border border-emerald-300"
+                }`}>
+                  <Check className="w-4 h-4" />
+                  {isRtl ? "خطتك الحالية" : "Current Plan"}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleUpgrade(plan.id)}
+                  className={`text-sm w-full py-2 rounded font-medium mt-7 transition-all ${
+                    plan.popular
+                      ? "bg-white text-indigo-500 hover:bg-gray-200"
+                      : "bg-indigo-500 text-white hover:bg-indigo-600"
+                  }`}
+                >
+                  {isRtl ? "اشتراك " : "Get Started"}{plan.name}
+                </button>
+              )}
+            </div>
           </motion.div>
         ))}
       </div>
