@@ -9,7 +9,9 @@ export default function SetupPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { user } = useAuth();
-  const [step, setStep] = useState<"plan" | "clinic" | "done">("plan");
+  const [step, setStep] = useState<"plan" | "clinic" | "done">(
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("step") === "clinic" ? "clinic" : "plan"
+  );
 
   if (!user) {
     return (

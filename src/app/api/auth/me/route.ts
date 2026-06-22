@@ -11,7 +11,7 @@ export async function GET() {
     }
 
     const admin = getAdminClient();
-    const email = session.user.email;
+    const email = session.user.email.toLowerCase().trim();
 
     // Get staff info
     const { data: staff } = await admin

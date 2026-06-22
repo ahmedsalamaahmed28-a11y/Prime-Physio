@@ -253,8 +253,8 @@ function LoginContent() {
         .then((data) => {
           setUserData(data);
           setUserDataLoading(false);
-          if (data && (data.hasClinic === false || !data.subscription)) {
-            window.location.href = "/setup";
+          if (data && (data.hasClinic === false || !data.subscription || (data.hasClinic && data.subscription && (!data.branches || data.branches.length === 0)))) {
+            window.location.href = "/setup" + (data.hasClinic && data.subscription ? "?step=clinic" : "");
           }
         })
         .catch(() => setUserDataLoading(false));
