@@ -3,13 +3,28 @@ import { getAdminClient } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, name, planId, clinicId } = await req.json();
+    let { email, name, planId, clinicId } = await req.json();
 
-    if (!email || !name || !planId || !clinicId) {
+    if (!email || !name || !planId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const admin = getAdminClient();
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Resolve clinicId from staff record if not provided
+    if (!clinicId) {
+      const { data: staffLookup } = await admin
+        .from("staff")
+        .select("clinic_id")
+        .eq("email", normalizedEmail)
+        .maybeSingle();
+
+      if (!staffLookup?.clinic_id) {
+        return NextResponse.json({ error: "لم يتم العثور على حساب. الرجاء إنشاء حساب أولاً." }, { status: 404 });
+      }
+      clinicId = staffLookup.clinic_id;
+    }
 
     // Check if clinic exists
     const { data: clinic, error: clinicError } = await admin
@@ -30,7 +45,7 @@ export async function POST(req: NextRequest) {
     const { data: staff, error: staffError } = await admin
       .from("staff")
       .select("id, role")
-      .eq("email", email.toLowerCase().trim())
+      .eq("email", normalizedEmail)
       .eq("clinic_id", clinicId)
       .single();
 
@@ -43,7 +58,7 @@ export async function POST(req: NextRequest) {
     endDate.setMonth(endDate.getMonth() + 1);
 
     const subscriptionData: any = {
-      user_email: email.toLowerCase().trim(),
+      user_email: normalizedEmail,
       clinic_id: clinicId,
       plan_name: planId,
       plan_price: planId === "basic" ? 0 : (planId === "silver" ? 1000 : 1500),
