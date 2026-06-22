@@ -880,7 +880,7 @@ function LoginContent() {
                   ) : (
                     <p className="text-xs text-slate-400 text-center py-4">
                       {isRtl ? "ليس لديك مراكز بعد. أنشئ مركزك الأول من " : "No centers yet. Create your first center from "}
-                       <a href="/setup" className="text-[#4F46BA] font-medium underline">{isRtl ? "الإعداد" : "Setup"}</a>
+                       <button onClick={() => { window.location.href = "/setup"; }} className="text-[#4F46BA] font-medium underline bg-transparent border-0 p-0 cursor-pointer">{isRtl ? "الإعداد" : "Setup"}</button>
                     </p>
                   )}
                 </div>
