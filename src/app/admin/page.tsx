@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import { Building, Users, CreditCard, CheckCircle, XCircle, ShieldAlert, Loader2 } from "lucide-react";
+import { Building, Users, CreditCard, CheckCircle, XCircle, ShieldAlert } from "lucide-react";
+import { Loader } from "@/components/Loader";
 
 interface Clinic {
   id: string;
@@ -72,7 +73,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-slate-50" dir="rtl">
-      <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <div className="max-w-6xl mx-auto p-6 space-y-6 min-h-[500px] contain-layout">
         <div className="flex items-center gap-3">
           <ShieldAlert className="w-6 h-6 text-[#4F46BA]" />
           <h1 className="text-xl font-bold text-slate-800">لوحة تحكم المنصة</h1>
@@ -81,7 +82,7 @@ export default function AdminPage() {
 
         {loading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="w-6 h-6 animate-spin text-slate-400" />
+            <Loader size={24} color="#94a3b8" />
           </div>
         ) : clinics.length === 0 ? (
           <div className="text-center py-20 text-slate-400 text-sm">لا توجد عيادات مسجلة بعد</div>
@@ -143,7 +144,7 @@ export default function AdminPage() {
                       } disabled:opacity-50`}
                   >
                     {toggling === clinic.id ? (
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      <Loader size={14} color="white" />
                     ) : clinic.is_active ? (
                       "إيقاف"
                     ) : (

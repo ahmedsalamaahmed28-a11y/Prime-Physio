@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Crown, ArrowLeft, Download } from "lucide-react";
 import { Suspense } from "react";
+import { Loader } from "@/components/Loader";
 
 function SuccessContent() {
   const params = useSearchParams();
@@ -88,7 +89,7 @@ function SuccessContent() {
 
 export default function PaymentSuccessPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#0d8a8a] border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader size={32} color="#119094" /></div>}>
       <SuccessContent />
     </Suspense>
   );

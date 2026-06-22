@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import { ArrowRight, Upload, X } from "lucide-react";
+import { Loader } from "@/components/Loader";
 import SetupSteps from "@/components/SetupSteps";
 
 export default function SetupCenterPage() {
@@ -278,7 +279,7 @@ export default function SetupCenterPage() {
               className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 rounded-lg transition-all text-sm disabled:opacity-50 flex items-center justify-center gap-1"
             >
               {loading ? (
-                <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                <Loader size={16} color="white" />
               ) : (
                 <span className="flex items-center justify-center gap-1">
                   {isRtl ? "متابعة" : "Continue"}

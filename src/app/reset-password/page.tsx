@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Lock, Eye, EyeClosed, ArrowRight, CheckCircle, Mail } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { Loader } from "@/components/Loader";
 
 import { cn } from "@/lib/utils"
 
@@ -253,7 +254,7 @@ export default function ResetPasswordPage() {
                 className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
               >
                 {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                  <Loader size={16} color="white" />
                 ) : (
                   <span className="flex items-center justify-center gap-1">
                     {isRtl ? "تغيير كلمة المرور" : "Change Password"}

@@ -7,11 +7,12 @@ import { signIn, signOut } from "next-auth/react";
 import { setAppValue } from "@/lib/appStorage";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
+import { Loader } from "@/components/Loader";
 import OnboardingFlow from "@/components/OnboardingFlow";
 
 import { Users, UserCheck, Calendar, Briefcase, Database, Server, BookOpen, Clock, Crown } from 'lucide-react';
 import { cn } from "@/lib/utils"
-import { CustomCheckbox } from "@/components/ui/checkbox"
+import { GradientCheckbox } from "@/components/ui/checkbox"
 import { motion } from "motion/react";
 
 const ALL_FEATURES = (isRtl: boolean) => [
@@ -139,7 +140,7 @@ const PricingSwitch = ({ onSwitch, isRtl }: { onSwitch: (value: string) => void;
           {selected === "0" && (
             <motion.span
               layoutId={"switch"}
-              className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-blue-600 border-blue-600 bg-gradient-to-t from-blue-500 via-blue-400 to-blue-600"
+              className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-[#4F46BA]/40 border-[#4F46BA] bg-gradient-to-t from-[#4F46BA] via-[#6d28d9] to-[#7c3aed]"
               transition={{ type: "spring", stiffness: 500, damping: 30 }}
             />
           )}
@@ -157,13 +158,13 @@ const PricingSwitch = ({ onSwitch, isRtl }: { onSwitch: (value: string) => void;
           {selected === "1" && (
             <motion.span
               layoutId={"switch"}
-              className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-blue-600 border-blue-600 bg-gradient-to-t from-blue-500 via-blue-400 to-blue-600"
+              className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-[#4F46BA]/40 border-[#4F46BA] bg-gradient-to-t from-[#4F46BA] via-[#6d28d9] to-[#7c3aed]"
               transition={{ type: "spring", stiffness: 500, damping: 30 }}
             />
           )}
           <span className="relative flex items-center gap-2">
             {isRtl ? "سنوي" : "Yearly"}
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-black">
+            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-[#4F46BA]">
               {isRtl ? "وفّر 20%" : "Save 20%"}
             </span>
           </span>
@@ -199,7 +200,7 @@ const TABS = [
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#4F46BA] border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader size={32} color="#4F46BA" /></div>}>
       <LoginContent />
     </Suspense>
   )
@@ -570,7 +571,7 @@ function LoginContent() {
                   className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 rounded-lg transition-all text-sm disabled:opacity-50 flex items-center justify-center gap-1"
                 >
                   {centerLoading ? (
-                    <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                    <Loader size={16} color="white" />
                   ) : (
                     <span className="flex items-center justify-center gap-1">
                       {isRtl ? "متابعة" : "Continue"}
@@ -757,11 +758,11 @@ function LoginContent() {
 
                     <div className="flex items-center justify-between pt-1">
                       <div className="flex items-center gap-2">
-                        <CustomCheckbox
+                        <GradientCheckbox
                           id="remember-me"
                           checked={rememberMe}
                           onChange={() => setRememberMe(!rememberMe)}
-                          className="!h-[18px] !w-[18px]"
+                          size={18}
                         />
                         <label htmlFor="remember-me" className="text-xs text-slate-400 cursor-pointer select-none">
                           {isRtl ? "تذكرني" : "Remember me"}
@@ -778,7 +779,7 @@ function LoginContent() {
                       className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
                     >
                   {centerLoading ? (
-                    <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                    <Loader size={16} color="white" />
                   ) : (
                     <span className="flex items-center justify-center gap-1">
                       {isRtl ? "متابعة" : "Continue"}
@@ -893,8 +894,8 @@ function LoginContent() {
                         type="button"
                         className={`text-sm w-full py-2 rounded font-medium mt-7 transition-all ${
                           plan.popular
-                            ? "bg-white text-indigo-500 hover:bg-gray-200"
-                            : "bg-indigo-500 text-white hover:bg-indigo-600"
+                            ? "bg-white text-[#4F46BA] hover:bg-gray-200"
+                            : "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]"
                         }`}
                       >
                         {isRtl ? "ابدأ الآن" : "Get Started"}
@@ -1035,7 +1036,7 @@ function LoginContent() {
                     className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-9 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
                   >
                     {forgotLoading ? (
-                      <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                      <Loader size={16} color="white" />
                     ) : (
                       isRtl ? "إرسال رمز التحقق" : "Send Code"
                     )}
@@ -1074,7 +1075,7 @@ function LoginContent() {
                     className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-9 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
                   >
                     {forgotLoading ? (
-                      <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                      <Loader size={16} color="white" />
                     ) : (
                       isRtl ? "تأكيد" : "Verify"
                     )}
@@ -1150,7 +1151,7 @@ function LoginContent() {
                     className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-9 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
                   >
                     {forgotLoading ? (
-                      <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                      <Loader size={16} color="white" />
                     ) : (
                       <span className="flex items-center justify-center gap-1">
                         {isRtl ? "تغيير كلمة المرور" : "Change Password"}

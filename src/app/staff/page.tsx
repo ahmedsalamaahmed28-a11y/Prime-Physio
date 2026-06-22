@@ -249,7 +249,7 @@ export default function StaffPage() {
           </p>
         </div>
         {hasPermission("manage_staff") && (
-          <Button onClick={() => setIsOpen(true)} className="bg-[#0d8a8a] hover:bg-[#085454] text-white gap-2 self-start sm:self-auto rounded-xl font-bold px-6 shadow-md transition-all active:scale-95">
+          <Button onClick={() => setIsOpen(true)} className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] gap-2 self-start sm:self-auto rounded-xl font-bold px-6 shadow-md transition-all active:scale-95">
             <Users className="w-4 h-4" />
             {isRtl ? "إضافة موظف جديد" : "Add New Employee"}
           </Button>
@@ -460,7 +460,7 @@ export default function StaffPage() {
             </div>
             <DialogFooter className="mt-6 flex gap-2 justify-end">
                   <Button type="button" variant="outline" onClick={() => setIsOpen(false)} className="rounded-xl font-bold">{isRtl ? "إلغاء" : "Cancel"}</Button>
-                  <Button type="submit" className="bg-[#0d8a8a] hover:bg-[#085454] text-white rounded-xl font-bold px-6">{isRtl ? "إضافة" : "Add"}</Button>
+                  <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] rounded-xl font-bold px-6">{isRtl ? "إضافة" : "Add"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -523,7 +523,7 @@ export default function StaffPage() {
             </div>
             <DialogFooter className="mt-6 flex gap-2 justify-end">
                   <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="rounded-xl font-bold">{isRtl ? "إلغاء" : "Cancel"}</Button>
-                  <Button type="submit" className="bg-[#0d8a8a] hover:bg-[#085454] text-white rounded-xl font-bold px-6">{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
+                  <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] rounded-xl font-bold px-6">{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

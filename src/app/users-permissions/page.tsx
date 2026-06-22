@@ -215,7 +215,7 @@ export default function UsersPermissionsPage() {
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">'D*-CE AJ -3'('* 'D7'BE 'D7(J H'D%/'1J HE3*HJ'* 'D5D'-J'* 'D.'5) (GE</p>
         </div>
-        <Button onClick={() => setIsAddOpen(true)} className="bg-[#0d8a8a] hover:bg-[#085454] text-white gap-2 self-start sm:self-auto rounded-xl font-bold px-6 shadow-md transition-all active:scale-95">
+        <Button onClick={() => setIsAddOpen(true)} className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] gap-2 self-start sm:self-auto rounded-xl font-bold px-6 shadow-md transition-all active:scale-95">
           <UserPlus className="w-4 h-4" />
           %6'A) E3*./E ,/J/
         </Button>
@@ -385,7 +385,7 @@ export default function UsersPermissionsPage() {
             </div>
             <DialogFooter className="mt-6 flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)} className="rounded-xl font-bold">%D:'!</Button>
-                <Button type="submit" className="bg-[#0d8a8a] hover:bg-[#085454] text-white rounded-xl font-bold px-6">%6'A)</Button>
+                <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] rounded-xl font-bold px-6">%6'A)</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -457,7 +457,7 @@ export default function UsersPermissionsPage() {
             </div>
             <DialogFooter className="mt-6 flex gap-2 justify-end">
                 <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="rounded-xl font-bold">%D:'!</Button>
-                <Button type="submit" className="bg-[#0d8a8a] hover:bg-[#085454] text-white rounded-xl font-bold px-6">-A8 'D*9/JD'*</Button>
+                <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] rounded-xl font-bold px-6">-A8 'D*9/JD'*</Button>
             </DialogFooter>
           </form>
         </DialogContent>

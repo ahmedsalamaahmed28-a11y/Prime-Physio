@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { XCircle, RefreshCw, ArrowLeft, Phone } from "lucide-react";
 import { Suspense } from "react";
+import { Loader } from "@/components/Loader";
 
 function FailedContent() {
   const params = useSearchParams();
@@ -91,7 +92,7 @@ function FailedContent() {
 
 export default function PaymentFailedPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-4 border-red-400 border-t-transparent rounded-full animate-spin" /></div>}>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader size={32} color="#f87171" /></div>}>
       <FailedContent />
     </Suspense>
   );

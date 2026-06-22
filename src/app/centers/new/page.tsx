@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Building, ArrowRight, Loader2 } from "lucide-react";
+import { Building, ArrowRight } from "lucide-react";
+import { Loader } from "@/components/Loader";
 
 export default function NewCenterPage() {
   const { language } = useLanguage();
@@ -141,7 +142,7 @@ export default function NewCenterPage() {
               className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50 mt-6"
             >
               {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader size={16} color="white" />
               ) : (
                 <span className="flex items-center justify-center gap-1">
                   {isRtl ? "متابعة" : "Continue"}

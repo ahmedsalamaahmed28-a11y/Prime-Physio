@@ -356,7 +356,7 @@ function EventDetailsDialog({
           {/* Complete session — prominent green button */}
           {event.status !== "منتهي" && event.status !== "ملغي" && (
             <Button
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white gap-2 h-11 rounded-xl shadow-md transition-all active:scale-[0.98]"
+              className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] gap-2 h-11 rounded-xl shadow-md transition-all active:scale-[0.98]"
               onClick={() => { onComplete(event.id); onClose(); }}
             >
               ✅ <span className="font-bold">{isRtl ? "اكتملت الجلسة" : "Complete Session"}</span>

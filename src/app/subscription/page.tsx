@@ -3,10 +3,11 @@
 import React, { useState } from "react";
 import {
   Briefcase, Database, Server, Crown,
-  CreditCard, Loader2, AlertCircle, X, Check, TrendingUp, Clock,
+  CreditCard, AlertCircle, X, Check, TrendingUp, Clock,
   Users, UserCheck, Calendar, BookOpen,
 } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { Loader } from "@/components/Loader";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { motion } from "motion/react";
@@ -173,7 +174,7 @@ const PricingSwitch = ({ onSwitch, isRtl }: { onSwitch: (value: string) => void;
           {selected === "0" && (
             <motion.span
               layoutId={"switch"}
-              className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-blue-600 border-blue-600 bg-gradient-to-t from-blue-500 via-blue-400 to-blue-600"
+              className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-[#4F46BA]/40 border-[#4F46BA] bg-gradient-to-t from-[#4F46BA] via-[#6d28d9] to-[#7c3aed]"
               transition={{ type: "spring", stiffness: 500, damping: 30 }}
             />
           )}
@@ -191,13 +192,13 @@ const PricingSwitch = ({ onSwitch, isRtl }: { onSwitch: (value: string) => void;
           {selected === "1" && (
             <motion.span
               layoutId={"switch"}
-              className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-blue-600 border-blue-600 bg-gradient-to-t from-blue-500 via-blue-400 to-blue-600"
+              className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-[#4F46BA]/40 border-[#4F46BA] bg-gradient-to-t from-[#4F46BA] via-[#6d28d9] to-[#7c3aed]"
               transition={{ type: "spring", stiffness: 500, damping: 30 }}
             />
           )}
           <span className="relative flex items-center gap-2">
             {isRtl ? "سنوي" : "Yearly"}
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-black">
+            <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-xs font-medium text-[#4F46BA]">
               {isRtl ? "وفّر 20%" : "Save 20%"}
             </span>
           </span>
@@ -526,8 +527,8 @@ export default function SubscriptionPage() {
                   onClick={() => handleUpgrade(plan.id)}
                   className={`text-sm w-full py-2 rounded font-medium mt-7 transition-all ${
                     plan.popular
-                      ? "bg-white text-indigo-500 hover:bg-gray-200"
-                      : "bg-indigo-500 text-white hover:bg-indigo-600"
+                      ? "bg-white text-[#4F46BA] hover:bg-gray-200"
+                      : "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]"
                   }`}
                 >
                   {isRtl ? "اشتراك " : "Get Started"}{plan.name}
@@ -562,9 +563,9 @@ export default function SubscriptionPage() {
             </div>
             <div className="bg-slate-100 rounded-full h-2.5 overflow-hidden">
               {planLimits.patients === -1 ? (
-                <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-full rounded-full" style={{ width: "100%" }} />
+                <div className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] h-full rounded-full" style={{ width: "100%" }} />
               ) : (
-                <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-full rounded-full" style={{ width: `${Math.min(100, (patientCount / planLimits.patients) * 100)}%` }} />
+                <div className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] h-full rounded-full" style={{ width: `${Math.min(100, (patientCount / planLimits.patients) * 100)}%` }} />
               )}
             </div>
             <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>
@@ -589,9 +590,9 @@ export default function SubscriptionPage() {
             </div>
             <div className="bg-slate-100 rounded-full h-2.5 overflow-hidden">
               {planLimits.sessions === -1 ? (
-                <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-full rounded-full" style={{ width: "100%" }} />
+                <div className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] h-full rounded-full" style={{ width: "100%" }} />
               ) : (
-                <div className="bg-gradient-to-r from-blue-500 to-blue-700 h-full rounded-full" style={{ width: `${Math.min(100, (sessionCount / planLimits.sessions) * 100)}%` }} />
+                <div className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] h-full rounded-full" style={{ width: `${Math.min(100, (sessionCount / planLimits.sessions) * 100)}%` }} />
               )}
             </div>
             <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>
@@ -665,7 +666,7 @@ export default function SubscriptionPage() {
                         {typeof val === "boolean" ? (
                           <div className="flex justify-center">
                             {val ? (
-                              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-[#4F46BA] to-[#7c3aed] flex items-center justify-center">
                                 <Check className="w-3 h-3 text-white" />
                               </div>
                             ) : (
@@ -675,7 +676,7 @@ export default function SubscriptionPage() {
                             )}
                           </div>
                         ) : (
-                          <span className="text-xs font-bold text-blue-600">
+                          <span className="text-xs font-bold text-[#4F46BA]">
                             {val}
                           </span>
                         )}
@@ -695,12 +696,12 @@ export default function SubscriptionPage() {
         viewport={{ once: true }}
         variants={revealVariants}
         custom={11}
-        className={`flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-2xl p-4 max-w-7xl mx-auto relative z-10 mb-6 ${isRtl ? "" : ""}`}
+        className={`flex items-center gap-3 bg-indigo-50 border border-indigo-200 rounded-2xl p-4 max-w-7xl mx-auto relative z-10 mb-6 ${isRtl ? "" : ""}`}
       >
-        <Clock className="w-5 h-5 text-blue-500 shrink-0" />
+        <Clock className="w-5 h-5 text-[#4F46BA] shrink-0" />
         <div>
-          <p className="text-xs font-bold text-blue-900">{isRtl ? "التجديد التلقائي" : "Auto-Renewal"}</p>
-          <p className="text-[11px] text-blue-700 mt-0.5">
+          <p className="text-xs font-bold text-[#3730a3]">{isRtl ? "التجديد التلقائي" : "Auto-Renewal"}</p>
+          <p className="text-[11px] text-[#4F46BA] mt-0.5">
             {isRtl ? "تتجدد خطتك تلقائياً في" : "Your current plan will auto-renew on"}{" "}
             <span className="font-bold">{isRtl ? "1 يوليو 2026" : "July 1, 2026"}</span>.{" "}
             {isRtl ? "يمكنك إلغاء أو تغيير الخطة في أي وقت." : "You can cancel or change anytime."}
@@ -711,11 +712,11 @@ export default function SubscriptionPage() {
       {showBillingModal && selectedPlan && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden" dir={isRtl ? "rtl" : "ltr"}>
-            <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 to-blue-600" />
+            <div className="h-1.5 w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed]" />
             <div className="p-6 space-y-5">
               <div className="flex items-center justify-between">
                 <div className={`flex items-center gap-3 ${isRtl ? "" : ""}`}>
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#4F46BA] to-[#7c3aed] flex items-center justify-center">
                     <CreditCard className="w-4 h-4 text-white" />
                   </div>
                   <div className={isRtl ? "text-right" : "text-left"}>
@@ -769,7 +770,7 @@ export default function SubscriptionPage() {
                   <input
                     required type="tel" value={phone} onChange={(e) => setPhone(e.target.value)}
                     placeholder="+201000000000" dir="ltr"
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-600 transition-colors text-left font-mono"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#4F46BA] transition-colors text-left font-mono"
                   />
                 </div>
                 <p className={`text-[10px] text-slate-400 ${isRtl ? "" : "text-left"}`}>
@@ -778,10 +779,10 @@ export default function SubscriptionPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-all"
+                  className="w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] disabled:opacity-60 flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-all"
                 >
                   {isLoading ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> {isRtl ? "جاري الإعداد..." : "Preparing..."}</>
+                    <><Loader size={16} /> {isRtl ? "جاري الإعداد..." : "Preparing..."}</>
                   ) : (
                     <><CreditCard className="w-4 h-4" /> {isRtl ? "إتمام الدفع" : "Complete Payment"}</>
                   )}

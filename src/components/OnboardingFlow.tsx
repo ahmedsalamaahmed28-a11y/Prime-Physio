@@ -1,8 +1,9 @@
 "use client"
 
 import React, { useState, useRef } from "react"
-import { Crown, Shield, Zap, Loader2, CheckCircle, ArrowRight, CreditCard, X, AlertCircle, Check, Upload, Star } from "lucide-react"
+import { Crown, Shield, Zap, CheckCircle, ArrowRight, CreditCard, X, AlertCircle, Check, Upload, Star } from "lucide-react"
 import { useAuth } from "@/lib/auth"
+import { Loader } from "@/components/Loader"
 
 const PLANS = (isRtl: boolean) => [
   {
@@ -336,7 +337,7 @@ export default function OnboardingFlow({ step, setStep, clinicId, isRtl }: Props
                     className={`w-full py-2.5 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 ${plan.id === "silver" ? "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] shadow-md" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}
                   >
                     {isActivating && selectedPlan === plan.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader size={16} />
                     ) : (
                       <>{plan.cta} <ArrowRight className={`w-3.5 h-3.5 ${isRtl ? "rotate-180" : ""}`} /></>
                     )}
@@ -429,7 +430,7 @@ export default function OnboardingFlow({ step, setStep, clinicId, isRtl }: Props
               className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-bold py-3 rounded-2xl text-sm hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98] mt-2"
             >
               {isUploading ? (
-                <><Loader2 className="w-4 h-4 animate-spin" /> {isRtl ? "جاري إنشاء المركز..." : "Creating clinic..."}</>
+                <><Loader size={16} /> {isRtl ? "جاري إنشاء المركز..." : "Creating clinic..."}</>
               ) : (
                 <>{isRtl ? "إنشاء المركز" : "Create Clinic"} <ArrowRight className={`w-4 h-4 ${isRtl ? "rotate-180" : ""}`} /></>
               )}
@@ -518,7 +519,7 @@ export default function OnboardingFlow({ step, setStep, clinicId, isRtl }: Props
                 <button type="submit" disabled={payLoading}
                   className={`w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r ${selectedPlanData.gradient} hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2 shadow-md active:scale-[0.98] transition-all`}>
                   {payLoading ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> {isRtl ? "جاري إعداد الدفع..." : "Preparing Payment..."}</>
+                    <><Loader size={16} /> {isRtl ? "جاري إعداد الدفع..." : "Preparing Payment..."}</>
                   ) : (
                     <><CreditCard className="w-4 h-4" /> {isRtl ? "إتمام الدفع" : "Complete Payment"}</>
                   )}

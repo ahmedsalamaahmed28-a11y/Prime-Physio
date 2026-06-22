@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
+import { Loader } from "@/components/Loader";
 import Link from "next/link";
 
 const plans = (isRtl: boolean) => [
@@ -166,12 +167,12 @@ export default function SubscribePage() {
                 disabled={isLoading}
                 className={`text-sm w-full py-2 rounded font-medium mt-7 transition-all disabled:opacity-50 ${
                   plan.popular
-                    ? "bg-white text-indigo-500 hover:bg-gray-200"
-                    : "bg-indigo-500 text-white hover:bg-indigo-600"
+                    ? "bg-white text-[#4F46BA] hover:bg-gray-200"
+                    : "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]"
                 }`}
               >
                 {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin mx-auto" />
+                  <Loader size={16} color="white" className="mx-auto" />
                 ) : (
                   isRtl ? "ابدأ الآن" : "Get Started"
                 )}

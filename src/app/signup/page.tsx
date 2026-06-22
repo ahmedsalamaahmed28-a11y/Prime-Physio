@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Mail, Lock, Eye, EyeClosed, ArrowRight, User, Shield } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { Loader } from "@/components/Loader";
 import SetupSteps from "@/components/SetupSteps";
 
 import { cn } from "@/lib/utils"
@@ -344,7 +345,7 @@ function SignupPageContent() {
                 className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
               >
                 {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                  <Loader size={16} color="white" />
                 ) : (
                   <span className="flex items-center justify-center gap-1">
                     {isRtl ? "إنشاء حساب" : "Create Account"}
@@ -410,7 +411,7 @@ function SignupPageContent() {
                   className="flex-1 bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
                 >
                   {isLoading ? (
-                    <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                    <Loader size={16} color="white" />
                   ) : (
                     <span className="flex items-center justify-center gap-1">
                       {isRtl ? "تأكيد" : "Verify"}

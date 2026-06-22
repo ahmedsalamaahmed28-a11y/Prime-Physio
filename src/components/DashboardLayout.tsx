@@ -33,8 +33,7 @@ import {
   BookOpen,
   Crown,
   Wifi,
-  WifiOff,
-  RefreshCw
+  WifiOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -45,6 +44,7 @@ import { usePWA } from "@/components/PWAProvider";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { supabase } from "@/lib/supabase";
 import { UserDropdown } from "@/components/UserDropdown";
+import { Loader } from "@/components/Loader";
 
 interface SystemNotification {
   id: string;
@@ -446,7 +446,7 @@ export default function DashboardLayout({
                 } ${pendingCount > 0 && isOnline ? "cursor-pointer hover:bg-emerald-100" : "cursor-default"}`}
             >
               {isSyncing ? (
-                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <Loader size={14} color="#119094" />
               ) : isOnline ? (
                 <Wifi className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
               ) : (

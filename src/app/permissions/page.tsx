@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Shield, ShieldCheck, ShieldAlert, Save, UserCheck, AlertTriangle } from "lucide-react";
@@ -8,38 +8,39 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { useLanguage } from "@/lib/LanguageContext";
 import { logAuditAction } from "@/lib/audit";
+import { Loader } from "@/components/Loader";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 
 const AVAILABLE_PERMISSIONS = [
-  { id: "delete_patient", labelAr: "حذف ملف مريض نهائياً", labelEn: "Delete Patient", category: "Patients" },
-  { id: "edit_patient", labelAr: "تعديل بيانات المريض", labelEn: "Edit Patient", category: "Patients" },
-  { id: "create_invoice", labelAr: "إنشاء وتحصيل فاتورة", labelEn: "Create Invoice", category: "Billing" },
-  { id: "delete_invoice", labelAr: "إلغاء/حذف فاتورة", labelEn: "Delete Invoice", category: "Billing" },
-  { id: "refund_invoice", labelAr: "إصدار مرتجع مالي", labelEn: "Refund Invoice", category: "Billing" },
-  { id: "apply_discount", labelAr: "إعطاء خصم مالي", labelEn: "Apply Discount", category: "Billing" },
-  { id: "print_invoice", labelAr: "طباعة الفواتير", labelEn: "Print Invoice", category: "Billing" },
-  { id: "view_patient_history", labelAr: "الاطلاع على التاريخ الطبي (History)", labelEn: "View Medical History", category: "Medical" },
-  { id: "edit_emr", labelAr: "تعديل سجل طبي (EMR)", labelEn: "Edit EMR", category: "Medical" },
-  { id: "delete_emr", labelAr: "حذف السجل الطبي بالكامل", labelEn: "Delete EMR", category: "Medical" },
-  { id: "edit_appointments", labelAr: "إدارة المواعيد والجدولة", labelEn: "Manage Appointments", category: "Reception" },
-  { id: "send_messages", labelAr: "إرسال رسائل للمرضى", labelEn: "Send Messages", category: "Reception" },
-  { id: "manage_staff", labelAr: "إضافة وحذف الموظفين", labelEn: "Manage Staff", category: "Admin" },
-  { id: "view_analytics", labelAr: "الاطلاع على الإيرادات والتحليلات", labelEn: "View Analytics", category: "Admin" },
-  { id: "export_data", labelAr: "تصدير بيانات العيادة (Excel/PDF)", labelEn: "Export Data", category: "Admin" },
-  { id: "manage_settings", labelAr: "تعديل الإعدادات الأساسية", labelEn: "Manage Settings", category: "Admin" },
-  { id: "manage_inventory", labelAr: "إدارة المخزون والمعدات", labelEn: "Manage Inventory", category: "Admin" },
+  { id: "delete_patient", labelAr: "Ø­Ø°Ù Ù…Ù„Ù Ù…Ø±ÙŠØ¶ Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹", labelEn: "Delete Patient", category: "Patients" },
+  { id: "edit_patient", labelAr: "ØªØ¹Ø¯ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø±ÙŠØ¶", labelEn: "Edit Patient", category: "Patients" },
+  { id: "create_invoice", labelAr: "Ø¥Ù†Ø´Ø§Ø¡ ÙˆØªØ­ØµÙŠÙ„ ÙØ§ØªÙˆØ±Ø©", labelEn: "Create Invoice", category: "Billing" },
+  { id: "delete_invoice", labelAr: "Ø¥Ù„ØºØ§Ø¡/Ø­Ø°Ù ÙØ§ØªÙˆØ±Ø©", labelEn: "Delete Invoice", category: "Billing" },
+  { id: "refund_invoice", labelAr: "Ø¥ØµØ¯Ø§Ø± Ù…Ø±ØªØ¬Ø¹ Ù…Ø§Ù„ÙŠ", labelEn: "Refund Invoice", category: "Billing" },
+  { id: "apply_discount", labelAr: "Ø¥Ø¹Ø·Ø§Ø¡ Ø®ØµÙ… Ù…Ø§Ù„ÙŠ", labelEn: "Apply Discount", category: "Billing" },
+  { id: "print_invoice", labelAr: "Ø·Ø¨Ø§Ø¹Ø© Ø§Ù„ÙÙˆØ§ØªÙŠØ±", labelEn: "Print Invoice", category: "Billing" },
+  { id: "view_patient_history", labelAr: "Ø§Ù„Ø§Ø·Ù„Ø§Ø¹ Ø¹Ù„Ù‰ Ø§Ù„ØªØ§Ø±ÙŠØ® Ø§Ù„Ø·Ø¨ÙŠ (History)", labelEn: "View Medical History", category: "Medical" },
+  { id: "edit_emr", labelAr: "ØªØ¹Ø¯ÙŠÙ„ Ø³Ø¬Ù„ Ø·Ø¨ÙŠ (EMR)", labelEn: "Edit EMR", category: "Medical" },
+  { id: "delete_emr", labelAr: "Ø­Ø°Ù Ø§Ù„Ø³Ø¬Ù„ Ø§Ù„Ø·Ø¨ÙŠ Ø¨Ø§Ù„ÙƒØ§Ù…Ù„", labelEn: "Delete EMR", category: "Medical" },
+  { id: "edit_appointments", labelAr: "Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…ÙˆØ§Ø¹ÙŠØ¯ ÙˆØ§Ù„Ø¬Ø¯ÙˆÙ„Ø©", labelEn: "Manage Appointments", category: "Reception" },
+  { id: "send_messages", labelAr: "Ø¥Ø±Ø³Ø§Ù„ Ø±Ø³Ø§Ø¦Ù„ Ù„Ù„Ù…Ø±Ø¶Ù‰", labelEn: "Send Messages", category: "Reception" },
+  { id: "manage_staff", labelAr: "Ø¥Ø¶Ø§ÙØ© ÙˆØ­Ø°Ù Ø§Ù„Ù…ÙˆØ¸ÙÙŠÙ†", labelEn: "Manage Staff", category: "Admin" },
+  { id: "view_analytics", labelAr: "Ø§Ù„Ø§Ø·Ù„Ø§Ø¹ Ø¹Ù„Ù‰ Ø§Ù„Ø¥ÙŠØ±Ø§Ø¯Ø§Øª ÙˆØ§Ù„ØªØ­Ù„ÙŠÙ„Ø§Øª", labelEn: "View Analytics", category: "Admin" },
+  { id: "export_data", labelAr: "ØªØµØ¯ÙŠØ± Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹ÙŠØ§Ø¯Ø© (Excel/PDF)", labelEn: "Export Data", category: "Admin" },
+  { id: "manage_settings", labelAr: "ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ©", labelEn: "Manage Settings", category: "Admin" },
+  { id: "manage_inventory", labelAr: "Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…Ø®Ø²ÙˆÙ† ÙˆØ§Ù„Ù…Ø¹Ø¯Ø§Øª", labelEn: "Manage Inventory", category: "Admin" },
 ];
 
 const getDefaultPerms = (role: string) => {
   const roleName = role || "";
-  if (["مدير العياده", "مدير النظام", "admin"].includes(roleName)) {
+  if (["Ù…Ø¯ÙŠØ± Ø§Ù„Ø¹ÙŠØ§Ø¯Ù‡", "Ù…Ø¯ÙŠØ± Ø§Ù„Ù†Ø¸Ø§Ù…", "admin"].includes(roleName)) {
     return AVAILABLE_PERMISSIONS.map(p => p.id);
   }
-  if (["استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي", "doctor"].includes(roleName)) {
+  if (["Ø§Ø³ØªØ´Ø§Ø±ÙŠ Ø¹Ù„Ø§Ø¬ Ø·Ø¨ÙŠØ¹ÙŠ", "Ø£Ø®ØµØ§Ø¦ÙŠ Ø¹Ù„Ø§Ø¬ Ø·Ø¨ÙŠØ¹ÙŠ", "Ù…Ù…Ø§Ø±Ø³ Ø¹Ù„Ø§Ø¬ Ø·Ø¨ÙŠØ¹ÙŠ", "doctor"].includes(roleName)) {
     return ["edit_emr", "edit_patient"];
   }
-  if (["موظف استقبال", "موظفة استقبال رئيسية", "receptionist"].includes(roleName)) {
+  if (["Ù…ÙˆØ¸Ù Ø§Ø³ØªÙ‚Ø¨Ø§Ù„", "Ù…ÙˆØ¸ÙØ© Ø§Ø³ØªÙ‚Ø¨Ø§Ù„ Ø±Ø¦ÙŠØ³ÙŠØ©", "receptionist"].includes(roleName)) {
     return ["create_invoice", "edit_patient"];
   }
   return [];
@@ -117,7 +118,7 @@ export default function PermissionsPage() {
         await logAuditAction("UPDATE_PERMISSIONS", "SECURITY", `Updated custom permissions for ${selectedUser.name} (${selectedUser.email})`);
       }
       
-      setToastMessage(isRtl ? "تم حفظ الصلاحيات بنجاح!" : "Permissions saved successfully!");
+      setToastMessage(isRtl ? "ØªÙ… Ø­ÙØ¸ Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ§Øª Ø¨Ù†Ø¬Ø§Ø­!" : "Permissions saved successfully!");
       setTimeout(() => setToastMessage(null), 3000);
     } catch (err: any) {
       alert("Error saving permissions: " + err.message);
@@ -140,25 +141,25 @@ export default function PermissionsPage() {
             <div className="bg-rose-50 p-2 rounded-xl">
               <ShieldAlert className="w-6 h-6 text-rose-600" />
             </div>
-            {isRtl ? "إدارة الصلاحيات (Dynamic Permissions)" : "Dynamic Permissions Management"}
+            {isRtl ? "Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ§Øª (Dynamic Permissions)" : "Dynamic Permissions Management"}
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {isRtl 
-              ? "التحكم الدقيق بصلاحيات الموظفين بشكل فردي لتأمين الحركات الحرجة." 
+              ? "Ø§Ù„ØªØ­ÙƒÙ… Ø§Ù„Ø¯Ù‚ÙŠÙ‚ Ø¨ØµÙ„Ø§Ø­ÙŠØ§Øª Ø§Ù„Ù…ÙˆØ¸ÙÙŠÙ† Ø¨Ø´ÙƒÙ„ ÙØ±Ø¯ÙŠ Ù„ØªØ£Ù…ÙŠÙ† Ø§Ù„Ø­Ø±ÙƒØ§Øª Ø§Ù„Ø­Ø±Ø¬Ø©." 
               : "Fine-grained control over individual employee permissions to secure critical actions."}
           </p>
         </div>
         <Button 
           onClick={handleSave} 
           disabled={!selectedStaffEmail || isSaving}
-          className="bg-blue-600 hover:bg-blue-700 text-white gap-2 self-start sm:self-auto rounded-xl font-bold px-6 shadow-md transition-all active:scale-95"
+          className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] gap-2 self-start sm:self-auto rounded-xl font-bold px-6 shadow-md transition-all active:scale-95"
         >
           {isSaving ? (
-            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin inline-block" />
+            <Loader size={16} color="white" />
           ) : (
             <Save className="w-4 h-4" />
           )}
-          {isRtl ? "حفظ التعديلات" : "Save Changes"}
+          {isRtl ? "Ø­ÙØ¸ Ø§Ù„ØªØ¹Ø¯ÙŠÙ„Ø§Øª" : "Save Changes"}
         </Button>
       </div>
 
@@ -168,14 +169,14 @@ export default function PermissionsPage() {
           <CardHeader className="bg-slate-50/50 border-b pb-4">
             <CardTitle className="text-sm flex items-center gap-2">
               <UserCheck className="w-4 h-4 text-slate-500" />
-              {isRtl ? "اختر الموظف" : "Select Staff"}
+              {isRtl ? "Ø§Ø®ØªØ± Ø§Ù„Ù…ÙˆØ¸Ù" : "Select Staff"}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="flex flex-col divide-y divide-border/50 max-h-[600px] overflow-y-auto">
               {staff.length === 0 ? (
                 <div className="p-4 text-center text-sm text-slate-500">
-                  {isRtl ? "لا يوجد موظفين مسجلين" : "No staff found"}
+                  {isRtl ? "Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ù…ÙˆØ¸ÙÙŠÙ† Ù…Ø³Ø¬Ù„ÙŠÙ†" : "No staff found"}
                 </div>
               ) : (
                 staff.map(member => (
@@ -203,12 +204,12 @@ export default function PermissionsPage() {
             <div className="flex justify-between items-center">
               <div>
                 <CardTitle className="text-base font-bold text-slate-800">
-                  {isRtl ? "صلاحيات الوصول الفردية" : "Individual Access Permissions"}
+                  {isRtl ? "ØµÙ„Ø§Ø­ÙŠØ§Øª Ø§Ù„ÙˆØµÙˆÙ„ Ø§Ù„ÙØ±Ø¯ÙŠØ©" : "Individual Access Permissions"}
                 </CardTitle>
                 <CardDescription className="text-xs mt-1">
                   {activeStaffMember 
-                    ? (isRtl ? `تعديل صلاحيات الموظف: ${activeStaffMember.name}` : `Editing permissions for: ${activeStaffMember.name}`)
-                    : (isRtl ? "يرجى اختيار موظف للبدء" : "Please select a staff member to begin")}
+                    ? (isRtl ? `ØªØ¹Ø¯ÙŠÙ„ ØµÙ„Ø§Ø­ÙŠØ§Øª Ø§Ù„Ù…ÙˆØ¸Ù: ${activeStaffMember.name}` : `Editing permissions for: ${activeStaffMember.name}`)
+                    : (isRtl ? "ÙŠØ±Ø¬Ù‰ Ø§Ø®ØªÙŠØ§Ø± Ù…ÙˆØ¸Ù Ù„Ù„Ø¨Ø¯Ø¡" : "Please select a staff member to begin")}
                 </CardDescription>
               </div>
               {activeStaffMember && (
@@ -223,7 +224,7 @@ export default function PermissionsPage() {
               <div className="flex flex-col items-center justify-center py-12 text-center opacity-60">
                 <Shield className="w-16 h-16 text-slate-300 mb-4" />
                 <p className="font-semibold text-slate-500">
-                  {isRtl ? "اختر موظفاً من القائمة الجانبية لعرض صلاحياته" : "Select a staff member from the sidebar to view their permissions"}
+                  {isRtl ? "Ø§Ø®ØªØ± Ù…ÙˆØ¸ÙØ§Ù‹ Ù…Ù† Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø¬Ø§Ù†Ø¨ÙŠØ© Ù„Ø¹Ø±Ø¶ ØµÙ„Ø§Ø­ÙŠØ§ØªÙ‡" : "Select a staff member from the sidebar to view their permissions"}
                 </p>
               </div>
             ) : (
@@ -234,7 +235,7 @@ export default function PermissionsPage() {
                   <AlertTriangle className="w-5 h-5 shrink-0 text-blue-600" />
                   <p className="leading-relaxed">
                     {isRtl 
-                      ? "هذه الصلاحيات تتجاوز الصلاحيات الافتراضية للدور الوظيفي. عند تفعيل صلاحية هنا، سيتمكن الموظف من القيام بها بغض النظر عن مسماه الوظيفي. جميع الإجراءات سيتم تسجيلها في (سجل النشاطات)."
+                      ? "Ù‡Ø°Ù‡ Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ§Øª ØªØªØ¬Ø§ÙˆØ² Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ§Øª Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠØ© Ù„Ù„Ø¯ÙˆØ± Ø§Ù„ÙˆØ¸ÙŠÙÙŠ. Ø¹Ù†Ø¯ ØªÙØ¹ÙŠÙ„ ØµÙ„Ø§Ø­ÙŠØ© Ù‡Ù†Ø§ØŒ Ø³ÙŠØªÙ…ÙƒÙ† Ø§Ù„Ù…ÙˆØ¸Ù Ù…Ù† Ø§Ù„Ù‚ÙŠØ§Ù… Ø¨Ù‡Ø§ Ø¨ØºØ¶ Ø§Ù„Ù†Ø¸Ø± Ø¹Ù† Ù…Ø³Ù…Ø§Ù‡ Ø§Ù„ÙˆØ¸ÙŠÙÙŠ. Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª Ø³ÙŠØªÙ… ØªØ³Ø¬ÙŠÙ„Ù‡Ø§ ÙÙŠ (Ø³Ø¬Ù„ Ø§Ù„Ù†Ø´Ø§Ø·Ø§Øª)."
                       : "These permissions override default role-based access. When enabled, the employee can perform the action regardless of their title. All actions are logged in the Audit Trail."}
                   </p>
                 </div>

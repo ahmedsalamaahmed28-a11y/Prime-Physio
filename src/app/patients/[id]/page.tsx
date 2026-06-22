@@ -1175,7 +1175,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
                       <Button
                         onClick={handleApplyDiagnosis}
                         disabled={isSavingDiagnosis}
-                        className="w-full bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold h-8"
+                        className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] text-xs font-semibold h-8"
                       >
                         {isSavingDiagnosis ? (isRtl ? "جاري الحفظ..." : "Applying...") : (isRtl ? "اعتماد هذا التشخيص وحفظه" : "Apply & Save to EMR")}
                       </Button>
@@ -1259,7 +1259,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
                               onClick={() => toggleSymptom(label)}
                               className={`px-3 py-0.5 rounded-full text-xs font-medium border transition-all duration-150 cursor-pointer select-none
                                 ${active
-                                  ? "bg-teal-600 text-white border-teal-600 shadow-sm"
+                                  ? "bg-[#4F46BA] text-white border-[#4F46BA] shadow-sm"
                                   : "bg-white text-teal-700 border-teal-300 hover:bg-teal-50 hover:border-teal-500"
                                 }`}
                             >
@@ -1309,7 +1309,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
               </div>
 
               <div className="flex justify-end pt-2">
-                <Button type="submit" disabled={isSubmitting || !form.diagnosis} className="min-w-[140px] bg-teal-600 hover:bg-teal-700 text-white">
+                <Button type="submit" disabled={isSubmitting || !form.diagnosis} className="min-w-[140px] bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]">
                   {isSubmitting ? (isRtl ? "جارٍ الحفظ..." : "Saving...") : (isRtl ? "حفظ الجلسة" : "Save Session")}
                 </Button>
               </div>
@@ -1470,7 +1470,7 @@ function RadiologyTab() {
           </div>
           <p className="text-sm font-semibold text-slate-700">{isRtl ? "ارفع الأشعة والتحاليل (DICOM، JPG، PDF)" : "Upload Scans & Lab Results (DICOM, JPG, PDF)"}</p>
           <label>
-            <span className="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-transparent bg-teal-600 shadow-md hover:bg-teal-700 text-white h-10 px-6 py-2 cursor-pointer active:scale-95">
+            <span className="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-transparent bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] shadow-md h-10 px-6 py-2 cursor-pointer active:scale-95">
               {isRtl ? "اختر ملفًا" : "Choose File"}
             </span>
             <input type="file" accept=".dcm,.jpg,.jpeg,.png,.pdf" className="hidden" onChange={handleUpload} />
@@ -2183,7 +2183,7 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
                   <Button
                     key={proto.id}
                     onClick={() => handleAssignProtocol(proto.id)}
-                    className={`text-xs font-semibold px-4 h-9 ${isMatch ? "bg-teal-600 hover:bg-teal-700 text-white ring-2 ring-teal-300" : hasMatches ? "bg-slate-100 hover:bg-slate-200 text-slate-500" : "bg-teal-600 hover:bg-teal-700 text-white"}`}
+                    className={`text-xs font-semibold px-4 h-9 ${isMatch ? "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] ring-2 ring-[#4F46BA]/30" : hasMatches ? "bg-slate-100 hover:bg-slate-200 text-slate-500" : "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]"}`}
                   >
                     {isRtl ? proto.nameAr : proto.nameEn}
                     {isMatch && <span className="mr-1.5 text-[10px] opacity-80">{isRtl ? "✓ موصى به" : "✓ Recommended"}</span>}
@@ -2323,7 +2323,7 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
                     disabled={activeProtocolState.completedCriteria.length < activePhase.criteria.length}
                     className={`text-xs font-semibold px-4 h-9 shadow-sm transition-all duration-300
                       ${activeProtocolState.completedCriteria.length >= activePhase.criteria.length
-                        ? "bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                        ? "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] cursor-pointer"
                         : "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"}`}
                   >
                     🚀 {isRtl ? "الترقية إلى المرحلة التالية" : "Upgrade to Next Phase"}
@@ -2375,7 +2375,7 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
                 variant={dbTab === "exercise" ? "default" : "ghost"} 
                 size="sm" 
                 onClick={() => setDbTab("exercise")}
-                className={`flex-1 text-xs ${dbTab === "exercise" ? "bg-teal-600 hover:bg-teal-700 text-white" : ""}`}
+                className={`flex-1 text-xs ${dbTab === "exercise" ? "bg-[#4F46BA] text-white" : ""}`}
               >
                 {isRtl ? "التمارين التأهيلية" : "Exercises"}
               </Button>
@@ -2383,7 +2383,7 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
                 variant={dbTab === "device" ? "default" : "ghost"} 
                 size="sm" 
                 onClick={() => setDbTab("device")}
-                className={`flex-1 text-xs ${dbTab === "device" ? "bg-amber-600 hover:bg-amber-700 text-white" : ""}`}
+                className={`flex-1 text-xs ${dbTab === "device" ? "bg-[#4F46BA] text-white" : ""}`}
               >
                 {isRtl ? "الأجهزة العلاجية" : "Devices"}
               </Button>
@@ -2397,7 +2397,7 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
                   <Button
                     key={cat.id}
                     variant={activeFilter === cat.id ? "default" : "outline"}
-                    className={`h-7 text-[10px] px-2 py-1 ${activeFilter === cat.id ? "bg-teal-600 hover:bg-teal-700 text-white" : "text-slate-600"}`}
+                    className={`h-7 text-[10px] px-2 py-1 ${activeFilter === cat.id ? "bg-[#4F46BA] text-white" : "text-slate-600"}`}
                     onClick={() => setActiveFilter(cat.id)}
                   >
                     {isRtl ? cat.ar : cat.en}
@@ -2448,7 +2448,7 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
             <Button 
               onClick={handlePrint} 
               disabled={selectedExercises.length === 0} 
-              className="bg-teal-600 hover:bg-teal-700 text-white gap-2 print:hidden"
+              className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] gap-2 print:hidden"
             >
               🖨️ {isRtl ? "طباعة البرنامج" : "Print Program"}
             </Button>
@@ -2830,7 +2830,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
              </div>
              <DialogFooter className={`pt-3 border-t mt-4 flex gap-2 ${isRtl ? "justify-end" : "justify-start flex-row-reverse"}`}>
                <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>{isRtl ? "إلغاء" : "Cancel"}</Button>
-               <Button type="submit" className="bg-teal-600 hover:bg-teal-700 text-white">{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
+               <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]">{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
              </DialogFooter>
           </form>
         </DialogContent>
@@ -2959,7 +2959,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
             </div>
             <DialogFooter className={`pt-3 border-t mt-4 flex gap-2 ${isRtl ? "justify-end" : "justify-start flex-row-reverse"}`}>
               <Button type="button" variant="outline" onClick={() => setIsMedicalEditOpen(false)}>{isRtl ? "إلغاء" : "Cancel"}</Button>
-              <Button type="submit" className="bg-teal-600 hover:bg-teal-700 text-white">{isRtl ? "حفظ الملف الطبي" : "Save Medical File"}</Button>
+              <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]">{isRtl ? "حفظ الملف الطبي" : "Save Medical File"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
