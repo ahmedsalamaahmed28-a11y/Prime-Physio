@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useSession } from "next-auth/react";
 import { Loader } from "@/components/Loader";
@@ -12,18 +12,31 @@ export default function SetupPage() {
   const [step, setStep] = useState<"plan" | "clinic" | "done">(
     typeof window !== "undefined" && new URLSearchParams(window.location.search).get("step") === "clinic" ? "clinic" : "plan"
   );
+  const redirectDone = useRef(false);
 
-  if (status !== "authenticated") {
+  useEffect(() => {
+    if (status === "unauthenticated" && !redirectDone.current) {
+      redirectDone.current = true;
+      const t = setTimeout(() => { window.location.href = "/login"; }, 3000);
+      return () => clearTimeout(t);
+    }
+  }, [status]);
+
+  if (status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#f8f9ff] to-white" dir={isRtl ? "rtl" : "ltr"}>
-        {status === "loading" ? (
+        <Loader size={32} color="#4F46BA" />
+      </div>
+    );
+  }
+
+  if (status === "unauthenticated") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-[#f8f9ff] to-white" dir={isRtl ? "rtl" : "ltr"}>
+        <div className="text-center">
           <Loader size={32} color="#4F46BA" />
-        ) : (
-          <div className="text-center">
-            <p className="text-sm text-slate-500 mb-4">{isRtl ? "يرجى تسجيل الدخول أولاً" : "Please sign in first"}</p>
-            <a href="/login" className="text-[#4F46BA] font-medium underline">{isRtl ? "تسجيل الدخول" : "Sign in"}</a>
-          </div>
-        )}
+          <p className="text-xs text-slate-400 mt-3">{isRtl ? "جاري التحقق من الحساب..." : "Checking session..."}</p>
+        </div>
       </div>
     );
   }
@@ -37,7 +50,7 @@ export default function SetupPage() {
         </div>
       </nav>
       <main className="px-4 py-8 sm:py-12">
-        <OnboardingFlow step={step} setStep={setStep} clinicId={null} isRtl={isRtl} sessionEmail={session.user?.email || ""} sessionName={session.user?.name || ""} />
+        <OnboardingFlow step={step} setStep={setStep} clinicId={null} isRtl={isRtl} sessionEmail={session?.user?.email || ""} sessionName={session?.user?.name || ""} />
       </main>
     </div>
   );
