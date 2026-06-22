@@ -493,7 +493,7 @@ function LoginContent() {
       </nav>
       {isOnboarding ? (
         <main className="flex-1 px-4 py-8 sm:py-12">
-          <OnboardingFlow step={onboardStep} setStep={setOnboardStep} clinicId={user?.clinicId} isRtl={isRtl} />
+          <OnboardingFlow step={onboardStep} setStep={setOnboardStep} clinicId={user?.clinicId} isRtl={isRtl} sessionEmail={user?.email || ""} sessionName={user?.name || ""} />
         </main>
       ) : (
         <></>
