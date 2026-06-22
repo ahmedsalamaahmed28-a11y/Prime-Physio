@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
     const { data: staff, error } = await admin
       .from("staff")
       .select("clinic_id, role")
-      .eq("email", session.user.email)
+      .eq("email", session.user.email.toLowerCase().trim())
       .maybeSingle();
 
     if (error || !staff?.clinic_id) {
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
       const { data: staffCheck } = await admin
         .from("staff")
         .select("clinic_id")
-        .eq("email", session.user.email)
+        .eq("email", session.user.email.toLowerCase().trim())
         .eq("clinic_id", preferredClinicId)
         .maybeSingle();
 

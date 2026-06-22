@@ -3,10 +3,11 @@ import { getAdminClient } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, name } = await req.json();
-    if (!email) {
+    const { email: rawEmail, name } = await req.json();
+    if (!rawEmail) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
+    const email = rawEmail.toLowerCase().trim();
 
     const admin = getAdminClient();
 
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
     const { data: existing, error: lookupErr } = await admin
       .from("staff")
       .select("clinic_id")
-      .eq("email", email.toLowerCase().trim())
+      .eq("email", email)
       .maybeSingle();
     if (lookupErr) {
       console.error("[AutoProvision] Staff lookup error:", lookupErr.message);
@@ -30,7 +31,7 @@ export async function POST(req: NextRequest) {
     const { data: existingClinic } = await admin
       .from("clinics")
       .select("id")
-      .eq("admin_email", email.toLowerCase().trim())
+      .eq("admin_email", email)
       .maybeSingle();
     if (existingClinic?.id) {
       clinicId = existingClinic.id;
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
       const { data: prevTrials } = await admin
         .from("subscriptions")
         .select("id")
-        .eq("user_email", email.toLowerCase().trim())
+        .eq("user_email", email)
         .eq("is_trial", true)
         .limit(1);
       if (prevTrials && prevTrials.length > 0) alreadyUsedTrial = true;

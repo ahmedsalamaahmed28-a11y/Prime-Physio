@@ -4,11 +4,12 @@ import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, clinicName, phone, role } = await req.json();
+    const { email: rawEmail, password, clinicName, phone, role } = await req.json();
 
-    if (!email || !password || !clinicName || !phone || !role) {
+    if (!rawEmail || !password || !clinicName || !phone || !role) {
       return NextResponse.json({ error: "جميع الحقول المطلوبة" }, { status: 400 });
     }
+    const email = rawEmail.toLowerCase().trim();
 
     const admin = getAdminClient();
 
@@ -16,7 +17,7 @@ export async function POST(req: NextRequest) {
     const { data: existing } = await admin
       .from("auth_accounts")
       .select("id")
-      .eq("email", email.toLowerCase().trim())
+      .eq("email", email)
       .maybeSingle();
 
     if (existing) {
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 10);
     const { data: authRecord, error: authError } = await admin
       .from("auth_accounts")
-      .insert({ email: email.toLowerCase().trim(), password_hash: passwordHash })
+      .insert({ email, password_hash: passwordHash })
       .select("id")
       .single();
 

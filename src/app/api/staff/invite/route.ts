@@ -7,11 +7,12 @@ const VALID_STAFF_ROLES = ["استشاري علاج طبيعي", "أخصائي �
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, password, role, clinicId, phone } = await req.json();
+    const { name, email: rawEmail, password, role, clinicId, phone } = await req.json();
 
-    if (!name || !email || !password || !role || !clinicId) {
+    if (!name || !rawEmail || !password || !role || !clinicId) {
       return NextResponse.json({ error: "جميع الحقول المطلوبة" }, { status: 400 });
     }
+    const email = rawEmail.toLowerCase().trim();
 
     // Only admin can add staff — server-side enforced
     try {
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
     const { data: existing } = await admin
       .from("auth_accounts")
       .select("id")
-      .eq("email", email.toLowerCase().trim())
+      .eq("email", email)
       .maybeSingle();
 
     if (existing) {
@@ -47,7 +48,7 @@ export async function POST(req: NextRequest) {
     const passwordHash = await bcrypt.hash(password, 10);
     const { error: authError } = await admin
       .from("auth_accounts")
-      .insert({ email: email.toLowerCase().trim(), password_hash: passwordHash, verified: true });
+      .insert({ email, password_hash: passwordHash, verified: true });
 
     if (authError) {
       console.error("[StaffInvite] Failed to create auth_accounts:", authError.message);
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
 
     if (staffError) {
       // Rollback auth_accounts
-      try { await admin.from("auth_accounts").delete().eq("email", email.toLowerCase().trim()); } catch {}
+      try { await admin.from("auth_accounts").delete().eq("email", email); } catch {}
       console.error("[StaffInvite] Failed to create staff:", staffError.message);
       return NextResponse.json({ error: "فشل إنشاء بيانات الموظف" }, { status: 500 });
     }
