@@ -248,16 +248,31 @@ function LoginContent() {
 
   useEffect(() => {
     if (user) {
-      fetch("/api/auth/me")
-        .then((r) => r.json())
-        .then((data) => {
-          setUserData(data);
-          setUserDataLoading(false);
-          if (data && (data.hasClinic === false || !data.subscription || (data.hasClinic && data.subscription && (!data.branches || data.branches.length === 0)))) {
-            window.location.href = "/setup" + (data.hasClinic && data.subscription ? "?step=clinic" : "");
+      (async () => {
+        try {
+          const res = await fetch("/api/auth/me");
+          const data = await res.json();
+          if (data?.hasClinic === false) {
+            const provRes = await fetch("/api/auth/auto-provision", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ email: user.email, name: user.name }),
+            });
+            if (provRes.ok) {
+              const retryRes = await fetch("/api/auth/me");
+              const retryData = await retryRes.json();
+              setUserData(retryData);
+            } else {
+              setUserData(data);
+            }
+          } else {
+            setUserData(data);
           }
-        })
-        .catch(() => setUserDataLoading(false));
+        } catch {
+          setUserData(null);
+        }
+        setUserDataLoading(false);
+      })();
     } else {
       setUserData(null);
       setUserDataLoading(false);
@@ -425,7 +440,7 @@ function LoginContent() {
     setError("");
     setIsLoading(true);
     try {
-      const result = await signIn("google", { callbackUrl: "/", redirect: false });
+      const result = await signIn("google", { callbackUrl: "/login", redirect: false });
       if (result?.error) {
         setError(isRtl ? "فشل الاتصال بخدمة Google. تأكد من إعدادات الحساب." : "Failed to connect to Google. Check account configuration.");
         setIsLoading(false);

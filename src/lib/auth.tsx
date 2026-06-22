@@ -133,6 +133,28 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     // Supabase queries failed (likely RLS for non-Supabase users) — proceed
   }
 
+  // Auto-provision for first-time Google OAuth users (idempotent — skips if staff exists)
+  if (!user.clinicId) {
+    try {
+      const res = await fetch("/api/auth/auto-provision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email, name: user.name }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.clinicId) {
+          user.clinicId = data.clinicId;
+          user.roleKey = "admin";
+          user.role = getArabicRoleLabel("admin");
+          user.roleEn = getEnglishRoleLabel("admin");
+        }
+      }
+    } catch {
+      // Auto-provision failed — user stays without clinicId
+    }
+  }
+
   return user;
 }
 
