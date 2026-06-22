@@ -275,7 +275,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       if (user?.clinicId === undefined && user?.email) {
         const setupPaths = ["/login", "/signup", "/setup"];
         if (!setupPaths.includes(pathname)) {
-          window.location.href = "/home";
+          window.location.href = "/setup";
         }
       }
     }
