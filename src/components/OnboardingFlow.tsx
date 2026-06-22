@@ -103,10 +103,15 @@ export default function OnboardingFlow({ step, setStep, clinicId, isRtl }: Props
     if (planId === "basic") {
       setIsActivating(true)
       try {
-        const res = await fetch("/api/subscription/select-plan", {
+        const res = await fetch("/api/subscribe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ clinicId, planId }),
+          body: JSON.stringify({
+            clinicId,
+            planId,
+            email: user?.email || "",
+            name: user?.name || "Clinic Admin",
+          }),
         })
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || "فشل تفعيل الخطة")
