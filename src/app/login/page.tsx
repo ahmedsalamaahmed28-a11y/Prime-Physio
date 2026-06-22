@@ -837,9 +837,9 @@ function LoginContent() {
                           <p className="text-xs text-slate-400">
                             {isRtl ? "ليس لديك اشتراك نشط. اختر باقة للبدء." : "No active subscription. Choose a plan to start."}
                           </p>
-                          <Link href="/setup" className="mt-3 inline-block px-5 py-2 bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-medium rounded-xl text-xs">
+                          <button onClick={() => window.location.href = "/setup"} className="mt-3 inline-block px-5 py-2 bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-medium rounded-xl text-xs border-0 cursor-pointer">
                             {isRtl ? "اختيار باقة" : "Choose Plan"}
-                          </Link>
+                          </button>
                         </div>
                       )}
                     </>
@@ -880,7 +880,7 @@ function LoginContent() {
                   ) : (
                     <p className="text-xs text-slate-400 text-center py-4">
                       {isRtl ? "ليس لديك مراكز بعد. أنشئ مركزك الأول من " : "No centers yet. Create your first center from "}
-                      <Link href="/setup" className="text-[#4F46BA] font-medium">{isRtl ? "الإعداد" : "Setup"}</Link>
+                       <a href="/setup" className="text-[#4F46BA] font-medium underline">{isRtl ? "الإعداد" : "Setup"}</a>
                     </p>
                   )}
                 </div>
