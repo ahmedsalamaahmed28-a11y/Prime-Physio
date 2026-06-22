@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Mail, Lock, Eye, EyeClosed, ArrowRight, X, Shield } from 'lucide-react';
-import { signIn, signOut } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { setAppValue } from "@/lib/appStorage";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
@@ -211,6 +211,7 @@ function LoginContent() {
   const isRtl = language === "ar";
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
+  const { data: session } = useSession();
   const isOnboarding = searchParams?.get("onboard") === "1";
   const isDeleted = searchParams?.get("deleted") === "true";
   const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
@@ -493,7 +494,7 @@ function LoginContent() {
       </nav>
       {isOnboarding ? (
         <main className="flex-1 px-4 py-8 sm:py-12">
-          <OnboardingFlow step={onboardStep} setStep={setOnboardStep} clinicId={user?.clinicId} isRtl={isRtl} sessionEmail={user?.email || ""} sessionName={user?.name || ""} />
+          <OnboardingFlow step={onboardStep} setStep={setOnboardStep} clinicId={user?.clinicId} isRtl={isRtl} sessionEmail={session?.user?.email || user?.email || ""} sessionName={session?.user?.name || user?.name || ""} />
         </main>
       ) : (
         <></>
