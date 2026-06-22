@@ -56,15 +56,15 @@ export default function SecurityPage() {
       return {
         id: row.id,
         device: isLogin
-          ? (isRtl ? "ØªØ³Ø¬ÙŠÙ„ Ø¯Ø®ÙˆÙ„ Ø­Ø¯ÙŠØ«" : "Recent login")
+          ? (isRtl ? "تسجيل دخول حديث" : "Recent login")
           : isPassword
-          ? (isRtl ? "ØªØ­Ø¯ÙŠØ« Ø£Ù…Ø§Ù†" : "Security update")
-          : (isRtl ? "Ù†Ø´Ø§Ø· Ø­Ø³Ø§Ø¨" : "Account activity"),
+          ? (isRtl ? "تحديث أمان" : "Security update")
+          : (isRtl ? "نشاط حساب" : "Account activity"),
         ip: row.user_email || "Supabase",
         time: new Date(row.created_at || Date.now()).toLocaleString(isRtl ? "ar-EG" : "en-US"),
         status: current
-          ? (isRtl ? "Ù†Ø´Ø· Ø§Ù„Ø¢Ù†" : "Active now")
-          : (isRtl ? "Ø³Ø¬Ù„ Ø­Ø¯ÙŠØ«" : "Recent"),
+          ? (isRtl ? "نشط الآن" : "Active now")
+          : (isRtl ? "سجل حديث" : "Recent"),
         icon: current ? Monitor : Smartphone,
         current,
       };
@@ -79,7 +79,7 @@ export default function SecurityPage() {
 
   const passwordHelp = useMemo(() => {
     return isRtl
-      ? "ØºÙŠÙ‘Ø± ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø®Ø§ØµØ© Ø¨Ø­Ø³Ø§Ø¨Ùƒ Ø§Ù„Ø­Ø§Ù„ÙŠ ÙÙŠ Supabase Ù…Ø¨Ø§Ø´Ø±Ø©."
+      ? "غيّر كلمة المرور الخاصة بحسابك الحالي في Supabase مباشرة."
       : "Change the password for your current Supabase account directly.";
   }, [isRtl]);
 
@@ -89,22 +89,22 @@ export default function SecurityPage() {
     setSaved(false);
 
     if (!user?.email) {
-      setError(isRtl ? "Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ù…Ø³ØªØ®Ø¯Ù… Ù…Ø³Ø¬Ù„ Ø¯Ø®ÙˆÙ„ Ø­Ø§Ù„ÙŠØ§Ù‹." : "No authenticated user found.");
+      setError(isRtl ? "لا يوجد مستخدم مسجل دخول حالياً." : "No authenticated user found.");
       return;
     }
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setError(isRtl ? "Ø£ÙƒÙ…Ù„ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ù‚ÙˆÙ„ Ø£ÙˆÙ„Ø§Ù‹." : "Please fill in all fields.");
+      setError(isRtl ? "أكمل جميع الحقول أولاً." : "Please fill in all fields.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError(isRtl ? "ÙƒÙ„Ù…ØªØ§ Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø¬Ø¯ÙŠØ¯ØªØ§Ù† ØºÙŠØ± Ù…ØªØ·Ø§Ø¨Ù‚ØªÙŠÙ†." : "New passwords do not match.");
+      setError(isRtl ? "كلمتا المرور الجديدتان غير متطابقتين." : "New passwords do not match.");
       return;
     }
 
     if (newPassword.length < 8) {
-      setError(isRtl ? "ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ÙŠØ¬Ø¨ Ø£Ù„Ø§ ØªÙ‚Ù„ Ø¹Ù† 8 Ø£Ø­Ø±Ù." : "Password must be at least 8 characters.");
+      setError(isRtl ? "كلمة المرور يجب ألا تقل عن 8 أحرف." : "Password must be at least 8 characters.");
       return;
     }
 
@@ -116,7 +116,7 @@ export default function SecurityPage() {
       });
 
       if (signInError) {
-        setError(isRtl ? "ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø­Ø§Ù„ÙŠØ© ØºÙŠØ± ØµØ­ÙŠØ­Ø©." : "Current password is incorrect.");
+        setError(isRtl ? "كلمة المرور الحالية غير صحيحة." : "Current password is incorrect.");
         return;
       }
 
@@ -133,7 +133,7 @@ export default function SecurityPage() {
       await loadSecurityEvents();
       window.setTimeout(() => setSaved(false), 3000);
     } catch (err: any) {
-      setError(err?.message || (isRtl ? "ÙØ´Ù„ ØªØ­Ø¯ÙŠØ« ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±." : "Failed to update password."));
+      setError(err?.message || (isRtl ? "فشل تحديث كلمة المرور." : "Failed to update password."));
     } finally {
       setSaving(false);
     }
@@ -146,7 +146,7 @@ export default function SecurityPage() {
           <div className="bg-teal-50 p-2 rounded-xl">
             <Shield className="w-6 h-6 text-[#0d8a8a]" />
           </div>
-          {isRtl ? "Ø§Ù„Ø£Ù…Ø§Ù† ÙˆØ³Ø¬Ù„ Ø§Ù„Ø¯Ø®ÙˆÙ„" : "Security & Access"}
+          {isRtl ? "الأمان وسجل الدخول" : "Security & Access"}
         </h1>
         <p className="text-sm text-muted-foreground mt-0.5">{passwordHelp}</p>
       </div>
@@ -156,7 +156,7 @@ export default function SecurityPage() {
           <CardHeader className="border-b bg-slate-50/50 pb-4">
             <CardTitle className="text-base font-bold flex items-center gap-2 text-slate-800">
               <Key className="w-5 h-5 text-[#0d8a8a]" />
-              {isRtl ? "ØªØºÙŠÙŠØ± ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±" : "Change Password"}
+              {isRtl ? "تغيير كلمة المرور" : "Change Password"}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
@@ -166,11 +166,11 @@ export default function SecurityPage() {
                   <AlertTriangle className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                   <div className="space-y-0.5">
                     <p className="text-xs font-bold text-blue-800">
-                      {isRtl ? "Ø­Ø³Ø§Ø¨ Google" : "Google Account"}
+                      {isRtl ? "حساب Google" : "Google Account"}
                     </p>
                     <p className="text-[10px] text-blue-600 leading-5">
                       {isRtl
-                        ? "Ù‡Ø°Ø§ Ø§Ù„Ø­Ø³Ø§Ø¨ ÙŠØ¹ØªÙ…Ø¯ Ø¹Ù„Ù‰ Google Ù„Ù„Ø¯Ø®ÙˆÙ„ØŒ Ù„Ø°Ù„Ùƒ ØªØºÙŠÙŠØ± ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ù…Ù† Ù‡Ù†Ø§ Ù„Ø§ ÙŠØºÙŠÙ‘Ø± ÙƒÙ„Ù…Ø© Ù…Ø±ÙˆØ± Google Ù†ÙØ³Ù‡Ø§. Ø§Ù„ØªØºÙŠÙŠØ± Ø§Ù„Ù…Ø¨Ø§Ø´Ø± Ù…ØªØ§Ø­ Ù„Ù„Ø­Ø³Ø§Ø¨Ø§Øª Ø§Ù„ØªÙŠ ØªØ³ØªØ®Ø¯Ù… ÙƒÙ„Ù…Ø© Ù…Ø±ÙˆØ± Supabase."
+                        ? "هذا الحساب يعتمد على Google للدخول، لذلك تغيير كلمة المرور من هنا لا يغيّر كلمة مرور Google نفسها. التغيير المباشر متاح للحسابات التي تستخدم كلمة مرور Supabase."
                         : "This account uses Google sign-in, so changing the password here will not change your Google password. Direct password changes apply to Supabase password accounts."}
                     </p>
                   </div>
@@ -187,12 +187,12 @@ export default function SecurityPage() {
               {saved && (
                 <div className="bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold p-3 rounded-xl flex items-center gap-2">
                   <Check className="w-4 h-4" />
-                  {isRtl ? "ØªÙ… ØªØ­Ø¯ÙŠØ« ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø¨Ù†Ø¬Ø§Ø­." : "Password updated successfully."}
+                  {isRtl ? "تم تحديث كلمة المرور بنجاح." : "Password updated successfully."}
                 </div>
               )}
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">{isRtl ? "ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø­Ø§Ù„ÙŠØ©" : "Current Password"}</label>
+                <label className="text-xs font-bold text-slate-700">{isRtl ? "كلمة المرور الحالية" : "Current Password"}</label>
                 <Input
                   type="password"
                   value={currentPassword}
@@ -205,7 +205,7 @@ export default function SecurityPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">{isRtl ? "ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø©" : "New Password"}</label>
+                  <label className="text-xs font-bold text-slate-700">{isRtl ? "كلمة المرور الجديدة" : "New Password"}</label>
                   <Input
                     type="password"
                     value={newPassword}
@@ -216,7 +216,7 @@ export default function SecurityPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">{isRtl ? "ØªØ£ÙƒÙŠØ¯ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±" : "Confirm Password"}</label>
+                  <label className="text-xs font-bold text-slate-700">{isRtl ? "تأكيد كلمة المرور" : "Confirm Password"}</label>
                   <Input
                     type="password"
                     value={confirmPassword}
@@ -230,7 +230,7 @@ export default function SecurityPage() {
 
               <div className="pt-2 flex justify-between items-center">
                 <div className="text-[11px] text-slate-500 leading-5">
-                  {isRtl ? "Ø³ÙŠØªÙ… Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ± Ø¯Ø§Ø®Ù„ Supabase Ù…Ø¨Ø§Ø´Ø±Ø©." : "The change is applied directly in Supabase."}
+                  {isRtl ? "سيتم حفظ التغيير داخل Supabase مباشرة." : "The change is applied directly in Supabase."}
                 </div>
                 <Button
                   type="submit"
@@ -238,7 +238,7 @@ export default function SecurityPage() {
                   className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] mr-auto rounded-xl gap-1.5 font-bold px-6 shadow-md transition-all active:scale-95"
                 >
                   <Lock className="w-4 h-4" />
-                  {saving ? (isRtl ? "Ø¬Ø§Ø±Ù Ø§Ù„Ø­ÙØ¸..." : "Saving...") : (isRtl ? "ØªØ­Ø¯ÙŠØ« ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±" : "Update Password")}
+                  {saving ? (isRtl ? "جارِ الحفظ..." : "Saving...") : (isRtl ? "تحديث كلمة المرور" : "Update Password")}
                 </Button>
               </div>
             </form>
@@ -249,14 +249,14 @@ export default function SecurityPage() {
           <CardHeader className="border-b bg-slate-50/50 pb-4">
             <CardTitle className="text-base font-bold flex items-center gap-2 text-slate-800">
               <History className="w-5 h-5 text-[#0d8a8a]" />
-              {isRtl ? "Ø³Ø¬Ù„ Ø§Ù„Ù†Ø´Ø§Ø· Ø§Ù„Ø£Ù…Ù†ÙŠ" : "Security Activity"}
+              {isRtl ? "سجل النشاط الأمني" : "Security Activity"}
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0 px-0">
             <div className="divide-y divide-slate-100">
               {events.length === 0 ? (
                 <div className="p-4 text-center text-xs text-slate-500">
-                  {isRtl ? "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ù†Ø´Ø·Ø© Ø­Ø¯ÙŠØ«Ø© Ø¨Ø¹Ø¯." : "No recent activity yet."}
+                  {isRtl ? "لا توجد أنشطة حديثة بعد." : "No recent activity yet."}
                 </div>
               ) : (
                 events.map((item) => (
@@ -269,7 +269,7 @@ export default function SecurityPage() {
                         <p className="text-xs font-bold text-slate-800 truncate">{item.device}</p>
                         {item.current && (
                           <span className="text-[9px] font-bold bg-[#0d8a8a]/10 text-[#0d8a8a] px-2 py-0.5 rounded-full whitespace-nowrap">
-                            {isRtl ? "Ø§Ù„Ø­Ø§Ù„ÙŠ" : "Current"}
+                            {isRtl ? "الحالي" : "Current"}
                           </span>
                         )}
                       </div>

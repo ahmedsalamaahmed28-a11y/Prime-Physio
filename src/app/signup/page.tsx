@@ -176,7 +176,7 @@ function SignupPageContent() {
             redirect: false,
           });
           if (result?.ok) {
-            window.location.href = "/setup/center";
+            window.location.href = "/home";
           } else {
             window.location.href = "/login";
           }

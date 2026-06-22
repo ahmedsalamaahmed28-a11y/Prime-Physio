@@ -49,7 +49,7 @@ export default function SubscribePage() {
 
   useEffect(() => {
     if (!authLoading && !isEnriching && !clinicId) {
-      window.location.href = "/setup/center";
+      window.location.href = "/login";
     }
   }, [authLoading, isEnriching, clinicId]);
 

@@ -217,26 +217,7 @@ export default function DashboardLayout({
     })();
   }, [user?.clinicId, activeBranchId, user?.logoUrl, user?.shortName]);
 
-  useEffect(() => {
-    if (activeAccount?.clinicId && !isEnriching && pathname !== "/login" && pathname !== "/signup" && pathname !== "/forgot-password" && pathname !== "/reset-password" && pathname !== "/setup/center" && pathname !== "/subscribe" && pathname !== "/centers/new") {
-      const checkSub = async () => {
-        try {
-          const { data } = await supabase
-            .from("subscriptions")
-            .select("id")
-            .eq("clinic_id", activeAccount.clinicId)
-            .eq("status", "active")
-            .maybeSingle();
-          if (!data) {
-            window.location.href = "/subscribe";
-          }
-        } catch (e) { console.warn("[Dashboard] Subscription check failed:", e); }
-      };
-      checkSub();
-    }
-  }, [activeAccount?.clinicId, pathname, isEnriching]);
-
-    const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password" || pathname === "/reset-password" || pathname === "/setup/center" || pathname === "/subscribe" || pathname === "/centers/new";
+    const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password" || pathname === "/reset-password" || pathname === "/centers/new";
 
   if (isAuthPage) {
     return <>{children}</>;

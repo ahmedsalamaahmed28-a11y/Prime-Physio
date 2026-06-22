@@ -17,7 +17,7 @@ export default function CentersPage() {
 
   useEffect(() => {
     if (!authLoading && !isEnriching && !clinicId) {
-      window.location.href = "/setup/center";
+      window.location.href = "/login";
     }
   }, [authLoading, isEnriching, clinicId]);
 
@@ -78,11 +78,11 @@ export default function CentersPage() {
 
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-800 mb-2">
-            {isRtl ? "Ù…Ø±Ø§ÙƒØ²Ùƒ" : "Your Centers"}
+            {isRtl ? "مراكزك" : "Your Centers"}
           </h1>
           <p className="text-slate-500">
             {isRtl
-              ? "Ø¥Ø¯Ø§Ø±Ø© ÙØ±ÙˆØ¹ Ù…Ø±ÙƒØ²Ùƒ ÙˆØªØ¹Ø¯ÙŠÙ„ Ø¥Ø¹Ø¯Ø§Ø¯Ø§ØªÙ‡Ø§"
+              ? "إدارة فروع مركزك وتعديل إعداداتها"
               : "Manage your center branches and their settings"}
           </p>
         </div>
@@ -101,18 +101,18 @@ export default function CentersPage() {
               </svg>
             </div>
             <h2 className="text-lg font-semibold text-slate-800 mb-2">
-              {isRtl ? "Ø£Ù†Ø´Ø¦ Ù…Ø±ÙƒØ²Ùƒ Ø§Ù„Ø£ÙˆÙ„" : "Create Your First Center"}
+              {isRtl ? "أنشئ مركزك الأول" : "Create Your First Center"}
             </h2>
             <p className="text-slate-500 mb-6">
               {isRtl
-                ? "Ø§Ø¨Ø¯Ø£ Ø¨Ø¥Ù†Ø´Ø§Ø¡ Ù…Ø±ÙƒØ²Ùƒ Ø§Ù„Ø£ÙˆÙ„ ÙˆØ­Ø¯Ø¯ Ù…ÙˆÙ‚Ø¹Ù‡ØŒ Ø´Ø¹Ø§Ø±Ù‡ØŒ ÙˆØªÙØ§ØµÙŠÙ„Ù‡ Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ©"
+                ? "ابدأ بإنشاء مركزك الأول وحدد موقعه، شعاره، وتفاصيله الأساسية"
                 : "Start by creating your first center and define its location, logo, and basic details"}
             </p>
             <button
-              onClick={() => window.location.href = "/setup/center"}
+              onClick={() => window.location.href = "/centers/new"}
               className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] px-6 py-2 rounded-lg font-medium transition-colors"
             >
-              {isRtl ? "Ø¥Ù†Ø´Ø§Ø¡ Ù…Ø±ÙƒØ²" : "Create Center"}
+              {isRtl ? "إنشاء مركز" : "Create Center"}
             </button>
           </div>
         ) : (
@@ -156,17 +156,17 @@ export default function CentersPage() {
                         onClick={() => window.location.href = `/centers/${center.id}`}
                         className="text-indigo-500 hover:text-indigo-600 text-sm font-medium"
                       >
-                        {isRtl ? "ØªØ¹Ø¯ÙŠÙ„" : "Edit"}
+                        {isRtl ? "تعديل" : "Edit"}
                       </button>
                       <button
                         onClick={() => {
-                          if (confirm(isRtl ? "Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ØŸ" : "Are you sure?")) {
+                          if (confirm(isRtl ? "هل أنت متأكد؟" : "Are you sure?")) {
                             deleteCenter(center.id);
                           }
                         }}
                         className="text-red-500 hover:text-red-600 text-sm font-medium"
                       >
-                        {isRtl ? "Ø­Ø°Ù" : "Delete"}
+                        {isRtl ? "حذف" : "Delete"}
                       </button>
                     </div>
                   </div>
@@ -177,7 +177,7 @@ export default function CentersPage() {
             {centers.length < 2 && (
               <div className="bg-white rounded-lg border-2 border-dashed border-slate-300 p-8 text-center hover:border-indigo-300 transition-colors cursor-pointer">
                 <button
-                  onClick={() => window.location.href = "/setup/center"}
+                  onClick={() => window.location.href = "/centers/new"}
                   className="flex flex-col items-center gap-4"
                 >
                   <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center">
@@ -187,11 +187,11 @@ export default function CentersPage() {
                   </div>
                   <div>
                     <h3 className="font-medium text-indigo-600 mb-1">
-                      {isRtl ? "Ø¥Ø¶Ø§ÙØ© Ù…Ø±ÙƒØ²" : "Add Center"}
+                      {isRtl ? "إضافة مركز" : "Add Center"}
                     </h3>
                     <p className="text-sm text-slate-500">
                       {isRtl
-                        ? `ÙŠÙ…ÙƒÙ†Ùƒ Ø¥Ø¶Ø§ÙØ© Ù…Ø±ÙƒØ² ÙˆØ§Ø­Ø¯ Ø¢Ø®Ø± (Ø§Ù„Ø­Ø¯ Ø§Ù„Ø£Ù‚ØµÙ‰: ${centers.length === 1 ? 1 : 2})`
+                        ? `يمكنك إضافة مركز واحد آخر (الحد الأقصى: ${centers.length === 1 ? 1 : 2})`
                         : `You can add one more center (Max: ${centers.length === 1 ? 1 : 2})`
                       }
                     </p>

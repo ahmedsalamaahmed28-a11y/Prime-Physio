@@ -26,23 +26,23 @@ const PURPLE_COLOR = "text-purple-600 bg-purple-50 dark:bg-purple-950/20";
 
 const BILLING_STATS = [
   {
-    title: "Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„Ø¨Ø§Ù‚Ø§Øª Ø§Ù„Ù†Ø´Ø·Ø©",
-    value: "24,800 Ø¬.Ù…",
-    description: "Ø¯Ø®Ù„ Ù…Ø¨ÙŠØ¹Ø§Øª 18 Ø¨Ø§Ù‚Ø© Ø­Ø§Ù„ÙŠØ©",
+    title: "مبيعات الباقات النشطة",
+    value: "24,800 ج.م",
+    description: "دخل مبيعات 18 باقة حالية",
     icon: TrendingUp,
     color: PURPLE_COLOR,
   },
   {
-    title: "Ù…Ø¨Ø§Ù„Øº Ù…Ø³ØªØ­Ù‚Ø© (ØºÙŠØ± Ù…Ø¯ÙÙˆØ¹Ø©)",
-    value: "1,600 Ø¬.Ù…",
-    description: "4 ÙÙˆØ§ØªÙŠØ± Ù‚ÙŠØ¯ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±",
+    title: "مبالغ مستحقة (غير مدفوعة)",
+    value: "1,600 ج.م",
+    description: "4 فواتير قيد الانتظار",
     icon: DollarSign,
     color: PURPLE_COLOR,
   },
   {
-    title: "Ø¬Ù„Ø³Ø§Øª Ø¨Ø§Ù‚Ø§Øª Ù…Ø³ØªÙ‡Ù„ÙƒØ©",
-    value: "108 Ø¬Ù„Ø³Ø©",
-    description: "Ù…Ù† Ø£ØµÙ„ 180 Ø¬Ù„Ø³Ø© Ø¥Ø¬Ù…Ø§Ù„ÙŠØ©",
+    title: "جلسات باقات مستهلكة",
+    value: "108 جلسة",
+    description: "من أصل 180 جلسة إجمالية",
     icon: CreditCard,
     color: PURPLE_COLOR,
   },
@@ -55,18 +55,18 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { usePermissions } from "@/lib/usePermissions";
 import { useAuth } from "@/lib/auth";
 
-// Canonical status values stored in DB: "Ø§Ù†ØªØ¸Ø§Ø±" | "Ù…Ø¯ÙÙˆØ¹" | "Ù…Ù„ØºÙŠ"
-const normalizeInvoiceStatus = (value: string): "Ø§Ù†ØªØ¸Ø§Ø±" | "Ù…Ø¯ÙÙˆØ¹" | "Ù…Ù„ØºÙŠ" => {
-  if (value === "Paid"     || value === "Ù…Ø¯ÙÙˆØ¹")                          return "Ù…Ø¯ÙÙˆØ¹";
-  if (value === "Canceled" || value === "Ù…Ù„ØºÙŠ")                           return "Ù…Ù„ØºÙŠ";
-  // Pending / Ø§Ù†ØªØ¸Ø§Ø± / ØºÙŠØ± Ù…Ø¯ÙÙˆØ¹ â†’ Ø§Ù†ØªØ¸Ø§Ø±
-  return "Ø§Ù†ØªØ¸Ø§Ø±";
+// Canonical status values stored in DB: "انتظار" | "مدفوع" | "ملغي"
+const normalizeInvoiceStatus = (value: string): "انتظار" | "مدفوع" | "ملغي" => {
+  if (value === "Paid"     || value === "مدفوع")                          return "مدفوع";
+  if (value === "Canceled" || value === "ملغي")                           return "ملغي";
+  // Pending / انتظار / غير مدفوع → انتظار
+  return "انتظار";
 };
 
 const statusSelectClass = (status: string) => {
-  if (status === "Ù…Ø¯ÙÙˆØ¹")  return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (status === "Ù…Ù„ØºÙŠ")   return "bg-rose-50   text-rose-700   border-rose-200";
-  return                          "bg-amber-50  text-amber-700  border-amber-200"; // Ø§Ù†ØªØ¸Ø§Ø±
+  if (status === "مدفوع")  return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  if (status === "ملغي")   return "bg-rose-50   text-rose-700   border-rose-200";
+  return                          "bg-amber-50  text-amber-700  border-amber-200"; // انتظار
 };
 
 export default function BillingPage() {
@@ -102,7 +102,7 @@ export default function BillingPage() {
           amount: inv.amount,
           date: inv.date,
           status: normalizeInvoiceStatus(inv.status ?? ""),
-          paymentMethod: normalizeInvoiceStatus(inv.status ?? "") === "Ù…Ø¯ÙÙˆØ¹" ? (isRtl ? "Ù†Ù‚Ø¯ÙŠ" : "Cash") : "â€”"
+          paymentMethod: normalizeInvoiceStatus(inv.status ?? "") === "مدفوع" ? (isRtl ? "نقدي" : "Cash") : "â€”"
         }));
         setInvoices(mapped);
       } else {
@@ -162,7 +162,7 @@ export default function BillingPage() {
       setPatients((prev) => prev.filter((p) => p.id !== patientId));
     } catch (err: any) {
       console.error("Failed to delete invoice:", err);
-      alert(isRtl ? "ÙØ´Ù„ Ø§Ù„Ø­Ø°Ù: " + (err.message || err) : "Delete failed: " + (err.message || err));
+      alert(isRtl ? "فشل الحذف: " + (err.message || err) : "Delete failed: " + (err.message || err));
     } finally {
       setDeleteInvoiceId(null);
     }
@@ -188,7 +188,7 @@ export default function BillingPage() {
     const htmlContent = `
       <html dir="${isRtl ? 'rtl' : 'ltr'}" lang="${isRtl ? 'ar' : 'en'}">
         <head>
-          <title>${isRtl ? 'ÙƒØ´Ù Ø­Ø³Ø§Ø¨ Ù…Ø§Ù„ÙŠ - Prime Physio' : 'Financial Statement - Prime Physio'}</title>
+          <title>${isRtl ? 'كشف حساب مالي - Prime Physio' : 'Financial Statement - Prime Physio'}</title>
           <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
           <style>
             body { font-family: 'Cairo', sans-serif; padding: 40px; color: #1e293b; }
@@ -220,40 +220,40 @@ export default function BillingPage() {
               <img src="/logo.png" class="logo-img" alt="Prime Physio Logo" onerror="this.style.display='none'" />
               <div class="title">
                 <h2>Prime Physio</h2>
-                <p>Ù„Ù„Ø¹Ù„Ø§Ø¬ Ø§Ù„Ø·Ø¨ÙŠØ¹ÙŠ ÙˆØ§Ù„ØªØ£Ù‡ÙŠÙ„ Ø§Ù„Ù…ØªÙ‚Ø¯Ù…</p>
+                <p>للعلاج الطبيعي والتأهيل المتقدم</p>
               </div>
             </div>
             <div class="doc-info">
-              <h1>${isRtl ? 'ÙƒØ´Ù Ø­Ø³Ø§Ø¨ Ù…Ø§Ù„ÙŠ' : 'Financial Statement'}</h1>
-              <p>${isRtl ? 'ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¥ØµØ¯Ø§Ø±' : 'Issue Date'}: ${new Date().toISOString().split('T')[0]}</p>
+              <h1>${isRtl ? 'كشف حساب مالي' : 'Financial Statement'}</h1>
+              <p>${isRtl ? 'تاريخ الإصدار' : 'Issue Date'}: ${new Date().toISOString().split('T')[0]}</p>
             </div>
           </div>
 
           <div class="stats">
             <div class="stat-box">
-              <p class="label">${isRtl ? 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø©' : 'Total Paid Sales'}</p>
-              <p class="val" style="color: #059669;">${paidSales.toLocaleString()} ${isRtl ? 'Ø¬.Ù…' : 'EGP'}</p>
+              <p class="label">${isRtl ? 'إجمالي المبيعات المدفوعة' : 'Total Paid Sales'}</p>
+              <p class="val" style="color: #059669;">${paidSales.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}</p>
             </div>
             <div class="stat-box">
-              <p class="label">${isRtl ? 'Ø§Ù„Ù…Ø¨Ø§Ù„Øº Ø§Ù„Ù…Ø³ØªØ­Ù‚Ø© (Ø§Ù†ØªØ¸Ø§Ø±)' : 'Pending Amount'}</p>
-              <p class="val" style="color: #d97706;">${pendingAmount.toLocaleString()} ${isRtl ? 'Ø¬.Ù…' : 'EGP'}</p>
+              <p class="label">${isRtl ? 'المبالغ المستحقة (انتظار)' : 'Pending Amount'}</p>
+              <p class="val" style="color: #d97706;">${pendingAmount.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}</p>
             </div>
             <div class="stat-box">
-              <p class="label">${isRtl ? 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„ÙÙˆØ§ØªÙŠØ± Ø§Ù„ØµØ§Ø¯Ø±Ø©' : 'Total Issued Invoices'}</p>
-              <p class="val" style="color: #2563eb;">${invoices.length} ${isRtl ? 'ÙØ§ØªÙˆØ±Ø©' : 'Invoices'}</p>
+              <p class="label">${isRtl ? 'إجمالي الفواتير الصادرة' : 'Total Issued Invoices'}</p>
+              <p class="val" style="color: #2563eb;">${invoices.length} ${isRtl ? 'فاتورة' : 'Invoices'}</p>
             </div>
           </div>
 
           <table>
             <thead>
               <tr>
-                <th>${isRtl ? 'Ø±Ù‚Ù… Ø§Ù„ÙØ§ØªÙˆØ±Ø©' : 'Invoice ID'}</th>
-                <th>${isRtl ? 'Ø§Ù„Ù…Ø±ÙŠØ¶' : 'Patient'}</th>
-                <th>${isRtl ? 'Ø§Ù„Ø¨ÙŠØ§Ù†' : 'Description'}</th>
-                <th>${isRtl ? 'Ø§Ù„Ù‚ÙŠÙ…Ø©' : 'Amount'}</th>
-                <th>${isRtl ? 'Ø§Ù„ØªØ§Ø±ÙŠØ®' : 'Date'}</th>
-                <th>${isRtl ? 'Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„Ø¯ÙØ¹' : 'Payment'}</th>
-                <th>${isRtl ? 'Ø§Ù„Ø­Ø§Ù„Ø©' : 'Status'}</th>
+                <th>${isRtl ? 'رقم الفاتورة' : 'Invoice ID'}</th>
+                <th>${isRtl ? 'المريض' : 'Patient'}</th>
+                <th>${isRtl ? 'البيان' : 'Description'}</th>
+                <th>${isRtl ? 'القيمة' : 'Amount'}</th>
+                <th>${isRtl ? 'التاريخ' : 'Date'}</th>
+                <th>${isRtl ? 'طريقة الدفع' : 'Payment'}</th>
+                <th>${isRtl ? 'الحالة' : 'Status'}</th>
               </tr>
             </thead>
             <tbody>
@@ -265,14 +265,14 @@ export default function BillingPage() {
                   <td style="font-family: monospace; font-weight: bold;">${inv.amount}</td>
                   <td>${inv.date}</td>
                   <td>${inv.paymentMethod}</td>
-                  <td style="font-weight: bold; color: ${inv.status === 'Ù…Ø¯ÙÙˆØ¹' ? '#059669' : inv.status === 'Ù…Ù„ØºÙŠ' ? '#e11d48' : '#d97706'};">${inv.status}</td>
+                  <td style="font-weight: bold; color: ${inv.status === 'مدفوع' ? '#059669' : inv.status === 'ملغي' ? '#e11d48' : '#d97706'};">${inv.status}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
 
           <div class="footer">
-            <p>${isRtl ? 'ØªÙ… Ø¥ØµØ¯Ø§Ø± Ù‡Ø°Ø§ Ø§Ù„ÙƒØ´Ù Ø¢Ù„ÙŠØ§Ù‹ Ù…Ù† Ù†Ø¸Ø§Ù… "Prime Physio" Ù„Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø¹ÙŠØ§Ø¯Ø§Øª' : 'This statement was automatically generated by Prime Physio Management System'}</p>
+            <p>${isRtl ? 'تم إصدار هذا الكشف آلياً من نظام "Prime Physio" لإدارة العيادات' : 'This statement was automatically generated by Prime Physio Management System'}</p>
           </div>
           
           <script>
@@ -293,32 +293,32 @@ export default function BillingPage() {
   };
 
   const paidSales = invoices
-    .filter((inv) => inv.status === "Ù…Ø¯ÙÙˆØ¹")
+    .filter((inv) => inv.status === "مدفوع")
     .reduce((sum, inv) => sum + parseInt(String(inv.amount).replace(/[^0-9]/g, "") || "0"), 0);
 
   const pendingAmount = invoices
-    .filter((inv) => inv.status === "Ø§Ù†ØªØ¸Ø§Ø±")
+    .filter((inv) => inv.status === "انتظار")
     .reduce((sum, inv) => sum + parseInt(String(inv.amount).replace(/[^0-9]/g, "") || "0"), 0);
 
   const dynamicStats = [
     {
-      title: isRtl ? "Ù…Ø¨ÙŠØ¹Ø§Øª Ø§Ù„Ø¨Ø§Ù‚Ø§Øª Ø§Ù„Ù†Ø´Ø·Ø©" : "Active Package Sales",
-      value: `${paidSales.toLocaleString()} ${isRtl ? 'Ø¬.Ù…' : 'EGP'}`,
-      description: isRtl ? `Ø¯Ø®Ù„ Ù…Ø¨ÙŠØ¹Ø§Øª ${invoices.filter((inv) => inv.status === "Ù…Ø¯ÙÙˆØ¹").length} Ø¨Ø§Ù‚Ø© Ø­Ø§Ù„ÙŠØ©` : `Sales income of ${invoices.filter((inv) => inv.status === "Ù…Ø¯ÙÙˆØ¹").length} active packages`,
+      title: isRtl ? "مبيعات الباقات النشطة" : "Active Package Sales",
+      value: `${paidSales.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}`,
+      description: isRtl ? `دخل مبيعات ${invoices.filter((inv) => inv.status === "مدفوع").length} باقة حالية` : `Sales income of ${invoices.filter((inv) => inv.status === "مدفوع").length} active packages`,
       icon: TrendingUp,
       color: PURPLE_COLOR,
     },
     {
-      title: isRtl ? "Ù…Ø¨Ø§Ù„Øº Ù…Ø³ØªØ­Ù‚Ø© (ØºÙŠØ± Ù…Ø¯ÙÙˆØ¹Ø©)" : "Pending Amounts",
-      value: `${pendingAmount.toLocaleString()} ${isRtl ? 'Ø¬.Ù…' : 'EGP'}`,
-      description: isRtl ? `${invoices.filter((inv) => inv.status === "Ø§Ù†ØªØ¸Ø§Ø±").length} ÙÙˆØ§ØªÙŠØ± Ù‚ÙŠØ¯ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±` : `${invoices.filter((inv) => inv.status === "Ø§Ù†ØªØ¸Ø§Ø±").length} pending invoices`,
+      title: isRtl ? "مبالغ مستحقة (غير مدفوعة)" : "Pending Amounts",
+      value: `${pendingAmount.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}`,
+      description: isRtl ? `${invoices.filter((inv) => inv.status === "انتظار").length} فواتير قيد الانتظار` : `${invoices.filter((inv) => inv.status === "انتظار").length} pending invoices`,
       icon: DollarSign,
       color: PURPLE_COLOR,
     },
     {
-      title: isRtl ? "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„ÙÙˆØ§ØªÙŠØ± Ø§Ù„ØµØ§Ø¯Ø±Ø©" : "Total Invoices Issued",
-      value: `${invoices.length} ${isRtl ? 'ÙØ§ØªÙˆØ±Ø©' : 'Invoices'}`,
-      description: isRtl ? `Ù†Ø´Ø·: ${invoices.filter((inv) => inv.status === "Ù…Ø¯ÙÙˆØ¹").length} | Ø§Ù†ØªØ¸Ø§Ø±: ${invoices.filter((inv) => inv.status === "Ø§Ù†ØªØ¸Ø§Ø±").length}` : `Paid: ${invoices.filter((inv) => inv.status === "Ù…Ø¯ÙÙˆØ¹").length} | Pending: ${invoices.filter((inv) => inv.status === "Ø§Ù†ØªØ¸Ø§Ø±").length}`,
+      title: isRtl ? "إجمالي الفواتير الصادرة" : "Total Invoices Issued",
+      value: `${invoices.length} ${isRtl ? 'فاتورة' : 'Invoices'}`,
+      description: isRtl ? `نشط: ${invoices.filter((inv) => inv.status === "مدفوع").length} | انتظار: ${invoices.filter((inv) => inv.status === "انتظار").length}` : `Paid: ${invoices.filter((inv) => inv.status === "مدفوع").length} | Pending: ${invoices.filter((inv) => inv.status === "انتظار").length}`,
       icon: CreditCard,
       color: PURPLE_COLOR,
     },
@@ -331,15 +331,15 @@ export default function BillingPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
             <CreditCard className="w-6 h-6 text-blue-600" />
-            {isRtl ? "Ø§Ù„Ù…Ø§Ù„ÙŠØ© ÙˆØ§Ù„ÙÙˆØ§ØªÙŠØ±" : "Billing & Invoices"}
+            {isRtl ? "المالية والفواتير" : "Billing & Invoices"}
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">{isRtl ? "Ù…Ø±Ø§Ù‚Ø¨Ø© Ø§Ù„ØªØ³ÙˆÙŠØ§Øª Ø§Ù„Ù…Ø§Ù„ÙŠØ©ØŒ Ø´Ø±Ø§Ø¡ Ø¨Ø§Ù‚Ø§Øª Ø§Ù„Ù…Ø±Ø¶Ù‰ØŒ ÙˆØ§Ù„ÙÙˆØ§ØªÙŠØ± Ø§Ù„ØµØ§Ø¯Ø±Ø©" : "Monitor financial settlements, patient packages, and issued invoices"}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{isRtl ? "مراقبة التسويات المالية، شراء باقات المرضى، والفواتير الصادرة" : "Monitor financial settlements, patient packages, and issued invoices"}</p>
         </div>
         <div className={`flex gap-2 ${isRtl ? "" : "flex-row-reverse"}`}>
           {hasPermission("export_data") && (
             <Button variant="outline" className={`gap-2 ${isRtl ? "" : "flex-row-reverse"}`} onClick={handleExportPDF}>
               <Download className="w-4 h-4 text-slate-500" />
-              {isRtl ? "ØªØµØ¯ÙŠØ± PDF (Ø·Ø¨Ø§Ø¹Ø©)" : "Export PDF (Print)"}
+              {isRtl ? "تصدير PDF (طباعة)" : "Export PDF (Print)"}
             </Button>
           )}
 
@@ -375,12 +375,12 @@ export default function BillingPage() {
           <div className="space-y-1">
             <CardTitle className="text-lg font-bold flex items-center gap-2">
               <FileSpreadsheet className="w-5 h-5 text-blue-600" />
-              {isRtl ? "Ø£Ø­Ø¯Ø« Ø§Ù„ÙÙˆØ§ØªÙŠØ± ÙˆØ§Ù„Ù…Ø¹Ø§Ù…Ù„Ø§Øª Ø§Ù„Ù…Ø§Ù„ÙŠØ©" : "Recent Invoices & Transactions"}
+              {isRtl ? "أحدث الفواتير والمعاملات المالية" : "Recent Invoices & Transactions"}
             </CardTitle>
-            <p className="text-xs text-muted-foreground">{isRtl ? "Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„ØªØ³ÙˆÙŠØ§Øª ÙˆØ­Ø¬ÙˆØ²Ø§Øª Ø§Ù„Ø¨Ø§Ù‚Ø§Øª Ø§Ù„ØµØ§Ø¯Ø±Ø© Ø­Ø¯ÙŠØ«Ø§Ù‹ Ù„Ù„Ø¹ÙŠØ§Ø¯Ø©" : "List of recent settlements and package bookings"}</p>
+            <p className="text-xs text-muted-foreground">{isRtl ? "قائمة التسويات وحجوزات الباقات الصادرة حديثاً للعيادة" : "List of recent settlements and package bookings"}</p>
           </div>
           <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
-            {isRtl ? "Ù†Ø´Ø·" : "Active"}
+            {isRtl ? "نشط" : "Active"}
           </Badge>
         </CardHeader>
         <CardContent className="p-0">
@@ -388,14 +388,14 @@ export default function BillingPage() {
             <table className="w-full text-right border-collapse">
               <thead>
                 <tr className={`bg-muted/40 border-b text-xs font-semibold text-slate-500 uppercase tracking-wider ${isRtl ? "text-right" : "text-left"}`}>
-                  <th className="py-3.5 px-6">{isRtl ? "Ø±Ù‚Ù… Ø§Ù„ÙØ§ØªÙˆØ±Ø©" : "Invoice ID"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "Ø§Ù„Ù…Ø±ÙŠØ¶" : "Patient"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "Ø§Ù„Ø¨ÙŠØ§Ù†" : "Description"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "Ø§Ù„Ù‚ÙŠÙ…Ø©" : "Amount"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "ØªØ§Ø±ÙŠØ® Ø§Ù„ÙØ§ØªÙˆØ±Ø©" : "Date"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„Ø¯ÙØ¹" : "Payment"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "Ø§Ù„Ø­Ø§Ù„Ø©" : "Status"}</th>
-                  <th className="py-3.5 px-6">{isRtl ? "Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª" : "Actions"}</th>
+                  <th className="py-3.5 px-6">{isRtl ? "رقم الفاتورة" : "Invoice ID"}</th>
+                  <th className="py-3.5 px-6">{isRtl ? "المريض" : "Patient"}</th>
+                  <th className="py-3.5 px-6">{isRtl ? "البيان" : "Description"}</th>
+                  <th className="py-3.5 px-6">{isRtl ? "القيمة" : "Amount"}</th>
+                  <th className="py-3.5 px-6">{isRtl ? "تاريخ الفاتورة" : "Date"}</th>
+                  <th className="py-3.5 px-6">{isRtl ? "طريقة الدفع" : "Payment"}</th>
+                  <th className="py-3.5 px-6">{isRtl ? "الحالة" : "Status"}</th>
+                  <th className="py-3.5 px-6">{isRtl ? "إجراءات" : "Actions"}</th>
                 </tr>
               </thead>
               <tbody className={`divide-y divide-border/60 text-sm text-slate-700 ${isRtl ? "text-right" : "text-left"}`}>
@@ -411,10 +411,10 @@ export default function BillingPage() {
                     <td className="py-4 px-6 font-semibold text-slate-900 font-mono">{inv.amount}</td>
                     <td className="py-4 px-6 text-slate-500 font-mono text-xs">{inv.date}</td>
                     <td className="py-4 px-6 text-slate-500 text-xs">
-                      {inv.status === "Ù…Ø¯ÙÙˆØ¹" ? (
+                      {inv.status === "مدفوع" ? (
                         <span className="flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          {isRtl ? "Ù†Ù‚Ø¯ÙŠ" : "Cash"}
+                          {isRtl ? "نقدي" : "Cash"}
                         </span>
                       ) : (
                         <span>â€”</span>
@@ -430,7 +430,7 @@ export default function BillingPage() {
                           try {
                             await supabase
                               .from("patients")
-                              .update({ status: newStatus === "Ù…Ø¯ÙÙˆØ¹" ? "Ù†Ø´Ø·" : "ØºÙŠØ± Ù†Ø´Ø·" })
+                              .update({ status: newStatus === "مدفوع" ? "نشط" : "غير نشط" })
                               .eq("clinic_id", clinicId)
                               .eq("id", inv.patientId);
 
@@ -442,7 +442,7 @@ export default function BillingPage() {
                             if (invoiceErr) throw invoiceErr;
                           } catch (err: any) {
                             console.error("Failed to update status in Supabase:", err);
-                            alert("Ø­Ø¯Ø« Ø®Ø·Ø£ ÙÙŠ Ù‚Ø§Ø¹Ø¯Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª: " + (err?.message || JSON.stringify(err)));
+                            alert("حدث خطأ في قاعدة البيانات: " + (err?.message || JSON.stringify(err)));
                           }
                           
                           setInvoices((prev) =>
@@ -451,7 +451,7 @@ export default function BillingPage() {
                                 ? {
                                     ...item,
                                     status: newStatus,
-                                    paymentMethod: newStatus === "Ù…Ø¯ÙÙˆØ¹" ? (isRtl ? "Ù†Ù‚Ø¯ÙŠ" : "Cash") : "â€”",
+                                    paymentMethod: newStatus === "مدفوع" ? (isRtl ? "نقدي" : "Cash") : "â€”",
                                   }
                                 : item
                             )
@@ -459,9 +459,9 @@ export default function BillingPage() {
                         }}
                         className={`rounded-md px-2 py-1 text-xs font-semibold border cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-600 transition-colors ${statusSelectClass(inv.status)}`}
                       >
-                        <option value="Ø§Ù†ØªØ¸Ø§Ø±">{isRtl ? "â³ Ø§Ù†ØªØ¸Ø§Ø±" : "â³ Pending"}</option>
-                        <option value="Ù…Ø¯ÙÙˆØ¹">{isRtl ? "âœ… Ù…Ø¯ÙÙˆØ¹" : "âœ… Paid"}</option>
-                        <option value="Ù…Ù„ØºÙŠ">{isRtl ? "ðŸš« Ù…Ù„ØºÙŠ" : "ðŸš« Canceled"}</option>
+                        <option value="انتظار">{isRtl ? "⏳ انتظار" : "â³ Pending"}</option>
+                        <option value="مدفوع">{isRtl ? "✅ مدفوع" : "âœ… Paid"}</option>
+                        <option value="ملغي">{isRtl ? "🚫 ملغي" : "ðŸš« Canceled"}</option>
                       </select>
                     </td>
                     <td className="py-4 px-6">
@@ -477,7 +477,7 @@ export default function BillingPage() {
                               setDiscountModalOpen(true);
                             }}
                           >
-                            {isRtl ? "ØªØ·Ø¨ÙŠÙ‚ Ø®ØµÙ…" : "Discount"}
+                            {isRtl ? "تطبيق خصم" : "Discount"}
                           </Button>
                         )}
                         {(isAdmin || hasPermission("create_invoice")) && (
@@ -486,7 +486,7 @@ export default function BillingPage() {
                             size="sm" 
                             className="text-red-600 hover:text-red-700 hover:bg-red-50 p-1 rounded-lg transition-colors"
                             onClick={() => handleDeleteInvoiceClick(inv.id)}
-                            title={isRtl ? "Ø­Ø°Ù Ø§Ù„ÙØ§ØªÙˆØ±Ø©" : "Delete Invoice"}
+                            title={isRtl ? "حذف الفاتورة" : "Delete Invoice"}
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>
@@ -509,11 +509,11 @@ export default function BillingPage() {
               <DollarSign className="w-8 h-8" />
             </div>
             <DialogTitle className="text-xl font-bold text-slate-800">
-              {isRtl ? "ØªØ·Ø¨ÙŠÙ‚ Ø®ØµÙ… Ù…Ø§Ù„ÙŠ" : "Apply Discount"}
+              {isRtl ? "تطبيق خصم مالي" : "Apply Discount"}
             </DialogTitle>
             <DialogDescription className="text-sm text-slate-500">
               {isRtl 
-                ? "Ø£Ø¯Ø®Ù„ Ù‚ÙŠÙ…Ø© Ø§Ù„Ø®ØµÙ… ÙƒÙ†Ø³Ø¨Ø© Ù…Ø¦ÙˆÙŠØ© (Ù…Ø«Ù„ 10%) Ø£Ùˆ Ù‚ÙŠÙ…Ø© Ù†Ù‚Ø¯ÙŠØ© Ù„ØªØ·Ø¨ÙŠÙ‚Ù‡Ø§ Ø¹Ù„Ù‰ Ø§Ù„ÙØ§ØªÙˆØ±Ø© Ø§Ù„Ø­Ø§Ù„ÙŠØ©." 
+                ? "أدخل قيمة الخصم كنسبة مئوية (مثل 10%) أو قيمة نقدية لتطبيقها على الفاتورة الحالية." 
                 : "Enter discount value as a percentage (e.g. 10%) or flat amount to apply it to the current invoice."}
             </DialogDescription>
             <div className={`w-full mt-4 flex flex-wrap gap-2 justify-center`}>
@@ -525,14 +525,14 @@ export default function BillingPage() {
                   onClick={() => setDiscountValue(`${pct}%`)}
                   className={`flex-1 min-w-[30%] ${discountValue === `${pct}%` ? "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white" : ""}`}
                 >
-                  {pct === 100 ? (isRtl ? "Ù…Ø¬Ø§Ù†ÙŠ 100%" : "Free 100%") : `${pct}%`}
+                  {pct === 100 ? (isRtl ? "مجاني 100%" : "Free 100%") : `${pct}%`}
                 </Button>
               ))}
             </div>
           </div>
           <div className={`mt-6 flex gap-3 w-full ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
             <Button type="button" variant="outline" onClick={() => setDiscountModalOpen(false)} className="flex-1 rounded-xl font-bold">
-              {isRtl ? "Ø¥Ù„ØºØ§Ø¡" : "Cancel"}
+              {isRtl ? "إلغاء" : "Cancel"}
             </Button>
             <Button 
               type="button" 
@@ -577,7 +577,7 @@ export default function BillingPage() {
               }} 
               className="flex-1 bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] rounded-xl font-bold"
             >
-              {isRtl ? "ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø®ØµÙ…" : "Apply Discount"}
+              {isRtl ? "تأكيد الخصم" : "Apply Discount"}
             </Button>
           </div>
         </DialogContent>
@@ -591,20 +591,20 @@ export default function BillingPage() {
               <Trash2 className="w-8 h-8" />
             </div>
             <DialogTitle className="text-xl font-bold text-slate-800">
-              {isRtl ? "ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø­Ø°Ù" : "Confirm Deletion"}
+              {isRtl ? "تأكيد الحذف" : "Confirm Deletion"}
             </DialogTitle>
             <DialogDescription className="text-sm text-slate-500">
               {isRtl 
-                ? `Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ØŸ Ø³ÙŠØªÙ… Ø­Ø°Ù Ø§Ù„ÙØ§ØªÙˆØ±Ø© ÙˆÙ…Ù„Ù Ø§Ù„Ù…Ø±ÙŠØ¶ ÙƒØ§Ù…Ù„Ø§Ù‹ (${deleteInvoiceId}) Ø¨Ø´ÙƒÙ„ Ù†Ù‡Ø§Ø¦ÙŠ Ù…Ù† Ø¬Ù…ÙŠØ¹ Ø§Ù„ØµÙØ­Ø§Øª. Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹ Ø¹Ù† Ù‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡.` 
+                ? `هل أنت متأكد؟ سيتم حذف الفاتورة وملف المريض كاملاً (${deleteInvoiceId}) بشكل نهائي من جميع الصفحات. لا يمكن التراجع عن هذا الإجراء.` 
                 : `Are you sure? This will permanently delete the invoice and the entire patient record (${deleteInvoiceId}) from all pages. This action cannot be undone.`}
             </DialogDescription>
           </div>
           <div className={`mt-6 flex gap-3 w-full ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
             <Button type="button" variant="outline" onClick={() => setDeleteInvoiceId(null)} className="flex-1 rounded-xl font-bold">
-              {isRtl ? "Ø¥Ù„ØºØ§Ø¡" : "Cancel"}
+              {isRtl ? "إلغاء" : "Cancel"}
             </Button>
             <Button type="button" onClick={executeDeleteInvoice} className="flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold">
-              {isRtl ? "Ù†Ø¹Ù…ØŒ Ø§Ø­Ø°Ù Ø§Ù„ÙØ§ØªÙˆØ±Ø©" : "Yes, Delete"}
+              {isRtl ? "نعم، احذف الفاتورة" : "Yes, Delete"}
             </Button>
           </div>
         </DialogContent>

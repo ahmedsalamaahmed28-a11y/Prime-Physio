@@ -28,18 +28,6 @@ export default async function RootPage() {
     redirect("/signup?google=1");
   }
 
-  // Check subscription
-  let hasSubscription = false;
-  try {
-    const { data: sub } = await admin
-      .from("subscriptions")
-      .select("id")
-      .eq("user_email", email)
-      .eq("status", "active")
-      .maybeSingle();
-    hasSubscription = !!sub;
-  } catch {}
-
   // Check staff/clinic
   try {
     const { data: staff } = await admin
@@ -49,13 +37,9 @@ export default async function RootPage() {
       .maybeSingle();
 
     if (staff?.clinic_id) {
-      if (hasSubscription) {
-        redirect("/home");
-      } else {
-        redirect("/subscribe");
-      }
+      redirect("/home");
     }
   } catch {}
 
-  redirect("/setup/center");
+  redirect("/home");
 }

@@ -36,7 +36,7 @@ export default function DoctorsPage() {
     specialty: "",
     email: "",
     phone: "",
-    status: "Ù…ØªØ§Ø­",
+    status: "متاح",
   });
 
   const loadDoctors = async () => {
@@ -54,7 +54,7 @@ export default function DoctorsPage() {
 
     const today = new Date().toISOString().slice(0, 10);
     const isDoctor = (role: string) =>
-      ["Ù…Ø¯ÙŠØ± Ø§Ù„Ø¹ÙŠØ§Ø¯Ù‡", "Ø§Ø³ØªØ´Ø§Ø±ÙŠ Ø¹Ù„Ø§Ø¬ Ø·Ø¨ÙŠØ¹ÙŠ", "Ø£Ø®ØµØ§Ø¦ÙŠ Ø¹Ù„Ø§Ø¬ Ø·Ø¨ÙŠØ¹ÙŠ", "Ù…Ù…Ø§Ø±Ø³ Ø¹Ù„Ø§Ø¬ Ø·Ø¨ÙŠØ¹ÙŠ"].includes(role);
+      ["مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(role);
     const doctorRows = (staff || []).filter((s: any) =>
       isDoctor(s.role) || String(s.specialty || "").length > 0
     );
@@ -67,7 +67,7 @@ export default function DoctorsPage() {
       rating: doc.rating || 5,
       activePatients: (patients || []).filter((p: any) => p.assignedDoctor === doc.name && p.status !== "inactive").length,
       todaySessions: (appointments || []).filter((a: any) => a.therapist === doc.name && a.date === today).length,
-      status: doc.status || "Ù…ØªØ§Ø­",
+      status: doc.status || "متاح",
     })));
   };
 
@@ -98,7 +98,7 @@ export default function DoctorsPage() {
   const handleAddDoctor = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.specialty || !formData.email) {
-      alert(isRtl ? "ÙŠØ±Ø¬Ù‰ Ù…Ù„Ø¡ Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø­Ù‚ÙˆÙ„ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨Ø©" : "Please fill in all required fields");
+      alert(isRtl ? "يرجى ملء جميع الحقول المطلوبة" : "Please fill in all required fields");
       return;
     }
 
@@ -119,13 +119,13 @@ export default function DoctorsPage() {
       specialty: newDoctor.specialty,
       email: newDoctor.email,
       phone: newDoctor.phone,
-      role: "Ø£Ø®ØµØ§Ø¦ÙŠ Ø¹Ù„Ø§Ø¬ Ø·Ø¨ÙŠØ¹ÙŠ",
+      role: "أخصائي علاج طبيعي",
       status: newDoctor.status,
       rating: newDoctor.rating,
     });
     if (error) {
       console.error("Failed to add doctor to Supabase", error);
-      alert(isRtl ? "ÙØ´Ù„Øª Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù…Ø¹Ø§Ù„Ø¬" : "Failed to add therapist");
+      alert(isRtl ? "فشلت إضافة المعالج" : "Failed to add therapist");
       return;
     }
     await loadDoctors();
@@ -135,28 +135,28 @@ export default function DoctorsPage() {
       specialty: "",
       email: "",
       phone: "",
-      status: "Ù…ØªØ§Ø­",
+      status: "متاح",
     });
   };
 
   const getDoctorName = (doc: any) => {
     return isRtl ? doc.name : (
-      doc.name === "/. Ù…Ù†Ù‰ Ø­Ø³ÙŠÙ†" ? "Dr. Mona Hussein" : 
-      doc.name === "/. Ø®Ø§Ù„Ø¯ Ø¹Ù…Ø±" ? "Dr. Khaled Omar" : 
-      doc.name === "/. Ø³Ø§Ø±Ø© Ø£Ø­Ù…Ø¯" ? "Dr. Sara Ahmed" : doc.name
+      doc.name === "/. منى حسين" ? "Dr. Mona Hussein" : 
+      doc.name === "/. خالد عمر" ? "Dr. Khaled Omar" : 
+      doc.name === "/. سارة أحمد" ? "Dr. Sara Ahmed" : doc.name
     );
   };
 
   const getDoctorSpecialty = (doc: any) => {
     return isRtl ? doc.specialty : (
-      doc.specialty === "Ø£Ø®ØµØ§Ø¦ÙŠ Ø£ÙˆÙ„ Ø¹Ù„Ø§Ø¬ Ø·Ø¨ÙŠØ¹ÙŠ - Ø¹Ù…ÙˆØ¯ ÙÙ‚Ø±ÙŠ" ? "Senior Physical Therapist - Spine" : 
-      doc.specialty === "Ø£Ø®ØµØ§Ø¦ÙŠ Ø¹Ù„Ø§Ø¬ Ø·Ø¨ÙŠØ¹ÙŠ - Ù…ÙØ§ØµÙ„ ÙˆØ±ÙƒØ¨Ø©" ? "Physical Therapist - Joints & Knee" : 
-      doc.specialty === "Ø£Ø®ØµØ§Ø¦ÙŠ Ø¹Ù„Ø§Ø¬ Ø±ÙŠØ§Ø¶ÙŠ" ? "Sports Rehab Specialist" : doc.specialty
+      doc.specialty === "أخصائي أول علاج طبيعي - عمود فقري" ? "Senior Physical Therapist - Spine" : 
+      doc.specialty === "أخصائي علاج طبيعي - مفاصل وركبة" ? "Physical Therapist - Joints & Knee" : 
+      doc.specialty === "أخصائي علاج رياضي" ? "Sports Rehab Specialist" : doc.specialty
     );
   };
 
   const getDoctorStatus = (doc: any) => {
-    return isRtl ? doc.status : (doc.status === "Ù…ØªØ§Ø­" ? "Available" : "On Leave");
+    return isRtl ? doc.status : (doc.status === "متاح" ? "Available" : "On Leave");
   };
 
   return (
@@ -181,17 +181,17 @@ export default function DoctorsPage() {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="sm:max-w-md" showCloseButton={true}>
           <DialogHeader>
-            <DialogTitle className={`text-lg font-bold text-slate-900 ${isRtl ? "text-right" : "text-left"}`}>{isRtl ? "Ø¥Ø¶Ø§ÙØ© Ù…Ø¹Ø§Ù„Ø¬ Ø¬Ø¯ÙŠØ¯" : "Add New Therapist"}</DialogTitle>
+            <DialogTitle className={`text-lg font-bold text-slate-900 ${isRtl ? "text-right" : "text-left"}`}>{isRtl ? "إضافة معالج جديد" : "Add New Therapist"}</DialogTitle>
             <DialogDescription className={`text-xs text-slate-500 ${isRtl ? "text-right" : "text-left"}`}>
-              {isRtl ? "Ø£Ø¯Ø®Ù„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø·Ø¨ÙŠØ¨/Ø§Ù„Ù…Ø¹Ø§Ù„Ø¬ Ù„Ø¥Ø¶Ø§ÙØªÙ‡ Ø¥Ù„Ù‰ Ø§Ù„Ù…ÙˆØ¸ÙÙŠÙ†." : "Enter therapist/doctor details to add to staff."}
+              {isRtl ? "أدخل تفاصيل الطبيب/المعالج لإضافته إلى الموظفين." : "Enter therapist/doctor details to add to staff."}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddDoctor} className={`space-y-4 py-2 ${isRtl ? "text-right" : "text-left"}`} dir={isRtl ? "rtl" : "ltr"}>
             <div className="space-y-1">
-              <Label htmlFor="docName" className="text-xs font-semibold text-slate-700">{isRtl ? "Ø§Ø³Ù… Ø§Ù„Ø·Ø¨ÙŠØ¨/Ø§Ù„Ù…Ø¹Ø§Ù„Ø¬ *" : "Doctor/Therapist Name *"}</Label>
+              <Label htmlFor="docName" className="text-xs font-semibold text-slate-700">{isRtl ? "اسم الطبيب/المعالج *" : "Doctor/Therapist Name *"}</Label>
               <Input
                 id="docName"
-                placeholder={isRtl ? "Ø¯. Ù…Ø­Ù…Ø¯ Ø§Ù„Ø­Ø±Ø¨ÙŠ" : "Dr. Mohamed Al-Harbi"}
+                placeholder={isRtl ? "د. محمد الحربي" : "Dr. Mohamed Al-Harbi"}
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
                 required
@@ -200,10 +200,10 @@ export default function DoctorsPage() {
             </div>
             
             <div className="space-y-1">
-              <Label htmlFor="specialty" className="text-xs font-semibold text-slate-700">{isRtl ? "Ø§Ù„ØªØ®ØµØµ *" : "Specialty *"}</Label>
+              <Label htmlFor="specialty" className="text-xs font-semibold text-slate-700">{isRtl ? "التخصص *" : "Specialty *"}</Label>
               <Input
                 id="specialty"
-                placeholder={isRtl ? "Ø£Ø®ØµØ§Ø¦ÙŠ Ø¹Ù„Ø§Ø¬ Ø·Ø¨ÙŠØ¹ÙŠ - Ø¹Ù…ÙˆØ¯ ÙÙ‚Ø±ÙŠ" : "Physical Therapist - Spine"}
+                placeholder={isRtl ? "أخصائي علاج طبيعي - عمود فقري" : "Physical Therapist - Spine"}
                 value={formData.specialty}
                 onChange={(e) => setFormData({...formData, specialty: e.target.value})}
                 required
@@ -212,7 +212,7 @@ export default function DoctorsPage() {
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="docEmail" className="text-xs font-semibold text-slate-700">{isRtl ? "Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ø§Ù„Ù…Ù‡Ù†ÙŠ *" : "Professional Email *"}</Label>
+              <Label htmlFor="docEmail" className="text-xs font-semibold text-slate-700">{isRtl ? "البريد الإلكتروني المهني *" : "Professional Email *"}</Label>
               <Input
                 id="docEmail"
                 type="email"
@@ -226,7 +226,7 @@ export default function DoctorsPage() {
 
             <div className={`grid grid-cols-2 gap-3 ${isRtl ? "" : "flex-row-reverse"}`}>
               <div className="space-y-1">
-                <Label htmlFor="docPhone" className="text-xs font-semibold text-slate-700">{isRtl ? "Ø±Ù‚Ù… Ø§Ù„Ø¬ÙˆØ§Ù„ Ø§Ù„Ù…Ø­Ù…ÙˆÙ„" : "Mobile Phone"}</Label>
+                <Label htmlFor="docPhone" className="text-xs font-semibold text-slate-700">{isRtl ? "رقم الجوال المحمول" : "Mobile Phone"}</Label>
                 <Input
                   id="docPhone"
                   placeholder="0500000000"
@@ -237,22 +237,22 @@ export default function DoctorsPage() {
               </div>
 
               <div className="space-y-1">
-                <Label htmlFor="docStatus" className="text-xs font-semibold text-slate-700">{isRtl ? "Ø§Ù„Ø­Ø§Ù„Ø©" : "Status"}</Label>
+                <Label htmlFor="docStatus" className="text-xs font-semibold text-slate-700">{isRtl ? "الحالة" : "Status"}</Label>
                 <select
                   id="docStatus"
                   value={formData.status}
                   onChange={(e) => setFormData({...formData, status: e.target.value})}
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-blue-600"
                 >
-                  <option value="Ù…ØªØ§Ø­">{isRtl ? "Ù…ØªØ§Ø­" : "Available"}</option>
-                  <option value="ÙÙŠ Ø¥Ø¬Ø§Ø²Ø©">{isRtl ? "ÙÙŠ Ø¥Ø¬Ø§Ø²Ø©" : "On Leave"}</option>
+                  <option value="متاح">{isRtl ? "متاح" : "Available"}</option>
+                  <option value="في إجازة">{isRtl ? "في إجازة" : "On Leave"}</option>
                 </select>
               </div>
             </div>
 
             <DialogFooter className={`pt-3 border-t mt-4 flex gap-2 ${isRtl ? "justify-end" : "justify-start flex-row-reverse"}`}>
-              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>{isRtl ? "Ø¥Ù„ØºØ§Ø¡" : "Cancel"}</Button>
-              <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]">{isRtl ? "Ø¥Ø¶Ø§ÙØ©" : "Add"}</Button>
+              <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>{isRtl ? "إلغاء" : "Cancel"}</Button>
+              <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]">{isRtl ? "إضافة" : "Add"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -266,20 +266,20 @@ export default function DoctorsPage() {
               <Trash2 className="w-8 h-8" />
             </div>
             <DialogTitle className="text-xl font-bold text-slate-800">
-              {isRtl ? "ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø­Ø°Ù" : "Confirm Deletion"}
+              {isRtl ? "تأكيد الحذف" : "Confirm Deletion"}
             </DialogTitle>
             <DialogDescription className="text-sm text-slate-500">
               {isRtl
-                ? "Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø­Ø°Ù Ù‡Ø°Ø§ Ø§Ù„Ø·Ø¨ÙŠØ¨ Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹ØŸ Ø³ÙŠØªÙ… Ø¥Ø²Ø§Ù„Ø© Ø¬Ù…ÙŠØ¹ Ø¨ÙŠØ§Ù†Ø§ØªÙ‡ ÙˆÙ„Ù† ÙŠÙ…ÙƒÙ†Ù‡ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù…Ø¬Ø¯Ø¯Ø§Ù‹."
+                ? "هل أنت متأكد من حذف هذا الطبيب نهائياً؟ سيتم إزالة جميع بياناته ولن يمكنه الدخول مجدداً."
                 : "Are you sure you want to permanently delete this doctor? This action cannot be undone."}
             </DialogDescription>
           </div>
           <div className={`mt-6 flex gap-3 w-full ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
             <Button type="button" variant="outline" onClick={() => setDeleteDoctorEmail(null)} className="flex-1 rounded-xl font-bold">
-              {isRtl ? "Ø¥Ù„ØºØ§Ø¡" : "Cancel"}
+              {isRtl ? "إلغاء" : "Cancel"}
             </Button>
             <Button type="button" onClick={executeDeleteDoctor} className="flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold">
-              {isRtl ? "Ù†Ø¹Ù…ØŒ Ø§Ø­Ø°Ù" : "Yes, Delete"}
+              {isRtl ? "نعم، احذف" : "Yes, Delete"}
             </Button>
           </div>
         </DialogContent>
@@ -318,7 +318,7 @@ export default function DoctorsPage() {
 
               <div className={`pt-2 flex justify-between items-center border-t ${isRtl ? "" : "flex-row-reverse"}`}>
                 <Badge className={`${
-                  doc.status === "Ù…ØªØ§Ø­" 
+                  doc.status === "متاح" 
                     ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
                     : "bg-amber-50 text-amber-700 border-amber-200"
                 } font-normal border`}>

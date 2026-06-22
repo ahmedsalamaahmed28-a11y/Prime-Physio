@@ -6,14 +6,10 @@ import { useLanguage } from "@/lib/LanguageContext";
 
 const STEPS = [
   { key: "signup", labelAr: "إنشاء الحساب", labelEn: "Create Account" },
-  { key: "plan", labelAr: "الباقة", labelEn: "Plan" },
-  { key: "center", labelAr: "إنشاء مركز", labelEn: "Create Center" },
 ];
 
 const STEP_MAP: Record<string, number> = {
   "/signup": 0,
-  "/subscribe": 1,
-  "/setup/center": 2,
 };
 
 export default function SetupSteps() {

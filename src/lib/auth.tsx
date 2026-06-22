@@ -252,8 +252,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isAuthLoading) {
-      const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === "/setup/center";
-      const isSetupPage = pathname === "/subscribe" || pathname === "/centers/new" || pathname === "/setup/center";
+      const isAuthPage = pathname === "/login" || pathname === "/signup";
+      const isSetupPage = pathname === "/centers/new";
       if (!pathname) return;
       if (!user && status !== "authenticated" && !isAuthPage) {
         window.location.href = "/login";
@@ -262,9 +262,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         window.location.href = "/home";
       } else if ((user || status === "authenticated") && !isAuthPage && !isSetupPage) {
         if (user?.clinicId === undefined && user?.email) {
-          const setupPaths = ["/login", "/signup", "/subscribe", "/centers/new", "/setup/center"];
+          const setupPaths = ["/login", "/signup", "/centers/new"];
           if (!setupPaths.includes(pathname)) {
-            window.location.href = "/setup/center";
+            window.location.href = "/home";
           }
         }
       }

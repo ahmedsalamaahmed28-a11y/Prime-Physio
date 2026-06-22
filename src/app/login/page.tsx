@@ -212,15 +212,9 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const isOnboarding = searchParams?.get("onboard") === "1";
-  const isSetupCenter = searchParams?.get("setup") === "center";
   const isDeleted = searchParams?.get("deleted") === "true";
   const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
   const [activeTab, setActiveTab] = useState("centers");
-  const [centerShortName, setCenterShortName] = useState("");
-  const [centerFullName, setCenterFullName] = useState("");
-  const [centerSlug, setCenterSlug] = useState("");
-  const [centerLoading, setCenterLoading] = useState(false);
-  const [centerError, setCenterError] = useState("");
   const [billingPeriod, setBillingPeriod] = useState("monthly");
 
   const [showPassword, setShowPassword] = useState(false);
@@ -343,39 +337,6 @@ function LoginContent() {
     }
   };
 
-  useEffect(() => {
-    if (isSetupCenter && (user || status === "authenticated") && user?.clinicId) {
-      window.location.href = "/home";
-    }
-  }, [isSetupCenter, user, status]);
-
-  const generateSlug = (name: string) =>
-    name.toLowerCase().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").slice(0, 30);
-
-  const handleCreateCenter = async () => {
-    if (!centerShortName.trim() || !centerSlug.trim()) return;
-    setCenterLoading(true);
-    setCenterError("");
-    try {
-      const res = await fetch("/api/setup/center", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          short_name: centerShortName.trim(),
-          full_name: centerFullName.trim() || centerShortName.trim(),
-          slug: centerSlug.trim(),
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create center");
-      window.location.href = "/subscribe";
-    } catch (err: any) {
-      setCenterError(err?.message || "An error occurred");
-    } finally {
-      setCenterLoading(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -416,17 +377,7 @@ function LoginContent() {
         }
       } catch {}
 
-      // Check if user has a clinic
-      try {
-        const clinicRes = await fetch(`/api/has-clinic?email=${encodeURIComponent(email.trim().toLowerCase())}`);
-        const clinicData = await clinicRes.json();
-        if (!clinicData.hasClinic) {
-          window.location.href = "/subscribe";
-          return;
-        }
-      } catch {}
-
-      window.location.href = "/centers";
+      window.location.href = "/home";
     } catch (err) {
       setError(isRtl ? "حدث خطأ في الاتصال" : "Connection error");
       setIsLoading(false);
@@ -460,7 +411,7 @@ function LoginContent() {
               <img src="/logo.png" alt="Prime Physio" fetchPriority="high" className="w-8 h-8 object-contain" />
               <span className="text-sm font-bold text-[#4F46BA]">Prime Physio</span>
             </div>
-            {!isOnboarding && !isSetupCenter && (
+            {!isOnboarding && (
               <div className="flex items-center gap-2">
                 {TABS.map((tab) => (
                   <button
@@ -492,101 +443,10 @@ function LoginContent() {
         <main className="flex-1 px-4 py-8 sm:py-12">
           <OnboardingFlow step={onboardStep} setStep={setOnboardStep} clinicId={user?.clinicId} isRtl={isRtl} />
         </main>
-      ) : isSetupCenter && (user || status === "authenticated") ? (
-        <main className="flex-1 px-4 py-8 sm:py-12">
-          <div className="max-w-[420px] mx-auto" dir={isRtl ? "rtl" : "ltr"}>
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <img src="/logo.png" alt="Prime Physio" className="w-8 h-8 object-contain" />
-                <span className="text-sm font-bold text-[#4F46BA]">Prime Physio</span>
-              </div>
-              <h1 className="text-xl font-bold text-slate-800">
-                {isRtl ? "إنشاء أول مركز" : "Create Your First Center"}
-              </h1>
-              <p className="text-xs text-slate-400 mt-1">
-                {isRtl ? "أدخل بيانات المركز الرئيسي للعيادة" : "Enter your main clinic center details"}
-              </p>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 sm:p-8">
-              {centerError && (
-                <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg p-3 mb-4 text-center">
-                  {centerError}
-                </div>
-              )}
-
-              <form onSubmit={(e) => { e.preventDefault(); handleCreateCenter(); }} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[11px] font-medium text-slate-500">
-                    {isRtl ? "اسم المركز" : "Center Name"}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={isRtl ? "المركز الرئيسي" : "Main Center"}
-                    value={centerShortName}
-                    onChange={(e) => {
-                      setCenterShortName(e.target.value);
-                      if (!centerSlug || centerSlug === generateSlug(centerShortName)) {
-                        setCenterSlug(generateSlug(e.target.value));
-                      }
-                    }}
-                    className="w-full text-slate-700 flex h-9 min-w-0 rounded-lg border bg-white px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-[#4F46BA] focus-visible:ring-[3px] focus-visible:ring-[#4F46BA]/20"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[11px] font-medium text-slate-500">
-                    {isRtl ? "الاسم الكامل للمركز" : "Full Center Name"}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder={isRtl ? "مركز العلاج الطبيعي الرئيسي" : "Main Physiotherapy Center"}
-                    value={centerFullName}
-                    onChange={(e) => setCenterFullName(e.target.value)}
-                    className="w-full text-slate-700 flex h-9 min-w-0 rounded-lg border bg-white px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-[#4F46BA] focus-visible:ring-[3px] focus-visible:ring-[#4F46BA]/20"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[11px] font-medium text-slate-500">
-                    {isRtl ? "الرابط المختصر" : "Slug"}
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="main-center"
-                    value={centerSlug}
-                    onChange={(e) => setCenterSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-                    className="w-full text-slate-700 flex h-9 min-w-0 rounded-lg border bg-white px-3 py-1 text-sm shadow-xs outline-none focus-visible:border-[#4F46BA] focus-visible:ring-[3px] focus-visible:ring-[#4F46BA]/20"
-                    required
-                  />
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    {isRtl ? "أحرف إنجليزية وأرقام فقط" : "English letters and numbers only"}
-                  </p>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={centerLoading || !centerShortName.trim() || !centerSlug.trim()}
-                  className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 rounded-lg transition-all text-sm disabled:opacity-50 flex items-center justify-center gap-1"
-                >
-                  {centerLoading ? (
-                    <Loader size={16} color="white" />
-                  ) : (
-                    <span className="flex items-center justify-center gap-1">
-                      {isRtl ? "متابعة" : "Continue"}
-                      <ArrowRight className={`w-3.5 h-3.5 ${isRtl ? "rotate-180" : ""}`} />
-                    </span>
-                  )}
-                </button>
-              </form>
-            </div>
-          </div>
-        </main>
       ) : (
         <></>
       )}
-      {!isOnboarding && !isSetupCenter && (
+      {!isOnboarding && (
       <main className="flex-1 px-4 py-8 sm:py-12">
         <div className={activeTab === "centers" ? "max-w-6xl mx-auto space-y-8" : "hidden"}>
             <div className="text-center space-y-4">
@@ -778,11 +638,11 @@ function LoginContent() {
                       disabled={isLoading}
                       className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
                     >
-                  {centerLoading ? (
+                  {isLoading ? (
                     <Loader size={16} color="white" />
                   ) : (
                     <span className="flex items-center justify-center gap-1">
-                      {isRtl ? "متابعة" : "Continue"}
+                      {isRtl ? "تسجيل الدخول" : "Sign In"}
                       <ArrowRight className={`w-3.5 h-3.5 ${isRtl ? "rotate-180" : ""}`} />
                     </span>
                   )}
