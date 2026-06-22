@@ -52,13 +52,17 @@ interface Props {
   setStep: (s: "plan" | "clinic" | "done") => void
   clinicId?: string | null
   isRtl: boolean
+  sessionEmail?: string
+  sessionName?: string
 }
 
-export default function OnboardingFlow({ step, setStep, clinicId, isRtl }: Props) {
+export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, isRtl, sessionEmail = "", sessionName = "" }: Props) {
   const { user } = useAuth()
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [isActivating, setIsActivating] = useState(false)
   const [error, setError] = useState("")
+  const [resolvedClinicId, setResolvedClinicId] = useState<string | null | undefined>(propClinicId)
+  const clinicId = resolvedClinicId || propClinicId
 
   // Clinic form
   const [isUploading, setIsUploading] = useState(false)
@@ -109,12 +113,13 @@ export default function OnboardingFlow({ step, setStep, clinicId, isRtl }: Props
           body: JSON.stringify({
             clinicId,
             planId,
-            email: user?.email || "",
-            name: user?.name || "Clinic Admin",
+            email: user?.email || sessionEmail || "",
+            name: user?.name || sessionName || "Clinic Admin",
           }),
         })
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || "فشل تفعيل الخطة")
+        if (data.clinicId) setResolvedClinicId(data.clinicId)
         setStep("clinic")
       } catch (e: any) {
         setError(e?.message || "حدث خطأ")
@@ -140,7 +145,7 @@ export default function OnboardingFlow({ step, setStep, clinicId, isRtl }: Props
           billingData: {
             first_name: billingFirstName || "Clinic",
             last_name: billingLastName || "Admin",
-            email: billingEmail || user?.email || "",
+            email: billingEmail || user?.email || sessionEmail || "",
             phone_number: billingPhone || "01000000000",
             apartment: "N/A", floor: "N/A", street: "N/A",
             building: "N/A", shipping_method: "PKG",
@@ -528,7 +533,7 @@ export default function OnboardingFlow({ step, setStep, clinicId, isRtl }: Props
                 <div className="space-y-1">
                   <label className="text-xs font-bold text-slate-600">{isRtl ? "البريد الإلكتروني" : "Email"}</label>
                   <input required type="email" value={billingEmail} onChange={(e) => setBillingEmail(e.target.value)}
-                    defaultValue={user?.email || ""}
+                    defaultValue={user?.email || sessionEmail || ""}
                     className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-[#4F46BA] transition-colors" />
                 </div>
                 <div className="space-y-1">
