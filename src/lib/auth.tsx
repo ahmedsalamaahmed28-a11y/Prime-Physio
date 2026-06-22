@@ -143,8 +143,12 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    const isAuthPage = window.location.pathname === "/login" || window.location.pathname === "/signup";
-    if (isAuthPage) {
+    const path = window.location.pathname;
+    const isAuthPage = path === "/login" || path === "/signup";
+    const isSetupPage = path === "/setup";
+    const knownPages = new Set(["home","admin","setup","login","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions"]);
+    const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(path) && !knownPages.has(path.replace("/", ""));
+    if (isAuthPage || isSetupPage || isSlugPage) {
       setIsLoading(false);
       return;
     }
@@ -252,20 +256,24 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isAuthLoading) {
-      const isAuthPage = pathname === "/login" || pathname === "/signup";
-      const isSetupPage = pathname === "/centers/new";
       if (!pathname) return;
-      if (!user && status !== "authenticated" && !isAuthPage) {
-        window.location.href = "/login";
-      } else if ((user || status === "authenticated") && isAuthPage) {
-        if (pathname === "/signup") return;
-        window.location.href = "/home";
-      } else if ((user || status === "authenticated") && !isAuthPage && !isSetupPage) {
-        if (user?.clinicId === undefined && user?.email) {
-          const setupPaths = ["/login", "/signup", "/centers/new"];
-          if (!setupPaths.includes(pathname)) {
-            window.location.href = "/home";
-          }
+      // Allow unauthenticated access to /[slug] branded login pages
+      const knownPages = new Set(["home","admin","setup","login","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions"]);
+      const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname) && !knownPages.has(pathname.replace("/", ""));
+      if (isSlugPage) return;
+      if (!user && status !== "authenticated") {
+        if (!pathname.startsWith("/login") && pathname !== "/signup") {
+          window.location.href = "/login";
+        }
+        return;
+      }
+      if (pathname === "/signup") return;
+      if (pathname.startsWith("/login")) return;
+      if (pathname.startsWith("/setup") || pathname === "/centers/new") return;
+      if (user?.clinicId === undefined && user?.email) {
+        const setupPaths = ["/login", "/signup", "/centers/new", "/setup"];
+        if (!setupPaths.includes(pathname)) {
+          window.location.href = "/home";
         }
       }
     }
