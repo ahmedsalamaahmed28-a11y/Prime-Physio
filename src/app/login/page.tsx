@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/auth";
 import { Loader } from "@/components/Loader";
 import OnboardingFlow from "@/components/OnboardingFlow";
 
-import { Users, UserCheck, Calendar, Briefcase, Database, Server, BookOpen, Clock, Crown } from 'lucide-react';
+import { Users, UserCheck, Calendar, Briefcase, Database, Server, BookOpen, Clock, Crown, Building } from 'lucide-react';
 import { cn } from "@/lib/utils"
 import { GradientCheckbox } from "@/components/ui/checkbox"
 import { motion } from "motion/react";
@@ -237,6 +237,43 @@ function LoginContent() {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotShowCode, setForgotShowCode] = useState("");
   const forgotOtpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+
+  // Auth state-aware tabs
+  const [authTab, setAuthTab] = useState<"account" | "centers">("account");
+  const [userData, setUserData] = useState<any>(null);
+  const [userDataLoading, setUserDataLoading] = useState(true);
+  const [allBranches, setAllBranches] = useState<any[]>([]);
+  const [allBranchesLoading, setAllBranchesLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      fetch("/api/auth/me")
+        .then((r) => r.json())
+        .then((data) => {
+          setUserData(data);
+          setUserDataLoading(false);
+          if (data && (data.hasClinic === false || !data.subscription)) {
+            window.location.href = "/setup";
+          }
+        })
+        .catch(() => setUserDataLoading(false));
+    } else {
+      setUserData(null);
+      setUserDataLoading(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    setAllBranchesLoading(true);
+    fetch("/api/branches/all")
+      .then((r) => r.json())
+      .then((data) => {
+        setAllBranches(data.branches || []);
+        setAllBranchesLoading(false);
+      })
+      .catch(() => setAllBranchesLoading(false));
+  }, []);
 
   const handleForgotSendOtp = async () => {
     setForgotError("");
@@ -473,23 +510,65 @@ function LoginContent() {
               </div>
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={isRtl ? "ابحث عن مركز..." : "Search for a center..."}
                 className="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-[#4F46BA] focus:ring-[3px] focus:ring-[#4F46BA]/20 transition-all"
               />
+              {allBranchesLoading ? (
+                <div className="flex justify-center py-4"><Loader size={20} color="#4F46BA" /></div>
+              ) : (
+                <div className="mt-4 space-y-2 max-h-[300px] overflow-y-auto">
+                  {allBranches
+                    .filter((b: any) =>
+                      b.short_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      b.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      b.slug?.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map((branch: any) => (
+                      <a
+                        key={branch.id}
+                        href={`/${branch.slug}`}
+                        className="flex items-center gap-3 p-3 rounded-xl border border-slate-50 hover:border-slate-200 hover:shadow-sm transition-all"
+                      >
+                        {branch.logo_url ? (
+                          <img src={branch.logo_url} alt="" className="w-8 h-8 object-contain rounded-lg" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-[#4F46BA]/10 flex items-center justify-center">
+                            <Building className="w-4 h-4 text-[#4F46BA]" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="text-xs font-bold text-slate-700">{branch.short_name}</p>
+                          <p className="text-[10px] text-slate-400">{branch.slug}</p>
+                        </div>
+                      </a>
+                    ))}
+                  {allBranches.filter((b: any) =>
+                    b.short_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    b.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    b.slug?.toLowerCase().includes(searchQuery.toLowerCase())
+                  ).length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-4">
+                      {isRtl ? "لا توجد نتائج" : "No results found"}
+                    </p>
+                  )}
+                </div>
+              )}
               <p className="mt-4 text-xs text-slate-400 text-center">
                 {isRtl ? "Prime Physio — نظام إدارة عيادات العلاج الطبيعي" : "Prime Physio — Physical Therapy Clinics Management"}
               </p>
               <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t border-slate-50 text-center">
                 <div>
-                  <div className="text-lg font-bold text-[#4F46BA]">144+</div>
+                  <div className="text-lg font-bold text-[#4F46BA]">{allBranches.length}+</div>
                   <div className="text-[10px] text-slate-400">{isRtl ? "مركز" : "Centers"}</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-[#4F46BA]">2K+</div>
+                  <div className="text-lg font-bold text-[#4F46BA]">{allBranches.length * 10}+</div>
                   <div className="text-[10px] text-slate-400">{isRtl ? "مستخدم" : "Users"}</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-[#4F46BA]">10K+</div>
+                  <div className="text-lg font-bold text-[#4F46BA]">—</div>
                   <div className="text-[10px] text-slate-400">{isRtl ? "جلسة" : "Sessions"}</div>
                 </div>
               </div>
@@ -497,6 +576,7 @@ function LoginContent() {
         </div>
 
         <div className={activeTab === "manage" ? "max-w-6xl mx-auto" : "hidden"}>
+          {!user ? (
             <div className="flex flex-col lg:flex-row items-start gap-10 lg:gap-16 justify-center">
               <div className="flex-1 max-w-md space-y-4 pt-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46BA]/10 rounded-full">
@@ -679,6 +759,134 @@ function LoginContent() {
                 </div>
               </div>
             </div>
+          ) : (
+            <div className="max-w-2xl mx-auto">
+              <div className="flex items-center gap-2 mb-6">
+                <button
+                  onClick={() => setAuthTab("account")}
+                  className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
+                    authTab === "account"
+                      ? "bg-[#4F46BA] text-white shadow-md"
+                      : "text-slate-500 hover:text-[#4F46BA]"
+                  }`}
+                >
+                  {isRtl ? "الحساب" : "Account"}
+                </button>
+                <button
+                  onClick={() => setAuthTab("centers")}
+                  className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all ${
+                    authTab === "centers"
+                      ? "bg-[#4F46BA] text-white shadow-md"
+                      : "text-slate-500 hover:text-[#4F46BA]"
+                  }`}
+                >
+                  {isRtl ? "المراكز" : "Centers"}
+                </button>
+              </div>
+
+              {authTab === "account" && (
+                <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 sm:p-8 space-y-6">
+                  {userDataLoading ? (
+                    <div className="flex justify-center py-8"><Loader size={24} color="#4F46BA" /></div>
+                  ) : (
+                    <>
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800 mb-3">
+                          {isRtl ? "بيانات الحساب" : "Account Details"}
+                        </h3>
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between py-2 border-b border-slate-50">
+                            <span className="text-xs text-slate-400">{isRtl ? "البريد الإلكتروني" : "Email"}</span>
+                            <span className="text-xs font-medium text-slate-700">{userData?.user?.email || user?.email}</span>
+                          </div>
+                          <div className="flex items-center justify-between py-2 border-b border-slate-50">
+                            <span className="text-xs text-slate-400">{isRtl ? "الاسم" : "Name"}</span>
+                            <span className="text-xs font-medium text-slate-700">{userData?.user?.name || user?.name}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {userData?.subscription && (
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-800 mb-3">
+                            {isRtl ? "بيانات الباقة" : "Subscription"}
+                          </h3>
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between py-2 border-b border-slate-50">
+                              <span className="text-xs text-slate-400">{isRtl ? "الباقة" : "Plan"}</span>
+                              <span className="text-xs font-medium text-slate-700">
+                                {userData.subscription.plan_name === "basic" ? (isRtl ? "الأساسية" : "Basic")
+                                  : userData.subscription.plan_name === "silver" ? (isRtl ? "الفضية" : "Silver")
+                                  : (isRtl ? "الذهبية" : "Gold")}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-between py-2 border-b border-slate-50">
+                              <span className="text-xs text-slate-400">{isRtl ? "الحالة" : "Status"}</span>
+                              <span className={`text-xs font-medium ${userData.subscription.status === "active" ? "text-emerald-600" : "text-red-600"}`}>
+                                {userData.subscription.status === "active"
+                                  ? (isRtl ? "نشط" : "Active")
+                                  : userData.subscription.status}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {!userData?.subscription && (
+                        <div className="text-center py-4">
+                          <p className="text-xs text-slate-400">
+                            {isRtl ? "ليس لديك اشتراك نشط. اختر باقة للبدء." : "No active subscription. Choose a plan to start."}
+                          </p>
+                          <Link href="/setup" className="mt-3 inline-block px-5 py-2 bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-medium rounded-xl text-xs">
+                            {isRtl ? "اختيار باقة" : "Choose Plan"}
+                          </Link>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+
+              {authTab === "centers" && (
+                <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 sm:p-8">
+                  <h3 className="text-sm font-bold text-slate-800 mb-3">
+                    {isRtl ? "مراكزي" : "My Centers"}
+                  </h3>
+                  {userDataLoading ? (
+                    <div className="flex justify-center py-8"><Loader size={24} color="#4F46BA" /></div>
+                  ) : userData?.branches?.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {userData.branches.map((branch: any) => (
+                        <a
+                          key={branch.id}
+                          href={`/${branch.slug}`}
+                          className="flex items-center gap-3 p-4 rounded-xl border border-slate-100 hover:border-[#4F46BA]/30 hover:shadow-md transition-all"
+                        >
+                          {branch.logo_url ? (
+                            <img src={branch.logo_url} alt="" className="w-10 h-10 object-contain rounded-lg" />
+                          ) : (
+                            <div className="w-10 h-10 rounded-lg bg-[#4F46BA]/10 flex items-center justify-center">
+                              <Building className="w-5 h-5 text-[#4F46BA]" />
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm font-bold text-slate-700">{branch.short_name}</p>
+                            <p className="text-[10px] text-slate-400">{branch.full_name}</p>
+                            <p className="text-[10px] text-[#4F46BA] mt-0.5">{`primephysio.vercel.app/${branch.slug}`}</p>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 text-center py-4">
+                      {isRtl ? "ليس لديك مراكز بعد. أنشئ مركزك الأول من " : "No centers yet. Create your first center from "}
+                      <Link href="/setup" className="text-[#4F46BA] font-medium">{isRtl ? "الإعداد" : "Setup"}</Link>
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className={activeTab === "plans" ? "max-w-4xl mx-auto text-center space-y-6" : "hidden"}>
