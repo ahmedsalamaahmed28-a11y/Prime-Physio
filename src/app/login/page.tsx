@@ -493,9 +493,15 @@ function LoginContent() {
         </div>
       </nav>
       {isOnboarding ? (
-        <main className="flex-1 px-4 py-8 sm:py-12">
-          <OnboardingFlow step={onboardStep} setStep={setOnboardStep} clinicId={user?.clinicId} isRtl={isRtl} sessionEmail={session?.user?.email || user?.email || ""} sessionName={session?.user?.name || user?.name || ""} />
-        </main>
+        session?.user?.email ? (
+          <main className="flex-1 px-4 py-8 sm:py-12">
+            <OnboardingFlow step={onboardStep} setStep={setOnboardStep} clinicId={user?.clinicId} isRtl={isRtl} sessionEmail={session?.user?.email || ""} sessionName={session?.user?.name || ""} />
+          </main>
+        ) : (
+          <div className="min-h-screen flex items-center justify-center">
+            <Loader size={32} color="#4F46BA" />
+          </div>
+        )
       ) : (
         <></>
       )}
