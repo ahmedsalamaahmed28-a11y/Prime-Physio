@@ -26,12 +26,15 @@ function getEnglishRoleLabel(roleKey: string) {
   return "Receptionist";
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ clinicId: null, role: null });
     }
+
+    const { searchParams } = new URL(req.url);
+    const preferredClinicId = searchParams.get("preferred_clinic_id");
 
     const admin = getAdminClient();
     const { data: staff, error } = await admin
@@ -44,17 +47,32 @@ export async function GET() {
       return NextResponse.json({ clinicId: null, role: null });
     }
 
+    const targetClinicId = preferredClinicId || staff.clinic_id;
+
+    if (preferredClinicId) {
+      const { data: staffCheck } = await admin
+        .from("staff")
+        .select("clinic_id")
+        .eq("email", session.user.email)
+        .eq("clinic_id", preferredClinicId)
+        .maybeSingle();
+
+      if (!staffCheck) {
+        return NextResponse.json({ clinicId: null, role: null, error: "Access denied" }, { status: 403 });
+      }
+    }
+
     const { data: branch } = await admin
       .from("branches")
       .select("short_name, logo_url")
-      .eq("clinic_id", staff.clinic_id)
+      .eq("clinic_id", targetClinicId)
       .order("created_at", { ascending: true })
       .limit(1)
       .maybeSingle();
 
     const roleKey = mapStaffRoleToRoleKey(staff.role);
     return NextResponse.json({
-      clinicId: staff.clinic_id,
+      clinicId: targetClinicId,
       role: staff.role,
       roleKey,
       roleAr: getArabicRoleLabel(roleKey),
