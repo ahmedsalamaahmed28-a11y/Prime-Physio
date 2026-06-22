@@ -11,7 +11,7 @@ export default async function RootPage() {
   }
 
   const admin = getAdminClient();
-  const email = session.user.email;
+  const email = session.user.email.toLowerCase().trim();
 
   try {
     const { data: staff } = await admin
