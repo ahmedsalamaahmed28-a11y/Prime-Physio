@@ -210,7 +210,7 @@ function LoginContent() {
   const { language, toggleLanguage } = useLanguage();
   const isRtl = language === "ar";
   const searchParams = useSearchParams();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const isOnboarding = searchParams?.get("onboard") === "1";
   const isDeleted = searchParams?.get("deleted") === "true";
   const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
@@ -576,7 +576,12 @@ function LoginContent() {
         </div>
 
         <div className={activeTab === "manage" ? "max-w-6xl mx-auto" : "hidden"}>
-          {!user ? (
+          {authLoading && !user ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <Loader size={32} color="#4F46BA" />
+              <p className="text-xs text-slate-400 mt-3">{isRtl ? "جاري التحقق من الحساب..." : "Checking account..."}</p>
+            </div>
+          ) : !user ? (
             <div className="flex flex-col lg:flex-row items-start gap-10 lg:gap-16 justify-center">
               <div className="flex-1 max-w-md space-y-4 pt-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46BA]/10 rounded-full">
