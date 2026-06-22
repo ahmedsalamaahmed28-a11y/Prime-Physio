@@ -5,30 +5,14 @@ import { getAdminClient } from "@/lib/supabase";
 
 export default async function RootPage() {
   const session = await getServerSession(authOptions);
-  const admin = getAdminClient();
 
   if (!session?.user?.email) {
     redirect("/login");
   }
 
+  const admin = getAdminClient();
   const email = session.user.email;
 
-  // Check if auth_accounts exists
-  let hasAccount = false;
-  try {
-    const { data: account } = await admin
-      .from("auth_accounts")
-      .select("email")
-      .eq("email", email)
-      .maybeSingle();
-    hasAccount = !!account;
-  } catch {}
-
-  if (!hasAccount) {
-    redirect("/signup?google=1");
-  }
-
-  // Check staff/clinic
   try {
     const { data: staff } = await admin
       .from("staff")
@@ -36,10 +20,34 @@ export default async function RootPage() {
       .eq("email", email)
       .maybeSingle();
 
-    if (staff?.clinic_id) {
-      redirect("/home");
+    if (!staff?.clinic_id) {
+      redirect("/login");
     }
-  } catch {}
+
+    const { data: subscription } = await admin
+      .from("subscriptions")
+      .select("id")
+      .eq("clinic_id", staff.clinic_id)
+      .eq("status", "active")
+      .maybeSingle();
+
+    if (!subscription) {
+      redirect("/setup");
+    }
+
+    const { data: branch } = await admin
+      .from("branches")
+      .select("id")
+      .eq("clinic_id", staff.clinic_id)
+      .limit(1)
+      .maybeSingle();
+
+    if (!branch) {
+      redirect("/setup");
+    }
+  } catch {
+    redirect("/home");
+  }
 
   redirect("/home");
 }
