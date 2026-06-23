@@ -211,7 +211,7 @@ function LoginContent() {
   const isRtl = language === "ar";
   const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
-  const { data: session } = useSession();
+  const { data: session, status: sessionStatus } = useSession();
   const isOnboarding = searchParams?.get("onboard") === "1";
   const isDeleted = searchParams?.get("deleted") === "true";
   const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
@@ -492,20 +492,16 @@ function LoginContent() {
           </div>
         </div>
       </nav>
-      {isOnboarding ? (
-        session?.user?.email ? (
-          <main className="flex-1 px-4 py-8 sm:py-12">
-            <OnboardingFlow step={onboardStep} setStep={setOnboardStep} clinicId={user?.clinicId} isRtl={isRtl} sessionEmail={session?.user?.email || ""} sessionName={session?.user?.name || ""} />
-          </main>
-        ) : (
-          <div className="min-h-screen flex items-center justify-center">
-            <Loader size={32} color="#4F46BA" />
-          </div>
-        )
-      ) : (
-        <></>
-      )}
-      {!isOnboarding && (
+      {isOnboarding && sessionStatus === "loading" ? (
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader size={32} color="#4F46BA" />
+        </div>
+      ) : isOnboarding && sessionStatus === "authenticated" && session?.user?.email ? (
+        <main className="flex-1 px-4 py-8 sm:py-12">
+          <OnboardingFlow step={onboardStep} setStep={setOnboardStep} clinicId={user?.clinicId} isRtl={isRtl} sessionEmail={session?.user?.email || ""} sessionName={session?.user?.name || ""} />
+        </main>
+      ) : null}
+      {(!isOnboarding || sessionStatus === "unauthenticated") && (
       <main className="flex-1 px-4 py-8 sm:py-12">
         <div className={activeTab === "centers" ? "max-w-6xl mx-auto space-y-8" : "hidden"}>
             <div className="text-center space-y-4">
