@@ -486,11 +486,30 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
           <h2 className="text-2xl font-extrabold text-slate-800 mb-2">
             {isRtl ? "تم إنشاء المركز بنجاح! 🎉" : "Clinic Created Successfully! 🎉"}
           </h2>
-          <p className="text-slate-500 text-sm mb-8">
+          <p className="text-slate-500 text-sm mb-6">
             {isRtl
-              ? "تم تفعيل اشتراكك وإنشاء مركزك. يمكنك الآن البدء في إضافة المرضى والجلسات"
-              : "Your subscription is active and clinic is set up. Start adding patients and sessions"}
+              ? "تم تفعيل اشتراكك وإنشاء مركزك. يمكنك الدخول للمركز عبر الرابط المخصص أدناه:"
+              : "Your clinic is set up. You can access it via the custom link below:"}
           </p>
+          
+          {createdCenterSlug && (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-8">
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-xs text-slate-500 font-medium">
+                  {isRtl ? "رابط دخول المركز:" : "Center Login URL:"}
+                </span>
+                <a 
+                  href={`/${createdCenterSlug}`}
+                  className="text-[#4F46BA] font-mono text-sm hover:underline"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  primephysio.vercel.app/{createdCenterSlug}
+                </a>
+              </div>
+            </div>
+          )}
+
           <button onClick={() => {
                 if (createdCenterSlug) {
                   window.location.href = `/${createdCenterSlug}`;
@@ -500,7 +519,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
               }}
             className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-bold py-3 rounded-2xl text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-md"
           >
-            {isRtl ? "دخول للمنصة" : "Enter Dashboard"}
+            {isRtl ? "تسجيل الدخول للمركز" : "Login to Center"}
             <ArrowRight className={`w-4 h-4 ${isRtl ? "rotate-180" : ""}`} />
           </button>
         </div>

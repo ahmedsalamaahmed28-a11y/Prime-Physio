@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -164,11 +164,22 @@ export default function CentersPage() {
                             deleteCenter(center.id);
                           }
                         }}
-                        className="text-red-500 hover:text-red-600 text-sm font-medium"
+                        className="text-red-500 hover:text-red-600 text-sm font-medium text-right"
                       >
                         {isRtl ? "حذف" : "Delete"}
                       </button>
                     </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-slate-100">
+                    <a
+                      href={`/${center.slug}`}
+                      className="w-full flex items-center justify-center gap-2 bg-[#4F46BA]/10 hover:bg-[#4F46BA]/20 text-[#4F46BA] py-2 rounded-lg text-sm font-medium transition-colors"
+                    >
+                      {isRtl ? "تسجيل دخول المركز" : "Center Login"}
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={isRtl ? "rotate-180" : ""}>
+                        <path d="M5 12h14M12 5l7 7-7 7" />
+                      </svg>
+                    </a>
                   </div>
                 </div>
               </div>
