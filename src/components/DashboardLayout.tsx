@@ -274,7 +274,7 @@ export default function DashboardLayout({
         <div className="flex flex-col items-center justify-center mb-5 px-3">
           <img 
             src={branchLogo || "/logo.png"} 
-            alt="Prime Physio" 
+            alt={branchName || "Prime Physio"} 
             className="h-16 object-contain mb-1.5" 
             onError={(e) => {
               e.currentTarget.style.display = 'none';
@@ -283,8 +283,8 @@ export default function DashboardLayout({
             }}
           />
           <div id="brand-fallback" className="hidden text-center">
-            <h1 className="text-lg font-bold tracking-wider text-white">PRIME PHYSIO</h1>
-            <p className="text-[10px] text-white/60">Clinic Management</p>
+            <h1 className="text-lg font-bold tracking-wider text-white">{branchName || "PRIME PHYSIO"}</h1>
+            <p className="text-[10px] text-white/60">{branchName ? "" : "Clinic Management"}</p>
           </div>
           {branchName && (
             <span className="text-[11px] text-white/70 text-center leading-tight max-w-full truncate px-1">

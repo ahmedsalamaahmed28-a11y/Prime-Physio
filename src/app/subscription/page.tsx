@@ -98,7 +98,7 @@ const getPlans = (isRtl: boolean) => {
   const allFeatures = ALL_FEATURES(isRtl);
   return [
     {
-      id: "basic", name: isRtl ? "الأساسية" : "Starter", price: 500,
+      id: "basic", name: isRtl ? "الأساسية" : "Starter", price: 0,
       description: isRtl ? "مثالية للعيادات الصغيرة والناشئة" : "Great for small businesses and startups",
       buttonText: isRtl ? "ابدأ الآن" : "Get started",
       popular: false,

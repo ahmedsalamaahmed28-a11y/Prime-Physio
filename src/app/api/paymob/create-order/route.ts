@@ -5,7 +5,7 @@ import { requireRole } from "../../utils/auth";
 const PAYMOB_BASE = "https://accept.paymob.com/api";
 
 const PLAN_PRICES: Record<string, number> = {
-  basic:  500  * 100,
+  basic:  0,
   silver: 1000 * 100,
   gold:   1500 * 100,
 };

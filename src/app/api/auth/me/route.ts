@@ -1,28 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase";
+import { requireAuth } from "../../utils/auth";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const sessionUser = await requireAuth(req);
+    if (!sessionUser?.email) {
       return NextResponse.json({ user: null, subscription: null });
     }
 
     const admin = getAdminClient();
-    const email = session.user.email.toLowerCase().trim();
+    const email = sessionUser.email.toLowerCase().trim();
 
     // Get staff info
     const { data: staff } = await admin
       .from("staff")
-      .select("clinic_id, role")
+      .select("clinic_id, role, name")
       .eq("email", email)
       .maybeSingle();
 
     if (!staff?.clinic_id) {
       return NextResponse.json({
-        user: { email, name: session.user.name },
+        user: { email, name: staff?.name || "" },
         subscription: null,
         hasClinic: false,
       });
@@ -44,7 +43,7 @@ export async function GET() {
       .eq("clinic_id", staff.clinic_id);
 
     return NextResponse.json({
-      user: { email, name: session.user.name },
+      user: { email, name: staff?.name || "" },
       subscription: subscription || null,
       clinicId: staff.clinic_id,
       branches: branches || [],

@@ -95,7 +95,7 @@ const getPlans = (isRtl: boolean) => {
   const allFeatures = ALL_FEATURES(isRtl);
   return [
     {
-      id: "basic", name: isRtl ? "الأساسية" : "Starter", price: 500,
+      id: "basic", name: isRtl ? "الأساسية" : "Starter", price: 0,
       description: isRtl ? "مثالية للعيادات الصغيرة والناشئة" : "Great for small businesses and startups",
       buttonText: isRtl ? "ابدأ الآن" : "Get started",
       popular: false,
@@ -998,7 +998,7 @@ function LoginContent({ initialTab }: { initialTab: string }) {
                     </ul>
                     <button
                       type="button"
-                      onClick={() => window.location.href = "/login/manage?tab=centers"}
+                      onClick={() => window.location.href = "/setup?step=plan"}
                       className={`text-sm w-full py-2 rounded font-medium mt-7 transition-all cursor-pointer ${
                         plan.popular
                           ? "bg-white text-[#4F46BA] hover:bg-gray-200"

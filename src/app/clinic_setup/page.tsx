@@ -29,28 +29,6 @@ export default function CenterSetupPage() {
   const router = useRouter();
   const userEmail = user?.email || session?.user?.email || "";
 
-  // Auth guard — supports both NextAuth (Google) and Supabase (email/password)
-  const isAuthenticated = status === "authenticated" || !!user;
-  const isAuthLoading = status === "loading" || authLoading;
-
-  if (isAuthLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#f8f9ff] to-white flex items-center justify-center" dir={isRtl ? "rtl" : "ltr"}>
-        <Loader size={24} color="#4F46BA" />
-      </div>
-    );
-  }
-  if (!isAuthenticated) {
-    if (typeof window !== "undefined") {
-      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
-    }
-    return (
-      <div className="min-h-screen bg-gradient-to-b from-[#f8f9ff] to-white flex items-center justify-center" dir={isRtl ? "rtl" : "ltr"}>
-        <Loader size={24} color="#4F46BA" />
-      </div>
-    );
-  }
-
   const [shortName, setShortName] = useState("");
   const [fullName, setFullName] = useState("");
   const [slug, setSlug] = useState("");
@@ -65,6 +43,10 @@ export default function CenterSetupPage() {
   const [createdSlug, setCreatedSlug] = useState("");
 
   const slugTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Auth guard — supports both NextAuth (Google) and Supabase (email/password)
+  const isAuthenticated = status === "authenticated" || !!user;
+  const isAuthLoading = status === "loading" || authLoading;
 
   // Slug uniqueness check (debounced)
   const checkSlug = useCallback(async (val: string) => {
@@ -162,6 +144,24 @@ export default function CenterSetupPage() {
   useEffect(() => {
     return () => { if (slugTimer.current) clearTimeout(slugTimer.current); };
   }, []);
+
+  if (isAuthLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#f8f9ff] to-white flex items-center justify-center" dir={isRtl ? "rtl" : "ltr"}>
+        <Loader size={24} color="#4F46BA" />
+      </div>
+    );
+  }
+  if (!isAuthenticated) {
+    if (typeof window !== "undefined") {
+      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+    }
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#f8f9ff] to-white flex items-center justify-center" dir={isRtl ? "rtl" : "ltr"}>
+        <Loader size={24} color="#4F46BA" />
+      </div>
+    );
+  }
 
   if (done) {
     return (
@@ -309,7 +309,7 @@ export default function CenterSetupPage() {
                   <div className="flex flex-col items-center gap-2">
                     <Upload className="w-8 h-8 text-slate-300" />
                     <span className="text-xs text-slate-400">{isRtl ? "اضغط لرفع شعار المركز" : "Click to upload center logo"}</span>
-                    <span className="text-[10px] text-slate-300">{isRtl ? "PNG, JPG — حد أقصى 2 ميجابايت" : "PNG, JPG — Max 2MB"}</span>
+                    <span className="text-[10px] text-slate-300">{isRtl ? "PNG, JPG — حد أقصى 5 ميجابايت" : "PNG, JPG — Max 5MB"}</span>
                   </div>
                 )}
                 <input type="file" accept="image/*" className="hidden"
@@ -317,7 +317,7 @@ export default function CenterSetupPage() {
                     const file = e.target.files?.[0];
                     if (!file) return;
                     if (!file.type.startsWith("image/")) { setError(isRtl ? "الرجاء اختيار صورة" : "Please select an image"); return; }
-                    if (file.size > 2 * 1024 * 1024) { setError(isRtl ? "حجم الصورة يجب أن لا يتجاوز 2 ميجابايت" : "Image must be under 2MB"); return; }
+                    if (file.size > 5 * 1024 * 1024) { setError(isRtl ? "حجم الصورة يجب أن لا يتجاوز 5 ميجابايت" : "Image must be under 5MB"); return; }
                     setLogoFile(file);
                     setLogoPreview(URL.createObjectURL(file));
                     setError("");

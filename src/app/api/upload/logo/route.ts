@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase";
+import { requireAuth } from "../../utils/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.email) {
+    const sessionUser = await requireAuth(req);
+    if (!sessionUser?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -15,9 +14,12 @@ export async function POST(req: NextRequest) {
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
+    if (file.size > 5 * 1024 * 1024) {
+      return NextResponse.json({ error: "File size exceeds 5MB limit" }, { status: 400 });
+    }
 
     const ext = file.name.split(".").pop() || "png";
-    const path = `${session.user.email}/${Date.now()}.${ext}`;
+    const path = `${sessionUser.email}/${Date.now()}.${ext}`;
     const buffer = Buffer.from(await file.arrayBuffer());
 
     const admin = getAdminClient();
