@@ -43,7 +43,7 @@ export default async function RootPage() {
       .maybeSingle();
 
     if (!branch) {
-      redirect("/setup/center");
+      redirect("/clinic_setup");
     }
   } catch {
     redirect("/home");

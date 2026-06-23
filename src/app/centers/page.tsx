@@ -109,7 +109,7 @@ export default function CentersPage() {
                 : "Start by creating your first center and define its location, logo, and basic details"}
             </p>
             <button
-              onClick={() => window.location.href = "/setup/center"}
+                onClick={() => window.location.href = "/clinic_setup"}
               className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] px-6 py-2 rounded-lg font-medium transition-colors"
             >
               {isRtl ? "إنشاء مركز" : "Create Center"}
@@ -177,7 +177,7 @@ export default function CentersPage() {
             {centers.length < 2 && (
               <div className="bg-white rounded-lg border-2 border-dashed border-slate-300 p-8 text-center hover:border-indigo-300 transition-colors cursor-pointer">
                 <button
-                  onClick={() => window.location.href = "/setup/center"}
+              onClick={() => window.location.href = "/clinic_setup"}
                   className="flex flex-col items-center gap-4"
                 >
                   <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center">
