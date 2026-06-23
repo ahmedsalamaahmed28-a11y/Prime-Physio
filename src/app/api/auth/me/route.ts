@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
       branches: branches || [],
       hasClinic: true,
     });
-  } catch {
-    return NextResponse.json({ user: null, subscription: null }, { status: 500 });
+  } catch (err) {
+    return NextResponse.json({ user: null, subscription: null, hasClinic: false });
   }
 }
