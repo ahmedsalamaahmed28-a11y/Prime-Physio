@@ -216,7 +216,17 @@ function LoginContent() {
   const isOnboarding = searchParams?.get("onboard") === "1";
   const isDeleted = searchParams?.get("deleted") === "true";
   const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
-  const activeTab = searchParams?.get("tab") || "centers";
+  const [activeTab, setActiveTab] = useState(searchParams?.get("tab") || "centers");
+
+  // Sync URL search params to active tab (handles browser back/forward)
+  useEffect(() => {
+    const tab = searchParams?.get("tab");
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    } else if (!tab && activeTab !== "centers") {
+      setActiveTab("centers");
+    }
+  }, [searchParams]);
   const [billingPeriod, setBillingPeriod] = useState("monthly");
 
   const [showPassword, setShowPassword] = useState(false);
@@ -478,6 +488,7 @@ function LoginContent() {
                   <button
                     key={tab.id}
                     onClick={() => {
+                      setActiveTab(tab.id);
                       const url = tab.id === "centers" ? "/login" : `/login?tab=${tab.id}`;
                       router.replace(url, { scroll: false });
                     }}
