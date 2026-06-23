@@ -7,7 +7,7 @@ const PUBLIC_PATHS = ["/_next/", "/api/auth/", "/favicon.ico", "/icon.png", "/lo
 const SUPABASE_PROJECT_REF = "pnqwkdqldfmcqozqrdeo";
 
 function isPublicPath(pathname: string): boolean {
-  if (AUTH_ROUTES.some((r) => pathname === r)) return true;
+  if (AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) return true;
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return true;
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/admin/")) return true;
   return false;

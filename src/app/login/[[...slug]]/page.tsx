@@ -198,15 +198,16 @@ const TABS = [
   { id: "support", labelAr: "الدعم", labelEn: "Support" },
 ];
 
-export default function LoginPage() {
+export default function LoginPage({ params }: { params: { slug?: string[] } }) {
+  const initialTab = params.slug?.[0] || "centers";
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader size={32} color="#4F46BA" /></div>}>
-      <LoginContent />
+      <LoginContent initialTab={initialTab} />
     </Suspense>
   )
 }
 
-function LoginContent() {
+function LoginContent({ initialTab }: { initialTab: string }) {
   const { language, toggleLanguage } = useLanguage();
   const isRtl = language === "ar";
   const { user, isLoading: authLoading } = useAuth();
@@ -214,19 +215,13 @@ function LoginContent() {
   const isOnboarding = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get("onboard") === "1";
   const isDeleted = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get("deleted") === "true";
   const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
-  const [activeTab, setActiveTab] = useState("centers");
-
-  // Initialize activeTab from URL
-  useEffect(() => {
-    const tab = new URLSearchParams(window.location.search).get("tab");
-    if (tab) setActiveTab(tab);
-  }, []);
+  const [activeTab, setActiveTab] = useState(initialTab);
 
   // Sync activeTab on browser back/forward
   useEffect(() => {
     const onPopState = () => {
-      const tab = new URLSearchParams(window.location.search).get("tab") || "centers";
-      setActiveTab(tab);
+      const pathTab = window.location.pathname.replace("/login/", "") || "centers";
+      setActiveTab(pathTab);
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
@@ -493,8 +488,7 @@ function LoginContent() {
                     key={tab.id}
                     onClick={() => {
                       setActiveTab(tab.id);
-                      const url = tab.id === "centers" ? "/login" : `/login?tab=${tab.id}`;
-                      window.history.replaceState(null, "", url);
+                      window.history.replaceState(null, "", `/login/${tab.id}`);
                     }}
                     className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
                       activeTab === tab.id
