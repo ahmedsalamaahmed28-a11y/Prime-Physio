@@ -170,16 +170,6 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
 
   useEffect(() => {
-    const path = window.location.pathname;
-    const isAuthPage = path === "/login" || path === "/signup";
-    const isSetupPage = path === "/setup" || path.startsWith("/setup/") || path === "/clinic_setup";
-    const knownPages = new Set(["home","admin","setup","login","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","clinic_setup"]);
-    const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(path) && !knownPages.has(path.replace("/", ""));
-    if (isAuthPage || isSetupPage || isSlugPage) {
-      setIsLoading(false);
-      return;
-    }
-
     let mounted = true;
     getAppValue<User | null>("current_user", null)
       .then((savedUser) => {
