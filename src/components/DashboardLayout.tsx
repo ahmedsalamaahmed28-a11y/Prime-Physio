@@ -219,7 +219,8 @@ export default function DashboardLayout({
 
     const knownDashboardPages = new Set(["home","admin","patients","doctors","calendar","billing","reports","chat","staff","settings","subscription","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions"]);
     const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname || "") && !knownDashboardPages.has((pathname || "").replace("/", ""));
-    const isAuthPage = pathname === "/login" || pathname === "/signup" || pathname === "/forgot-password" || pathname === "/reset-password" || pathname === "/setup" || isSlugPage;
+    const p = pathname || "";
+    const isAuthPage = p === "/login" || p.startsWith("/login/") || p === "/signup" || p === "/forgot-password" || p === "/reset-password" || p === "/setup" || isSlugPage;
 
   if (isAuthPage) {
     return <>{children}</>;
