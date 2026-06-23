@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { Crown, Shield, Zap, CheckCircle, ArrowRight, CreditCard, X, AlertCircle, Check, Upload, Star, Plus } from "lucide-react"
 import { useAuth } from "@/lib/auth"
 import { Loader } from "@/components/Loader"
@@ -101,27 +101,33 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
   const [payLoading, setPayLoading] = useState(false)
 
   const handleSelectPlan = async (planId: string) => {
+    console.log("[OnboardingFlow] handleSelectPlan called", { planId, clinicId, email: user?.email || sessionEmail, name: user?.name || sessionName });
     setSelectedPlan(planId)
     setError("")
 
     if (planId === "basic") {
       setIsActivating(true)
       try {
+        const body = {
+          clinicId,
+          planId,
+          email: user?.email || sessionEmail || "",
+          name: user?.name || sessionName || "Clinic Admin",
+        };
+        console.log("[OnboardingFlow] Calling /api/subscribe with", body);
         const res = await fetch("/api/subscribe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            clinicId,
-            planId,
-            email: user?.email || sessionEmail || "",
-            name: user?.name || sessionName || "Clinic Admin",
-          }),
+          body: JSON.stringify(body),
         })
         const data = await res.json()
+        console.log("[OnboardingFlow] /api/subscribe response", { ok: res.ok, data });
         if (!res.ok) throw new Error(data.error || "فشل تفعيل الخطة")
         if (data.clinicId) setResolvedClinicId(data.clinicId)
+        console.log("[OnboardingFlow] Setting step to clinic");
         setStep("clinic")
       } catch (e: any) {
+        console.error("[OnboardingFlow] Subscribe error:", e?.message);
         setError(e?.message || "حدث خطأ")
       } finally {
         setIsActivating(false)
@@ -226,6 +232,17 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
   }
 
   const selectedPlanData = PLANS(isRtl).find(p => p.id === selectedPlan)
+
+  // Auto-trigger plan selection from URL param (e.g., /setup?step=plan&plan_id=basic)
+  useEffect(() => {
+    const planId = new URLSearchParams(window.location.search).get("plan_id");
+    console.log("[OnboardingFlow] useEffect fired", { planId, selectedPlan, step, email: sessionEmail, clinicId });
+    if (planId && !selectedPlan && step === "plan") {
+      console.log("[OnboardingFlow] Calling handleSelectPlan with", planId);
+      handleSelectPlan(planId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Paymob iframe
   if (iframeUrl) {

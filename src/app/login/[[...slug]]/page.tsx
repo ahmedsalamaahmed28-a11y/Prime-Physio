@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect, Suspense } from 'react';
+import React, { useState, useRef, useEffect, Suspense, use } from 'react';
 import Link from 'next/link';
 
 import { Mail, Lock, Eye, EyeClosed, ArrowRight, X, Shield } from 'lucide-react';
@@ -198,8 +198,9 @@ const TABS = [
   { id: "support", labelAr: "الدعم", labelEn: "Support" },
 ];
 
-export default function LoginPage({ params }: { params: { slug?: string[] } }) {
-  const initialTab = params.slug?.[0] || "centers";
+export default function LoginPage({ params }: { params: Promise<{ slug?: string[] }> }) {
+  const { slug } = use(params);
+  const initialTab = slug?.[0] || "centers";
   return (
     <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><Loader size={32} color="#4F46BA" /></div>}>
       <LoginContent initialTab={initialTab} />
@@ -289,13 +290,6 @@ function LoginContent({ initialTab }: { initialTab: string }) {
       setUserDataLoading(false);
     }
   }, [user]);
-
-  // Auto-redirect to plan selection when clinic exists but no subscription
-  useEffect(() => {
-    if (!userDataLoading && userData?.hasClinic && !userData?.subscription && !isOnboarding && sessionStatus === "authenticated") {
-      window.location.href = "/login/plans";
-    }
-  }, [userData, userDataLoading, isOnboarding, sessionStatus]);
 
   useEffect(() => {
     setAllBranchesLoading(true);
@@ -923,7 +917,7 @@ function LoginContent({ initialTab }: { initialTab: string }) {
                   ) : (
                     <p className="text-xs text-slate-400 text-center py-4">
                       {isRtl ? "ليس لديك مراكز بعد. أنشئ مركزك الأول من " : "No centers yet. Create your first center from "}
-                       <button onClick={() => { window.location.href = "/setup?step=clinic"; }} className="text-[#4F46BA] font-medium underline bg-transparent border-0 p-0 cursor-pointer">{isRtl ? "الإعداد" : "Setup"}</button>
+                        <button onClick={() => { window.location.href = "/setup/center"; }} className="text-[#4F46BA] font-medium underline bg-transparent border-0 p-0 cursor-pointer">{isRtl ? "الإعداد" : "Setup"}</button>
                     </p>
                   )}
                 </div>
@@ -1000,18 +994,17 @@ function LoginContent({ initialTab }: { initialTab: string }) {
                         </li>
                       ))}
                     </ul>
-                    <Link href="/signup">
-                      <button
-                        type="button"
-                        className={`text-sm w-full py-2 rounded font-medium mt-7 transition-all ${
-                          plan.popular
-                            ? "bg-white text-[#4F46BA] hover:bg-gray-200"
-                            : "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]"
-                        }`}
-                      >
-                        {isRtl ? "ابدأ الآن" : "Get Started"}
-                      </button>
-                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => window.location.href = "/setup?step=plan&plan_id=" + plan.id}
+                      className={`text-sm w-full py-2 rounded font-medium mt-7 transition-all cursor-pointer ${
+                        plan.popular
+                          ? "bg-white text-[#4F46BA] hover:bg-gray-200"
+                          : "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]"
+                      }`}
+                    >
+                      {isRtl ? "ابدأ الآن" : "Get Started"}
+                    </button>
                   </div>
                 ));
               })()}
