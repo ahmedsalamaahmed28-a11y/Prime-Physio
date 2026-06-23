@@ -280,6 +280,13 @@ function LoginContent() {
     }
   }, [user]);
 
+  // Auto-redirect to plan selection when clinic exists but no subscription
+  useEffect(() => {
+    if (!userDataLoading && userData?.hasClinic && !userData?.subscription && !isOnboarding && sessionStatus === "authenticated") {
+      window.location.href = "/login?onboard=1";
+    }
+  }, [userData, userDataLoading, isOnboarding, sessionStatus]);
+
   useEffect(() => {
     setAllBranchesLoading(true);
     fetch("/api/branches/all")
