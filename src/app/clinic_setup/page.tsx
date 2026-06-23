@@ -24,14 +24,14 @@ const SPECIALIZATIONS = [
 export default function CenterSetupPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { data: session, status } = useSession();
   const router = useRouter();
   const userEmail = user?.email || session?.user?.email || "";
 
   // Auth guard — supports both NextAuth (Google) and Supabase (email/password)
   const isAuthenticated = status === "authenticated" || !!user;
-  const isAuthLoading = status === "loading";
+  const isAuthLoading = status === "loading" || authLoading;
 
   if (isAuthLoading) {
     return (
