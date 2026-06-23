@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeClosed, ArrowRight, X, Shield } from 'lucide-react';
 import { signIn, signOut, useSession } from "next-auth/react";
 import { setAppValue } from "@/lib/appStorage";
@@ -210,12 +210,13 @@ function LoginContent() {
   const { language, toggleLanguage } = useLanguage();
   const isRtl = language === "ar";
   const searchParams = useSearchParams();
+  const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   const { data: session, status: sessionStatus } = useSession();
   const isOnboarding = searchParams?.get("onboard") === "1";
   const isDeleted = searchParams?.get("deleted") === "true";
   const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
-  const [activeTab, setActiveTab] = useState("centers");
+  const activeTab = searchParams?.get("tab") || "centers";
   const [billingPeriod, setBillingPeriod] = useState("monthly");
 
   const [showPassword, setShowPassword] = useState(false);
@@ -476,7 +477,10 @@ function LoginContent() {
                 {TABS.map((tab) => (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
+                    onClick={() => {
+                      const url = tab.id === "centers" ? "/login" : `/login?tab=${tab.id}`;
+                      router.replace(url, { scroll: false });
+                    }}
                     className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
                       activeTab === tab.id
                         ? "bg-[#4F46BA] text-white shadow-md"
