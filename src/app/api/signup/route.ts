@@ -13,15 +13,21 @@ export async function POST(req: NextRequest) {
 
     const admin = getAdminClient();
 
-    // Check if email already exists in auth_accounts
-    const { data: existing } = await admin
+    // Check if email already exists in auth_accounts, staff, or clinics
+    const { data: existingAuth } = await admin
       .from("auth_accounts")
       .select("id")
       .eq("email", email)
       .maybeSingle();
 
-    if (existing) {
-      return NextResponse.json({ error: "User already registered" }, { status: 400 });
+    const { data: existingStaff } = await admin
+      .from("staff")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (existingAuth || existingStaff) {
+      return NextResponse.json({ error: "البريد الإلكتروني مسجل بالفعل في النظام" }, { status: 400 });
     }
 
     // Hash password and store in auth_accounts
