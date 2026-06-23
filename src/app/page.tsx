@@ -20,8 +20,11 @@ export default async function RootPage() {
       .eq("email", email)
       .maybeSingle();
 
-    if (!staff?.clinic_id) {
+    if (!staff) {
       redirect("/login");
+    }
+    if (!staff.clinic_id) {
+      redirect("/login/plans");
     }
 
     const { data: subscription } = await admin

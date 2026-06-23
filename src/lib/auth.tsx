@@ -122,11 +122,14 @@ async function enrichUserWithClinic(user: User): Promise<User> {
       .eq("email", user.email)
       .maybeSingle();
 
-    if (staff?.clinic_id) {
-      user.clinicId = staff.clinic_id;
+    if (staff) {
       user.roleKey = mapStaffRoleToRoleKey(staff.role);
       user.role = getArabicRoleLabel(user.roleKey);
       user.roleEn = getEnglishRoleLabel(user.roleKey);
+      if (staff.clinic_id) {
+        user.clinicId = staff.clinic_id;
+      }
+      // Staff exists (even with null clinic_id) → skip auto-provision
       return user;
     }
   } catch {

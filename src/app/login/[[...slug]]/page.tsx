@@ -251,7 +251,9 @@ function LoginContent({ initialTab }: { initialTab: string }) {
   const forgotOtpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   // Auth state-aware tabs
-  const [authTab, setAuthTab] = useState<"account" | "centers">("account");
+  const [authTab, setAuthTab] = useState<"account" | "centers">(
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("tab") === "centers" ? "centers" : "account"
+  );
   const [userData, setUserData] = useState<any>(null);
   const [userDataLoading, setUserDataLoading] = useState(true);
   const [allBranches, setAllBranches] = useState<any[]>([]);
@@ -917,7 +919,7 @@ function LoginContent({ initialTab }: { initialTab: string }) {
                   ) : (
                     <p className="text-xs text-slate-400 text-center py-4">
                       {isRtl ? "ليس لديك مراكز بعد. أنشئ مركزك الأول من " : "No centers yet. Create your first center from "}
-                        <button onClick={() => {     window.location.href = "/clinic_setup"; }} className="text-[#4F46BA] font-medium underline bg-transparent border-0 p-0 cursor-pointer">{isRtl ? "الإعداد" : "Setup"}</button>
+                        <button onClick={() => {     window.location.href = "https://primephysio.vercel.app/clinic_setup"; }} className="text-[#4F46BA] font-medium underline bg-transparent border-0 p-0 cursor-pointer">{isRtl ? "الإعداد" : "Setup"}</button>
                     </p>
                   )}
                 </div>
@@ -996,7 +998,7 @@ function LoginContent({ initialTab }: { initialTab: string }) {
                     </ul>
                     <button
                       type="button"
-                      onClick={() => window.location.href = "/setup?step=plan&plan_id=" + plan.id}
+                      onClick={() => window.location.href = "/login/manage?tab=centers"}
                       className={`text-sm w-full py-2 rounded font-medium mt-7 transition-all cursor-pointer ${
                         plan.popular
                           ? "bg-white text-[#4F46BA] hover:bg-gray-200"

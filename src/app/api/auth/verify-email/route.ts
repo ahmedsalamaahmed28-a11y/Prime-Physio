@@ -123,6 +123,22 @@ export async function POST(req: NextRequest) {
       recordId = authRecord.id;
     }
 
+    // Also create staff record (clinic_id = null — onboarding will link it)
+    const { error: staffError } = await admin.from("staff").upsert({
+      email: cleanEmail,
+      name: insertPayload.name,
+      role: "admin",
+      status: "نشط",
+      clinic_id: null,
+    }, { onConflict: "email" });
+
+    if (staffError) {
+      console.error("[VerifyEmail] Staff insert error:", staffError.message);
+      // Rollback auth_account to prevent orphaned records
+      await admin.from("auth_accounts").delete().eq("id", recordId);
+      return NextResponse.json({ error: "فشل إنشاء الحساب", details: staffError.message }, { status: 500 });
+    }
+
     return NextResponse.json({ success: true, id: recordId });
   } catch (err) {
     console.error("[VerifyEmail] Error:", err);

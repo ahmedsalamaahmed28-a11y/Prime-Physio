@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       console.error("[AutoProvision] Staff lookup error:", lookupErr.message);
       return NextResponse.json({ error: lookupErr.message }, { status: 500 });
     }
-    if (existing?.clinic_id) {
+    if (existing) {
       return NextResponse.json({ clinicId: existing.clinic_id });
     }
 
