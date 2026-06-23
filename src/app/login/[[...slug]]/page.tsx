@@ -216,7 +216,7 @@ function LoginContent({ initialTab }: { initialTab: string }) {
   const isOnboarding = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get("onboard") === "1";
   const isDeleted = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get("deleted") === "true";
   const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
-  const [activeTab, setActiveTab] = useState(initialTab);
+  const [activeTab, setActiveTab] = useState(initialTab === "centers" && typeof window !== "undefined" && window.location.pathname === "/login" ? "manage" : initialTab);
 
   // Sync activeTab on browser back/forward
   useEffect(() => {
@@ -691,7 +691,6 @@ function LoginContent({ initialTab }: { initialTab: string }) {
                       {error}
                     </div>
                   )}
-
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-1">
                       <label className="text-[11px] font-medium text-slate-500">

@@ -488,27 +488,13 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
           </h2>
           <p className="text-slate-500 text-sm mb-6">
             {isRtl
-              ? "تم تفعيل اشتراكك وإنشاء مركزك. يمكنك الدخول للمركز عبر الرابط المخصص أدناه:"
-              : "Your clinic is set up. You can access it via the custom link below:"}
+              ? "تم تفعيل اشتراكك وإنشاء مركزك. جاري تحويلك لصفحة الدخول..."
+              : "Your clinic is set up. Redirecting to your login page..."}
           </p>
           
-          {createdCenterSlug && (
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-8">
-              <div className="flex flex-col items-center gap-2">
-                <span className="text-xs text-slate-500 font-medium">
-                  {isRtl ? "رابط دخول المركز:" : "Center Login URL:"}
-                </span>
-                <a 
-                  href={`/${createdCenterSlug}`}
-                  className="text-[#4F46BA] font-mono text-sm hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  primephysio.vercel.app/{createdCenterSlug}
-                </a>
-              </div>
-            </div>
-          )}
+          <div className="flex justify-center mb-6">
+            <Loader size={24} color="#4F46BA" />
+          </div>
 
           <button onClick={() => {
                 if (createdCenterSlug) {
@@ -519,9 +505,25 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
               }}
             className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-bold py-3 rounded-2xl text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-md"
           >
-            {isRtl ? "تسجيل الدخول للمركز" : "Login to Center"}
+            {isRtl ? "انقر هنا للتحويل الآن" : "Click here to redirect now"}
             <ArrowRight className={`w-4 h-4 ${isRtl ? "rotate-180" : ""}`} />
           </button>
+
+          {/* Auto-redirect effect */}
+          <img 
+            src="/empty.gif" 
+            alt="" 
+            className="hidden" 
+            onError={() => {
+              setTimeout(() => {
+                if (createdCenterSlug) {
+                  window.location.href = `/${createdCenterSlug}`;
+                } else {
+                  window.location.href = "/home";
+                }
+              }, 2000);
+            }}
+          />
         </div>
       )}
 

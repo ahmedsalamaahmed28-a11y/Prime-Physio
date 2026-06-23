@@ -166,44 +166,42 @@ export default function CenterSetupPage() {
   if (done) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#f8f9ff] to-white flex items-center justify-center p-4" dir={isRtl ? "rtl" : "ltr"}>
-        <div className="max-w-md mx-auto text-center">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-200">
+        <div className="bg-white rounded-3xl shadow-xl border border-slate-100 p-8 max-w-md w-full text-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-200">
             <Check className="w-10 h-10 text-white" strokeWidth={3} />
           </div>
           <h2 className="text-2xl font-extrabold text-slate-800 mb-2">
             {isRtl ? "تم إنشاء المركز بنجاح!" : "Center Created Successfully!"}
           </h2>
           <p className="text-slate-500 text-sm mb-6">
-            {isRtl ? "يمكنك الدخول للمركز عبر الرابط المخصص أدناه:" : "You can access your center via the custom link below:"}
+            {isRtl ? "جاري تحويلك إلى صفحة تسجيل الدخول الخاصة بمركزك..." : "Redirecting to your center's login page..."}
           </p>
 
-          {createdSlug && (
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-8">
-              <div className="flex flex-col items-center gap-2">
-                <span className="text-xs text-slate-500 font-medium">
-                  {isRtl ? "رابط دخول المركز:" : "Center Login URL:"}
-                </span>
-                <a 
-                  href={`/${createdSlug}`}
-                  className="text-[#4F46BA] font-mono text-sm hover:underline"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  primephysio.vercel.app/{createdSlug}
-                </a>
-              </div>
-            </div>
-          )}
+          <div className="flex justify-center mb-6">
+            <Loader size={24} color="#4F46BA" />
+          </div>
 
-          <button onClick={async () => {
-              await setAppValue("current_user", null);
-              window.location.href = createdSlug ? `/${createdSlug}` : "/home";
+          <button 
+            onClick={async () => {
+              window.location.href = `/${createdSlug}`;
             }}
-            className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-bold py-3 rounded-2xl text-sm hover:opacity-90 transition-all shadow-md"
+            className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-bold py-3 rounded-2xl text-sm hover:opacity-90 transition-all shadow-md flex items-center justify-center gap-2"
           >
-            {isRtl ? "تسجيل الدخول للمركز" : "Login to Center"}
-            <ArrowRight className={`w-4 h-4 inline mr-1 ${isRtl ? "rotate-180" : ""}`} />
+            {isRtl ? "انقر هنا للتحويل الآن" : "Click here to redirect now"}
+            <ArrowRight className={`w-4 h-4 ${isRtl ? "rotate-180" : ""}`} />
           </button>
+
+          {/* Auto-redirect effect */}
+          <img 
+            src="/empty.gif" 
+            alt="" 
+            className="hidden" 
+            onError={() => {
+              setTimeout(() => {
+                window.location.href = `/${createdSlug}`;
+              }, 2000);
+            }}
+          />
         </div>
       </div>
     );

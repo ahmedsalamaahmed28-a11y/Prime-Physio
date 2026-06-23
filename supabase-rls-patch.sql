@@ -1,5 +1,8 @@
--- RLS Patch: Ensure all policies are correctly applied
+-- RLS Patch & Schema Updates: Ensure all policies are correctly applied
 -- Paste this into Supabase SQL Editor and run
+
+-- 0. Schema Updates
+ALTER TABLE public.clinics ADD COLUMN IF NOT EXISTS slug TEXT UNIQUE;
 
 -- 1. Ensure is_platform_admin function exists
 create or replace function public.is_platform_admin()

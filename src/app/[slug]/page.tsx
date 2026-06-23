@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { useAuth } from "@/lib/auth";
 import { Mail, Lock, Eye, EyeClosed, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Loader } from "@/components/Loader";
@@ -33,6 +34,18 @@ export default function BrandedLoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
+
+  const { data: session, status } = useSession();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if ((status === "authenticated" || user) && branch) {
+      if (branch.clinic_id) {
+        sessionStorage.setItem("preferred_clinic_id", branch.clinic_id);
+      }
+      window.location.href = "/home";
+    }
+  }, [status, user, branch]);
 
   useEffect(() => {
     if (!slug) return;

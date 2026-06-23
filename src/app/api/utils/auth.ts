@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase";
 
 export interface AuthUser {
@@ -22,24 +23,50 @@ function mapStaffRoleToRoleKey(role: string): "admin" | "doctor" | "receptionist
 }
 
 export async function requireAuth(req: NextRequest): Promise<AuthUser> {
-  // 1. Try NextAuth token (Google OAuth users)
-  const token = await getToken({ req });
-  if (token?.email) {
-    return { email: token.email, userId: token.sub };
+  // 1. Try NextAuth session (Google OAuth users)
+  try {
+    const session = await getServerSession(authOptions);
+    if (session?.user?.email) {
+      return { email: session.user.email, userId: undefined }; // NextAuth might not expose sub easily in session, but email is enough
+    }
+  } catch (err) {
+    console.error("[auth] NextAuth session error:", err);
   }
 
   // 2. Try Supabase session cookie (email/password users)
   try {
-    const cookieName = "sb-pnqwkdqldfmcqozqrdeo-auth-token";
-    const sbCookie = req.cookies.get(cookieName);
-    if (sbCookie?.value) {
-      const parsed = JSON.parse(sbCookie.value);
-      const { data: { user }, error } = await getAdminClient().auth.getUser(parsed.access_token);
-      if (!error && user?.email) {
-        return { email: user.email, userId: user.id };
+    const cookies = req.cookies.getAll();
+    const tokenCookies = cookies.filter(c => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
+    
+    // Group cookies by their base name (e.g. "sb-[id]-auth-token")
+    const groupedCookies: Record<string, typeof cookies> = {};
+    for (const c of tokenCookies) {
+      const baseName = c.name.replace(/\.\d+$/, "");
+      if (!groupedCookies[baseName]) groupedCookies[baseName] = [];
+      groupedCookies[baseName].push(c);
+    }
+    
+    // Try parsing each group
+    for (const baseName in groupedCookies) {
+      const group = groupedCookies[baseName].sort((a, b) => a.name.localeCompare(b.name));
+      let tokenValue = group.map(c => c.value).join("");
+      
+      try {
+        if (tokenValue.startsWith("base64-")) {
+          tokenValue = Buffer.from(tokenValue.replace("base64-", ""), "base64").toString("utf-8");
+        }
+        const parsed = JSON.parse(tokenValue);
+        const { data: { user }, error } = await getAdminClient().auth.getUser(parsed.access_token);
+        if (!error && user?.email) {
+          return { email: user.email, userId: user.id };
+        }
+      } catch (e) {
+        // Ignore JSON parse errors for this specific group and try the next one
       }
     }
-  } catch {}
+  } catch (err) {
+    console.error("[auth] Supabase cookie error:", err);
+  }
 
   // 3. Try Authorization header (programmatic access)
   const authHeader = req.headers.get("authorization");

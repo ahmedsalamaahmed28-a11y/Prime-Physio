@@ -4,12 +4,21 @@ import type { NextRequest } from "next/server";
 const AUTH_ROUTES = ["/login", "/signup", "/setup", "/plans", "/clinic_setup"];
 const PUBLIC_PATHS = ["/_next/", "/api/auth/", "/favicon.ico", "/icon.png", "/logo.png", "/robots.txt", "/sitemap.xml", "/manifest.json"];
 
-const SUPABASE_PROJECT_REF = "pnqwkdqldfmcqozqrdeo";
+const SUPABASE_PROJECT_REF = "crrhrjhftwostjomzmfj";
+
+const KNOWN_PROTECTED_PAGES = new Set(["home","admin","logout","subscribe","subscription","centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions"]);
 
 function isPublicPath(pathname: string): boolean {
   if (AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) return true;
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return true;
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/admin/")) return true;
+  
+  // Allow branded login pages (/[slug])
+  const pathPart = pathname.replace("/", "");
+  if (/^[a-z0-9-]+$/.test(pathPart) && !KNOWN_PROTECTED_PAGES.has(pathPart)) {
+    return true;
+  }
+  
   return false;
 }
 

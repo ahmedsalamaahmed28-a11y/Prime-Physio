@@ -21,6 +21,7 @@ export default function AdminPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [clinics, setClinics] = useState<Clinic[]>([]);
+  const [stats, setStats] = useState({ totalClinics: 0, totalStaff: 0, totalPatients: 0 });
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
 
@@ -39,6 +40,7 @@ export default function AdminPage() {
       if (res.ok) {
         const data = await res.json();
         setClinics(data.clinics || []);
+        if (data.stats) setStats(data.stats);
       }
     } catch { }
     setLoading(false);
@@ -79,6 +81,40 @@ export default function AdminPage() {
           <h1 className="text-xl font-bold text-slate-800">لوحة تحكم المنصة</h1>
           <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">مدير المنصة</span>
         </div>
+
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-slate-500 mb-1">إجمالي العيادات</p>
+                <h3 className="text-2xl font-extrabold text-slate-800">{stats.totalClinics}</h3>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-[#4F46BA]/10 flex items-center justify-center">
+                <Building className="w-6 h-6 text-[#4F46BA]" />
+              </div>
+            </div>
+            
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-slate-500 mb-1">إجمالي الأطباء والموظفين</p>
+                <h3 className="text-2xl font-extrabold text-slate-800">{stats.totalStaff}</h3>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center">
+                <Users className="w-6 h-6 text-emerald-600" />
+              </div>
+            </div>
+
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-xs font-bold text-slate-500 mb-1">إجمالي المرضى المستفيدين</p>
+                <h3 className="text-2xl font-extrabold text-slate-800">{stats.totalPatients}</h3>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-blue-600" />
+              </div>
+            </div>
+          </div>
+        )}
 
         {loading ? (
           <div className="flex justify-center py-20">

@@ -27,12 +27,23 @@ export async function GET(req: NextRequest) {
     }
 
     // Enrich with patient counts and subscription info
+    let totalPatients = 0;
+    let totalStaff = 0;
+
     const enriched = await Promise.all(
       (clinics || []).map(async (clinic) => {
         const { count: patientCount } = await admin
           .from("patients")
           .select("*", { count: "exact", head: true })
           .eq("clinic_id", clinic.id);
+          
+        const { count: staffCount } = await admin
+          .from("staff")
+          .select("*", { count: "exact", head: true })
+          .eq("clinic_id", clinic.id);
+
+        if (patientCount) totalPatients += patientCount;
+        if (staffCount) totalStaff += staffCount;
 
         const { data: sub } = await admin
           .from("subscriptions")
@@ -43,11 +54,23 @@ export async function GET(req: NextRequest) {
           .limit(1)
           .maybeSingle();
 
-        return { ...clinic, patientCount: patientCount ?? 0, subscription: sub || null };
+        return { 
+          ...clinic, 
+          patientCount: patientCount ?? 0, 
+          staffCount: staffCount ?? 0, 
+          subscription: sub || null 
+        };
       })
     );
 
-    return NextResponse.json({ clinics: enriched });
+    return NextResponse.json({ 
+      stats: {
+        totalClinics: clinics?.length || 0,
+        totalStaff,
+        totalPatients
+      },
+      clinics: enriched 
+    });
   } catch (err: any) {
     const status = err.message === "Unauthorized" ? 401 : err.message === "Forbidden" ? 403 : 500;
     return NextResponse.json({ error: err.message }, { status });
