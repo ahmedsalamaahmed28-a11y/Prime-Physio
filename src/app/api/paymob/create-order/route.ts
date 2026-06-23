@@ -18,8 +18,22 @@ const PLAN_NAMES: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
-    await requireRole(req, ["admin"]);
+    const authed = await requireRole(req, ["admin"]);
     const { planId, billingData, billingPeriod } = await req.json();
+
+    // Resolve clinicId for this admin from staff record
+    let resolvedClinicId: string | null = authed.clinicId || null;
+    if (!resolvedClinicId) {
+      try {
+        const admin = getAdminClient();
+        const { data: s } = await admin
+          .from("staff")
+          .select("clinic_id")
+          .eq("email", authed.email)
+          .maybeSingle();
+        resolvedClinicId = s?.clinic_id || null;
+      } catch {}
+    }
 
     let amountCents = PLAN_PRICES[planId];
     if (!amountCents) {
@@ -77,12 +91,19 @@ export async function POST(req: NextRequest) {
 
     const { id: orderId } = await orderRes.json();
 
-    // Store order info for callback lookup
+    // Store order info for callback lookup (including clinicId for redirect logic)
     try {
       const admin = getAdminClient();
       await admin.from("app_key_values").upsert({
         key: `paymob_order_${orderId}`,
-        value: { planId, planName: PLAN_NAMES[planId], price: amountCents / 100, email: billingData?.email || "", billingPeriod },
+        value: {
+          planId,
+          planName: PLAN_NAMES[planId],
+          price: amountCents / 100,
+          email: billingData?.email || "",
+          billingPeriod,
+          clinicId: resolvedClinicId,
+        },
         updated_at: new Date().toISOString(),
       }, { onConflict: "key" });
     } catch (e) {

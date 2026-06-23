@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { getAdminClient } from "@/lib/supabase";
 
+async function checkClinicHasBranch(clinicId: string | null): Promise<boolean> {
+  if (!clinicId) return false;
+  try {
+    const admin = getAdminClient();
+    const { count } = await admin
+      .from("branches")
+      .select("id", { count: "exact", head: true })
+      .eq("clinic_id", clinicId);
+    return (count ?? 0) > 0;
+  } catch {
+    return false;
+  }
+}
+
 async function persistSubscription(orderId: string, transactionId: string, email: string) {
   try {
     const admin = getAdminClient();
@@ -11,19 +25,23 @@ async function persistSubscription(orderId: string, transactionId: string, email
       .eq("key", `paymob_order_${orderId}`)
       .maybeSingle();
 
-    const info = mapping?.value || { planId: "basic", planName: "Prime Physio", price: 0, email: email || "" };
+    const info = mapping?.value || { planId: "basic", planName: "Prime Physio", price: 0, email: email || "", clinicId: null };
     const cleanEmail = (info.email || email || "unknown@primephysio.com").toLowerCase().trim();
 
-    // Find clinic_id from email
-    let clinicId = null;
-    try {
-      const { data: clinic } = await admin
-        .from("clinics")
-        .select("id")
-        .eq("admin_email", cleanEmail)
-        .maybeSingle();
-      clinicId = clinic?.id || null;
-    } catch {}
+    // Use clinicId from mapping (set at create-order time)
+    let clinicId = info.clinicId || null;
+
+    // Fallback: find clinic_id from staff if not in mapping
+    if (!clinicId) {
+      try {
+        const { data: staff } = await admin
+          .from("staff")
+          .select("clinic_id")
+          .eq("email", cleanEmail)
+          .maybeSingle();
+        clinicId = staff?.clinic_id || null;
+      } catch {}
+    }
 
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + 1);
@@ -43,12 +61,15 @@ async function persistSubscription(orderId: string, transactionId: string, email
     if (error) {
       console.error("[Paymob] Failed to save subscription:", error);
     } else {
-      console.log(`[Paymob] ✅ Subscription saved: ${info.planId} for ${info.email}`);
+      console.log(`[Paymob] ✅ Subscription saved: ${info.planId} for ${cleanEmail}`);
       // Clean up mapping
       await admin.from("app_key_values").delete().eq("key", `paymob_order_${orderId}`);
     }
+
+    return clinicId;
   } catch (err) {
     console.error("[Paymob] Subscription persist error:", err);
+    return null;
   }
 }
 
@@ -97,10 +118,11 @@ export async function GET(req: NextRequest) {
   const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
 
   if (isPaid) {
-    await persistSubscription(orderId || "", txId || "", "");
-    return NextResponse.redirect(
-      `${base}/subscription/success?order=${orderId}&tx=${txId}`
-    );
+    const clinicId = await persistSubscription(orderId || "", txId || "", "");
+    // If clinic has no branch yet → send to center setup; otherwise → home
+    const hasBranch = await checkClinicHasBranch(clinicId);
+    const redirectPath = hasBranch ? "/home" : "/clinic_setup";
+    return NextResponse.redirect(`${base}${redirectPath}`);
   } else {
     return NextResponse.redirect(
       `${base}/subscription/failed?order=${orderId}&reason=${success === "false" ? "declined" : "invalid"}`
