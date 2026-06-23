@@ -299,10 +299,10 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       }
       if (pathname === "/signup") return;
       if (pathname.startsWith("/login")) return;
-      if (user?.clinicId === undefined && user?.email) {
+      if (user?.clinicId === undefined && user?.email && !isEnriching) {
         const setupPaths = ["/login", "/signup", "/setup", "/setup/center", "/plans", "/clinic_setup"];
         if (!setupPaths.includes(pathname)) {
-          window.location.href = "/setup";
+          window.location.href = "/clinic_setup";
         }
       }
     }
