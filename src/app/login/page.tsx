@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+
 import { Mail, Lock, Eye, EyeClosed, ArrowRight, X, Shield } from 'lucide-react';
 import { signIn, signOut, useSession } from "next-auth/react";
 import { setAppValue } from "@/lib/appStorage";
@@ -209,24 +209,28 @@ export default function LoginPage() {
 function LoginContent() {
   const { language, toggleLanguage } = useLanguage();
   const isRtl = language === "ar";
-  const searchParams = useSearchParams();
-  const router = useRouter();
   const { user, isLoading: authLoading } = useAuth();
   const { data: session, status: sessionStatus } = useSession();
-  const isOnboarding = searchParams?.get("onboard") === "1";
-  const isDeleted = searchParams?.get("deleted") === "true";
+  const isOnboarding = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get("onboard") === "1";
+  const isDeleted = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get("deleted") === "true";
   const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
-  const [activeTab, setActiveTab] = useState(searchParams?.get("tab") || "centers");
+  const [activeTab, setActiveTab] = useState("centers");
 
-  // Sync URL search params to active tab (handles browser back/forward)
+  // Initialize activeTab from URL
   useEffect(() => {
-    const tab = searchParams?.get("tab");
-    if (tab && tab !== activeTab) {
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    if (tab) setActiveTab(tab);
+  }, []);
+
+  // Sync activeTab on browser back/forward
+  useEffect(() => {
+    const onPopState = () => {
+      const tab = new URLSearchParams(window.location.search).get("tab") || "centers";
       setActiveTab(tab);
-    } else if (!tab && activeTab !== "centers") {
-      setActiveTab("centers");
-    }
-  }, [searchParams]);
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
   const [billingPeriod, setBillingPeriod] = useState("monthly");
 
   const [showPassword, setShowPassword] = useState(false);
@@ -490,7 +494,7 @@ function LoginContent() {
                     onClick={() => {
                       setActiveTab(tab.id);
                       const url = tab.id === "centers" ? "/login" : `/login?tab=${tab.id}`;
-                      router.replace(url, { scroll: false });
+                      window.history.replaceState(null, "", url);
                     }}
                     className={`px-5 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
                       activeTab === tab.id
