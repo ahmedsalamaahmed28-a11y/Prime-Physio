@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Loader } from "@/components/Loader";
 import { Upload, ArrowRight, Check, X } from "lucide-react";
 import { getAppValue, setAppValue } from "@/lib/appStorage";
@@ -24,8 +25,27 @@ export default function CenterSetupPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { user } = useAuth();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const userEmail = user?.email || session?.user?.email || "";
+
+  // Auth guard
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#f8f9ff] to-white flex items-center justify-center" dir={isRtl ? "rtl" : "ltr"}>
+        <Loader size={24} color="#4F46BA" />
+      </div>
+    );
+  }
+  if (status === "unauthenticated") {
+    const target = typeof window !== "undefined" ? `/login?redirect=${encodeURIComponent(window.location.pathname)}` : "/login";
+    window.location.href = target;
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#f8f9ff] to-white flex items-center justify-center" dir={isRtl ? "rtl" : "ltr"}>
+        <Loader size={24} color="#4F46BA" />
+      </div>
+    );
+  }
 
   const [shortName, setShortName] = useState("");
   const [fullName, setFullName] = useState("");
