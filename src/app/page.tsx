@@ -32,7 +32,7 @@ export default async function RootPage() {
       .maybeSingle();
 
     if (!subscription) {
-      redirect("/setup");
+      redirect("/login/plans");
     }
 
     const { data: branch } = await admin
@@ -43,7 +43,7 @@ export default async function RootPage() {
       .maybeSingle();
 
     if (!branch) {
-      redirect("/setup");
+      redirect("/setup/center");
     }
   } catch {
     redirect("/home");
