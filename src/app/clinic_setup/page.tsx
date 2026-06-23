@@ -29,17 +29,21 @@ export default function CenterSetupPage() {
   const router = useRouter();
   const userEmail = user?.email || session?.user?.email || "";
 
-  // Auth guard
-  if (status === "loading") {
+  // Auth guard — supports both NextAuth (Google) and Supabase (email/password)
+  const isAuthenticated = status === "authenticated" || !!user;
+  const isAuthLoading = status === "loading";
+
+  if (isAuthLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#f8f9ff] to-white flex items-center justify-center" dir={isRtl ? "rtl" : "ltr"}>
         <Loader size={24} color="#4F46BA" />
       </div>
     );
   }
-  if (status === "unauthenticated") {
-    const target = typeof window !== "undefined" ? `/login?redirect=${encodeURIComponent(window.location.pathname)}` : "/login";
-    window.location.href = target;
+  if (!isAuthenticated) {
+    if (typeof window !== "undefined") {
+      window.location.href = `/login?redirect=${encodeURIComponent(window.location.pathname)}`;
+    }
     return (
       <div className="min-h-screen bg-gradient-to-b from-[#f8f9ff] to-white flex items-center justify-center" dir={isRtl ? "rtl" : "ltr"}>
         <Loader size={24} color="#4F46BA" />
