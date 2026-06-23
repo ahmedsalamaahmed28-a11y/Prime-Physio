@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
+import { useSession } from "next-auth/react";
 import { Loader } from "@/components/Loader";
 import { Upload, ArrowRight, Check, X } from "lucide-react";
 import { getAppValue, setAppValue } from "@/lib/appStorage";
@@ -23,6 +24,8 @@ export default function CenterSetupPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { user } = useAuth();
+  const { data: session } = useSession();
+  const userEmail = user?.email || session?.user?.email || "";
 
   const [shortName, setShortName] = useState("");
   const [fullName, setFullName] = useState("");
@@ -81,7 +84,7 @@ export default function CenterSetupPage() {
       return;
     }
 
-    if (!user?.email) {
+    if (!userEmail) {
       setError(isRtl ? "لم يتم تحميل بيانات المستخدم" : "User data not loaded");
       return;
     }
@@ -92,7 +95,7 @@ export default function CenterSetupPage() {
     if (logoFile) {
       const formData = new FormData();
       formData.append("file", logoFile);
-      formData.append("email", user.email);
+      formData.append("email", userEmail);
       try {
         const uploadRes = await fetch("/api/upload/logo", { method: "POST", body: formData });
         const uploadData = await uploadRes.json();
@@ -112,7 +115,7 @@ export default function CenterSetupPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: user.email,
+          email: userEmail,
           planId: pendingPlanId,
           shortName: shortName.trim(),
           fullName: fullName.trim(),
