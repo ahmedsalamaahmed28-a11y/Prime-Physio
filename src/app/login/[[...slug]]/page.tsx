@@ -293,7 +293,7 @@ function LoginContent({ initialTab }: { initialTab: string }) {
   // Auto-redirect to plan selection when clinic exists but no subscription
   useEffect(() => {
     if (!userDataLoading && userData?.hasClinic && !userData?.subscription && !isOnboarding && sessionStatus === "authenticated") {
-      window.location.href = "/login?onboard=1";
+      window.location.href = "/login/plans";
     }
   }, [userData, userDataLoading, isOnboarding, sessionStatus]);
 
@@ -880,7 +880,7 @@ function LoginContent({ initialTab }: { initialTab: string }) {
                           <p className="text-xs text-slate-400">
                             {isRtl ? "ليس لديك اشتراك نشط. اختر باقة للبدء." : "No active subscription. Choose a plan to start."}
                           </p>
-                          <button onClick={() => window.location.href = "/login?onboard=1"} className="mt-3 inline-block px-5 py-2 bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-medium rounded-xl text-xs border-0 cursor-pointer">
+                          <button onClick={() => window.location.href = "/login/plans"} className="mt-3 inline-block px-5 py-2 bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-medium rounded-xl text-xs border-0 cursor-pointer">
                             {isRtl ? "اختيار باقة" : "Choose Plan"}
                           </button>
                         </div>
