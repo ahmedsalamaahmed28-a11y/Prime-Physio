@@ -14,6 +14,17 @@ export default async function RootPage() {
   const email = session.user.email.toLowerCase().trim();
 
   try {
+    // Check if user is a platform admin first
+    const { data: platformAdmin } = await admin
+      .from("platform_admins")
+      .select("id")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (platformAdmin) {
+      redirect("/admin");
+    }
+
     const { data: staff } = await admin
       .from("staff")
       .select("clinic_id")

@@ -107,22 +107,13 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="flex justify-between space-y-3 flex-col md:flex-row md:space-x-4 md:space-y-0">
         {localizedStats.map((stat, i) => {
-          const Icon = stat.icon;
           return (
-            <Card key={i} className="shadow-sm border-slate-100 hover:shadow-lg transition-all duration-300 rounded-2xl group cursor-default">
-              <CardContent className="p-5 flex items-center justify-between">
-                <div className="space-y-1">
-                  <p className="text-xs font-semibold text-slate-500 group-hover:text-slate-700 transition-colors">{stat.title}</p>
-                  <p className="text-2xl font-bold text-slate-800 dark:text-white">{stat.value}</p>
-                  <p className="text-[10px] text-slate-400 font-medium">{stat.desc}</p>
-                </div>
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${stat.color} shadow-inner`}>
-                  <Icon className="w-6 h-6" />
-                </div>
-              </CardContent>
-            </Card>
+            <div key={i} className="p-5 rounded-xl w-full" style={{ backgroundColor: "#4F46BA" }}>
+              <p className="text-xs font-bold text-white opacity-50">{stat.title}</p>
+              <p className="text-lg font-semibold text-white mt-1">{stat.value}</p>
+            </div>
           );
         })}
       </div>

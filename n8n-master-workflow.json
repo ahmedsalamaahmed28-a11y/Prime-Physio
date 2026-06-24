@@ -1,0 +1,2279 @@
+{
+  "name": "Physio OS Enterprise - ALL 30 WORKFLOWS",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "physio-os-webhook",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        5000
+      ]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{$json.body.action}}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "create_clinic",
+              "outputKey": "0"
+            },
+            {
+              "value2": "create_lead",
+              "outputKey": "1"
+            },
+            {
+              "value2": "register_patient",
+              "outputKey": "2"
+            },
+            {
+              "value2": "book_appointment",
+              "outputKey": "3"
+            },
+            {
+              "value2": "add_to_waitlist",
+              "outputKey": "4"
+            },
+            {
+              "value2": "check_in_patient",
+              "outputKey": "5"
+            },
+            {
+              "value2": "save_assessment",
+              "outputKey": "6"
+            },
+            {
+              "value2": "save_treatment_plan",
+              "outputKey": "7"
+            },
+            {
+              "value2": "save_soap_note",
+              "outputKey": "8"
+            },
+            {
+              "value2": "update_progress",
+              "outputKey": "9"
+            },
+            {
+              "value2": "flag_patient_risk",
+              "outputKey": "10"
+            },
+            {
+              "value2": "save_discharge",
+              "outputKey": "11"
+            },
+            {
+              "value2": "generate_invoice",
+              "outputKey": "12"
+            },
+            {
+              "value2": "log_outstanding_recovery",
+              "outputKey": "13"
+            },
+            {
+              "value2": "save_insurance_claim",
+              "outputKey": "14"
+            },
+            {
+              "value2": "save_marketing_campaign",
+              "outputKey": "15"
+            },
+            {
+              "value2": "save_marketing_campaign",
+              "outputKey": "16"
+            },
+            {
+              "value2": "track_referral",
+              "outputKey": "17"
+            },
+            {
+              "value2": "save_daily_report",
+              "outputKey": "18"
+            },
+            {
+              "value2": "save_daily_report",
+              "outputKey": "19"
+            },
+            {
+              "value2": "save_hr_attendance",
+              "outputKey": "20"
+            },
+            {
+              "value2": "save_payroll_draft",
+              "outputKey": "21"
+            },
+            {
+              "value2": "save_daily_report",
+              "outputKey": "22"
+            },
+            {
+              "value2": "save_executive_report",
+              "outputKey": "23"
+            },
+            {
+              "value2": "save_executive_report",
+              "outputKey": "24"
+            },
+            {
+              "value2": "save_executive_report",
+              "outputKey": "25"
+            },
+            {
+              "value2": "log_audit_event",
+              "outputKey": "26"
+            },
+            {
+              "value2": "log_audit_event",
+              "outputKey": "27"
+            },
+            {
+              "value2": "log_audit_event",
+              "outputKey": "28"
+            },
+            {
+              "value2": "log_audit_event",
+              "outputKey": "29"
+            }
+          ]
+        }
+      },
+      "id": "main-router",
+      "name": "Switch (Router)",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [
+        300,
+        5000
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Supervisor Agent for Physio OS Enterprise. Execute workflow: Multi-Tenant Clinic Creation."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf01",
+      "name": "Multi-Tenant Clinic Creation (Supervisor Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"create_clinic\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf01",
+      "name": "Save Multi-Tenant Clinic Creation Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Reception Agent for Physio OS Enterprise. Execute workflow: Lead Capture."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf02",
+      "name": "Lead Capture (Reception Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"create_lead\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf02",
+      "name": "Save Lead Capture Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Reception Agent for Physio OS Enterprise. Execute workflow: Patient Registration."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf03",
+      "name": "Patient Registration (Reception Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"register_patient\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf03",
+      "name": "Save Patient Registration Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Reception Agent for Physio OS Enterprise. Execute workflow: Online Appointment Booking."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf04",
+      "name": "Online Appointment Booking (Reception Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"book_appointment\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf04",
+      "name": "Save Online Appointment Booking Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Reception Agent for Physio OS Enterprise. Execute workflow: Waiting List Engine."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf05",
+      "name": "Waiting List Engine (Reception Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"add_to_waitlist\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf05",
+      "name": "Save Waiting List Engine Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Reception Agent for Physio OS Enterprise. Execute workflow: Patient Check-in."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf06",
+      "name": "Patient Check-in (Reception Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        1500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"check_in_patient\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf06",
+      "name": "Save Patient Check-in Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        1500
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Clinical Agent for Physio OS Enterprise. Execute workflow: AI Assessment Assistant."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf07",
+      "name": "AI Assessment Assistant (Clinical Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        1800
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_assessment\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf07",
+      "name": "Save AI Assessment Assistant Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        1800
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Clinical Agent for Physio OS Enterprise. Execute workflow: AI Treatment Planner."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf08",
+      "name": "AI Treatment Planner (Clinical Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        2100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_treatment_plan\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf08",
+      "name": "Save AI Treatment Planner Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        2100
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Documentation Agent for Physio OS Enterprise. Execute workflow: Session Documentation."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf09",
+      "name": "Session Documentation (Documentation Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        2400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_soap_note\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf09",
+      "name": "Save Session Documentation Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        2400
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Clinical Agent for Physio OS Enterprise. Execute workflow: Progress Tracking."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf10",
+      "name": "Progress Tracking (Clinical Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        2700
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"update_progress\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf10",
+      "name": "Save Progress Tracking Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        2700
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Clinical Agent for Physio OS Enterprise. Execute workflow: Patient Risk Detection."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf11",
+      "name": "Patient Risk Detection (Clinical Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        3000
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"flag_patient_risk\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf11",
+      "name": "Save Patient Risk Detection Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        3000
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Documentation Agent for Physio OS Enterprise. Execute workflow: Discharge Automation."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf12",
+      "name": "Discharge Automation (Documentation Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        3300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_discharge\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf12",
+      "name": "Save Discharge Automation Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        3300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Billing Agent for Physio OS Enterprise. Execute workflow: Payment Collection."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf13",
+      "name": "Payment Collection (Billing Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        3600
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"generate_invoice\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf13",
+      "name": "Save Payment Collection Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        3600
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Billing Agent for Physio OS Enterprise. Execute workflow: Outstanding Balance Recovery."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf14",
+      "name": "Outstanding Balance Recovery (Billing Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        3900
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"log_outstanding_recovery\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf14",
+      "name": "Save Outstanding Balance Recovery Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        3900
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Billing Agent for Physio OS Enterprise. Execute workflow: Insurance Processing."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf15",
+      "name": "Insurance Processing (Billing Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        4200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_insurance_claim\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf15",
+      "name": "Save Insurance Processing Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        4200
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Marketing Agent for Physio OS Enterprise. Execute workflow: Patient Retention Engine."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf16",
+      "name": "Patient Retention Engine (Marketing Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        4500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_marketing_campaign\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf16",
+      "name": "Save Patient Retention Engine Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        4500
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Marketing Agent for Physio OS Enterprise. Execute workflow: Marketing Campaign Generator."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf17",
+      "name": "Marketing Campaign Generator (Marketing Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        4800
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_marketing_campaign\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf17",
+      "name": "Save Marketing Campaign Generator Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        4800
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Marketing Agent for Physio OS Enterprise. Execute workflow: Referral System."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf18",
+      "name": "Referral System (Marketing Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        5100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"track_referral\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf18",
+      "name": "Save Referral System Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        5100
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Analytics Agent for Physio OS Enterprise. Execute workflow: Therapist Performance Engine."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf19",
+      "name": "Therapist Performance Engine (Analytics Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        5400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_daily_report\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf19",
+      "name": "Save Therapist Performance Engine Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        5400
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Analytics Agent for Physio OS Enterprise. Execute workflow: Reception Performance Engine."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf20",
+      "name": "Reception Performance Engine (Analytics Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        5700
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_daily_report\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf20",
+      "name": "Save Reception Performance Engine Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        5700
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the HR Agent for Physio OS Enterprise. Execute workflow: HR Attendance System."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf21",
+      "name": "HR Attendance System (HR Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        6000
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_hr_attendance\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf21",
+      "name": "Save HR Attendance System Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        6000
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the HR Agent for Physio OS Enterprise. Execute workflow: Payroll Preparation."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf22",
+      "name": "Payroll Preparation (HR Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        6300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_payroll_draft\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf22",
+      "name": "Save Payroll Preparation Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        6300
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Analytics Agent for Physio OS Enterprise. Execute workflow: Daily Operations Report."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf23",
+      "name": "Daily Operations Report (Analytics Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        6600
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_daily_report\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf23",
+      "name": "Save Daily Operations Report Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        6600
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Analytics Agent for Physio OS Enterprise. Execute workflow: Executive Intelligence Report."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf24",
+      "name": "Executive Intelligence Report (Analytics Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        6900
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_executive_report\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf24",
+      "name": "Save Executive Intelligence Report Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        6900
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Analytics Agent for Physio OS Enterprise. Execute workflow: AI Business Consultant."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf25",
+      "name": "AI Business Consultant (Analytics Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        7200
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_executive_report\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf25",
+      "name": "Save AI Business Consultant Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        7200
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Analytics Agent for Physio OS Enterprise. Execute workflow: Multi-Branch Analytics."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf26",
+      "name": "Multi-Branch Analytics (Analytics Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        7500
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"save_executive_report\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf26",
+      "name": "Save Multi-Branch Analytics Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        7500
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Security Agent for Physio OS Enterprise. Execute workflow: Security Monitor."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf27",
+      "name": "Security Monitor (Security Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        7800
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"log_audit_event\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf27",
+      "name": "Save Security Monitor Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        7800
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Security Agent for Physio OS Enterprise. Execute workflow: Audit Log Engine."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf28",
+      "name": "Audit Log Engine (Security Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        8100
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"log_audit_event\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf28",
+      "name": "Save Audit Log Engine Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        8100
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Supervisor Agent for Physio OS Enterprise. Execute workflow: Automated Backup."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf29",
+      "name": "Automated Backup (Supervisor Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        8400
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"log_audit_event\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf29",
+      "name": "Save Automated Backup Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        8400
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4-turbo-preview",
+        "messages": {
+          "messages": [
+            {
+              "role": "system",
+              "content": "You are the Supervisor Agent for Physio OS Enterprise. Execute workflow: Disaster Recovery."
+            },
+            {
+              "role": "user",
+              "content": "={{ JSON.stringify($json.body.data) }}"
+            }
+          ]
+        }
+      },
+      "id": "agent-wf30",
+      "name": "Disaster Recovery (Supervisor Agent)",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        700,
+        8700
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://your-domain.com/api/n8n",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer prime_physio_n8n_secret_123"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"action\": \"log_audit_event\",\n  \"clinicId\": \"{{$('Webhook Trigger').item.json.body.clinicId}}\",\n  \"data\": { \"ai_response\": \"{{$json.message.content}}\" }\n}",
+        "options": {}
+      },
+      "id": "api-wf30",
+      "name": "Save Disaster Recovery Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1100,
+        8700
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch (Router)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch (Router)": {
+      "main": [
+        [
+          {
+            "node": "agent-wf01",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf02",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf03",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf04",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf05",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf06",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf07",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf08",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf09",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf10",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf11",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf12",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf13",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf14",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf15",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf16",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf17",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf18",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf19",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf20",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf21",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf22",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf23",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf24",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf25",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf26",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf27",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf28",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf29",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "agent-wf30",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf01": {
+      "main": [
+        [
+          {
+            "node": "api-wf01",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf02": {
+      "main": [
+        [
+          {
+            "node": "api-wf02",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf03": {
+      "main": [
+        [
+          {
+            "node": "api-wf03",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf04": {
+      "main": [
+        [
+          {
+            "node": "api-wf04",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf05": {
+      "main": [
+        [
+          {
+            "node": "api-wf05",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf06": {
+      "main": [
+        [
+          {
+            "node": "api-wf06",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf07": {
+      "main": [
+        [
+          {
+            "node": "api-wf07",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf08": {
+      "main": [
+        [
+          {
+            "node": "api-wf08",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf09": {
+      "main": [
+        [
+          {
+            "node": "api-wf09",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf10": {
+      "main": [
+        [
+          {
+            "node": "api-wf10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf11": {
+      "main": [
+        [
+          {
+            "node": "api-wf11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf12": {
+      "main": [
+        [
+          {
+            "node": "api-wf12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf13": {
+      "main": [
+        [
+          {
+            "node": "api-wf13",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf14": {
+      "main": [
+        [
+          {
+            "node": "api-wf14",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf15": {
+      "main": [
+        [
+          {
+            "node": "api-wf15",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf16": {
+      "main": [
+        [
+          {
+            "node": "api-wf16",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf17": {
+      "main": [
+        [
+          {
+            "node": "api-wf17",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf18": {
+      "main": [
+        [
+          {
+            "node": "api-wf18",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf19": {
+      "main": [
+        [
+          {
+            "node": "api-wf19",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf20": {
+      "main": [
+        [
+          {
+            "node": "api-wf20",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf21": {
+      "main": [
+        [
+          {
+            "node": "api-wf21",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf22": {
+      "main": [
+        [
+          {
+            "node": "api-wf22",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf23": {
+      "main": [
+        [
+          {
+            "node": "api-wf23",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf24": {
+      "main": [
+        [
+          {
+            "node": "api-wf24",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf25": {
+      "main": [
+        [
+          {
+            "node": "api-wf25",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf26": {
+      "main": [
+        [
+          {
+            "node": "api-wf26",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf27": {
+      "main": [
+        [
+          {
+            "node": "api-wf27",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf28": {
+      "main": [
+        [
+          {
+            "node": "api-wf28",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf29": {
+      "main": [
+        [
+          {
+            "node": "api-wf29",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "agent-wf30": {
+      "main": [
+        [
+          {
+            "node": "api-wf30",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

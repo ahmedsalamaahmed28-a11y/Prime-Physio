@@ -74,16 +74,14 @@ function AppointmentCard({ appt, onClick, isRtl }: { appt: Appointment; onClick:
 
 function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; label: string; value: string | number; sub?: string; color: string }) {
   return (
-    <Card className={`border-0 ${color}`}>
-      <CardContent className="p-4 flex items-start gap-3">
-        <span className="text-2xl">{icon}</span>
-        <div>
-          <p className="text-xs text-muted-foreground">{label}</p>
-          <p className="text-2xl font-bold">{value}</p>
-          {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="p-5 rounded-xl w-full" style={{ backgroundColor: "#4F46BA" }}>
+      <p className="text-xs font-bold text-white opacity-50">{label}</p>
+      <div className="flex items-center gap-2 mt-1">
+        <span className="text-white opacity-80 text-xl">{icon}</span>
+        <p className="text-lg font-semibold text-white">{value}</p>
+      </div>
+      {sub && <p className="text-[10px] text-white opacity-40 mt-1">{sub}</p>}
+    </div>
   );
 }
 

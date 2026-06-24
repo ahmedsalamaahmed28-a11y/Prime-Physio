@@ -83,34 +83,28 @@ export default function AdminPage() {
         </div>
 
         {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-500 mb-1">إجمالي العيادات</p>
-                <h3 className="text-2xl font-extrabold text-slate-800">{stats.totalClinics}</h3>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-[#4F46BA]/10 flex items-center justify-center">
-                <Building className="w-6 h-6 text-[#4F46BA]" />
+          <div className="flex justify-between space-y-3 mb-6 flex-col md:flex-row md:space-x-4 md:space-y-0 gap-4">
+            <div className="p-5 rounded-xl w-full" style={{ backgroundColor: "#4F46BA" }}>
+              <p className="text-xs font-bold text-white opacity-50">إجمالي العيادات</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-white opacity-80 text-xl"><Building className="w-6 h-6" /></span>
+                <p className="text-lg font-semibold text-white">{stats.totalClinics}</p>
               </div>
             </div>
             
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-500 mb-1">إجمالي الأطباء والموظفين</p>
-                <h3 className="text-2xl font-extrabold text-slate-800">{stats.totalStaff}</h3>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center">
-                <Users className="w-6 h-6 text-emerald-600" />
+            <div className="p-5 rounded-xl w-full" style={{ backgroundColor: "#4F46BA" }}>
+              <p className="text-xs font-bold text-white opacity-50">إجمالي الأطباء والموظفين</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-white opacity-80 text-xl"><Users className="w-6 h-6" /></span>
+                <p className="text-lg font-semibold text-white">{stats.totalStaff}</p>
               </div>
             </div>
 
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="text-xs font-bold text-slate-500 mb-1">إجمالي المرضى المستفيدين</p>
-                <h3 className="text-2xl font-extrabold text-slate-800">{stats.totalPatients}</h3>
-              </div>
-              <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-blue-600" />
+            <div className="p-5 rounded-xl w-full" style={{ backgroundColor: "#4F46BA" }}>
+              <p className="text-xs font-bold text-white opacity-50">إجمالي المرضى المستفيدين</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-white opacity-80 text-xl"><CheckCircle className="w-6 h-6" /></span>
+                <p className="text-lg font-semibold text-white">{stats.totalPatients}</p>
               </div>
             </div>
           </div>
