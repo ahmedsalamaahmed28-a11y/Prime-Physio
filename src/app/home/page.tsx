@@ -101,7 +101,7 @@ export default function HomePage() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex justify-between items-center mb-8 flex-col sm:flex-row gap-4 sm:gap-0">
           <div>
             <h1 className="text-xl font-bold text-gray-800">
               {isRtl ? "مرحباً بعودتك!" : "Welcome back!"}
@@ -109,6 +109,16 @@ export default function HomePage() {
             <p className="text-sm text-zinc-500 font-semibold mt-1">
               {isRtl ? "نظرة عامة على نشاط العيادة اليوم" : "Clinic activity overview"}
             </p>
+          </div>
+          <div className="flex gap-3 w-full sm:w-auto">
+            <Link href="/calendar" className="flex-1 sm:flex-none flex justify-center items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              {isRtl ? "التقويم" : "Calendar"}
+            </Link>
+            <Link href="/patients" className="flex-1 sm:flex-none flex justify-center items-center gap-2 px-4 py-2 bg-[#4F46BA] text-white rounded-lg text-sm font-semibold hover:bg-[#433aa3] transition-colors shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              {isRtl ? "سجل المرضى" : "Patients"}
+            </Link>
           </div>
         </div>
 
