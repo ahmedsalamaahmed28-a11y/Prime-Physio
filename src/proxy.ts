@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const AUTH_ROUTES = ["/login", "/signup", "/setup", "/plans", "/clinic_setup"];
+const AUTH_ROUTES = ["/login", "/signup", "/setup", "/plans", "/center_setup"];
 const PUBLIC_PATHS = ["/_next/", "/api/auth/", "/favicon.ico", "/icon.png", "/logo.png", "/robots.txt", "/sitemap.xml", "/manifest.json"];
 
 const SUPABASE_PROJECT_REF = "crrhrjhftwostjomzmfj";

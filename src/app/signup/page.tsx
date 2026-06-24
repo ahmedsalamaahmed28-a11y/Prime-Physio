@@ -51,6 +51,7 @@ function SignupPageContent() {
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const isGoogleFlow = searchParams?.get("google") === "1";
+  const paymentSuccess = searchParams?.get("payment") === "success";
 
   useEffect(() => {
     if (isGoogleFlow && session?.user) {

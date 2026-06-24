@@ -275,12 +275,12 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     if (!isAuthLoading) {
       if (!pathname) return;
       // Allow unauthenticated access to /[slug] branded login pages
-      const knownPages = new Set(["home","admin","setup","login","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","clinic_setup"]);
+      const knownPages = new Set(["home","admin","setup","login","manage","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup"]);
       const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname) && !knownPages.has(pathname.replace("/", ""));
       if (isSlugPage) return;
       if (pathname.startsWith("/setup")) return;
       if (pathname === "/plans") return;
-      if (pathname === "/clinic_setup") return;
+      if (pathname === "/center_setup") return;
       if (!user && status !== "authenticated") {
         if (!pathname.startsWith("/login") && pathname !== "/signup") {
           window.location.href = "/login";
@@ -290,9 +290,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       if (pathname === "/signup") return;
       if (pathname.startsWith("/login")) return;
       if (user?.clinicId === undefined && user?.email && !isEnriching) {
-        const setupPaths = ["/login", "/signup", "/setup", "/setup/center", "/plans", "/clinic_setup"];
+        const setupPaths = ["/manage", "/signup", "/setup", "/setup/center", "/plans", "/center_setup"];
         if (!setupPaths.includes(pathname)) {
-          window.location.href = "/clinic_setup";
+          window.location.href = "/center_setup";
         }
       }
     }

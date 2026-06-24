@@ -87,6 +87,14 @@ export async function POST(req: NextRequest) {
       });
     } catch {}
 
+    // 5. Update any pending subscriptions for this email
+    try {
+      await admin.from("subscriptions")
+        .update({ clinic_id: clinicId })
+        .eq("user_email", email.toLowerCase().trim())
+        .is("clinic_id", null);
+    } catch {}
+
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[Signup] Error:", err);
