@@ -4,11 +4,13 @@ import React from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/auth";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const { language, toggleLanguage } = useLanguage();
   const isRtl = language === "ar";
   const pathname = usePathname();
+  const { user } = useAuth();
 
   const TABS = [
     { id: "centers", path: "/centers", labelAr: "المراكز", labelEn: "Centers" },
@@ -46,7 +48,15 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
                 );
               })}
             </div>
-            <div className="absolute left-4 sm:left-8 top-4">
+            <div className="absolute left-4 sm:left-8 top-4 flex items-center gap-2">
+              {user && (
+                <Link
+                  href="/logout"
+                  className="px-3 py-1.5 rounded-lg text-xs font-medium border border-red-200 text-red-500 hover:text-white hover:bg-red-500 hover:border-red-500 transition-all duration-200"
+                >
+                  {isRtl ? "تسجيل الخروج" : "Logout"}
+                </Link>
+              )}
               <button
                 onClick={toggleLanguage}
                 className="px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 text-slate-500 hover:text-[#4F46BA] hover:border-[#4F46BA]/30 transition-all duration-200"
