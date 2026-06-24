@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { BarChart3, TrendingUp, Users, DollarSign, Calendar, Activity, CheckCircle2, Minus, Cpu, Sparkles, FileText } from "lucide-react";
+import { BarChart3, TrendingUp, Users, DollarSign, Calendar, Activity, CheckCircle2, Minus, Sparkles, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
@@ -218,7 +218,7 @@ export default function AnalyticsPage() {
       <div className="pt-6">
         <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-4">
           <div className="bg-emerald-50 p-1.5 rounded-lg">
-            <Cpu className="w-5 h-5 text-emerald-600" />
+            <Activity className="w-5 h-5 text-emerald-600" />
           </div>
           {isRtl ? "مستشار الإدارة الذكي (AI Consultant)" : "AI Executive Consultant"}
         </h2>

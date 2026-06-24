@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Building, Clock, DollarSign, FileText, Cpu, CheckCircle2 } from "lucide-react";
+import { Building, Clock, DollarSign, FileText, Activity, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
@@ -67,7 +67,7 @@ export default function HRPage() {
               <div className="p-4 text-center text-xs text-slate-500">{isRtl ? "جاري التحميل..." : "Loading..."}</div>
             ) : attendances.length === 0 ? (
               <div className="p-8 text-center text-xs text-slate-500 flex flex-col items-center gap-2">
-                <Cpu className="w-8 h-8 text-slate-300" />
+                <Activity className="w-8 h-8 text-slate-300" />
                 {isRtl ? "لا توجد سجلات حضور بعد. سيقوم AI بتسجيلها قريباً." : "No attendance records yet. AI will log them soon."}
               </div>
             ) : (
@@ -112,7 +112,7 @@ export default function HRPage() {
               <div className="p-4 text-center text-xs text-slate-500">{isRtl ? "جاري التحميل..." : "Loading..."}</div>
             ) : payrolls.length === 0 ? (
               <div className="p-8 text-center text-xs text-slate-500 flex flex-col items-center gap-2">
-                <Cpu className="w-8 h-8 text-slate-300" />
+                <Activity className="w-8 h-8 text-slate-300" />
                 {isRtl ? "لم يقم الوكيل المالي بمعالجة الرواتب لهذا الشهر بعد." : "Financial agent hasn't processed payrolls for this month yet."}
               </div>
             ) : (
