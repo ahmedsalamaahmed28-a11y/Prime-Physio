@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -346,26 +346,13 @@ export default function BillingPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="flex justify-between space-y-3 mb-8 flex-col md:flex-row md:space-x-4 md:space-y-0">
         {dynamicStats.map((stat) => {
-          const Icon = stat.icon;
           return (
-            <Card key={stat.title} className="shadow-xs hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                    <p className="text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</p>
-                  </div>
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
-                    <Icon className="w-6 h-6" />
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground mt-4">
-                  {stat.description}
-                </div>
-              </CardContent>
-            </Card>
+            <div key={stat.title} className="p-5 rounded-xl w-full" style={{ backgroundColor: "#4F46BA" }}>
+              <p className="text-xs font-bold text-white opacity-50">{stat.title}</p>
+              <p className="text-lg font-semibold text-white mt-1">{stat.value}</p>
+            </div>
           );
         })}
       </div>
