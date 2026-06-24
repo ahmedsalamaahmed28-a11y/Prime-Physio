@@ -66,6 +66,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { nameKey: "nav_patients", href: "/patients", icon: Users },
   { nameKey: "nav_billing", href: "/billing", icon: CreditCard },
   { nameKey: "nav_staff", href: "/staff", icon: Stethoscope },
+  { nameKey: "nav_hr", href: "/hr", icon: Building },
   { nameKey: "nav_analytics", href: "/analytics", icon: BarChart3 },
   { nameKey: "nav_nutrition", href: "/clinical-nutrition", icon: Apple },
   { nameKey: "nav_library", href: "/clinical-library", icon: BookOpen },

@@ -159,6 +159,311 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: true, message: "Appointment booked successfully", patientId, appointmentId: apptId });
       }
 
+      case 'create_lead': {
+        const { name, phone, source } = data || {};
+        if (!name || !phone) return NextResponse.json({ error: "name and phone required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('leads').insert({
+          clinic_id: clinicId,
+          name: name,
+          phone: phone,
+          source: source || 'unknown',
+          status: 'new',
+          score: 0
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Lead created" });
+      }
+
+      case 'register_patient': {
+        const { name, phone } = data || {};
+        if (!name || !phone) return NextResponse.json({ error: "name and phone required" }, { status: 400 });
+        const patientId = `P-${Date.now()}`;
+        const mrn = `MRN-${Math.floor(Math.random() * 1000000)}`;
+        
+        const { error } = await supabaseAdmin.from('patients').insert({
+          id: patientId,
+          clinic_id: clinicId,
+          nameAr: name,
+          phone: phone,
+          status: "نشط",
+          sessionsUsed: 0,
+          mrn: mrn
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Patient registered", patientId, mrn });
+      }
+
+      case 'add_to_waitlist': {
+        const { patientId, requestedDate } = data || {};
+        if (!patientId || !requestedDate) return NextResponse.json({ error: "patientId and requestedDate required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('waitlist').insert({
+          clinic_id: clinicId,
+          patient_id: patientId,
+          requested_date: requestedDate,
+          status: 'waiting'
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Added to waitlist" });
+      }
+
+      case 'get_waitlist': {
+        const { data: waitlist, error } = await supabaseAdmin
+          .from('waitlist')
+          .select('*')
+          .eq('clinic_id', clinicId)
+          .eq('status', 'waiting');
+        if (error) throw error;
+        return NextResponse.json({ success: true, data: waitlist });
+      }
+
+      case 'check_in_patient': {
+        const { appointmentId } = data || {};
+        if (!appointmentId) return NextResponse.json({ error: "appointmentId required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('appointments')
+          .update({ status: 'تم الحضور' })
+          .eq('id', appointmentId)
+          .eq('clinic_id', clinicId);
+          
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Patient checked in" });
+      }
+
+      case 'save_assessment': {
+        const { patientId, appointmentId, symptoms, rom, strength, specialTests, potentialDiagnoses, redFlags, clinicalSummary } = data || {};
+        if (!patientId) return NextResponse.json({ error: "patientId required" }, { status: 400 });
+        
+        const { error, data: inserted } = await supabaseAdmin.from('assessments').insert({
+          clinic_id: clinicId,
+          patient_id: patientId,
+          appointment_id: appointmentId,
+          symptoms, rom, strength, special_tests: specialTests,
+          potential_diagnoses: potentialDiagnoses, red_flags: redFlags,
+          clinical_summary: clinicalSummary
+        }).select('id').single();
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Assessment saved", assessmentId: inserted.id });
+      }
+
+      case 'save_treatment_plan': {
+        const { patientId, assessmentId, goals, sessionPlan, frequency, duration, homeProgram } = data || {};
+        if (!patientId) return NextResponse.json({ error: "patientId required" }, { status: 400 });
+        
+        const { error, data: inserted } = await supabaseAdmin.from('treatment_plans').insert({
+          clinic_id: clinicId,
+          patient_id: patientId,
+          assessment_id: assessmentId,
+          goals, session_plan: sessionPlan, frequency, duration, home_program: homeProgram
+        }).select('id').single();
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Treatment plan saved", planId: inserted.id });
+      }
+
+      case 'save_soap_note': {
+        const { patientId, appointmentId, subjective, objective, assessment, plan, sessionSummary } = data || {};
+        if (!patientId) return NextResponse.json({ error: "patientId required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('soap_notes').insert({
+          clinic_id: clinicId,
+          patient_id: patientId,
+          appointment_id: appointmentId,
+          subjective, objective, assessment, plan, session_summary: sessionSummary
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "SOAP note saved" });
+      }
+
+      case 'update_progress': {
+        const { patientId, painLevel, romStatus, strengthStatus, recoveryScore, notes } = data || {};
+        if (!patientId) return NextResponse.json({ error: "patientId required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('progress_tracking').insert({
+          clinic_id: clinicId,
+          patient_id: patientId,
+          pain_level: painLevel, rom_status: romStatus, strength_status: strengthStatus,
+          recovery_score: recoveryScore, notes
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Progress updated" });
+      }
+
+      case 'flag_patient_risk': {
+        const { patientId, riskType, severity, description } = data || {};
+        if (!patientId || !riskType) return NextResponse.json({ error: "patientId and riskType required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('patient_risks').insert({
+          clinic_id: clinicId,
+          patient_id: patientId,
+          risk_type: riskType, severity, description
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Patient risk flagged" });
+      }
+
+      case 'save_discharge': {
+        const { patientId, treatmentPlanId, dischargeReport, exercisePackage, followUpSchedule } = data || {};
+        if (!patientId) return NextResponse.json({ error: "patientId required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('discharges').insert({
+          clinic_id: clinicId,
+          patient_id: patientId,
+          treatment_plan_id: treatmentPlanId,
+          discharge_report: dischargeReport,
+          exercise_package: exercisePackage,
+          follow_up_schedule: followUpSchedule
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Discharge record saved" });
+      }
+
+      case 'generate_invoice': {
+        const { patientId, appointmentId, amount, status, paymentMethod, dueDate } = data || {};
+        if (!patientId || amount === undefined) return NextResponse.json({ error: "patientId and amount required" }, { status: 400 });
+        
+        const { error, data: inserted } = await supabaseAdmin.from('invoices').insert({
+          clinic_id: clinicId,
+          patient_id: patientId,
+          appointment_id: appointmentId,
+          amount, status, payment_method: paymentMethod, due_date: dueDate
+        }).select('id').single();
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Invoice generated", invoiceId: inserted.id });
+      }
+
+      case 'log_outstanding_recovery': {
+        const { invoiceId, patientId, reminderType, escalationLevel, messageSent } = data || {};
+        if (!invoiceId || !patientId) return NextResponse.json({ error: "invoiceId and patientId required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('recovery_logs').insert({
+          clinic_id: clinicId,
+          invoice_id: invoiceId,
+          patient_id: patientId,
+          reminder_type: reminderType,
+          escalation_level: escalationLevel,
+          message_sent: messageSent
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Recovery log saved" });
+      }
+
+      case 'save_insurance_claim': {
+        const { patientId, invoiceId, provider, claimAmount, status, notes } = data || {};
+        if (!patientId || !provider || claimAmount === undefined) return NextResponse.json({ error: "patientId, provider, and claimAmount required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('insurance_claims').insert({
+          clinic_id: clinicId,
+          patient_id: patientId,
+          invoice_id: invoiceId,
+          provider, claim_amount: claimAmount, status, notes
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Insurance claim saved" });
+      }
+
+      case 'save_marketing_campaign': {
+        const { campaignName, campaignType, targetAudience, messageCopy } = data || {};
+        if (!campaignName) return NextResponse.json({ error: "campaignName required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('marketing_campaigns').insert({
+          clinic_id: clinicId,
+          campaign_name: campaignName,
+          campaign_type: campaignType,
+          target_audience: targetAudience,
+          message_copy: messageCopy
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Marketing campaign saved" });
+      }
+
+      case 'track_referral': {
+        const { referrerId, referredPatientId, rewardType } = data || {};
+        if (!referrerId) return NextResponse.json({ error: "referrerId required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('referrals').insert({
+          clinic_id: clinicId,
+          referrer_id: referrerId,
+          referred_patient_id: referredPatientId,
+          reward_type: rewardType
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Referral tracked" });
+      }
+
+      case 'save_hr_attendance': {
+        const { staffId, date, clockIn, clockOut, overtimeHours, status } = data || {};
+        if (!staffId) return NextResponse.json({ error: "staffId required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('hr_attendance').insert({
+          clinic_id: clinicId,
+          staff_id: staffId,
+          date, clock_in: clockIn, clock_out: clockOut,
+          overtime_hours: overtimeHours, status
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "HR attendance logged" });
+      }
+
+      case 'save_payroll_draft': {
+        const { staffId, monthYear, baseSalary, commissions, bonuses, deductions } = data || {};
+        if (!staffId || !monthYear) return NextResponse.json({ error: "staffId and monthYear required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('payroll_drafts').insert({
+          clinic_id: clinicId,
+          staff_id: staffId,
+          month_year: monthYear,
+          base_salary: baseSalary, commissions, bonuses, deductions
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Payroll draft saved" });
+      }
+
+      case 'save_daily_report': {
+        const { reportDate, totalRevenue, attendanceCount, newPatients, missedVisits } = data || {};
+        
+        const { error } = await supabaseAdmin.from('daily_reports').insert({
+          clinic_id: clinicId,
+          report_date: reportDate,
+          total_revenue: totalRevenue,
+          attendance_count: attendanceCount,
+          new_patients: newPatients,
+          missed_visits: missedVisits
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Daily report saved" });
+      }
+
+      case 'save_executive_report': {
+        const { reportMonth, revenueForecast, growthForecast, capacityForecast, aiConsultantNotes } = data || {};
+        if (!reportMonth) return NextResponse.json({ error: "reportMonth required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('executive_reports').insert({
+          clinic_id: clinicId,
+          report_month: reportMonth,
+          revenue_forecast: revenueForecast,
+          growth_forecast: growthForecast,
+          capacity_forecast: capacityForecast,
+          ai_consultant_notes: aiConsultantNotes
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Executive report saved" });
+      }
+
+      case 'log_audit_event': {
+        const { userEmail, actionEvent, resource, metadata, ipAddress } = data || {};
+        if (!userEmail || !actionEvent || !resource) return NextResponse.json({ error: "userEmail, actionEvent, and resource required" }, { status: 400 });
+        
+        const { error } = await supabaseAdmin.from('audit_logs').insert({
+          clinic_id: clinicId,
+          user_email: userEmail,
+          action: actionEvent,
+          resource, metadata, ip_address: ipAddress
+        });
+        if (error) throw error;
+        return NextResponse.json({ success: true, message: "Audit event logged" });
+      }
+
       default:
         return NextResponse.json({ error: "Unknown action" }, { status: 400 });
     }
