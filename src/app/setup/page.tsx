@@ -6,6 +6,8 @@ import { useAuth } from "@/lib/auth";
 import { Loader } from "@/components/Loader";
 import OnboardingFlow from "@/components/OnboardingFlow";
 
+import PublicLayout from "@/components/PublicLayout";
+
 export default function SetupPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
@@ -47,16 +49,10 @@ export default function SetupPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#f8f9ff] to-white" dir={isRtl ? "rtl" : "ltr"}>
-      <nav className="border-b border-slate-100 bg-white/80 backdrop-blur">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-2">
-          <img src="/logo.png" alt="Prime Physio" className="w-7 h-7 object-contain" />
-          <span className="text-sm font-bold text-[#4F46BA]">Prime Physio</span>
-        </div>
-      </nav>
-      <main className="px-4 py-8 sm:py-12">
+    <PublicLayout>
+      <div className="px-4 py-8 sm:py-12">
         <OnboardingFlow step={step} setStep={setStep} clinicId={user?.clinicId || null} isRtl={isRtl} sessionEmail={session?.user?.email || ""} sessionName={session?.user?.name || ""} />
-      </main>
-    </div>
+      </div>
+    </PublicLayout>
   );
 }
