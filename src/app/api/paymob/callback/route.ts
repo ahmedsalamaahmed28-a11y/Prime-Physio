@@ -126,7 +126,7 @@ export async function GET(req: NextRequest) {
 
     // If clinic has no branch yet → send to center setup; otherwise → home
     const hasBranch = await checkClinicHasBranch(clinicId);
-    const redirectPath = hasBranch ? "/home" : "/center_setup";
+    const redirectPath = hasBranch ? "/home" : "/setup?step=clinic";
     return NextResponse.redirect(`${base}${redirectPath}`);
   } else {
     return NextResponse.redirect(

@@ -57,7 +57,7 @@ export default async function RootPage() {
       .maybeSingle();
 
     if (!branch) {
-      redirect("/center_setup");
+      redirect("/setup?step=clinic");
     }
   } catch {
     redirect("/home");

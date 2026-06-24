@@ -124,8 +124,8 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
         console.log("[OnboardingFlow] /api/subscribe response", { ok: res.ok, data });
         if (!res.ok) throw new Error(data.error || "فشل تفعيل الخطة")
         if (data.clinicId) setResolvedClinicId(data.clinicId)
-        console.log("[OnboardingFlow] Redirecting to /center_setup");
-        window.location.href = "/center_setup"
+        console.log("[OnboardingFlow] Redirecting to /setup?step=clinic");
+        window.location.href = "/setup?step=clinic"
       } catch (e: any) {
         console.error("[OnboardingFlow] Subscribe error:", e?.message);
         setError(e?.message || "حدث خطأ")

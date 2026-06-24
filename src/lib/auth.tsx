@@ -292,7 +292,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       if (user?.clinicId === undefined && user?.email && !isEnriching) {
         const setupPaths = ["/manage", "/signup", "/setup", "/setup/center", "/plans", "/center_setup"];
         if (!setupPaths.includes(pathname)) {
-          window.location.href = "/center_setup";
+          window.location.href = "/setup?step=clinic";
         }
       }
     }

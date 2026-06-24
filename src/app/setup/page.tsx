@@ -55,7 +55,7 @@ export default function SetupPage() {
         </div>
       </nav>
       <main className="px-4 py-8 sm:py-12">
-        <OnboardingFlow step={step} setStep={setStep} clinicId={null} isRtl={isRtl} sessionEmail={session?.user?.email || ""} sessionName={session?.user?.name || ""} />
+        <OnboardingFlow step={step} setStep={setStep} clinicId={user?.clinicId || null} isRtl={isRtl} sessionEmail={session?.user?.email || ""} sessionName={session?.user?.name || ""} />
       </main>
     </div>
   );
