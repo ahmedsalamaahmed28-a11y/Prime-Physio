@@ -13,7 +13,7 @@ export default function NewCenterPage() {
   return (
     <div className="min-h-screen bg-neutral-100" dir={isRtl ? "rtl" : "ltr"}>
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <OnboardingFlow step={step} setStep={setStep} clinicId={user?.clinicId || null} isRtl={isRtl} sessionEmail={user?.email || ""} sessionName={user?.name || ""} />
+        <OnboardingFlow step={step} setStep={setStep} clinicId={user?.clinicId || null} isRtl={isRtl} sessionEmail={user?.email || ""} sessionName={user?.name || ""} hidePlanStep={true} />
       </div>
     </div>
   );

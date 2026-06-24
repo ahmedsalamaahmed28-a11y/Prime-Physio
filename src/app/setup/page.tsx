@@ -13,9 +13,7 @@ export default function SetupPage() {
   const isRtl = language === "ar";
   const { data: session, status } = useSession();
   const { user, isLoading: authLoading } = useAuth();
-  const [step, setStep] = useState<"plan" | "clinic" | "done">(
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("step") === "clinic" ? "clinic" : "plan"
-  );
+  const [step, setStep] = useState<"plan" | "clinic" | "done">("plan");
   const redirectDone = useRef(false);
 
   const isAuthenticated = status === "authenticated" || !!user;

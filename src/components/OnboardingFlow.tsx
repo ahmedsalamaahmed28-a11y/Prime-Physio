@@ -54,9 +54,10 @@ interface Props {
   isRtl: boolean
   sessionEmail?: string
   sessionName?: string
+  hidePlanStep?: boolean
 }
 
-export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, isRtl, sessionEmail = "", sessionName = "" }: Props) {
+export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, isRtl, sessionEmail = "", sessionName = "", hidePlanStep = false }: Props) {
   const { user } = useAuth()
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [isActivating, setIsActivating] = useState(false)
@@ -315,11 +316,11 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
       {/* Steps indicator */}
       <div className="flex items-center justify-center gap-2 mb-8">
         {[
-          { label: isRtl ? "اختر الباقة" : "Choose Plan", key: "plan" },
+          ...(!hidePlanStep ? [{ label: isRtl ? "اختر الباقة" : "Choose Plan", key: "plan" }] : []),
           { label: isRtl ? "بيانات المركز" : "Clinic Info", key: "clinic" },
           { label: isRtl ? "تم" : "Done", key: "done" },
         ].map((s, i) => {
-          const stepOrder = ["plan", "clinic", "done"]
+          const stepOrder = hidePlanStep ? ["clinic", "done"] : ["plan", "clinic", "done"]
           const currentIdx = stepOrder.indexOf(step)
           const idx = stepOrder.indexOf(s.key)
           const isActive = idx === currentIdx
