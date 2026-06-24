@@ -11,7 +11,7 @@ export default function SetupCenterPage() {
   const isRtl = language === "ar";
   const { data: session, status } = useSession();
   const { user } = useAuth();
-  const [step, setStep] = useState<"plan" | "clinic" | "done">("clinic");
+  const [step, setStep] = useState<"plan" | "clinic" | "done">("plan");
   const redirectDone = useRef(false);
 
   useEffect(() => {

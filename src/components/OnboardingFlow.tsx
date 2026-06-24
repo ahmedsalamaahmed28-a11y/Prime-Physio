@@ -100,34 +100,54 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
   const [payError, setPayError] = useState("")
   const [payLoading, setPayLoading] = useState(false)
 
+  const ensureClinicId = async (): Promise<string | null> => {
+    if (clinicId) return clinicId;
+    try {
+      const res = await fetch("/api/auth/auto-provision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: sessionEmail, name: sessionName || "Clinic Admin" }),
+      });
+      const data = await res.json();
+      if (res.ok && data.clinicId) {
+        setResolvedClinicId(data.clinicId);
+        return data.clinicId;
+      }
+    } catch (e) {
+      console.error("Auto provision failed", e);
+    }
+    return null;
+  };
+
   const handleSelectPlan = async (planId: string) => {
-    console.log("[OnboardingFlow] handleSelectPlan called", { planId, clinicId, email: user?.email || sessionEmail, name: user?.name || sessionName });
     setSelectedPlan(planId)
     setError("")
+
+    let currentClinicId = await ensureClinicId();
+    if (!currentClinicId) {
+      setError(isRtl ? "حدث خطأ أثناء تحميل بيانات العيادة" : "Failed to load clinic data");
+      return;
+    }
 
     if (planId === "basic") {
       setIsActivating(true)
       try {
         const body = {
-          clinicId,
+          clinicId: currentClinicId,
           planId,
           email: user?.email || sessionEmail || "",
           name: user?.name || sessionName || "Clinic Admin",
         };
-        console.log("[OnboardingFlow] Calling /api/subscribe with", body);
         const res = await fetch("/api/subscribe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         })
         const data = await res.json()
-        console.log("[OnboardingFlow] /api/subscribe response", { ok: res.ok, data });
         if (!res.ok) throw new Error(data.error || "فشل تفعيل الخطة")
         if (data.clinicId) setResolvedClinicId(data.clinicId)
-        console.log("[OnboardingFlow] Redirecting to /setup?step=clinic");
-        window.location.href = "/setup?step=clinic"
+        setStep("clinic")
       } catch (e: any) {
-        console.error("[OnboardingFlow] Subscribe error:", e?.message);
         setError(e?.message || "حدث خطأ")
       } finally {
         setIsActivating(false)
@@ -139,7 +159,14 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!selectedPlan || !clinicId) return
+    if (!selectedPlan) return
+    
+    let currentClinicId = await ensureClinicId();
+    if (!currentClinicId) {
+      setPayError(isRtl ? "حدث خطأ أثناء تحميل بيانات العيادة" : "Failed to load clinic data");
+      return;
+    }
+
     setPayLoading(true)
     setPayError("")
     try {
@@ -210,7 +237,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
       if (center.logoFile) {
         const formData = new FormData()
         formData.append("file", center.logoFile)
-        formData.append("clinicId", clinicId)
+        formData.append("clinicId", resolvedClinicId || "")
         try {
           const uploadRes = await fetch("/api/upload/logo", { method: "POST", body: formData })
           const uploadData = await uploadRes.json()
@@ -288,10 +315,11 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
       {/* Steps indicator */}
       <div className="flex items-center justify-center gap-2 mb-8">
         {[
+          { label: isRtl ? "اختر الباقة" : "Choose Plan", key: "plan" },
           { label: isRtl ? "بيانات المركز" : "Clinic Info", key: "clinic" },
           { label: isRtl ? "تم" : "Done", key: "done" },
         ].map((s, i) => {
-          const stepOrder = ["clinic", "done"]
+          const stepOrder = ["plan", "clinic", "done"]
           const currentIdx = stepOrder.indexOf(step)
           const idx = stepOrder.indexOf(s.key)
           const isActive = idx === currentIdx
