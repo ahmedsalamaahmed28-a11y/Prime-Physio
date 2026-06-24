@@ -11,7 +11,7 @@ import OnboardingFlow from "@/components/OnboardingFlow";
 import PublicLayout from "@/components/PublicLayout";
 
 import { cn } from "@/lib/utils"
-import { GradientCheckbox as CustomCheckbox } from "@/components/ui/checkbox"
+import { GradientCheckbox } from "@/components/ui/checkbox"
 
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
@@ -313,9 +313,9 @@ function ManageContent() {
 
                     <div className="flex items-center justify-between pt-1">
                       <div className="flex items-center gap-2">
-                        <CustomCheckbox
-                          id="remember-me"
-                          checked={rememberMe}
+                        <GradientCheckbox 
+                          id="remember-me" 
+                          checked={rememberMe} 
                           onChange={() => setRememberMe(!rememberMe)}
                           className="!h-[18px] !w-[18px]"
                         />

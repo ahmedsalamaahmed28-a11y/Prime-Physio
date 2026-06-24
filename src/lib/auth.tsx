@@ -282,13 +282,13 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       if (pathname === "/plans") return;
       if (pathname === "/center_setup") return;
       if (!user && status !== "authenticated") {
-        if (!pathname.startsWith("/login") && pathname !== "/signup") {
-          window.location.href = "/login";
+        if (!pathname.startsWith("/manage") && pathname !== "/signup") {
+          window.location.href = "/manage";
         }
         return;
       }
       if (pathname === "/signup") return;
-      if (pathname.startsWith("/login")) return;
+      if (pathname.startsWith("/manage")) return;
       if (user?.clinicId === undefined && user?.email && !isEnriching) {
         const setupPaths = ["/manage", "/signup", "/setup", "/setup/center", "/plans", "/center_setup"];
         if (!setupPaths.includes(pathname)) {
@@ -378,8 +378,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setAppValue("current_user", null).catch(() => {});
     await supabase.auth.signOut();
-    signOut({ callbackUrl: "/login" }).catch(() => {
-      window.location.href = "/login";
+    signOut({ callbackUrl: "/manage" }).catch(() => {
+      window.location.href = "/manage";
     });
   };
 

@@ -7,7 +7,7 @@ export default async function RootPage() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.email) {
-    redirect("/login");
+    redirect("/manage");
   }
 
   const admin = getAdminClient();

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const AUTH_ROUTES = ["/login", "/signup", "/setup", "/plans", "/center_setup"];
+const AUTH_ROUTES = ["/manage", "/signup", "/setup", "/plans", "/center_setup"];
 const PUBLIC_PATHS = ["/_next/", "/api/auth/", "/favicon.ico", "/icon.png", "/logo.png", "/robots.txt", "/sitemap.xml", "/manifest.json"];
 
 const SUPABASE_PROJECT_REF = "crrhrjhftwostjomzmfj";
@@ -41,7 +41,7 @@ export function proxy(request: NextRequest) {
   }
 
   if (!hasAuthCookie(request)) {
-    const loginUrl = new URL("/login", request.url);
+    const loginUrl = new URL("/manage", request.url);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
   }
