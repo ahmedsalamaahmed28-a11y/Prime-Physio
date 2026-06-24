@@ -73,7 +73,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
     slug: string;
     logoFile: File | null;
     logoPreview: string;
-  }>>([{ id: "1", shortName: "", fullName: "", slug: "", logoFile: null, logoPreview: "" }]);
+  }>>([{ id: "1", shortName: "", fullName: sessionName || "", slug: "", logoFile: null, logoPreview: "" }]);
   const [createdCenterSlug, setCreatedCenterSlug] = useState("");
 
   const addCenter = () => {
@@ -173,10 +173,29 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
 
   const handleCreateClinic = async () => {
     setError("")
-    if (!clinicId) {
-      setError(isRtl ? "لم يتم تحميل بيانات العيادة" : "Clinic data not loaded")
-      return
+    let currentClinicId = clinicId;
+
+    if (!currentClinicId) {
+      try {
+        const res = await fetch("/api/auth/auto-provision", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: sessionEmail, name: sessionName || "Clinic Admin" }),
+        });
+        const data = await res.json();
+        if (res.ok && data.clinicId) {
+          currentClinicId = data.clinicId;
+          setResolvedClinicId(currentClinicId);
+        } else {
+          setError(isRtl ? "فشل إنشاء العيادة. الرجاء المحاولة مرة أخرى." : "Failed to create clinic. Please try again.")
+          return
+        }
+      } catch (e) {
+        setError(isRtl ? "حدث خطأ أثناء إنشاء العيادة" : "Error creating clinic")
+        return
+      }
     }
+
     const validCenters = centers.filter(c => c.shortName.trim() && c.slug.trim())
     if (validCenters.length === 0) {
       setError(isRtl ? "الرجاء إدخال بيانات مركز واحد على الأقل" : "Please fill in at least one center")
@@ -209,7 +228,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            clinicId,
+            clinicId: currentClinicId,
             slug: center.slug.trim(),
             fullName: center.fullName.trim(),
             shortName: center.shortName.trim(),

@@ -54,7 +54,6 @@ export default function ClinicSettingsPage() {
         .from("clinic_settings")
         .select("*")
         .eq("clinic_id", clinicId)
-        .eq("user_id", "default")
         .maybeSingle();
 
       if (error) {
@@ -78,13 +77,12 @@ export default function ClinicSettingsPage() {
     e.preventDefault();
     const { error } = await supabase.from("clinic_settings").upsert({
       clinic_id: clinicId,
-      user_id: "default",
       clinic_name: clinicName,
       phone,
       address,
       working_hours: workingHours,
       branches: [{ id: "main", name: clinicName, phone, address, hours: weeklyHours }],
-    }, { onConflict: "user_id" });
+    }, { onConflict: "clinic_id" });
 
     if (error) {
       console.error("Failed to save clinic settings to Supabase", error);

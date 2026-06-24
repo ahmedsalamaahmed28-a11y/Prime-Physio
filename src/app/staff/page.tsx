@@ -55,13 +55,13 @@ export default function StaffPage() {
   }, []);
 
   const fetchRelatedCounts = async () => {
-    const [{ data: patientRows }, { data: appointmentRows }] = await Promise.all([
-      supabase.from("patients").select("assignedDoctor,status").eq('clinic_id', clinicId),
+    const [patientsRes, appointmentsRes] = await Promise.all([
+      supabase.from("patients").select("doctor,status").eq('clinic_id', clinicId),
       supabase.from("appointments").select("therapist,date").eq('clinic_id', clinicId),
     ]);
 
-    setPatients(patientRows || []);
-    setAppointments(appointmentRows || []);
+    setPatients(patientsRes.data || []);
+    setAppointments(appointmentsRes.data || []);
   };
 
   const isDoctorRole = (role: string) =>
@@ -285,7 +285,7 @@ export default function StaffPage() {
                     <div className="bg-slate-50 p-2.5 rounded-lg">
                       <span className="text-slate-400 block mb-0.5">{t("active_patients")}</span>
                       <strong className="text-slate-800 text-base">
-                        {patients.filter((p) => p.assignedDoctor === doc.name && p.status !== "inactive").length}
+                        {patients.filter((p) => p.doctor === doc.name && p.status !== "inactive").length}
                       </strong>
                     </div>
                     <div className="bg-slate-50 p-2.5 rounded-lg">
