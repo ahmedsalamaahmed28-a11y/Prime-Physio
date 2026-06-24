@@ -42,7 +42,9 @@ export function proxy(request: NextRequest) {
 
   if (!hasAuthCookie(request)) {
     const loginUrl = new URL("/manage", request.url);
-    loginUrl.searchParams.set("redirect", pathname);
+    if (pathname !== "/") {
+      loginUrl.searchParams.set("redirect", pathname);
+    }
     return NextResponse.redirect(loginUrl);
   }
 
