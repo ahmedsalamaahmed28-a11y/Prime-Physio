@@ -117,9 +117,13 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
       if (res.ok && data.clinicId) {
         setResolvedClinicId(data.clinicId);
         return data.clinicId;
+      } else {
+        console.error("[AutoProvision] API failed:", res.status, data);
+        setError(data?.error || "U?O'U, OU+O'O O O U,O1USO O_Oc (Server Error)");
       }
-    } catch (e) {
-      console.error("Auto provision failed", e);
+    } catch (e: any) {
+      console.error("[AutoProvision] Network/Parse error:", e);
+      setError(e?.message || "O-O_O OrOO OOU+O O OO-U.USU, O"USO U+O O O U,O1USO O_Oc");
     }
     return null;
   };

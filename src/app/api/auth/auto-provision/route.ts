@@ -20,25 +20,36 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     if (existingStaff?.clinic_id) {
-      console.log(`[AutoProvision] User already exists — clinicId: ${existingStaff.clinic_id}`);
+      console.log(`[AutoProvision] User already exists in staff -> clinicId: ${existingStaff.clinic_id}`);
       return NextResponse.json({ clinicId: existingStaff.clinic_id, clinicName });
     }
 
-    // 2. Create clinic
-    const clinicId = crypto.randomUUID();
-    const { error: clinicError } = await admin.from("clinics").insert({
-      id: clinicId,
-      name: clinicName,
-      admin_email: email,
-      status: "active",
-    });
+    // 2. Check if clinic already exists for this email
+    const { data: existingClinic } = await admin
+      .from("clinics")
+      .select("id")
+      .eq("admin_email", email)
+      .maybeSingle();
 
-    if (clinicError) {
-      console.error("[AutoProvision] Clinic creation failed:", clinicError);
-      return NextResponse.json({ error: "فشل إنشاء العيادة" }, { status: 500 });
+    let clinicId = existingClinic?.id;
+
+    // 3. Create clinic if it doesn't exist
+    if (!clinicId) {
+      clinicId = crypto.randomUUID();
+      const { error: clinicError } = await admin.from("clinics").insert({
+        id: clinicId,
+        name: clinicName,
+        admin_email: email,
+        status: "active",
+      });
+
+      if (clinicError) {
+        console.error("[AutoProvision] Clinic creation failed:", clinicError);
+        return NextResponse.json({ error: "Failed to create clinic", details: clinicError }, { status: 500 });
+      }
     }
 
-    // 3. Create staff record
+    // 4. Create staff record (since we know they aren't in staff)
     const { error: staffError } = await admin.from("staff").insert({
       clinic_id: clinicId,
       name: clinicName,
@@ -49,21 +60,20 @@ export async function POST(req: NextRequest) {
 
     if (staffError) {
       console.error("[AutoProvision] Staff creation failed:", staffError);
-      try { await admin.from("clinics").delete().eq("id", clinicId); } catch {}
-      return NextResponse.json({ error: "فشل إنشاء الموظف" }, { status: 500 });
+      return NextResponse.json({ error: "Failed to create staff record", details: staffError }, { status: 500 });
     }
 
-    // 4. Create default clinic_settings
+    // 5. Create default clinic_settings
     try {
       await admin.from("clinic_settings").upsert({
         clinic_id: clinicId,
         clinic_name: clinicName,
-      });
+      }, { onConflict: 'clinic_id' });
     } catch (e) {
       console.error("[AutoProvision] Settings creation failed (ignored):", e);
     }
 
-    console.log(`[AutoProvision] ✅ Created new clinic — clinicId: ${clinicId}`);
+    console.log(`[AutoProvision] ✅ Provisioned user -> clinicId: ${clinicId}`);
 
     return NextResponse.json({ clinicId, clinicName });
   } catch (err) {
