@@ -121,16 +121,25 @@ export async function GET(req: NextRequest) {
     const clinicId = await persistSubscription(orderId || "", txId || "", "");
     if (!clinicId) {
       // It was a public checkout and the user doesn't have a clinic yet
-      return NextResponse.redirect(`${base}/signup?payment=success`);
+      const redirectPath = `${base}/signup?payment=success`;
+      return new NextResponse(
+        `<html><body><script>window.top.location.href = "${redirectPath}";</script></body></html>`,
+        { headers: { "Content-Type": "text/html" } }
+      );
     }
 
     // If clinic has no branch yet → send to center setup; otherwise → home
     const hasBranch = await checkClinicHasBranch(clinicId);
     const redirectPath = hasBranch ? "/home" : "/setup?step=clinic";
-    return NextResponse.redirect(`${base}${redirectPath}`);
+    return new NextResponse(
+      `<html><body><script>window.top.location.href = "${base}${redirectPath}";</script></body></html>`,
+      { headers: { "Content-Type": "text/html" } }
+    );
   } else {
-    return NextResponse.redirect(
-      `${base}/subscription/failed?order=${orderId}&reason=${success === "false" ? "declined" : "invalid"}`
+    const redirectPath = `${base}/subscription/failed?order=${orderId}&reason=${success === "false" ? "declined" : "invalid"}`;
+    return new NextResponse(
+      `<html><body><script>window.top.location.href = "${redirectPath}";</script></body></html>`,
+      { headers: { "Content-Type": "text/html" } }
     );
   }
 }
