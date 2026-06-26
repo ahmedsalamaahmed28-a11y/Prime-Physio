@@ -101,78 +101,21 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
   const [payError, setPayError] = useState("")
   const [payLoading, setPayLoading] = useState(false)
 
-  const ensureClinicId = async (): Promise<string | null> => {
-    if (clinicId) return clinicId;
-    try {
-      const body = {
-        email: user?.email || sessionEmail || "",
-        name: user?.name || sessionName || "Clinic Admin",
-      };
-      const res = await fetch("/api/auth/auto-provision", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (res.ok && data.clinicId) {
-        setResolvedClinicId(data.clinicId);
-        return data.clinicId;
-      } else {
-        console.error("[AutoProvision] API failed:", res.status, data);
-        setError(data?.error || "Failed to create clinic (Server Error)");
-      }
-    } catch (e: any) {
-      console.error("[AutoProvision] Network/Parse error:", e);
-      setError(e?.message || "Failed to load clinic data (Network Error)");
-    }
-    return null;
-  };
+
 
   const handleSelectPlan = async (planId: string) => {
     setSelectedPlan(planId)
     setError("")
-
-    let currentClinicId = await ensureClinicId();
-    if (!currentClinicId) {
-      setError(isRtl ? "حدث خطأ أثناء تحميل بيانات العيادة" : "Failed to load clinic data");
-      return;
-    }
-
-    if (planId === "basic") {
-      setIsActivating(true)
-      try {
-        const body = {
-          clinicId: currentClinicId,
-          planId,
-          email: user?.email || sessionEmail || "",
-          name: user?.name || sessionName || "Clinic Admin",
-        };
-        const res = await fetch("/api/subscribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error || "فشل تفعيل الخطة")
-        if (data.clinicId) setResolvedClinicId(data.clinicId)
-        setStep("clinic")
-      } catch (e: any) {
-        setError(e?.message || "حدث خطأ")
-      } finally {
-        setIsActivating(false)
-      }
-    } else {
-      setShowBilling(true)
-    }
+    setStep("clinic")
   }
 
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedPlan) return
     
-    let currentClinicId = await ensureClinicId();
+    let currentClinicId = resolvedClinicId || clinicId;
     if (!currentClinicId) {
-      setPayError(isRtl ? "حدث خطأ أثناء تحميل بيانات العيادة" : "Failed to load clinic data");
+      setPayError(isRtl ? "يرجى إنشاء العيادة أولاً" : "Please create clinic first");
       return;
     }
 
@@ -209,28 +152,6 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
 
   const handleCreateClinic = async () => {
     setError("")
-    let currentClinicId = clinicId;
-
-    if (!currentClinicId) {
-      try {
-        const res = await fetch("/api/auth/auto-provision", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: sessionEmail, name: sessionName || "Clinic Admin" }),
-        });
-        const data = await res.json();
-        if (res.ok && data.clinicId) {
-          currentClinicId = data.clinicId;
-          setResolvedClinicId(currentClinicId);
-        } else {
-          setError(isRtl ? "فشل إنشاء العيادة. الرجاء المحاولة مرة أخرى." : "Failed to create clinic. Please try again.")
-          return
-        }
-      } catch (e) {
-        setError(isRtl ? "حدث خطأ أثناء إنشاء العيادة" : "Error creating clinic")
-        return
-      }
-    }
 
     const validCenters = centers.filter(c => c.shortName.trim() && c.slug.trim())
     if (validCenters.length === 0) {
@@ -239,51 +160,134 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
     }
 
     setIsUploading(true)
-    const createdSlugs: string[] = []
+    let currentClinicId = clinicId || resolvedClinicId;
 
-    for (const center of validCenters) {
-      let logoUrl = ""
-      if (center.logoFile) {
-        const formData = new FormData()
-        formData.append("file", center.logoFile)
-        formData.append("clinicId", resolvedClinicId || "")
-        try {
-          const uploadRes = await fetch("/api/upload/logo", { method: "POST", body: formData })
-          const uploadData = await uploadRes.json()
-          if (!uploadRes.ok) throw new Error(uploadData.error || "فشل رفع الشعار")
-          logoUrl = uploadData.url
-        } catch (e: any) {
-          setError(e?.message || "فشل رفع الشعار")
+    if (!currentClinicId) {
+      try {
+        const res = await fetch("/api/auth/auto-provision", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: user?.email || sessionEmail || "", name: user?.name || sessionName || "Clinic Admin" }),
+        });
+        const data = await res.json();
+        if (res.ok && data.clinicId) {
+          currentClinicId = data.clinicId;
+          setResolvedClinicId(currentClinicId);
+        } else {
+          setError(data.error || (isRtl ? "فشل إنشاء العيادة." : "Failed to create clinic."));
           setIsUploading(false)
           return
         }
+      } catch (e: any) {
+        setError(e?.message || (isRtl ? "حدث خطأ أثناء إنشاء العيادة" : "Error creating clinic"))
+        setIsUploading(false)
+        return
       }
+    }
+  const handleCreateClinic = async () => {
+    setError("")
+
+    const validCenters = centers.filter(c => c.shortName.trim() && c.slug.trim())
+    if (validCenters.length === 0) {
+      setError(isRtl ? "الرجاء إدخال بيانات مركز واحد على الأقل" : "Please fill in at least one center")
+      return
+    }
+
+    setIsUploading(true)
+
+    let currentClinicId = clinicId || resolvedClinicId;
+    let createdBranches: any[] = [];
+
+    // 1. Submit transaction (Clinic, Staff, Settings, Branches without Logos)
+    if (!currentClinicId) {
+      const centersPayload = validCenters.map(c => ({
+        fullName: c.fullName,
+        shortName: c.shortName,
+        slug: c.slug
+      }));
 
       try {
-        const res = await fetch("/api/branches", {
+        const res = await fetch("/api/setup/submit", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            clinicId: currentClinicId,
-            slug: center.slug.trim(),
-            fullName: center.fullName.trim(),
-            shortName: center.shortName.trim(),
-            logoUrl,
+            email: user?.email || sessionEmail || "",
+            name: user?.name || sessionName || "Clinic Admin",
+            centers: centersPayload
           }),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error || "فشل إنشاء المركز")
-        createdSlugs.push(center.slug.trim())
+        });
+        const data = await res.json();
+        if (res.ok && data.clinicId) {
+          currentClinicId = data.clinicId;
+          createdBranches = data.createdBranches || [];
+          setResolvedClinicId(currentClinicId);
+          data.createdSlugs?.length > 0 && setCreatedCenterSlug(data.createdSlugs[0]);
+        } else {
+          setError(data.error || (isRtl ? "فشل إعداد العيادة." : "Failed to setup clinic."));
+          setIsUploading(false)
+          return
+        }
       } catch (e: any) {
-        setError(e?.message || "حدث خطأ")
+        setError(e?.message || (isRtl ? "حدث خطأ أثناء الإعداد" : "Error during setup"))
         setIsUploading(false)
         return
       }
     }
 
-    createdSlugs.length > 0 && setCreatedCenterSlug(createdSlugs[0])
+    // 2. Upload logos and update branches
+    for (const center of validCenters) {
+      if (center.logoFile) {
+        // Find the created branch ID
+        const branchId = createdBranches.find(b => b.slug === center.slug)?.id;
+        if (!branchId) continue;
+
+        try {
+          const formData = new FormData()
+          formData.append("file", center.logoFile)
+          formData.append("clinicId", currentClinicId || "")
+          
+          const uploadRes = await fetch("/api/upload/logo", { method: "POST", body: formData })
+          const uploadData = await uploadRes.json()
+          if (!uploadRes.ok) throw new Error(uploadData.error || "فشل رفع الشعار")
+          
+          // Update the branch with the logoUrl
+          await fetch(`/api/branches/${branchId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ logo_url: uploadData.url }),
+          })
+        } catch (e: any) {
+          // Non-critical: we don't return here so the user can still proceed even if logo fails
+          console.error("Logo upload or branch update failed:", e);
+        }
+      }
+    }
+
     setIsUploading(false)
-    setStep("done")
+
+    // 3. Handle Subscription / Billing
+    if (selectedPlan === "basic") {
+      try {
+        const body = {
+          clinicId: currentClinicId,
+          planId: "basic",
+          email: user?.email || sessionEmail || "",
+          name: user?.name || sessionName || "Clinic Admin",
+        };
+        const res = await fetch("/api/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error || "فشل تفعيل الخطة")
+        setStep("done")
+      } catch (e: any) {
+        setError(e?.message || "حدث خطأ أثناء التفعيل")
+      }
+    } else {
+      setShowBilling(true)
+    }
   }
 
   const selectedPlanData = PLANS(isRtl).find(p => p.id === selectedPlan)

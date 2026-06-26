@@ -136,26 +136,10 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     // Supabase queries failed (likely RLS for non-Supabase users) — proceed
   }
 
-  // Auto-provision for first-time Google OAuth users (idempotent — skips if staff exists)
-  if (!user.clinicId) {
-    try {
-      const res = await fetch("/api/auth/auto-provision", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email, name: user.name }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.clinicId) {
-          user.clinicId = data.clinicId;
-          user.roleKey = "admin";
-          user.role = getArabicRoleLabel("admin");
-          user.roleEn = getEnglishRoleLabel("admin");
-        }
-      }
-    } catch {
-      // Auto-provision failed — user stays without clinicId
-    }
+  // If we reach here, no staff record was found.
+  // We explicitly set clinicId to null so the app knows the user needs to complete onboarding.
+  if (user.clinicId === undefined) {
+    user.clinicId = null;
   }
 
   return user;
@@ -289,7 +273,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       }
       if (pathname === "/signup") return;
       if (pathname.startsWith("/manage")) return;
-      if (user?.clinicId === undefined && user?.email && !isEnriching) {
+      if ((user?.clinicId === undefined || user?.clinicId === null) && !user?.isPlatformAdmin && user?.email && !isEnriching) {
         const setupPaths = ["/manage", "/signup", "/setup", "/setup/center", "/plans", "/center_setup"];
         if (!setupPaths.includes(pathname)) {
           window.location.href = "/setup";
