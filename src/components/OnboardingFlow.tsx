@@ -119,11 +119,11 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
         return data.clinicId;
       } else {
         console.error("[AutoProvision] API failed:", res.status, data);
-        setError(data?.error || "U?O'U, OU+O'O O O U,O1USO O_Oc (Server Error)");
+        setError(data?.error || "Failed to create clinic (Server Error)");
       }
     } catch (e: any) {
       console.error("[AutoProvision] Network/Parse error:", e);
-      setError(e?.message || "O-O_O OrOO OOU+O O OO-U.USU, O"USO U+O O O U,O1USO O_Oc");
+      setError(e?.message || "Failed to load clinic data (Network Error)");
     }
     return null;
   };
