@@ -46,8 +46,16 @@ export async function POST(req: NextRequest) {
     });
 
     if (transactionError || !transactionData) {
-      console.error("[Setup Submit] Transaction error:", transactionError);
-      return NextResponse.json({ error: "Failed to setup clinic transaction" }, { status: 500 });
+      console.error("[Setup Submit] Transaction error details:", transactionError);
+      return NextResponse.json(
+        { 
+          error: "Failed to setup clinic transaction", 
+          details: transactionError?.message || "Unknown error",
+          hint: transactionError?.hint || "",
+          code: transactionError?.code || ""
+        }, 
+        { status: 500 }
+      );
     }
 
     const clinicId = transactionData.clinicId;
