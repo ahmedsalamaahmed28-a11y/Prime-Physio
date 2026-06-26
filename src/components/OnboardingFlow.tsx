@@ -104,10 +104,14 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
   const ensureClinicId = async (): Promise<string | null> => {
     if (clinicId) return clinicId;
     try {
+      const body = {
+        email: user?.email || sessionEmail || "",
+        name: user?.name || sessionName || "Clinic Admin",
+      };
       const res = await fetch("/api/auth/auto-provision", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: sessionEmail, name: sessionName || "Clinic Admin" }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (res.ok && data.clinicId) {
