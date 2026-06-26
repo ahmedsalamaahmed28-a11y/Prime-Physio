@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
       .from("platform_admins")
       .select("email")
       .eq("email", user.email)
+      .limit(1)
       .maybeSingle();
 
     if (!pa) {
@@ -86,6 +87,7 @@ export async function PATCH(req: NextRequest) {
       .from("platform_admins")
       .select("email")
       .eq("email", user.email)
+      .limit(1)
       .maybeSingle();
 
     if (!pa) {

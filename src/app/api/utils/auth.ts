@@ -91,6 +91,7 @@ export async function requireRole(
     .from("staff")
     .select("role, clinic_id")
     .eq("email", authed.email)
+    .limit(1)
     .maybeSingle();
 
   if (!staff) {

@@ -5,6 +5,11 @@ const SUPER_ADMIN_EMAIL = "ahmedsalamaahmed21@gmail.com";
 
 export async function POST(req: NextRequest) {
   const { secret } = await req.json();
+  
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json({ error: "Reset disabled in production" }, { status: 403 });
+  }
+
   if (secret !== process.env.SUPABASE_SERVICE_ROLE_KEY) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
