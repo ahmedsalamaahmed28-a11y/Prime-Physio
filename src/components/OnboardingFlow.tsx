@@ -150,40 +150,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
     }
   }
 
-  const handleCreateClinic = async () => {
-    setError("")
 
-    const validCenters = centers.filter(c => c.shortName.trim() && c.slug.trim())
-    if (validCenters.length === 0) {
-      setError(isRtl ? "الرجاء إدخال بيانات مركز واحد على الأقل" : "Please fill in at least one center")
-      return
-    }
-
-    setIsUploading(true)
-    let currentClinicId = clinicId || resolvedClinicId;
-
-    if (!currentClinicId) {
-      try {
-        const res = await fetch("/api/auth/auto-provision", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: user?.email || sessionEmail || "", name: user?.name || sessionName || "Clinic Admin" }),
-        });
-        const data = await res.json();
-        if (res.ok && data.clinicId) {
-          currentClinicId = data.clinicId;
-          setResolvedClinicId(currentClinicId);
-        } else {
-          setError(data.error || (isRtl ? "فشل إنشاء العيادة." : "Failed to create clinic."));
-          setIsUploading(false)
-          return
-        }
-      } catch (e: any) {
-        setError(e?.message || (isRtl ? "حدث خطأ أثناء إنشاء العيادة" : "Error creating clinic"))
-        setIsUploading(false)
-        return
-      }
-    }
   const handleCreateClinic = async () => {
     setError("")
 
