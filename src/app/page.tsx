@@ -31,7 +31,7 @@ export default async function RootPage() {
         .maybeSingle();
 
       if (!staff || !staff.clinic_id) {
-        redirect("/manage");
+        redirect("/setup");
       }
 
       const { data: branch } = await admin
@@ -42,13 +42,13 @@ export default async function RootPage() {
         .maybeSingle();
 
       if (!branch) {
-        redirect("/manage");
+        redirect("/setup");
       }
 
       // If we got here, they have a clinic and branch, redirect to home
       redirect("/home");
     } catch {
-      redirect("/manage");
+      redirect("/setup");
     }
   }
 
