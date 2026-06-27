@@ -260,9 +260,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       const knownPages = new Set(["home","admin","setup","login","manage","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup"]);
       const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname) && !knownPages.has(pathname.replace("/", ""));
       if (isSlugPage) return;
-      if (pathname.startsWith("/setup")) return;
-      if (pathname === "/plans") return;
-      if (pathname === "/center_setup") return;
+      if (pathname.startsWith("/setup") || pathname === "/plans" || pathname === "/center_setup") { if (user?.clinicId && !isEnriching) { window.location.href = "/home"; } return; }
       if (!user && status !== "authenticated") {
         if (!pathname.startsWith("/manage") && pathname !== "/signup") {
           window.location.href = "/manage";
@@ -410,6 +408,7 @@ export function useAuth() {
   }
   return context;
 }
+
 
 
 

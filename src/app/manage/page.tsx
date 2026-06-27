@@ -175,6 +175,7 @@ function ManageContent() {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPassword = password.trim();
 
+    await setAppValue("current_user", null);
     await setAppValue("pending_role", "doctor");
     const result = await signIn("credentials", {
       email: cleanEmail,
@@ -197,6 +198,7 @@ function ManageContent() {
   const handleGoogleLogin = async () => {
     setError("");
     setIsLoading(true);
+    await setAppValue("current_user", null);
     await setAppValue("pending_role", "admin");
     await setAppValue("pending_google_signup", "true");
     try {
