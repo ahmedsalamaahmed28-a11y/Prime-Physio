@@ -38,6 +38,26 @@ export async function GET(req: NextRequest) {
     const preferredClinicId = searchParams.get("preferred_clinic_id");
 
     const admin = getAdminClient();
+
+    const { data: pa } = await admin
+      .from("platform_admins")
+      .select("id")
+      .eq("email", session.user.email.toLowerCase().trim())
+      .limit(1)
+      .maybeSingle();
+
+    if (pa) {
+      return NextResponse.json({
+        clinicId: null,
+        role: "مدير المنصة",
+        roleKey: "platform_admin",
+        roleAr: "مدير المنصة",
+        roleEn: "Platform Admin",
+        shortName: null,
+        logoUrl: null,
+      });
+    }
+
     const { data: staff, error } = await admin
       .from("staff")
       .select("clinic_id, role")

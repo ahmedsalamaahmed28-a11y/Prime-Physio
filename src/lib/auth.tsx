@@ -85,13 +85,16 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     const res = await fetch(`/api/auth/enrich${queryParams}`);
     if (res.ok) {
       const data = await res.json();
-      if (data.clinicId) {
+      if (data.clinicId || data.roleKey === "platform_admin") {
         user.clinicId = data.clinicId;
         user.roleKey = data.roleKey as User["roleKey"];
         user.role = data.roleAr;
         user.roleEn = data.roleEn;
         user.shortName = data.shortName || null;
         user.logoUrl = data.logoUrl || null;
+        if (data.roleKey === "platform_admin") {
+          user.isPlatformAdmin = true;
+        }
         return user;
       }
     }
