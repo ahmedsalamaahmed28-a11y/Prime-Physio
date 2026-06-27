@@ -16,6 +16,12 @@ export async function getAppValue<T>(key: string, fallback: T): Promise<T> {
 }
 
 export async function setAppValue<T>(key: string, value: T): Promise<void> {
+  if (value === null || value === undefined) {
+    const { error } = await supabase.from("app_key_values").delete().eq("key", key);
+    if (error) throw error;
+    return;
+  }
+
   const { error } = await supabase
     .from("app_key_values")
     .upsert({ key, value }, { onConflict: "key" });
