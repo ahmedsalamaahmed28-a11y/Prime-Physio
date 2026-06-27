@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
       .from("clinics")
       .select("id")
       .eq("admin_email", email)
+      .limit(1)
       .maybeSingle();
 
     if (clinic) return NextResponse.json({ hasClinic: true });
@@ -19,6 +20,7 @@ export async function GET(req: NextRequest) {
       .from("staff")
       .select("clinic_id")
       .eq("email", email)
+      .limit(1)
       .maybeSingle();
 
     return NextResponse.json({ hasClinic: !!staff });

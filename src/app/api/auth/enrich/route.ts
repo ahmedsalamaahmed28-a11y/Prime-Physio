@@ -41,6 +41,7 @@ export async function GET(req: NextRequest) {
       .from("staff")
       .select("clinic_id, role")
       .eq("email", session.user.email.toLowerCase().trim())
+      .limit(1)
       .maybeSingle();
 
     if (error || !staff?.clinic_id) {
@@ -55,6 +56,7 @@ export async function GET(req: NextRequest) {
         .select("clinic_id")
         .eq("email", session.user.email.toLowerCase().trim())
         .eq("clinic_id", preferredClinicId)
+        .limit(1)
         .maybeSingle();
 
       if (!staffCheck) {

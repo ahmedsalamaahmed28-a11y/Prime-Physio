@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
       .from("staff")
       .select("clinic_id, role, name")
       .eq("email", email)
+      .limit(1)
       .maybeSingle();
 
     if (!staff?.clinic_id) {

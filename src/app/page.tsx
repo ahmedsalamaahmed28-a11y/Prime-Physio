@@ -29,13 +29,14 @@ export default async function RootPage() {
       .from("staff")
       .select("clinic_id")
       .eq("email", email)
+      .limit(1)
       .maybeSingle();
 
     if (!staff) {
-      redirect("/login");
+      redirect("/manage");
     }
     if (!staff.clinic_id) {
-      redirect("/login/plans");
+      redirect("/manage");
     }
 
     const { data: subscription } = await admin
@@ -46,7 +47,7 @@ export default async function RootPage() {
       .maybeSingle();
 
     if (!subscription) {
-      redirect("/login/plans");
+      redirect("/home");
     }
 
     const { data: branch } = await admin
@@ -57,10 +58,10 @@ export default async function RootPage() {
       .maybeSingle();
 
     if (!branch) {
-      redirect("/setup?step=clinic");
+      redirect("/manage");
     }
   } catch {
-    redirect("/home");
+    redirect("/manage");
   }
 
   redirect("/home");

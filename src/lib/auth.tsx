@@ -103,8 +103,7 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     const { data: pa } = await supabase
       .from("platform_admins")
       .select("email")
-      .eq("email", user.email)
-      .maybeSingle();
+      .eq("email", user.email).limit(1).maybeSingle();
     user.isPlatformAdmin = !!pa;
 
     if (pa) {
@@ -119,8 +118,7 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     const { data: staff } = await supabase
       .from("staff")
       .select("clinic_id, role")
-      .eq("email", user.email)
-      .maybeSingle();
+      .eq("email", user.email).limit(1).maybeSingle();
 
     if (staff) {
       user.roleKey = mapStaffRoleToRoleKey(staff.role);
@@ -412,5 +410,6 @@ export function useAuth() {
   }
   return context;
 }
+
 
 

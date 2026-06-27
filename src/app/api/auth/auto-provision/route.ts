@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
       .from("staff")
       .select("clinic_id")
       .eq("email", email)
+      .limit(1)
       .maybeSingle();
 
     if (existingStaff?.clinic_id) {
@@ -29,6 +30,7 @@ export async function POST(req: NextRequest) {
       .from("clinics")
       .select("id")
       .eq("admin_email", email)
+      .limit(1)
       .maybeSingle();
 
     let clinicId = existingClinic?.id;
