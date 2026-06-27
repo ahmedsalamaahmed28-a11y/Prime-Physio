@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import { Building, Users, CreditCard, CheckCircle, XCircle, ShieldAlert, Activity, DollarSign, Calendar, LayoutDashboard, History, List } from "lucide-react";
+import { Building, Users, CreditCard, CheckCircle, XCircle, ShieldAlert, Activity, DollarSign, Calendar, LayoutDashboard, History } from "lucide-react";
 import { Loader } from "@/components/Loader";
 
 interface Clinic {
