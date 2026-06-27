@@ -12,6 +12,8 @@ export default async function RootPage() {
     const admin = getAdminClient();
     const email = session.user.email.toLowerCase().trim();
 
+    let targetPath = "";
+    
     try {
       const { data: platformAdmin } = await admin
         .from("platform_admins")
@@ -20,35 +22,39 @@ export default async function RootPage() {
         .maybeSingle();
 
       if (platformAdmin) {
-        redirect("/admin");
+        targetPath = "/admin";
+      } else {
+        const { data: staff } = await admin
+          .from("staff")
+          .select("clinic_id")
+          .eq("email", email)
+          .limit(1)
+          .maybeSingle();
+
+        if (!staff || !staff.clinic_id) {
+          targetPath = "/setup";
+        } else {
+          const { data: branch } = await admin
+            .from("branches")
+            .select("id")
+            .eq("clinic_id", staff.clinic_id)
+            .limit(1)
+            .maybeSingle();
+
+          if (!branch) {
+            targetPath = "/setup";
+          } else {
+            targetPath = "/home";
+          }
+        }
       }
+    } catch (err) {
+      console.error("RootPage Error:", err);
+      targetPath = "/setup";
+    }
 
-      const { data: staff } = await admin
-        .from("staff")
-        .select("clinic_id")
-        .eq("email", email)
-        .limit(1)
-        .maybeSingle();
-
-      if (!staff || !staff.clinic_id) {
-        redirect("/setup");
-      }
-
-      const { data: branch } = await admin
-        .from("branches")
-        .select("id")
-        .eq("clinic_id", staff.clinic_id)
-        .limit(1)
-        .maybeSingle();
-
-      if (!branch) {
-        redirect("/setup");
-      }
-
-      // If we got here, they have a clinic and branch, redirect to home
-      redirect("/home");
-    } catch {
-      redirect("/setup");
+    if (targetPath) {
+      redirect(targetPath);
     }
   }
 
