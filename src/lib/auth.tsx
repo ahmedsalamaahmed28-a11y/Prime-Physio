@@ -266,7 +266,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       if (isSlugPage) return;
       if (pathname.startsWith("/setup") || pathname === "/plans" || pathname === "/center_setup") { if (user?.clinicId && !isEnriching) { window.location.href = "/home"; } return; }
       if (!user && status !== "authenticated") {
-        if (!pathname.startsWith("/manage") && pathname !== "/signup") {
+        if (!pathname.startsWith("/manage") && pathname !== "/signup" && pathname !== "/") {
           window.location.href = "/manage";
         }
         return;
