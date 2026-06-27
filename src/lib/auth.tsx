@@ -80,7 +80,8 @@ async function enrichUserWithClinic(user: User): Promise<User> {
   // First, try server API (uses service_role — works for NextAuth users without Supabase session)
   try {
     const preferredClinicId = typeof window !== 'undefined' ? sessionStorage.getItem("preferred_clinic_id") : null;
-    const queryParams = preferredClinicId ? `?preferred_clinic_id=${preferredClinicId}` : "";
+    const t = Date.now();
+    const queryParams = preferredClinicId ? `?preferred_clinic_id=${preferredClinicId}&t=${t}` : `?t=${t}`;
     const res = await fetch(`/api/auth/enrich${queryParams}`);
     if (res.ok) {
       const data = await res.json();
