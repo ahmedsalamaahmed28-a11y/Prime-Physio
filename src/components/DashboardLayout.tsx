@@ -63,6 +63,7 @@ interface SidebarItem {
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
   { nameKey: "nav_home", href: "/home", icon: Home },
+  { nameKey: "nav_admin", href: "/admin", icon: ShieldAlert },
   { nameKey: "nav_patients", href: "/patients", icon: Users },
   { nameKey: "nav_billing", href: "/billing", icon: CreditCard },
   { nameKey: "nav_staff", href: "/staff", icon: Stethoscope },
@@ -307,6 +308,7 @@ export default function DashboardLayout({
         {/* Navigation */}
         <nav className="flex-1 px-4 flex flex-col gap-y-1 overflow-visible">
           {SIDEBAR_ITEMS.filter((item) => {
+            if (item.href === "/admin" && activeAccount?.roleKey !== "platform_admin") return false;
             if (item.href === "/analytics" && !hasPermission("view_analytics")) return false;
             if (item.href === "/profile" && !hasPermission("manage_settings")) return false;
             if (item.href === "/permissions" && !hasPermission("manage_settings")) return false;

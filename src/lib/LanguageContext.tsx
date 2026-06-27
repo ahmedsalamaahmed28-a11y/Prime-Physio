@@ -30,6 +30,7 @@ const translations: Record<Language, Record<string, string>> = {
     "assistant_role": "مدير القسم الطبي",
     
     // Sidebar items
+    "nav_admin": "إدارة المنصة",
     "nav_home": "الرئيسية",
     "nav_messages": "الرسائل",
     "nav_patients": "المرضى والجلسات",
@@ -115,6 +116,7 @@ const translations: Record<Language, Record<string, string>> = {
     "assistant_role": "Medical Director",
     
     // Sidebar items
+    "nav_admin": "Platform Admin",
     "nav_home": "Home",
     "nav_messages": "Messages",
     "nav_patients": "Patients & Sessions",
@@ -239,3 +241,4 @@ export function useLanguage() {
   }
   return context;
 }
+
