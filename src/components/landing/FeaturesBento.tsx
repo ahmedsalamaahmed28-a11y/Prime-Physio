@@ -62,9 +62,13 @@ export default function FeaturesBento() {
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.02]" />
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl font-black text-slate-900 sm:text-4xl">كل ما تحتاجه لإدارة عيادتك</h2>
-          <p className="mt-4 text-lg text-slate-600 font-medium">
-            مجموعة متكاملة من الأدوات المصممة خصيصاً لتلبية احتياجات أطباء ومراكز العلاج الطبيعي.
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-sm font-bold mb-6">
+            <Sparkles className="w-4 h-4" />
+            المميزات الرئيسية
+          </div>
+          <h2 className="text-3xl font-black text-slate-900 sm:text-5xl mb-6">كل ما تحتاجه وأكثر لإدارة عيادتك</h2>
+          <p className="mt-4 text-xl text-slate-600 font-medium">
+            مجموعة متكاملة من الأدوات والمميزات المصممة خصيصاً لتلبية احتياجات أطباء ومراكز العلاج الطبيعي.
           </p>
         </div>
 

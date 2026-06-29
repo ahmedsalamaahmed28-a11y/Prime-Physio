@@ -3,6 +3,7 @@ import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import TrustedStrip from "@/components/landing/TrustedStrip";
 import FeaturesBento from "@/components/landing/FeaturesBento";
+import FeaturesDetail from "@/components/landing/FeaturesDetail";
 import ComparisonSection from "@/components/landing/ComparisonSection";
 import DashboardInteractive from "@/components/landing/DashboardInteractive";
 import Stats from "@/components/landing/Stats";
@@ -40,6 +41,9 @@ export default function LandingPage() {
 
         {/* 7. Features Bento Grid */}
         <FeaturesBento />
+
+        {/* 7.5. Detailed Features */}
+        <FeaturesDetail />
 
         {/* 8. Interactive Dashboard Preview */}
         <DashboardInteractive />
