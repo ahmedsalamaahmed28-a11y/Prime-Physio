@@ -67,19 +67,48 @@ export default function Pricing() {
             اختر الباقة التي تناسب حجم وطموح مركزك. يمكنك الترقية أو الإلغاء في أي وقت.
           </p>
           
-          <div className="mt-8 flex justify-center items-center gap-3 dir-rtl" dir="rtl">
-            <span className={`text-sm font-bold ${!isAnnual ? "text-[#4F46E5]" : "text-slate-500"}`}>شهري</span>
-            <button
-              onClick={() => setIsAnnual(!isAnnual)}
-              className="relative inline-flex h-7 w-14 items-center rounded-full bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2"
-            >
-              <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${isAnnual ? "-translate-x-6" : "translate-x-1"}`}
-              />
-            </button>
-            <span className={`text-sm font-bold flex items-center gap-1.5 ${isAnnual ? "text-[#4F46E5]" : "text-slate-500"}`}>
-              سنوي <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs">-20%</span>
-            </span>
+          <div className="mt-8 flex justify-center items-center gap-4">
+            <div className="relative flex p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-full border border-slate-200 shadow-inner">
+              <button
+                onClick={() => setIsAnnual(false)}
+                className={`relative z-10 w-28 py-2.5 text-sm font-bold rounded-full transition-colors ${
+                  !isAnnual ? "text-white" : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {!isAnnual && (
+                  <motion.div
+                    layoutId="pricing-toggle"
+                    className="absolute inset-0 bg-gradient-to-r from-[#4F46E5] to-[#6366F1] rounded-full shadow-md"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    style={{ zIndex: -1 }}
+                  />
+                )}
+                شهري
+              </button>
+              
+              <button
+                onClick={() => setIsAnnual(true)}
+                className={`relative z-10 w-32 py-2.5 text-sm font-bold rounded-full transition-colors flex items-center justify-center gap-2 ${
+                  isAnnual ? "text-white" : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                {isAnnual && (
+                  <motion.div
+                    layoutId="pricing-toggle"
+                    className="absolute inset-0 bg-gradient-to-r from-[#4F46E5] to-[#6366F1] rounded-full shadow-md"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    style={{ zIndex: -1 }}
+                  />
+                )}
+                سنوي
+              </button>
+            </div>
+            
+            <div className="hidden sm:block">
+              <span className="px-3 py-1.5 rounded-full bg-emerald-100/80 text-emerald-700 text-xs font-bold border border-emerald-200 shadow-sm inline-flex items-center gap-1 animate-bounce">
+                خصم 20% 🚀
+              </span>
+            </div>
           </div>
         </div>
 
