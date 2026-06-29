@@ -101,13 +101,14 @@ export default function FeaturesDetail() {
                 transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
                 className="w-full lg:w-1/2"
               >
-              <div className="relative rounded-2xl overflow-hidden shadow-2xl shadow-slate-200/50 border border-slate-200 bg-white aspect-[4/3] group">
-                  <div className="absolute inset-0 bg-slate-900/5 group-hover:bg-transparent transition-colors z-10" />
+              <div className="rounded-2xl overflow-hidden shadow-2xl shadow-slate-200/50 border border-slate-200 bg-white group" style={{ height: "380px" }}>
+                  <div className="absolute inset-0 bg-slate-900/5 group-hover:bg-transparent transition-colors z-10 pointer-events-none" />
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={feature.image}
                     alt={feature.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    loading="lazy"
                   />
                 </div>
               </motion.div>
