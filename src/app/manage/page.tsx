@@ -8,7 +8,6 @@ import { setAppValue } from "@/lib/appStorage";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
 import OnboardingFlow from "@/components/OnboardingFlow";
-import PublicLayout from "@/components/PublicLayout";
 
 import { cn } from "@/lib/utils"
 import { GradientCheckbox } from "@/components/ui/checkbox"
@@ -31,11 +30,11 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
 
 export default function ManagePage() {
   return (
-    <PublicLayout>
-      <Suspense fallback={<div className="flex items-center justify-center min-h-[500px]"><div className="w-8 h-8 border-4 border-[#4F46BA] border-t-transparent rounded-full animate-spin" /></div>}>
+    <div className="min-h-screen bg-white flex w-full">
+      <Suspense fallback={<div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#4F46BA] border-t-transparent rounded-full animate-spin" /></div>}>
         <ManageContent />
       </Suspense>
-    </PublicLayout>
+    </div>
   )
 }
 
@@ -221,162 +220,168 @@ function ManageContent() {
 
   return (
     <>
-        <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col lg:flex-row items-start gap-10 lg:gap-16 justify-center">
-              <div className="flex-1 max-w-md space-y-4 pt-4">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#4F46BA]/10 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#4F46BA]" />
-                  <span className="text-[11px] font-medium text-[#4F46BA]">
-                    {isRtl ? "إدارة العيادة" : "Clinic Management"}
-                  </span>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-slate-800">
-                  {isRtl ? "سجل الدخول لإدارة عيادتك" : "Sign in to Manage Your Clinic"}
-                </h2>
-                <p className="text-slate-400 text-sm">
-                  {isRtl
-                    ? "قم بتسجيل الدخول للوصول إلى لوحة التحكم وإدارة المرضى والجلسات والتقارير."
-                    : "Sign in to access the dashboard and manage patients, sessions, and reports."}
-                </p>
-                <div className="flex flex-wrap gap-3 pt-2">
-                  {[
-                    { icon: "👥", labelAr: "إدارة المرضى", labelEn: "Patients" },
-                    { icon: "📅", labelAr: "الجلسات", labelEn: "Sessions" },
-                    { icon: "📊", labelAr: "التقارير", labelEn: "Reports" },
-                    { icon: "💰", labelAr: "الفواتير", labelEn: "Billing" },
-                  ].map((f, i) => (
-                    <div key={i} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-100">
-                      <span className="text-sm">{f.icon}</span>
-                      <span className="text-[11px] font-medium text-slate-500">{isRtl ? f.labelAr : f.labelEn}</span>
-                    </div>
-                  ))}
-                </div>
+    <div className="w-full min-h-screen flex flex-col lg:flex-row font-sans" dir={isRtl ? "rtl" : "ltr"}>
+      {/* Brand Side (Hidden on Mobile) */}
+      <div className="hidden lg:flex lg:w-1/2 relative bg-slate-900 overflow-hidden items-center justify-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-[#4F46BA] opacity-90" />
+        
+        <div className="relative z-10 flex flex-col items-center justify-center p-12 text-center text-white w-full max-w-lg">
+          <Link href="/" className="mb-10 transform hover:scale-105 transition-transform">
+            <img src="/logo.png" alt="Prime Physio" className="w-24 h-24 object-contain drop-shadow-2xl brightness-0 invert" />
+          </Link>
+          <h1 className="text-4xl font-bold mb-6 leading-tight">
+            {isRtl ? "مستقبل إدارة عيادات" : "The Future of Clinic"} <br /> 
+            <span className="text-indigo-400">{isRtl ? "العلاج الطبيعي" : "Management"}</span>
+          </h1>
+          <p className="text-lg text-slate-300 mb-12 leading-relaxed">
+            {isRtl 
+              ? "نظام متكامل يجمع بين السجلات الطبية، الإدارة المالية، وجدولة المواعيد في منصة واحدة سهلة الاستخدام."
+              : "An integrated system combining EMR, billing, and scheduling in one easy-to-use platform."}
+          </p>
+
+          <div className="flex gap-4 justify-center">
+             <div className="px-5 py-2 rounded-full bg-white/10 backdrop-blur border border-white/20 text-sm font-medium">{isRtl ? "سجلات طبية" : "EMR"}</div>
+             <div className="px-5 py-2 rounded-full bg-white/10 backdrop-blur border border-white/20 text-sm font-medium">{isRtl ? "فواتير" : "Billing"}</div>
+             <div className="px-5 py-2 rounded-full bg-white/10 backdrop-blur border border-white/20 text-sm font-medium">{isRtl ? "مواعيد" : "Calendar"}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Form Side */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white relative">
+        <Link href="/" className={`absolute top-6 ${isRtl ? "left-6" : "right-6"} text-sm text-slate-500 hover:text-slate-800 flex items-center gap-2 transition-colors font-medium`}>
+          <ArrowRight className={`w-4 h-4 ${isRtl ? "" : "rotate-180"}`} />
+          {isRtl ? "العودة للرئيسية" : "Back to Home"}
+        </Link>
+        
+        <div className="w-full max-w-[400px]">
+          {/* Logo for mobile only */}
+          <div className="lg:hidden flex justify-center mb-8">
+            <img src="/logo.png" alt="Prime Physio" className="w-16 h-16 object-contain" />
+          </div>
+
+          <div className="mb-8 text-center lg:text-start">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
+              {isRtl ? "مرحباً بعودتك" : "Welcome Back"}
+            </h2>
+            <p className="text-sm text-slate-500">
+              {isRtl ? "سجل الدخول لإدارة عيادتك" : "Sign in to manage your clinic"}
+            </p>
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl p-4 mb-6 flex items-start gap-3">
+              <Shield className="w-5 h-5 shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">
+                {isRtl ? "البريد الإلكتروني" : "Email"}
+              </label>
+              <div className="relative">
+                <Mail className={`absolute ${isRtl ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400`} />
+                <Input
+                  type="email"
+                  placeholder="example@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={`w-full h-11 bg-slate-50 border-slate-200 text-slate-800 rounded-xl focus:bg-white ${isRtl ? "pr-10" : "pl-10"}`}
+                />
               </div>
+            </div>
 
-              <div className="w-full max-w-[380px]">
-                <div className="bg-white rounded-2xl shadow-lg border border-slate-100 p-6 sm:p-8">
-                  <div className="text-center mb-6">
-                    <h2 className="text-lg font-bold text-slate-800">
-                      {isRtl ? "تسجيل الدخول" : "Sign In"}
-                    </h2>
-                    <p className="text-xs text-slate-400 mt-1">
-                      {isRtl ? "أدخل بياناتك للمتابعة" : "Enter your details to continue"}
-                    </p>
-                  </div>
-
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-600 text-xs rounded-lg p-3 mb-4 text-center">
-                      {error}
-                    </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700">
+                {isRtl ? "كلمة المرور" : "Password"}
+              </label>
+              <div className="relative">
+                <Lock className={`absolute ${isRtl ? "right-3" : "left-3"} top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-slate-400`} />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className={`w-full h-11 bg-slate-50 border-slate-200 text-slate-800 rounded-xl focus:bg-white ${isRtl ? "pr-10 pl-10" : "pl-10 pr-10"}`}
+                />
+                <div
+                  onClick={() => setShowPassword(!showPassword)}
+                  className={`absolute ${isRtl ? "left-3" : "right-3"} top-1/2 -translate-y-1/2 cursor-pointer p-1`}
+                >
+                  {showPassword ? (
+                    <Eye className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
+                  ) : (
+                    <EyeClosed className="w-4 h-4 text-slate-400 hover:text-slate-600 transition-colors" />
                   )}
-
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-medium text-slate-500">
-                        {isRtl ? "البريد الإلكتروني" : "Email"}
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                        <Input
-                          type="email"
-                          placeholder="example@email.com"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          className="w-full pl-10 text-slate-700"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-medium text-slate-500">
-                        {isRtl ? "كلمة المرور" : "Password"}
-                      </label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className="w-full pl-10 pr-10 text-slate-700"
-                        />
-                        <div
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer"
-                        >
-                          {showPassword ? (
-                            <Eye className="w-4 h-4 text-slate-300 hover:text-slate-500 transition-colors" />
-                          ) : (
-                            <EyeClosed className="w-4 h-4 text-slate-300 hover:text-slate-500 transition-colors" />
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1">
-                      <div className="flex items-center gap-2">
-                        <GradientCheckbox 
-                          id="remember-me" 
-                          checked={rememberMe} 
-                          onChange={() => setRememberMe(!rememberMe)}
-                          className="!h-[18px] !w-[18px]"
-                        />
-                        <label htmlFor="remember-me" className="text-xs text-slate-400 cursor-pointer select-none">
-                          {isRtl ? "تذكرني" : "Remember me"}
-                        </label>
-                      </div>
-                      <button type="button" onClick={() => { setShowForgotModal(true); setForgotStep("email"); setForgotOtp(["","","",""]); setForgotNewPassword(""); setForgotConfirmPassword(""); setForgotShowCode(""); setForgotError(""); }} className="group text-xs text-[#4F46BA] transition-all duration-300 hover:scale-105 relative after:absolute after:bottom-0 after:left-0 after:h-[1.5px] after:w-0 after:bg-[#4338ca] after:transition-all after:duration-300 hover:after:w-full">
-                        {isRtl ? "نسيت كلمة المرور؟" : "Forgot password?"}
-                      </button>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={isLoading}
-                      className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
-                    >
-                      {isLoading ? (
-                        <div className="w-4 h-4 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
-                      ) : (
-                        <span className="flex items-center justify-center gap-1">
-                          {isRtl ? "تسجيل الدخول" : "Sign In"}
-                          <ArrowRight className={`w-3.5 h-3.5 ${isRtl ? "rotate-180" : ""}`} />
-                        </span>
-                      )}
-                    </button>
-
-                    <div className="relative flex items-center py-1">
-                      <div className="flex-grow border-t border-slate-100" />
-                      <span className="mx-3 text-xs text-slate-300">{isRtl ? "أو" : "or"}</span>
-                      <div className="flex-grow border-t border-slate-100" />
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleGoogleLogin}
-                      disabled={isLoading}
-                      className="w-full border border-slate-200 hover:border-slate-300 bg-white text-slate-600 font-medium h-10 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-sm"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                        <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.4-.9 2.6-1.9 3.4l3 2.3c1.7-1.6 2.7-4 2.7-6.9 0-.7-.1-1.4-.2-2.1H12z" />
-                        <path fill="#34A853" d="M6.1 14.3l-.8.6-2.2 1.7A10 10 0 0 0 12 22c2.8 0 5.2-.9 6.9-2.4l-3-2.3c-.8.5-1.9.9-3.9.9-3 0-5.5-2-6.4-4.7z" />
-                        <path fill="#FBBC05" d="M3.1 6.6A10 10 0 0 0 2 12c0 .8.1 1.6.3 2.3l4-3.1a6 6 0 0 1 0-1.7l-3.2-2.9z" />
-                        <path fill="#4285F4" d="M12 5c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.8 9.8 0 0 0 12 2a10 10 0 0 0-8.9 5.5l4 3.1A5.8 5.8 0 0 1 12 5z" />
-                      </svg>
-                      {isRtl ? "الدخول عبر Google" : "Sign in with Google"}
-                    </button>
-
-                    <p className="text-center text-xs text-slate-400">
-                      {isRtl ? "ليس لديك حساب؟" : "Don't have an account?"}{' '}
-                      <Link href="/signup" className="text-[#4F46BA] hover:text-[#4338ca] font-medium transition-colors">
-                        {isRtl ? "إنشاء حساب" : "Sign up"}
-                      </Link>
-                    </p>
-                  </form>
                 </div>
               </div>
             </div>
+
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-2">
+                <GradientCheckbox 
+                  id="remember-me" 
+                  checked={rememberMe} 
+                  onChange={() => setRememberMe(!rememberMe)}
+                  className="!h-[18px] !w-[18px]"
+                />
+                <label htmlFor="remember-me" className="text-sm text-slate-600 cursor-pointer select-none">
+                  {isRtl ? "تذكرني" : "Remember me"}
+                </label>
+              </div>
+              <button type="button" onClick={() => { setShowForgotModal(true); setForgotStep("email"); setForgotOtp(["","","",""]); setForgotNewPassword(""); setForgotConfirmPassword(""); setForgotShowCode(""); setForgotError(""); }} className="text-sm font-semibold text-[#4F46BA] hover:text-[#3730a3] transition-colors">
+                {isRtl ? "نسيت كلمة المرور؟" : "Forgot password?"}
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-[#4F46BA] hover:bg-[#4338ca] text-white font-semibold h-11 rounded-xl transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50 mt-4 shadow-md shadow-indigo-200"
+            >
+              {isLoading ? (
+                <div className="w-5 h-5 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  {isRtl ? "تسجيل الدخول" : "Sign In"}
+                  <ArrowRight className={`w-4 h-4 ${isRtl ? "rotate-180" : ""}`} />
+                </span>
+              )}
+            </button>
+
+            <div className="relative flex items-center py-4">
+              <div className="flex-grow border-t border-slate-200" />
+              <span className="mx-4 text-xs font-medium text-slate-400 bg-white px-2">{isRtl ? "أو" : "OR"}</span>
+              <div className="flex-grow border-t border-slate-200" />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+              className="w-full border-2 border-slate-100 hover:border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold h-11 rounded-xl transition-all duration-200 flex items-center justify-center gap-3 text-sm"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.4-.9 2.6-1.9 3.4l3 2.3c1.7-1.6 2.7-4 2.7-6.9 0-.7-.1-1.4-.2-2.1H12z" />
+                <path fill="#34A853" d="M6.1 14.3l-.8.6-2.2 1.7A10 10 0 0 0 12 22c2.8 0 5.2-.9 6.9-2.4l-3-2.3c-.8.5-1.9.9-3.9.9-3 0-5.5-2-6.4-4.7z" />
+                <path fill="#FBBC05" d="M3.1 6.6A10 10 0 0 0 2 12c0 .8.1 1.6.3 2.3l4-3.1a6 6 0 0 1 0-1.7l-3.2-2.9z" />
+                <path fill="#4285F4" d="M12 5c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.8 9.8 0 0 0 12 2a10 10 0 0 0-8.9 5.5l4 3.1A5.8 5.8 0 0 1 12 5z" />
+              </svg>
+              {isRtl ? "الدخول باستخدام Google" : "Continue with Google"}
+            </button>
+
+            <p className="text-center text-sm font-medium text-slate-500 mt-8">
+              {isRtl ? "ليس لديك حساب؟" : "Don't have an account?"}{' '}
+              <Link href="/signup" className="text-[#4F46BA] hover:text-[#3730a3] transition-colors underline underline-offset-4 decoration-2 decoration-[#4F46BA]/30 hover:decoration-[#4F46BA]">
+                {isRtl ? "إنشاء حساب جديد" : "Sign up"}
+              </Link>
+            </p>
+          </form>
         </div>
+      </div>
+    </div>
 
         {/* Forgot Password Modal */}
         {showForgotModal && (
