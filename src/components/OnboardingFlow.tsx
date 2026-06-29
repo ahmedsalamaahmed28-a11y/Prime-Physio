@@ -78,7 +78,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
   const [createdCenterSlug, setCreatedCenterSlug] = useState("");
 
   const addCenter = () => {
-    if (centers.length >= 2) return;
+    if (centers.length >= 5) return;
     setCenters([...centers, { id: String(Date.now()), shortName: "", fullName: "", slug: "", logoFile: null, logoPreview: "" }]);
   };
 
@@ -231,6 +231,11 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
     setIsUploading(false)
 
     // 3. Handle Subscription / Billing
+    if (hidePlanStep) {
+      setStep("done");
+      return;
+    }
+
     if (selectedPlan === "basic") {
       try {
         const body = {
@@ -477,7 +482,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
             </div>
           ))}
 
-          {selectedPlan === "gold" && centers.length < 2 && (
+          {selectedPlan === "gold" && centers.length < 5 && (
             <button onClick={addCenter}
               className="w-full py-3 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 hover:border-[#4F46BA]/40 hover:text-[#4F46BA] text-sm font-bold transition-all mb-4 flex items-center justify-center gap-2"
             >

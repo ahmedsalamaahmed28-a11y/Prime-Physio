@@ -60,6 +60,28 @@ export async function POST(req: NextRequest) {
        return NextResponse.json({ error: `Slug already taken: ${existingBranches[0].slug}` }, { status: 400 });
     }
 
+    // Check branch limits for existing clinic
+    if (existingStaff?.clinic_id) {
+      const { data: sub } = await admin
+        .from("subscriptions")
+        .select("plan_name")
+        .eq("clinic_id", clinicId)
+        .eq("status", "active")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const { count: branchCount } = await admin
+        .from("branches")
+        .select("*", { count: "exact", head: true })
+        .eq("clinic_id", clinicId);
+
+      const plan = sub?.plan_name || "basic";
+      if (plan !== "gold" && branchCount && branchCount >= 1) {
+        return NextResponse.json({ error: "الخطة الحالية لا تدعم أكثر من مركز واحد. يرجى الترقية للخطة الذهبية." }, { status: 403 });
+      }
+    }
+
     // Insert branches
     const createdBranches = [];
     for (const center of centers) {
