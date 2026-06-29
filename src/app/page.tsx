@@ -252,4 +252,4 @@ export default async function RootPage() {
       </footer>
     </div>
   );
-
+}
