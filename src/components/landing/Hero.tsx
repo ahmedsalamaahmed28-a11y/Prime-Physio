@@ -1,0 +1,165 @@
+"use client";
+
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { Check, Play, Calendar, Users, BarChart3, Activity } from "lucide-react";
+
+export default function Hero() {
+  return (
+    <div className="relative overflow-hidden bg-white pt-24 pb-32">
+      {/* Background Effects */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500/20 blur-[120px] rounded-full mix-blend-multiply" />
+        <div className="absolute top-40 -left-20 w-72 h-72 bg-indigo-500/20 blur-[100px] rounded-full mix-blend-multiply" />
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
+      </div>
+
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center">
+          
+          {/* Left Column: Text & CTAs */}
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="max-w-2xl"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-sm font-semibold mb-6">
+              <span className="flex h-2 w-2 rounded-full bg-indigo-500"></span>
+              أكثر من 100 مركز علاج طبيعي يعتمد على Prime Physio
+            </div>
+            
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.15] mb-6">
+              نظام إدارة متكامل لمراكز <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#7C3AED]">العلاج الطبيعي</span>
+            </h1>
+            
+            <p className="text-lg sm:text-xl leading-relaxed text-slate-600 mb-8 font-medium">
+              إدارة المرضى، الجلسات، الأطباء، الملفات الطبية، الفواتير، والتقارير المالية من منصة واحدة مصممة خصيصًا لمراكز العلاج الطبيعي.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 mb-8">
+              <Link
+                href="/setup/center"
+                className="inline-flex justify-center items-center gap-2 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-8 py-4 text-base font-bold text-white shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 transition-all"
+              >
+                ابدأ مجانًا
+              </Link>
+              <Link
+                href="#demo"
+                className="inline-flex justify-center items-center gap-2 rounded-full bg-white border border-slate-200 px-8 py-4 text-base font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <Play className="w-5 h-5 fill-slate-700 text-slate-700" />
+                مشاهدة العرض التوضيحي
+              </Link>
+            </div>
+            
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-slate-500">
+              <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-green-500" /> بدون بطاقة ائتمانية</div>
+              <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-green-500" /> إعداد خلال دقائق</div>
+              <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-green-500" /> دعم فني عربي</div>
+            </div>
+          </motion.div>
+
+          {/* Right Column: Dashboard Mockup */}
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative lg:h-[600px] flex items-center justify-center lg:justify-end mt-10 lg:mt-0"
+          >
+            {/* The Floating UI Representation */}
+            <div className="relative w-full max-w-lg aspect-[4/3] bg-white rounded-2xl shadow-2xl border border-slate-200/60 overflow-hidden perspective-1000 transform lg:-rotate-y-12 lg:rotate-x-12 hover:rotate-0 transition-transform duration-700 ease-out">
+              
+              {/* Mockup Header */}
+              <div className="h-10 bg-slate-50 border-b border-slate-100 flex items-center px-4 gap-2">
+                <div className="flex gap-1.5">
+                  <div className="w-3 h-3 rounded-full bg-red-400" />
+                  <div className="w-3 h-3 rounded-full bg-amber-400" />
+                  <div className="w-3 h-3 rounded-full bg-green-400" />
+                </div>
+                <div className="mx-auto w-1/2 h-4 bg-white rounded-md border border-slate-200" />
+              </div>
+              
+              {/* Mockup Content (Abstract Dashboard) */}
+              <div className="p-6 grid grid-cols-3 gap-4 h-full bg-slate-50/50">
+                
+                {/* Sidebar */}
+                <div className="col-span-1 space-y-3">
+                  <div className="h-8 w-24 bg-indigo-100 rounded-lg flex items-center px-2 gap-2">
+                    <Activity className="w-4 h-4 text-indigo-600" />
+                    <div className="h-2 w-12 bg-indigo-200 rounded-full" />
+                  </div>
+                  <div className="space-y-2 mt-6">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div key={i} className="h-6 w-full bg-slate-200/60 rounded-md" />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="col-span-2 space-y-4">
+                  {/* Top Stats */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="h-20 bg-white border border-slate-100 rounded-xl p-3 shadow-sm flex flex-col justify-between">
+                      <Users className="w-5 h-5 text-indigo-500" />
+                      <div className="h-4 w-16 bg-slate-200 rounded-full" />
+                    </div>
+                    <div className="h-20 bg-white border border-slate-100 rounded-xl p-3 shadow-sm flex flex-col justify-between">
+                      <BarChart3 className="w-5 h-5 text-emerald-500" />
+                      <div className="h-4 w-20 bg-slate-200 rounded-full" />
+                    </div>
+                  </div>
+
+                  {/* Calendar / List */}
+                  <div className="h-32 bg-white border border-slate-100 rounded-xl p-4 shadow-sm space-y-3">
+                     <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="w-4 h-4 text-slate-400" />
+                        <div className="h-3 w-24 bg-slate-200 rounded-full" />
+                     </div>
+                     {[1, 2].map((i) => (
+                       <div key={i} className="flex items-center gap-3">
+                         <div className="w-8 h-8 rounded-full bg-indigo-100" />
+                         <div className="space-y-1.5 flex-1">
+                           <div className="h-2 w-full bg-slate-200 rounded-full" />
+                           <div className="h-2 w-2/3 bg-slate-100 rounded-full" />
+                         </div>
+                       </div>
+                     ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Floating Elements */}
+            <motion.div 
+              animate={{ y: [-10, 10, -10] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              className="absolute -right-8 top-20 bg-white p-4 rounded-2xl shadow-xl border border-slate-100 flex items-center gap-4"
+            >
+              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                <Check className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <div className="text-sm font-bold text-slate-800">حجز جديد</div>
+                <div className="text-xs text-slate-500">تم التأكيد بنجاح</div>
+              </div>
+            </motion.div>
+
+            <motion.div 
+              animate={{ y: [10, -10, 10] }}
+              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
+              className="absolute -left-4 bottom-20 bg-white p-3 rounded-2xl shadow-xl border border-slate-100"
+            >
+               <div className="w-32 h-24 bg-indigo-50/50 rounded-lg border border-indigo-100/50 flex items-end p-2 gap-1">
+                  {[40, 70, 45, 90, 65].map((h, i) => (
+                    <div key={i} className="w-full bg-indigo-500 rounded-t-sm" style={{ height: `${h}%` }} />
+                  ))}
+               </div>
+            </motion.div>
+
+          </motion.div>
+        </div>
+      </div>
+    </div>
+  );
+}
