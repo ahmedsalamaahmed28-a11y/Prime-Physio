@@ -124,30 +124,35 @@ export default async function RootPage() {
           </div>
         </div>
 
-        {/* Dashboard Mockup Image/Graphic */}
-        <div className="max-w-6xl mx-auto mt-20 relative animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500">
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-transparent to-transparent z-10" />
-          <div className="rounded-3xl border border-slate-200/60 bg-white/50 backdrop-blur-sm p-2 md:p-4 shadow-2xl shadow-indigo-900/5">
-            <div className="rounded-2xl bg-slate-100 aspect-video overflow-hidden border border-slate-100 relative">
-              {/* Fake dashboard UI blocks to make it look premium */}
-              <div className="absolute inset-0 bg-white" />
-              <div className="absolute top-0 inset-x-0 h-14 bg-white border-b border-slate-100 flex items-center px-6 gap-4">
-                <div className="w-8 h-8 rounded bg-slate-100" />
-                <div className="w-64 h-6 rounded bg-slate-100" />
+        {/* Physical Therapy Image / Graphic */}
+        <div className="max-w-5xl mx-auto mt-16 relative animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-500">
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-50 via-transparent to-transparent z-10 pointer-events-none" />
+          
+          <div className="relative z-0 rounded-[2.5rem] border border-slate-200/60 bg-white/50 backdrop-blur-sm p-2 md:p-4 shadow-2xl shadow-indigo-900/10">
+            <div className="rounded-[2rem] overflow-hidden border border-slate-100 relative bg-slate-100 aspect-[16/9] sm:aspect-[21/9]">
+              <img src="/landing-hero.png" alt="Physical Therapy Clinic" className="w-full h-full object-cover object-center" />
+              <div className="absolute inset-0 bg-indigo-900/10 mix-blend-multiply" />
+            </div>
+
+            {/* Floating Card 1 */}
+            <div className="absolute -left-6 top-1/4 bg-white p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 animate-in fade-in slide-in-from-right-8 duration-700 delay-700 hidden md:flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600">
+                <Users className="w-6 h-6" />
               </div>
-              <div className="absolute top-14 bottom-0 right-0 w-64 bg-slate-50 border-l border-slate-100 p-6 space-y-4">
-                <div className="w-full h-8 rounded bg-indigo-50" />
-                <div className="w-full h-8 rounded bg-white border border-slate-200" />
-                <div className="w-full h-8 rounded bg-white border border-slate-200" />
-                <div className="w-full h-8 rounded bg-white border border-slate-200" />
+              <div>
+                <p className="text-sm text-slate-500 font-medium">مرضى نشطين</p>
+                <p className="text-xl font-black text-slate-800">+2,400</p>
               </div>
-              <div className="absolute top-14 bottom-0 left-0 right-64 p-8 space-y-6">
-                <div className="flex gap-6">
-                  <div className="flex-1 h-32 bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 rounded-2xl" />
-                  <div className="flex-1 h-32 bg-white border border-slate-200 rounded-2xl" />
-                  <div className="flex-1 h-32 bg-white border border-slate-200 rounded-2xl" />
-                </div>
-                <div className="w-full h-64 bg-white border border-slate-200 rounded-2xl" />
+            </div>
+
+            {/* Floating Card 2 */}
+            <div className="absolute -right-6 bottom-1/4 bg-white p-4 rounded-2xl shadow-xl shadow-slate-200/50 border border-slate-100 animate-in fade-in slide-in-from-left-8 duration-700 delay-1000 hidden md:flex items-center gap-4">
+              <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                <Calendar className="w-6 h-6" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-500 font-medium">جلسات مكتملة</p>
+                <p className="text-xl font-black text-slate-800">+15,000</p>
               </div>
             </div>
           </div>
