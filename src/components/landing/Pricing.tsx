@@ -28,7 +28,7 @@ export default function Pricing() {
       name: "الفضية (Silver)",
       description: "للمراكز المتنامية التي تحتاج لأدوات احترافية.",
       priceMonthly: "1000",
-      priceYearly: "800",
+      priceYearly: "9600",
       features: [
         "إدارة حتى 200 مريض",
         "500 جلسة شهرياً",
@@ -43,7 +43,7 @@ export default function Pricing() {
       name: "الذهبية (Gold)",
       description: "للمستشفيات وسلاسل المراكز المتعددة.",
       priceMonthly: "1500",
-      priceYearly: "1200",
+      priceYearly: "14400",
       features: [
         "عدد لا محدود من المرضى والجلسات",
         "حسابات غير محدودة للأخصائيين",
@@ -67,17 +67,17 @@ export default function Pricing() {
             اختر الباقة التي تناسب حجم وطموح مركزك. يمكنك الترقية أو الإلغاء في أي وقت.
           </p>
           
-          <div className="mt-8 flex justify-center items-center gap-3">
-            <span className={`text-sm font-bold ${!isAnnual ? "text-slate-900" : "text-slate-500"}`}>شهري</span>
+          <div className="mt-8 flex justify-center items-center gap-3 dir-rtl" dir="rtl">
+            <span className={`text-sm font-bold ${!isAnnual ? "text-[#4F46E5]" : "text-slate-500"}`}>شهري</span>
             <button
               onClick={() => setIsAnnual(!isAnnual)}
               className="relative inline-flex h-7 w-14 items-center rounded-full bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-[#4F46E5] focus:ring-offset-2"
             >
               <span
-                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${isAnnual ? "translate-x-1" : "-translate-x-6"}`}
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-sm transition-transform ${isAnnual ? "-translate-x-6" : "translate-x-1"}`}
               />
             </button>
-            <span className={`text-sm font-bold flex items-center gap-1.5 ${isAnnual ? "text-slate-900" : "text-slate-500"}`}>
+            <span className={`text-sm font-bold flex items-center gap-1.5 ${isAnnual ? "text-[#4F46E5]" : "text-slate-500"}`}>
               سنوي <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs">-20%</span>
             </span>
           </div>
@@ -112,7 +112,7 @@ export default function Pricing() {
                 <span className="text-4xl font-black text-slate-900">
                   {isAnnual ? plan.priceYearly : plan.priceMonthly}
                 </span>
-                <span className="text-sm font-semibold text-slate-500">ج.م / {isAnnual ? "شهرياً (يدفع سنوياً)" : "شهرياً"}</span>
+                <span className="text-sm font-semibold text-slate-500">ج.م / {isAnnual ? "سنوياً" : "شهرياً"}</span>
               </div>
               
               <ul className="flex-1 space-y-4 mb-8">
