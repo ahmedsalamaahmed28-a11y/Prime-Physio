@@ -17,7 +17,7 @@ export default function FeaturesDetail() {
         "إرفاق صور الأشعة والتحاليل في ملف المريض.",
         "متابعة تاريخ الجلسات والملاحظات السريرية.",
       ],
-      image: "https://images.unsplash.com/photo-1576091160550-2173ff9e5ee5?q=80&w=2069&auto=format&fit=crop", // Placeholder medical image
+      image: "https://images.unsplash.com/photo-1551076805-e18690c5e451?q=80&w=2000&auto=format&fit=crop", // Medical/Dashboard image
       reversed: false,
     },
     {
@@ -31,7 +31,7 @@ export default function FeaturesDetail() {
         "تسجيل المصروفات اليومية للعيادة.",
         "تقارير أرباح وخسائر شهرية وسنوية.",
       ],
-      image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=2011&auto=format&fit=crop", // Placeholder finance image
+      image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2015&auto=format&fit=crop", // Finance image
       reversed: true,
     },
     {
@@ -45,7 +45,7 @@ export default function FeaturesDetail() {
         "إدارة غرف الكشف وأجهزة العلاج الطبيعي.",
         "تجنب تضارب المواعيد بين الأخصائيين.",
       ],
-      image: "https://images.unsplash.com/photo-1506784365847-bbad939e9335?q=80&w=2068&auto=format&fit=crop", // Placeholder calendar image
+      image: "https://images.unsplash.com/photo-1507925922837-326f46460a84?q=80&w=2070&auto=format&fit=crop", // Calendar/Schedule image
       reversed: false,
     },
   ];
