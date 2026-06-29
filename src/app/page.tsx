@@ -1,4 +1,4 @@
-import AnnouncementBar from "@/components/landing/AnnouncementBar";
+
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import TrustedStrip from "@/components/landing/TrustedStrip";
@@ -20,9 +20,6 @@ import Footer from "@/components/landing/Footer";
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-[#4F46E5] selection:text-white">
-      {/* 1. Top Announcement Bar */}
-      <AnnouncementBar />
-
       {/* 2. Main Navigation */}
       <Navbar />
 
