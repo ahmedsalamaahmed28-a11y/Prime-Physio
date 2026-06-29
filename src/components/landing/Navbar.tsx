@@ -14,7 +14,7 @@ export default function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
       
-      const sections = ["features", "why-us", "pricing", "faq"];
+      const sections = ["why-us", "features", "pricing", "faq"];
       let current = "";
 
       for (const section of sections) {
@@ -43,8 +43,8 @@ export default function Navbar() {
 
   const navLinks = [
     { name: "الرئيسية", href: "#", id: "" },
-    { name: "المميزات", href: "#features", id: "features" },
     { name: "لماذا نحن", href: "#why-us", id: "why-us" },
+    { name: "المميزات", href: "#features", id: "features" },
     { name: "الأسعار", href: "#pricing", id: "pricing" },
     { name: "الأسئلة الشائعة", href: "#faq", id: "faq" },
   ];
