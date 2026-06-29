@@ -32,7 +32,8 @@ const translations: Record<Language, Record<string, string>> = {
     // Sidebar items
     "nav_admin": "إدارة المنصة",
     "nav_home": "الرئيسية",
-    "nav_messages": "الرسائل",
+    "nav_messages": "الرسائل والمحادثات",
+    "nav_calendar": "المواعيد والتقويم",
     "nav_patients": "المرضى والجلسات",
     "nav_billing": "المالية والفواتير",
     "nav_clinic_settings": "التشغيل والإدارة",
@@ -118,7 +119,8 @@ const translations: Record<Language, Record<string, string>> = {
     // Sidebar items
     "nav_admin": "Platform Admin",
     "nav_home": "Home",
-    "nav_messages": "Messages",
+    "nav_messages": "Messages & Chat",
+    "nav_calendar": "Calendar & Appointments",
     "nav_patients": "Patients & Sessions",
     "nav_billing": "Billing & Invoices",
     "nav_clinic_settings": "Clinic Settings",

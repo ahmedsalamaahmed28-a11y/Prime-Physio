@@ -64,7 +64,9 @@ interface SidebarItem {
 const SIDEBAR_ITEMS: SidebarItem[] = [
   { nameKey: "nav_home", href: "/home", icon: Home },
   { nameKey: "nav_admin", href: "/admin", icon: ShieldAlert },
+  { nameKey: "nav_calendar", href: "/calendar", icon: Calendar },
   { nameKey: "nav_patients", href: "/patients", icon: Users },
+  { nameKey: "nav_messages", href: "/chat", icon: MessageSquare },
   { nameKey: "nav_billing", href: "/billing", icon: CreditCard },
   { nameKey: "nav_staff", href: "/staff", icon: Stethoscope },
   { nameKey: "nav_hr", href: "/hr", icon: Building },
@@ -320,7 +322,7 @@ export default function DashboardLayout({
               return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
             }
             if (role === "receptionist") {
-              return ["/home", "/patients", "/billing", "/logout"].includes(item.href);
+              return ["/home", "/patients", "/billing", "/calendar", "/chat", "/logout"].includes(item.href);
             }
             return true;
           }).map((item) => {
@@ -603,13 +605,19 @@ export default function DashboardLayout({
 
               <nav className="flex-1 px-3 flex flex-col gap-y-1 overflow-visible">
                 {SIDEBAR_ITEMS.filter((item) => {
+                  if (item.href === "/admin" && activeAccount?.roleKey !== "platform_admin") return false;
+                  if (item.href === "/analytics" && !hasPermission("view_analytics")) return false;
+                  if (item.href === "/profile" && !hasPermission("manage_settings")) return false;
+                  if (item.href === "/permissions" && !hasPermission("manage_settings")) return false;
+                  if (item.href === "/staff" && !hasPermission("manage_staff")) return false;
+
                   const role = activeAccount?.roleKey || "doctor";
                   if (role === "admin") return true;
                   if (role === "doctor") {
-                    return !["/billing", "/staff", "/analytics", "/clinic-settings"].includes(item.href);
+                    return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
                   }
                   if (role === "receptionist") {
-                    return ["/home", "/patients", "/billing", "/logout"].includes(item.href);
+                    return ["/home", "/patients", "/billing", "/calendar", "/chat", "/logout"].includes(item.href);
                   }
                   return true;
                 }).map((item) => {
