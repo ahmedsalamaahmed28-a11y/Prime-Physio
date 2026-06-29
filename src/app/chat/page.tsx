@@ -2,7 +2,7 @@
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { useLanguage } from "@/lib/LanguageContext";
-import { MessageSquare, Clock, Phone, VideoIcon } from "lucide-react";
+import { MessageSquare, Clock, Phone, Camera } from "lucide-react";
 
 export default function ChatPage() {
   const { language } = useLanguage();
@@ -31,7 +31,7 @@ export default function ChatPage() {
              <h3 className="font-semibold text-slate-800">{isRtl ? "محادثات فورية" : "Instant Chat"}</h3>
           </div>
           <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-3">
-             <VideoIcon className="w-8 h-8 text-rose-500" />
+             <Camera className="w-8 h-8 text-rose-500" />
              <h3 className="font-semibold text-slate-800">{isRtl ? "استشارات مرئية" : "Video Consultations"}</h3>
           </div>
           <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-3">
