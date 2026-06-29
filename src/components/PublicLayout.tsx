@@ -49,14 +49,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
               })}
             </div>
             <div className="absolute left-4 sm:left-8 top-4 flex items-center gap-2">
-              {user && (
-                <Link
-                  href="/logout"
-                  className="px-3 py-1.5 rounded-lg text-xs font-medium border border-red-200 text-red-500 hover:text-white hover:bg-red-500 hover:border-red-500 transition-all duration-200"
-                >
-                  {isRtl ? "تسجيل الخروج" : "Logout"}
-                </Link>
-              )}
               <button
                 onClick={toggleLanguage}
                 className="px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 text-slate-500 hover:text-[#4F46BA] hover:border-[#4F46BA]/30 transition-all duration-200"

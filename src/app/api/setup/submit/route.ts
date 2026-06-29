@@ -45,14 +45,14 @@ export async function POST(req: NextRequest) {
       p_branches: centers // without logo
     });
 
-    if (transactionError || !transactionData) {
+    if (transactionError || !transactionData || transactionData?.error) {
       console.error("[Setup Submit] Transaction error details:", transactionError);
       return NextResponse.json(
         { 
-          error: "Failed to setup clinic transaction", 
-          details: transactionError?.message || "Unknown error",
-          hint: transactionError?.hint || "",
-          code: transactionError?.code || ""
+          error: transactionData?.error || "Failed to setup clinic transaction",
+          details: transactionData?.message || transactionError?.message || "Unknown error",
+          hint: transactionData?.hint || transactionError?.hint || "",
+          code: transactionData?.code || transactionError?.code || ""
         }, 
         { status: 500 }
       );
