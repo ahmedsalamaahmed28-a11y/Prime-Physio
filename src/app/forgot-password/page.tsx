@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import Link from "next/link";
 import { Mail, ArrowRight, CheckCircle } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Loader } from "@/components/Loader";
@@ -160,9 +161,9 @@ export default function ForgotPasswordPage() {
               </button>
 
               <div className="pt-2">
-                <a href="/login" className="text-xs text-[#4F46BA] hover:text-[#4338ca] font-medium transition-colors">
+                <Link href="/login" className="text-xs text-[#4F46BA] hover:text-[#4338ca] font-medium transition-colors">
                   {isRtl ? "العودة لتسجيل الدخول" : "Back to Sign In"}
-                </a>
+                </Link>
               </div>
             </form>
           ) : (
@@ -209,9 +210,9 @@ export default function ForgotPasswordPage() {
                 >
                   {isRtl ? "تغيير البريد الإلكتروني" : "Change email"}
                 </button>
-                <a href="/login" className="text-xs text-[#4F46BA] hover:text-[#4338ca] font-medium transition-colors">
+                <Link href="/login" className="text-xs text-[#4F46BA] hover:text-[#4338ca] font-medium transition-colors">
                   {isRtl ? "العودة لتسجيل الدخول" : "Back to Sign In"}
-                </a>
+                </Link>
               </div>
             </div>
           )}

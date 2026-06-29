@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
 import { useAuth } from "@/lib/auth";
 import { Mail, Lock, Eye, EyeClosed, ArrowRight } from "lucide-react";
@@ -115,12 +116,12 @@ export default function BrandedLoginPage() {
               ? "المركز الذي تبحث عنه غير موجود أو تم إزالته"
               : "The center you're looking for doesn't exist or has been removed."}
           </p>
-          <a
+          <Link
             href="/login"
             className="inline-block px-5 py-2 bg-[#4F46BA] text-white font-medium rounded-xl text-sm"
           >
             {isRtl ? "العودة للصفحة الرئيسية" : "Back to Home"}
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -140,12 +141,12 @@ export default function BrandedLoginPage() {
               {branch?.short_name || "Prime Physio"}
             </span>
           </div>
-          <a
+          <Link
             href="/login"
             className="text-xs text-slate-400 hover:text-[#4F46BA] transition-colors"
           >
             {isRtl ? "جميع المراكز" : "All Centers"}
-          </a>
+          </Link>
         </div>
       </nav>
 

@@ -82,7 +82,7 @@ export async function POST(req: Request) {
 
         const availableSlots = [];
         for (let h = startHour; h < endHour; h++) {
-          for (let m of [0, 30]) {
+          for (const m of [0, 30]) {
             const slotStart = new Date(`${date}T${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:00.000Z`);
             const slotEnd = new Date(slotStart.getTime() + 30 * 60000);
             

@@ -431,7 +431,9 @@ export default function SubscriptionPage() {
         <PricingSwitch onSwitch={togglePricingPeriod} isRtl={isRtl} />
       </motion.div>
 
-      {isTrial && trialEndDate && (
+      {isTrial && trialEndDate && (() => {
+        const daysLeft = Math.max(0, Math.ceil((new Date(trialEndDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)));
+        return (
         <motion.div
           initial="hidden"
           whileInView="visible"
@@ -443,12 +445,13 @@ export default function SubscriptionPage() {
           <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 rounded-xl px-5 py-3 text-center shadow-lg">
             <p className="text-sm font-bold">
               {isRtl
-                ? `🎉 تجربة مجانية للخطة الذهبية — متبقي ${Math.max(0, Math.ceil((new Date(trialEndDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} أيام`
-                : `🎉 Free Gold Trial — ${Math.max(0, Math.ceil((new Date(trialEndDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)))} days left`}
+                ? `🎉 تجربة مجانية للخطة الذهبية — متبقي ${daysLeft} أيام`
+                : `🎉 Free Gold Trial — ${daysLeft} days left`}
             </p>
           </div>
         </motion.div>
-      )}
+        );
+      })()}
 
       <div className="grid grid-cols-1 md:grid-cols-3 items-start justify-items-center gap-6 py-6 mx-auto relative z-10">
         {PLANS.map((plan, index) => (

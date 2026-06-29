@@ -122,18 +122,21 @@ export default function HomePage() {
           </div>
         </div>
 
-        {trialInfo.isTrial && (
+        {trialInfo.isTrial && (() => {
+          const daysLeft = trialInfo.endDate ? Math.max(0, Math.ceil((new Date(trialInfo.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))) : 7;
+          return (
           <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 rounded-xl px-5 py-3 text-center shadow-lg mb-6">
             <p className="text-sm font-bold">
               {isRtl
-                ? `🎉 أنت تستخدم الخطة الذهبية مجاناً — متبقي ${trialInfo.endDate ? Math.max(0, Math.ceil((new Date(trialInfo.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 7} أيام`
-                : `🎉 You're on a free Gold trial — ${trialInfo.endDate ? Math.max(0, Math.ceil((new Date(trialInfo.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 7} days left`}
+                ? `🎉 أنت تستخدم الخطة الذهبية مجاناً — متبقي ${daysLeft} أيام`
+                : `🎉 You're on a free Gold trial — ${daysLeft} days left`}
             </p>
             <Link href="/subscription" className="text-xs underline font-medium mt-1 inline-block">
               {isRtl ? "عرض تفاصيل الخطط" : "View plan details"}
             </Link>
           </div>
-        )}
+          );
+        })()}
 
         {/* Performance Cards */}
         <h2 className="text-base font-bold text-gray-700 mb-4">{isRtl ? "نشاط اليوم" : "Today's Activity"}</h2>

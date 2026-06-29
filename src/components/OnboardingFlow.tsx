@@ -113,7 +113,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
     e.preventDefault()
     if (!selectedPlan) return
     
-    let currentClinicId = resolvedClinicId || clinicId;
+    const currentClinicId = resolvedClinicId || clinicId;
     if (!currentClinicId) {
       setPayError(isRtl ? "يرجى إنشاء العيادة أولاً" : "Please create clinic first");
       return;
@@ -166,39 +166,37 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
     let createdBranches: any[] = [];
 
     // 1. Submit transaction (Clinic, Staff, Settings, Branches without Logos)
-    if (!currentClinicId) {
-      const centersPayload = validCenters.map(c => ({
-        fullName: c.fullName,
-        shortName: c.shortName,
-        slug: c.slug
-      }));
+    const centersPayload = validCenters.map(c => ({
+      fullName: c.fullName,
+      shortName: c.shortName,
+      slug: c.slug
+    }));
 
-      try {
-        const res = await fetch("/api/setup/submit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: user?.email || sessionEmail || "",
-            name: user?.name || sessionName || "Clinic Admin",
-            centers: centersPayload
-          }),
-        });
-        const data = await res.json();
-        if (res.ok && data.clinicId) {
-          currentClinicId = data.clinicId;
-          createdBranches = data.createdBranches || [];
-          setResolvedClinicId(currentClinicId);
-          data.createdSlugs?.length > 0 && setCreatedCenterSlug(data.createdSlugs[0]);
-        } else {
-          setError(data.error || (isRtl ? "فشل إعداد العيادة." : "Failed to setup clinic."));
-          setIsUploading(false)
-          return
-        }
-      } catch (e: any) {
-        setError(e?.message || (isRtl ? "حدث خطأ أثناء الإعداد" : "Error during setup"))
+    try {
+      const res = await fetch("/api/setup/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user?.email || sessionEmail || "",
+          name: user?.name || sessionName || "Clinic Admin",
+          centers: centersPayload
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.clinicId) {
+        currentClinicId = data.clinicId;
+        createdBranches = data.createdBranches || [];
+        setResolvedClinicId(currentClinicId);
+        data.createdSlugs?.length > 0 && setCreatedCenterSlug(data.createdSlugs[0]);
+      } else {
+        setError(data.error || (isRtl ? "فشل إعداد العيادة." : "Failed to setup clinic."));
         setIsUploading(false)
         return
       }
+    } catch (e: any) {
+      setError(e?.message || (isRtl ? "حدث خطأ أثناء الإعداد" : "Error during setup"))
+      setIsUploading(false)
+      return
     }
 
     // 2. Upload logos and update branches

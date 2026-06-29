@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     const { planId, billingData, billingPeriod } = await req.json();
 
     // No clinicId yet; it will be attached when they sign up
-    let resolvedClinicId: string | null = null;
+    const resolvedClinicId: string | null = null;
 
     let amountCents = PLAN_PRICES[planId];
     if (!amountCents) {

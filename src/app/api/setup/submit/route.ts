@@ -30,42 +30,62 @@ export async function POST(req: NextRequest) {
       .limit(1)
       .maybeSingle();
 
-    if (existingStaff?.clinic_id) {
-      // Prevent creating another clinic if one already exists
-      return NextResponse.json(
-        { error: "User already has a clinic", clinicId: existingStaff.clinic_id },
-        { status: 400 }
-      );
+    let clinicId = existingStaff?.clinic_id;
+
+    if (!clinicId) {
+      // Create new clinic
+      clinicId = crypto.randomUUID();
+      const { error: clinicError } = await admin.from("clinics").insert({
+        id: clinicId,
+        name: name || "Clinic Admin",
+        admin_email: email,
+        status: "active",
+      });
+
+      if (clinicError) {
+        return NextResponse.json({ error: "Failed to create clinic" }, { status: 500 });
+      }
+
+      // Update staff
+      await admin.from("staff").update({ clinic_id: clinicId }).eq("email", email);
+      
+      // Create settings
+      await admin.from("clinic_settings").upsert({ clinic_id: clinicId, clinic_name: name || "Clinic Admin" });
     }
 
-    // Call the RPC function for a true Postgres transaction
-    const { data: transactionData, error: transactionError } = await admin.rpc("setup_clinic_transaction", {
-      p_email: email,
-      p_name: name || "Clinic Admin",
-      p_branches: centers // without logo
-    });
-
-    if (transactionError || !transactionData || transactionData?.error) {
-      console.error("[Setup Submit] Transaction error details:", transactionError);
-      return NextResponse.json(
-        { 
-          error: transactionData?.error || "Failed to setup clinic transaction",
-          details: transactionData?.message || transactionError?.message || "Unknown error",
-          hint: transactionData?.hint || transactionError?.hint || "",
-          code: transactionData?.code || transactionError?.code || ""
-        }, 
-        { status: 500 }
-      );
+    // Check for duplicate slugs
+    const slugs = centers.map((c: any) => c.slug.toLowerCase().trim());
+    const { data: existingBranches } = await admin.from("branches").select("slug").in("slug", slugs);
+    if (existingBranches && existingBranches.length > 0) {
+       return NextResponse.json({ error: `Slug already taken: ${existingBranches[0].slug}` }, { status: 400 });
     }
 
-    const clinicId = transactionData.clinicId;
-    const createdBranches = transactionData.branches;
-    const createdSlugs = createdBranches.map((b: any) => b.slug);
+    // Insert branches
+    const createdBranches = [];
+    for (const center of centers) {
+       const slug = center.slug.toLowerCase().trim();
+       const { data: branch, error: branchError } = await admin.from("branches").insert({
+          clinic_id: clinicId,
+          short_name: center.shortName,
+          full_name: center.fullName || null,
+          slug,
+          status: "active"
+       }).select("id, slug, short_name, full_name").single();
+
+       if (!branchError && branch) {
+          createdBranches.push({
+             id: branch.id,
+             slug: branch.slug,
+             shortName: branch.short_name,
+             fullName: branch.full_name
+          });
+       }
+    }
 
     return NextResponse.json({
       success: true,
       clinicId,
-      createdSlugs,
+      createdSlugs: createdBranches.map(b => b.slug),
       createdBranches,
     });
   } catch (err) {
@@ -76,3 +96,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+

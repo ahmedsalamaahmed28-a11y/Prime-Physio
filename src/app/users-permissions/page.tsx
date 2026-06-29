@@ -21,16 +21,16 @@ export default function UsersPermissionsPage() {
   const [users, setUsers] = useState<any[]>([]);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
-  
+
   // Forms state
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    role: "#.5'&J 9D', 7(J9J",
-    permissions: "*9/JD 'D3,D'* 'D7(J) H-,2 ,D3'* 9D',J)",
+    role: "أخصائي علاج طبيعي",
+    permissions: "تعديل السجلات الطبية وحجز جلسات علاجية",
     phone: "0500000000",
     dateJoined: new Date().toISOString().split("T")[0],
-    status: "F47"
+    status: "نشط"
   });
 
   const [editingUserEmail, setEditingUserEmail] = useState<string | null>(null);
@@ -60,7 +60,7 @@ export default function UsersPermissionsPage() {
         permissions: u.permissions || "",
         phone: u.phone || "",
         dateJoined: u.date_joined || u.dateJoined || "",
-        status: u.status || "� شط",
+        status: u.status || "نشط",
       })));
     }
     loadUsers();
@@ -79,23 +79,23 @@ export default function UsersPermissionsPage() {
       permissions: u.permissions || "",
       phone: u.phone || "",
       dateJoined: u.date_joined || "",
-      status: u.status || "� شط",
+      status: u.status || "نشط",
     })));
   };
 
   // Auto-set permissions description based on role
   const handleRoleChange = (role: string, isEdit: boolean = false) => {
     let perms = "";
-    if (role === "E/J1 'D9J'/G") {
-      perms = "C'ED 'D5D'-J'* 'DE'DJ) H'D%/'1J) DD9J'/)";
-    } else if (role === "'3*4'1J 9D', 7(J9J") {
-      perms = "5D'-J'* 7(J) C'ED) H%5/'1 .77 9D',J)";
-    } else if (role === "#.5'&J 9D', 7(J9J") {
-      perms = "*9/JD 'D3,D'* 'D7(J) H-,2 ,D3'* 9D',J)";
-    } else if (role === "EE'13 9D', 7(J9J") {
-      perms = "916 H*-/J+ 3,D'* 'DE16I H*H+JB 'D,D3'*";
-    } else if (role === "EH8A '3*B('D") {
-      perms = "-,2 EH'9J/ H'3*D'E AH'*J1 FB/J)";
+    if (role === "مدير العيادة") {
+      perms = "كامل الصلاحيات المالية والإدارية للعيادة";
+    } else if (role === "استشاري علاج طبيعي") {
+      perms = "صلاحيات طبية كاملة وإصدار خطط علاجية";
+    } else if (role === "أخصائي علاج طبيعي") {
+      perms = "تعديل السجلات الطبية وحجز جلسات علاجية";
+    } else if (role === "ممارس علاج طبيعي") {
+      perms = "عرض وتحديث سجلات المرضى وتوثيق الجلسات";
+    } else if (role === "موظف استقبال") {
+      perms = "حجز مواعيد واستلام فواتير نقدية";
     }
 
     if (isEdit) {
@@ -108,13 +108,13 @@ export default function UsersPermissionsPage() {
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email) {
-      alert("'D1,'! %/.'D 'D'3E H'D(1J/ 'D%DC*1HFJ");
+      alert("الرجاء إدخال الاسم والبريد الإلكتروني");
       return;
     }
 
     // Check duplicate email
     if (users.some(u => u.email.toLowerCase() === formData.email.toLowerCase())) {
-      alert("G0' 'D(1J/ 'D%DC*1HFJ E3,D ('DA9D");
+      alert("هذا البريد الإلكتروني مسجل بالفعل");
       return;
     }
 
@@ -129,7 +129,7 @@ export default function UsersPermissionsPage() {
     });
     if (error) {
       console.error("Failed to add user to Supabase", error);
-      alert("فش�ت إضافة ا��&ستخد�&");
+      alert("فشلت إضافة المستخدم");
       return;
     }
     await saveUsers();
@@ -137,11 +137,11 @@ export default function UsersPermissionsPage() {
     setFormData({
       name: "",
       email: "",
-      role: "#.5'&J 9D', 7(J9J",
-      permissions: "*9/JD 'D3,D'* 'D7(J) H-,2 ,D3'* 9D',J)",
+      role: "أخصائي علاج طبيعي",
+      permissions: "تعديل السجلات الطبية وحجز جلسات علاجية",
       phone: "0500000000",
       dateJoined: new Date().toISOString().split("T")[0],
-      status: "F47"
+      status: "نشط"
     });
   };
 
@@ -162,7 +162,7 @@ export default function UsersPermissionsPage() {
   const handleEditUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editFormData.name || !editFormData.email) {
-      alert("'D1,'! %/.'D 'D'3E H'D(1J/ 'D%DC*1HFJ");
+      alert("الرجاء إدخال الاسم والبريد الإلكتروني");
       return;
     }
 
@@ -179,7 +179,7 @@ export default function UsersPermissionsPage() {
       .eq("email", editingUserEmail);
     if (error) {
       console.error("Failed to update user in Supabase", error);
-      alert("فش� تعد�`� ا��&ستخد�&");
+      alert("فشل تعديل المستخدم");
       return;
     }
     await saveUsers();
@@ -196,7 +196,7 @@ export default function UsersPermissionsPage() {
     const { error } = await supabase.from("staff").delete().eq("email", deleteUserEmail);
     if (error) {
       console.error("Failed to delete user from Supabase", error);
-      alert("فش� حذف ا��&ستخد�&");
+      alert("فشل حذف المستخدم");
       return;
     }
     await saveUsers();
@@ -211,13 +211,13 @@ export default function UsersPermissionsPage() {
             <div className="bg-teal-50 p-2 rounded-xl">
               <Shield className="w-6 h-6 text-[#0d8a8a]" />
             </div>
-            %/'1) 'DE3*./EJF H'D5D'-J'*
+            إدارة المستخدمين والصلاحيات
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">'D*-CE AJ -3'('* 'D7'BE 'D7(J H'D%/'1J HE3*HJ'* 'D5D'-J'* 'D.'5) (GE</p>
+          <p className="text-sm text-muted-foreground mt-0.5">التحكم في حسابات الطاقم الطبي والإداري ومستويات الصلاحيات الخاصة بهم</p>
         </div>
         <Button onClick={() => setIsAddOpen(true)} className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] gap-2 self-start sm:self-auto rounded-xl font-bold px-6 shadow-md transition-all active:scale-95">
           <UserPlus className="w-4 h-4" />
-          %6'A) E3*./E ,/J/
+          إضافة مستخدم جديد
         </Button>
       </div>
 
@@ -227,16 +227,16 @@ export default function UsersPermissionsPage() {
           <CardHeader className="border-b pb-4">
             <CardTitle className="text-base font-bold flex items-center gap-2">
               <Key className="w-5 h-5 text-[#0d8a8a]" />
-              E,EH9'* 'D5D'-J'* 'D#3'3J)
+              مجموعات الصلاحيات الأساسية
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-4 text-sm">
             {[
-              { role: "E/J1 'D9J'/G (Clinic Manager)", desc: "5D'-J'* E'DJ) H%/'1J) C'ED) D%/'1) 4$HF 'D9J'/) H'D*B'1J1 H'D*H8JA." },
-              { role: "'3*4'1J 9D', 7(J9J (PT Consultant)", desc: "*BJJE 'D-'D'* 'DE9B/) H%5/'1 'D(1H*HCHD'* 'D7(J) H'D.77 'D9D',J)." },
-              { role: "#.5'&J 9D', 7(J9J (PT Specialist)", desc: "*FAJ0 'D,D3'* H*-/J+ BJ'3'* 'DE1J6 'D96DJ) H(1'E,G 'D:0'&J) H'D1J'6J)." },
-              { role: "EE'13 9D', 7(J9J (PT Practitioner)", desc: "E*'(9) *E1JF'* 'DE1J6 H*H+JB *B/E 'D,D3'* 'DJHEJ) DDE16I." },
-              { role: "EH8A '3*B('D (Receptionist)", desc: "*3,JD 'DE16I H-,2 'DEH'9J/ H%5/'1 'DAH'*J1 'DFB/J) H'D*9'ED E9 'D*3HJ'*." },
+              { role: "مدير العيادة (Clinic Manager)", desc: "صلاحيات مالية وإدارية كاملة لإدارة شؤون العيادة والتقارير والتوظيف." },
+              { role: "استشاري علاج طبيعي (PT Consultant)", desc: "تقييم الحالات المعقدة وإصدار البروتوكولات الطبية والخطط العلاجية." },
+              { role: "أخصائي علاج طبيعي (PT Specialist)", desc: "تنفيذ الجلسات وتحديث قياسات المريض العضلية وبرامجه الغذائية والرياضية." },
+              { role: "ممارس علاج طبيعي (PT Practitioner)", desc: "متابعة تمرينات المريض وتوثيق تقدم الجلسات اليومية للمرضى." },
+              { role: "موظف استقبال (Receptionist)", desc: "تسجيل المرضى وحجز المواعيد وإصدار الفواتير النقدية والتعامل مع التسويات." },
             ].map((group) => (
               <div key={group.role} className="space-y-1.5 p-3 rounded-lg border bg-muted/20">
                 <span className="font-bold text-slate-800">{group.role}</span>
@@ -251,7 +251,7 @@ export default function UsersPermissionsPage() {
           <CardHeader className="border-b pb-4">
             <CardTitle className="text-base font-bold flex items-center gap-2">
               <Users className="w-5 h-5 text-blue-600" />
-              'D-3'('* 'DF47) ({users.length})
+              الحسابات النشطة ({users.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -259,11 +259,11 @@ export default function UsersPermissionsPage() {
               <table className="w-full text-right border-collapse">
                 <thead>
                   <tr className="bg-muted/40 border-b text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    <th className="py-3.5 px-6">'DE3*./E</th>
-                    <th className="py-3.5 px-6">'D/H1 'DH8JAJ</th>
-                    <th className="py-3.5 px-6">F7'B 'D5D'-J'*</th>
-                    <th className="py-3.5 px-6">'D-'D)</th>
-                    <th className="py-3.5 px-6 text-center">'D%,1'!'*</th>
+                    <th className="py-3.5 px-6">المستخدم</th>
+                    <th className="py-3.5 px-6">الدور الوظيفي</th>
+                    <th className="py-3.5 px-6">نطاق الصلاحيات</th>
+                    <th className="py-3.5 px-6">الحالة</th>
+                    <th className="py-3.5 px-6 text-center">الإجراءات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60 text-sm text-slate-700">
@@ -280,30 +280,30 @@ export default function UsersPermissionsPage() {
                       </td>
                       <td className="py-4 px-6 text-slate-600 text-xs">{user.permissions}</td>
                       <td className="py-4 px-6">
-                        <span className={`inline-flex items-center gap-1 font-medium text-xs ${user.status === "F47" ? "text-emerald-600" : "text-slate-400"}`}>
+                        <span className={`inline-flex items-center gap-1 font-medium text-xs ${user.status === "نشط" ? "text-emerald-600" : "text-slate-400"}`}>
                           <Check className="w-3.5 h-3.5" />
                           {user.status}
                         </span>
                       </td>
                       <td className="py-4 px-6 text-center">
                         <div className="flex justify-center items-center gap-2">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleEditClick(user)}
                             className="text-blue-600 hover:text-blue-700 text-xs gap-1"
                           >
                             <Edit className="w-3 h-3" />
-                            *9/JD
+                            تعديل
                           </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleDeleteUserClick(user.email)}
                             className="text-rose-600 hover:text-rose-700 text-xs gap-1"
                           >
                             <Trash2 className="w-3 h-3" />
-                            -0A
+                            حذف
                           </Button>
                         </div>
                       </td>
@@ -316,28 +316,28 @@ export default function UsersPermissionsPage() {
         </Card>
       </div>
 
-      {/*     ADD USER DIALOG                                                */}
+      {/* ADD USER DIALOG */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
         <DialogContent className="max-w-md" dir="rtl">
           <DialogHeader className="text-right">
-            <DialogTitle>%6'A) E3*./E ,/J/</DialogTitle>
+            <DialogTitle>إضافة مستخدم جديد</DialogTitle>
             <DialogDescription>
-              #/.D (J'F'* 'DEH8A D*HAJ1 5D'-J'* 'D/.HD 'DE.55) DG 9DI 'DEF5).
+              أدخل بيانات الموظف لتوفير صلاحيات الدخول المخصصة له على المنصة.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddUser} className="space-y-4 py-4">
             <div className="space-y-1 text-right">
-              <Label htmlFor="name">'D'3E</Label>
+              <Label htmlFor="name">الاسم</Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                placeholder="#/.D 'D'3E 'D+F'&J #H 'D+D'+J"
+                placeholder="أدخل الاسم الثنائي أو الثلاثي"
                 required
               />
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="email">'D(1J/ 'D%DC*1HFJ</Label>
+              <Label htmlFor="email">البريد الإلكتروني</Label>
               <Input
                 id="email"
                 type="email"
@@ -348,61 +348,60 @@ export default function UsersPermissionsPage() {
               />
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="role">'DE,EH9) / 'D/H1 'DH8JAJ</Label>
+              <Label htmlFor="role">المجموعة / الدور الوظيفي</Label>
               <select
                 id="role"
                 value={formData.role}
                 onChange={(e) => handleRoleChange(e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <option value="E/J1 'D9J'/G">E/J1 'D9J'/G</option>
-                <option value="'3*4'1J 9D', 7(J9J">'3*4'1J 9D', 7(J9J</option>
-                <option value="#.5'&J 9D', 7(J9J">#.5'&J 9D', 7(J9J</option>
-                <option value="EE'13 9D', 7(J9J">EE'13 9D', 7(J9J</option>
-                <option value="EH8A '3*B('D">EH8A '3*B('D</option>
+                <option value="استشاري علاج طبيعي">استشاري علاج طبيعي</option>
+                <option value="أخصائي علاج طبيعي">أخصائي علاج طبيعي</option>
+                <option value="ممارس علاج طبيعي">ممارس علاج طبيعي</option>
+                <option value="موظف استقبال">موظف استقبال</option>
               </select>
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="permissions">H5A 'D5D'-J'*</Label>
+              <Label htmlFor="permissions">وصف الصلاحيات</Label>
               <Input
                 id="permissions"
                 value={formData.permissions}
                 onChange={(e) => setFormData(prev => ({ ...prev, permissions: e.target.value }))}
-                placeholder="H5A E.55 DD5D'-J'* 'DEEFH-)"
+                placeholder="وصف مخصص للصلاحيات الممنوحة"
               />
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="status">'D-'D)</Label>
+              <Label htmlFor="status">الحالة</Label>
               <select
                 id="status"
                 value={formData.status}
                 onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <option value="F47">F47</option>
-                <option value=":J1 F47">:J1 F47</option>
+                <option value="نشط">نشط</option>
+                <option value="غير نشط">غير نشط</option>
               </select>
             </div>
             <DialogFooter className="mt-6 flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)} className="rounded-xl font-bold">%D:'!</Button>
-                <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] rounded-xl font-bold px-6">%6'A)</Button>
+              <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)} className="rounded-xl font-bold">إلغاء</Button>
+              <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] rounded-xl font-bold px-6">إضافة</Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/*     EDIT USER DIALOG                                               */}
+      {/* EDIT USER DIALOG */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
         <DialogContent className="max-w-md" dir="rtl">
           <DialogHeader className="text-right">
-            <DialogTitle>*9/JD 5D'-J'* 'DE3*./E</DialogTitle>
+            <DialogTitle>تعديل صلاحيات المستخدم</DialogTitle>
             <DialogDescription>
-              BE (*9/JD (J'F'* 'DE3*./E #H *:JJ1 /H1G HE3*HI 5D'-J'*G.
+              قم بتعديل بيانات المستخدم أو تغيير دوره ومستوى صلاحياته.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEditUser} className="space-y-4 py-4">
             <div className="space-y-1 text-right">
-              <Label htmlFor="edit-name">'D'3E</Label>
+              <Label htmlFor="edit-name">الاسم</Label>
               <Input
                 id="edit-name"
                 value={editFormData.name}
@@ -411,7 +410,7 @@ export default function UsersPermissionsPage() {
               />
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="edit-email">'D(1J/ 'D%DC*1HFJ</Label>
+              <Label htmlFor="edit-email">البريد الإلكتروني</Label>
               <Input
                 id="edit-email"
                 type="email"
@@ -421,22 +420,21 @@ export default function UsersPermissionsPage() {
               />
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="edit-role">'DE,EH9) / 'D/H1 'DH8JAJ</Label>
+              <Label htmlFor="edit-role">المجموعة / الدور الوظيفي</Label>
               <select
                 id="edit-role"
                 value={editFormData.role}
                 onChange={(e) => handleRoleChange(e.target.value, true)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none"
               >
-                <option value="E/J1 'D9J'/G">E/J1 'D9J'/G</option>
-                <option value="'3*4'1J 9D', 7(J9J">'3*4'1J 9D', 7(J9J</option>
-                <option value="#.5'&J 9D', 7(J9J">#.5'&J 9D', 7(J9J</option>
-                <option value="EE'13 9D', 7(J9J">EE'13 9D', 7(J9J</option>
-                <option value="EH8A '3*B('D">EH8A '3*B('D</option>
+                <option value="استشاري علاج طبيعي">استشاري علاج طبيعي</option>
+                <option value="أخصائي علاج طبيعي">أخصائي علاج طبيعي</option>
+                <option value="ممارس علاج طبيعي">ممارس علاج طبيعي</option>
+                <option value="موظف استقبال">موظف استقبال</option>
               </select>
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="edit-permissions">H5A 'D5D'-J'*</Label>
+              <Label htmlFor="edit-permissions">وصف الصلاحيات</Label>
               <Input
                 id="edit-permissions"
                 value={editFormData.permissions}
@@ -444,20 +442,20 @@ export default function UsersPermissionsPage() {
               />
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="edit-status">'D-'D)</Label>
+              <Label htmlFor="edit-status">الحالة</Label>
               <select
                 id="edit-status"
                 value={editFormData.status}
                 onChange={(e) => setEditFormData(prev => ({ ...prev, status: e.target.value }))}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none"
               >
-                <option value="F47">F47</option>
-                <option value=":J1 F47">:J1 F47</option>
+                <option value="نشط">نشط</option>
+                <option value="غير نشط">غير نشط</option>
               </select>
             </div>
             <DialogFooter className="mt-6 flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="rounded-xl font-bold">%D:'!</Button>
-                <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] rounded-xl font-bold px-6">-A8 'D*9/JD'*</Button>
+              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="rounded-xl font-bold">إلغاء</Button>
+              <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] rounded-xl font-bold px-6">حفظ التعديلات</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -471,18 +469,18 @@ export default function UsersPermissionsPage() {
               <Trash2 className="w-8 h-8" />
             </div>
             <DialogTitle className="text-xl font-bold text-slate-800">
-              *#CJ/ 'D-0A
+              تأكيد الحذف
             </DialogTitle>
             <DialogDescription className="text-sm text-slate-500">
-              GD #F* E*#C/ EF -0A G0' 'DE3*./E FG'&J'K 3J*E %D:'! 5D'-J'* 'D/.HD 'D.'5) (G.
+              هل أنت متأكد من حذف هذا المستخدم نهائياً؟ سيتم إلغاء صلاحيات الدخول الخاصة به.
             </DialogDescription>
           </div>
           <div className="mt-6 flex gap-3 w-full flex-row-reverse">
             <Button type="button" variant="outline" onClick={() => setDeleteUserEmail(null)} className="flex-1 rounded-xl font-bold">
-              %D:'!
+              إلغاء
             </Button>
             <Button type="button" onClick={executeDeleteUser} className="flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold">
-              F9E '-0A
+              نعم، احذف
             </Button>
           </div>
         </DialogContent>

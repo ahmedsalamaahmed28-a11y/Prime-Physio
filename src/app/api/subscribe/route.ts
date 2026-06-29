@@ -3,7 +3,8 @@ import { getAdminClient } from "@/lib/supabase";
 
 export async function POST(req: NextRequest) {
   try {
-    let { email, name, planId, clinicId } = await req.json();
+    const { email, name, planId, clinicId: rawClinicId } = await req.json();
+    let clinicId = rawClinicId;
 
     if (!email || !name || !planId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
