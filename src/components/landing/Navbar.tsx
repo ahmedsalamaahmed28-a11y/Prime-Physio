@@ -8,19 +8,45 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("");
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+      
+      const sections = ["features", "why-us", "pricing", "faq"];
+      let current = "";
+
+      for (const section of sections) {
+        const element = document.getElementById(section);
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          // Adjust threshold based on header height
+          if (rect.top <= 150) {
+            current = section;
+          }
+        }
+      }
+      
+      // If we're near top, activate home
+      if (window.scrollY < 100) {
+        current = "";
+      }
+      
+      setActiveSection(current);
+    };
+
     window.addEventListener("scroll", handleScroll);
+    handleScroll(); // Check on mount
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const navLinks = [
-    { name: "الرئيسية", href: "#" },
-    { name: "المميزات", href: "#features" },
-    { name: "لماذا نحن", href: "#why-us" },
-    { name: "الأسعار", href: "#pricing" },
-    { name: "الأسئلة الشائعة", href: "#faq" },
+    { name: "الرئيسية", href: "#", id: "" },
+    { name: "المميزات", href: "#features", id: "features" },
+    { name: "لماذا نحن", href: "#why-us", id: "why-us" },
+    { name: "الأسعار", href: "#pricing", id: "pricing" },
+    { name: "الأسئلة الشائعة", href: "#faq", id: "faq" },
   ];
 
   return (
@@ -61,10 +87,21 @@ export default function Navbar() {
             <Link
               key={link.name}
               href={link.href}
-              className="text-sm font-semibold leading-6 text-slate-600 hover:text-[#4F46E5] transition-colors relative group"
+              className={`text-sm font-bold leading-6 transition-colors relative group py-2 px-1 ${
+                activeSection === link.id ? "text-[#4F46E5]" : "text-slate-600 hover:text-[#4F46E5]"
+              }`}
             >
               {link.name}
-              <span className="absolute -bottom-1 right-0 w-0 h-0.5 bg-[#4F46E5] transition-all group-hover:w-full"></span>
+              {activeSection === link.id && (
+                <motion.div
+                  layoutId="activeNavIndicator"
+                  className="absolute -bottom-1 right-0 w-full h-0.5 bg-[#4F46E5] rounded-full"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
+              )}
+              {activeSection !== link.id && (
+                <span className="absolute -bottom-1 right-0 w-0 h-0.5 bg-[#4F46E5] transition-all duration-300 group-hover:w-full rounded-full"></span>
+              )}
             </Link>
           ))}
         </div>
