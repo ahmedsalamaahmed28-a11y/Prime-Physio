@@ -114,7 +114,7 @@ export default function Navbar() {
             تسجيل الدخول
           </Link>
           <Link
-            href="/setup/center"
+            href="/signup"
             className="rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-105 transition-all"
           >
             ابدأ مجانًا
@@ -170,7 +170,7 @@ export default function Navbar() {
                     تسجيل الدخول
                   </Link>
                   <Link
-                    href="/setup/center"
+                    href="/signup"
                     onClick={() => setMobileMenuOpen(false)}
                     className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-white bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] hover:from-[#4338ca] hover:to-[#6d28d9] text-center shadow-md"
                   >

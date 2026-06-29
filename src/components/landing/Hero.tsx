@@ -39,7 +39,7 @@ export default function Hero() {
             
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <Link
-                href="/setup/center"
+                href="/signup"
                 className="inline-flex justify-center items-center gap-2 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-8 py-4 text-base font-bold text-white shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 transition-all"
               >
                 ابدأ مجانًا

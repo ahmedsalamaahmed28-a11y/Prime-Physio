@@ -154,7 +154,7 @@ export default function Pricing() {
               </ul>
               
               <Link
-                href="/setup/center"
+                href="/signup"
                 className={`w-full py-3 rounded-full text-center font-bold transition-all ${
                   plan.popular
                     ? "bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white shadow-lg hover:shadow-xl hover:scale-105"
