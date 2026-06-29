@@ -196,7 +196,7 @@ function SignupPageContent() {
     setIsLoading(true);
     try {
       await setAppValue("pending_google_signup", "true");
-      const result = await signIn("google", { callbackUrl: "/", redirect: false });
+      const result = await signIn("google", { callbackUrl: "/home", redirect: false });
       if (result?.error) {
         setError(isRtl ? "فشل الاتصال بخدمة Google. تأكد من إعدادات الحساب." : "Failed to connect to Google. Check account configuration.");
         setIsLoading(false);

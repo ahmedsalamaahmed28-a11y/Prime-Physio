@@ -139,7 +139,33 @@ async function enrichUserWithClinic(user: User): Promise<User> {
   }
 
   // If we reach here, no staff record was found.
-  // We explicitly set clinicId to null so the app knows the user needs to complete onboarding.
+  // Auto-provision for new Google users
+  const pendingGoogleSignup = typeof window !== 'undefined'
+    ? await getAppValue<string>("pending_google_signup", "").catch(() => "")
+    : "";
+  if (pendingGoogleSignup === "true" && user.email) {
+    try {
+      const provisionRes = await fetch("/api/auth/auto-provision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email, name: user.name }),
+      });
+      if (provisionRes.ok) {
+        const provisionData = await provisionRes.json();
+        if (provisionData.clinicId) {
+          user.clinicId = provisionData.clinicId;
+          user.roleKey = "admin";
+          user.role = "مدير العيادة";
+          user.roleEn = "Clinic Admin";
+        }
+      }
+    } catch (e) {
+      console.error("[enrichUserWithClinic] Auto-provision failed:", e);
+    }
+    await setAppValue("pending_google_signup", "").catch(() => {});
+  }
+
+  // We explicitly set clinicId to null so the app knows the user needs to complete onboarding if not provisioned.
   if (user.clinicId === undefined) {
     user.clinicId = null;
   }
@@ -219,6 +245,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       const loadRoleState = async () => {
         const currentUser = session.user!;
         const email = currentUser.email || "";
+        const pendingSignup = await getAppValue<string>("pending_google_signup", "").catch(() => "");
         const finalRoleKey = ((await getAppValue<string>("pending_role", "doctor")) || "doctor") as "admin" | "doctor" | "receptionist" | "platform_admin";
 
         const name = currentUser.name || email.split("@")[0];
@@ -247,6 +274,10 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         setUser((prev) => {
           if (prev?.email === enriched.email && prev?.clinicId !== undefined) return prev;
           setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
+          // If new Google user just provisioned, send to setup/center to complete clinic info
+          if (enriched.clinicId && pendingSignup === "true" && typeof window !== 'undefined') {
+            window.location.href = "/setup/center";
+          }
           return enriched;
         });
       };

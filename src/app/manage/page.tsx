@@ -202,7 +202,7 @@ function ManageContent() {
     await setAppValue("pending_role", "admin");
     await setAppValue("pending_google_signup", "true");
     try {
-      const result = await signIn("google", { callbackUrl: "/", redirect: false });
+      const result = await signIn("google", { callbackUrl: "/home", redirect: false });
       if (result?.error) {
         setError(isRtl ? "فشل الاتصال بخدمة Google. تأكد من إعدادات الحساب." : "Failed to connect to Google. Check account configuration.");
         setIsLoading(false);
