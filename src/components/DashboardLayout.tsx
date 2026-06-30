@@ -68,7 +68,6 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { nameKey: "nav_calendar", href: "/calendar", icon: Calendar },
   { nameKey: "nav_appointments", href: "/appointments", icon: Clock },
   { nameKey: "nav_patients", href: "/patients", icon: Users },
-  { nameKey: "nav_messages", href: "/chat", icon: MessageSquare },
   { nameKey: "nav_billing", href: "/billing", icon: CreditCard },
   { nameKey: "nav_staff", href: "/staff", icon: Stethoscope },
   { nameKey: "nav_hr", href: "/hr", icon: Building },
