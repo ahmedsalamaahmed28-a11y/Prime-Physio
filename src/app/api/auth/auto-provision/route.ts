@@ -75,6 +75,9 @@ export async function POST(req: NextRequest) {
       console.error("[AutoProvision] Settings creation failed (ignored):", e);
     }
 
+    // 6. Link any orphaned subscriptions for this email to the new clinic
+    await admin.from("subscriptions").update({ clinic_id: clinicId }).eq("user_email", email).is("clinic_id", null);
+
     console.log(`[AutoProvision] ✅ Provisioned user -> clinicId: ${clinicId}`);
 
     return NextResponse.json({ clinicId, clinicName });

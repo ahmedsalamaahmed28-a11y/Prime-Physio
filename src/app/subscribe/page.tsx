@@ -33,8 +33,8 @@ const plans = (isRtl: boolean) => [
     price: "1,500",
     priceNum: 1500,
     features: isRtl
-      ? ["مرضى غير محدودين", "جلسات غير محدودة", "مركزين"]
-      : ["Unlimited Patients", "Unlimited Sessions", "2 Centers"],
+      ? ["مرضى غير محدودين", "جلسات غير محدودة", "فروع غير محدودة"]
+      : ["Unlimited Patients", "Unlimited Sessions", "Unlimited Centers"],
     popular: false,
   },
 ];

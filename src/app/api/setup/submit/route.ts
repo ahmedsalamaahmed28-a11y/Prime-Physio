@@ -51,6 +51,9 @@ export async function POST(req: NextRequest) {
       
       // Create settings
       await admin.from("clinic_settings").upsert({ clinic_id: clinicId, clinic_name: name || "Clinic Admin" });
+
+      // Link any orphaned subscriptions for this email to the new clinic
+      await admin.from("subscriptions").update({ clinic_id: clinicId }).eq("user_email", email).is("clinic_id", null);
     }
 
     // Check for duplicate slugs

@@ -35,8 +35,8 @@ const PLANS_DATA = [
     priceAr: "1,500",
     priceEn: "1,500",
     priceNum: 1500,
-    featuresAr: ["مرضى غير محدودين", "جلسات غير محدودة", "مركزين"],
-    featuresEn: ["Unlimited Patients", "Unlimited Sessions", "2 Centers"],
+    featuresAr: ["مرضى غير محدودين", "جلسات غير محدودة", "فروع غير محدودة"],
+    featuresEn: ["Unlimited Patients", "Unlimited Sessions", "Unlimited Centers"],
     popular: false,
   },
 ];
