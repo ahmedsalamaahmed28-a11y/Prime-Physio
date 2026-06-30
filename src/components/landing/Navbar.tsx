@@ -108,7 +108,7 @@ export default function Navbar() {
 
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-4 items-center">
           <Link
-            href="/login"
+            href="/manage"
             className="text-sm font-bold leading-6 text-slate-700 hover:text-[#4F46E5] transition-colors"
           >
             تسجيل الدخول
@@ -163,7 +163,7 @@ export default function Navbar() {
                 </div>
                 <div className="py-6 flex flex-col gap-3">
                   <Link
-                    href="/login"
+                    href="/manage"
                     onClick={() => setMobileMenuOpen(false)}
                     className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-slate-900 hover:bg-slate-50 text-center border border-slate-200"
                   >

@@ -6,6 +6,15 @@ const nextConfig: NextConfig = {
   experimental: {
     globalNotFound: true,
   },
+  async redirects() {
+    return [
+      {
+        source: '/login',
+        destination: '/manage',
+        permanent: true,
+      },
+    ];
+  },
   // Allow network origins for HMR web sockets
   allowedDevOrigins: [
     "localhost:3000",
