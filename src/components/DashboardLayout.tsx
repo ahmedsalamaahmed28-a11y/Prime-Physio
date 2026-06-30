@@ -34,7 +34,8 @@ import {
   BookOpen,
   Crown,
   Wifi,
-  WifiOff
+  WifiOff,
+  Bot
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -68,6 +69,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { nameKey: "nav_calendar", href: "/calendar", icon: Calendar },
   { nameKey: "nav_appointments", href: "/appointments", icon: Clock },
   { nameKey: "nav_patients", href: "/patients", icon: Users },
+  { nameKey: "nav_ai_assistant", href: "/ai-assistant", icon: Bot },
   { nameKey: "nav_billing", href: "/billing", icon: CreditCard },
   { nameKey: "nav_staff", href: "/staff", icon: Stethoscope },
   { nameKey: "nav_hr", href: "/hr", icon: Building },
@@ -323,7 +325,7 @@ export default function DashboardLayout({
               return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
             }
             if (role === "receptionist") {
-              return ["/home", "/patients", "/billing", "/calendar", "/appointments", "/chat", "/logout"].includes(item.href);
+              return ["/home", "/patients", "/billing", "/calendar", "/appointments", "/ai-assistant", "/logout"].includes(item.href);
             }
             return true;
           }).map((item) => {

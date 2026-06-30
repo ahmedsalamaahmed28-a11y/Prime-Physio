@@ -33,6 +33,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav_admin": "إدارة المنصة",
     "nav_home": "الرئيسية",
     "nav_messages": "الرسائل والمحادثات",
+    "nav_ai_assistant": "مساعدة الذكاء الاصطناعي",
     "nav_calendar": "المواعيد والتقويم",
     "nav_patients": "المرضى والجلسات",
     "nav_billing": "المالية والفواتير",
@@ -134,6 +135,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav_logout": "Logout",
     "nav_subscription": "Subscription Plans",
     "nav_appointments": "Appointments",
+    "nav_ai_assistant": "AI Assistant",
     "nav_section_title": "Clinic Management",
 
     // Home Dashboard
