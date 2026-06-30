@@ -65,6 +65,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { nameKey: "nav_home", href: "/home", icon: Home },
   { nameKey: "nav_admin", href: "/admin", icon: ShieldAlert },
   { nameKey: "nav_calendar", href: "/calendar", icon: Calendar },
+  { nameKey: "nav_appointments", href: "/appointments", icon: Clock },
   { nameKey: "nav_patients", href: "/patients", icon: Users },
   { nameKey: "nav_messages", href: "/chat", icon: MessageSquare },
   { nameKey: "nav_billing", href: "/billing", icon: CreditCard },
@@ -322,7 +323,7 @@ export default function DashboardLayout({
               return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
             }
             if (role === "receptionist") {
-              return ["/home", "/patients", "/billing", "/calendar", "/chat", "/logout"].includes(item.href);
+              return ["/home", "/patients", "/billing", "/calendar", "/appointments", "/chat", "/logout"].includes(item.href);
             }
             return true;
           }).map((item) => {

@@ -18,11 +18,8 @@ export async function checkSubscriptionLimit(clinicId: string, resource: "patien
     .limit(1)
     .maybeSingle();
 
-  if (!sub) {
-    return { allowed: false, reason: "no_subscription" };
-  }
-
-  const limits = PLAN_LIMITS[sub.plan_name];
+  const planName = sub?.plan_name || "basic";
+  const limits = PLAN_LIMITS[planName];
   if (!limits) {
     return { allowed: false, reason: "unknown_plan" };
   }
