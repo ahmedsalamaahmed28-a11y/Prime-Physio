@@ -25,6 +25,7 @@ import {
   LogOut,
   Check,
   Building,
+  Clock,
   BarChart3,
   Sparkles,
   Search,
