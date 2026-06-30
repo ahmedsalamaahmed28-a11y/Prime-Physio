@@ -1,6 +1,4 @@
 "use client";
-
-import DashboardLayout from "@/components/DashboardLayout";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Activity, Sparkles, Zap } from "lucide-react";
 
@@ -9,8 +7,7 @@ export default function AIAssistantPage() {
   const isRtl = language === "ar";
 
   return (
-    <DashboardLayout>
-      <div className="flex flex-col items-center justify-center min-h-[70vh] text-center max-w-2xl mx-auto px-4">
+    <div className="flex flex-col items-center justify-center min-h-[70vh] text-center max-w-2xl mx-auto px-4">
         <div className="w-24 h-24 bg-indigo-50 rounded-3xl flex items-center justify-center mb-8 shadow-sm">
           <Activity className="w-12 h-12 text-[#4F46BA]" />
         </div>
@@ -40,6 +37,5 @@ export default function AIAssistantPage() {
           </div>
         </div>
       </div>
-    </DashboardLayout>
   );
 }
