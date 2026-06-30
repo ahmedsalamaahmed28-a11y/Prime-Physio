@@ -34,8 +34,7 @@ import {
   BookOpen,
   Crown,
   Wifi,
-  WifiOff,
-  Cpu
+  WifiOff
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -65,20 +64,20 @@ interface SidebarItem {
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
   { nameKey: "nav_home", href: "/home", icon: Home },
-  { nameKey: "nav_admin", href: "/admin", icon: ShieldAlert },
   { nameKey: "nav_calendar", href: "/calendar", icon: Calendar },
   { nameKey: "nav_appointments", href: "/appointments", icon: Clock },
   { nameKey: "nav_patients", href: "/patients", icon: Users },
-  { nameKey: "nav_ai_assistant", href: "/ai-assistant", icon: Cpu },
-  { nameKey: "nav_billing", href: "/billing", icon: CreditCard },
-  { nameKey: "nav_staff", href: "/staff", icon: Stethoscope },
-  { nameKey: "nav_hr", href: "/hr", icon: Building },
-  { nameKey: "nav_analytics", href: "/analytics", icon: BarChart3 },
-  { nameKey: "nav_nutrition", href: "/clinical-nutrition", icon: Apple },
   { nameKey: "nav_library", href: "/clinical-library", icon: BookOpen },
-  { nameKey: "nav_subscription", href: "/subscription", icon: Crown },
+  { nameKey: "nav_nutrition", href: "/clinical-nutrition", icon: Apple },
+  { nameKey: "nav_billing", href: "/billing", icon: CreditCard },
+  { nameKey: "nav_hr", href: "/hr", icon: Building },
+  { nameKey: "nav_staff", href: "/staff", icon: Stethoscope },
+  { nameKey: "nav_analytics", href: "/analytics", icon: BarChart3 },
+  { nameKey: "nav_ai_assistant", href: "/ai-assistant", icon: Sparkles },
+  { nameKey: "nav_admin", href: "/admin", icon: ShieldAlert },
   { nameKey: "nav_clinic_settings", href: "/profile", icon: Settings },
   { nameKey: "nav_permissions", href: "/permissions", icon: Shield },
+  { nameKey: "nav_subscription", href: "/subscription", icon: Crown },
   { nameKey: "nav_logout", href: "/logout", icon: LogOut },
 ];
 
