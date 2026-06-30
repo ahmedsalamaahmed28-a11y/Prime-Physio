@@ -2,7 +2,7 @@
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Bot, Sparkles, BrainCircuit, Activity } from "lucide-react";
+import { Cpu, Sparkles, BrainCircuit, Activity } from "lucide-react";
 
 export default function AIAssistantPage() {
   const { language } = useLanguage();
@@ -12,7 +12,7 @@ export default function AIAssistantPage() {
     <DashboardLayout>
       <div className="flex flex-col items-center justify-center min-h-[70vh] text-center max-w-2xl mx-auto px-4">
         <div className="w-24 h-24 bg-indigo-50 rounded-3xl flex items-center justify-center mb-8 shadow-sm">
-          <Bot className="w-12 h-12 text-[#4F46BA]" />
+          <Cpu className="w-12 h-12 text-[#4F46BA]" />
         </div>
         
         <h1 className="text-3xl font-bold text-slate-800 mb-4">
