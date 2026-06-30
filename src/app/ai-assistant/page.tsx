@@ -2,7 +2,7 @@
 
 import DashboardLayout from "@/components/DashboardLayout";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Activity, Sparkles, BrainCircuit } from "lucide-react";
+import { Activity, Sparkles, Zap } from "lucide-react";
 
 export default function AIAssistantPage() {
   const { language } = useLanguage();
@@ -27,7 +27,7 @@ export default function AIAssistantPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full">
           <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-3">
-             <BrainCircuit className="w-8 h-8 text-blue-500" />
+             <Zap className="w-8 h-8 text-blue-500" />
              <h3 className="font-semibold text-slate-800">{isRtl ? "تحليل ذكي" : "Smart Analysis"}</h3>
           </div>
           <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center text-center gap-3">
