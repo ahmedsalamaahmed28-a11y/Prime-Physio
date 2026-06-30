@@ -130,6 +130,8 @@ async function enrichUserWithClinic(user: User): Promise<User> {
       user.roleEn = getEnglishRoleLabel(user.roleKey);
       if (staff.clinic_id) {
         user.clinicId = staff.clinic_id;
+      } else {
+        user.clinicId = null;
       }
       // Staff exists (even with null clinic_id) → skip auto-provision
       return user;
