@@ -225,7 +225,7 @@ export default function DashboardLayout({
     const knownDashboardPages = new Set(["home","hr","admin","patients","doctors","calendar","billing","reports","chat","ai-assistant","staff","settings","subscription","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions"]);
     const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname || "") && !knownDashboardPages.has((pathname || "").replace("/", ""));
     const p = pathname || "";
-    const isAuthPage = p === "/" || p === "/manage" || p.startsWith("/manage/") || p === "/signup" || p === "/forgot-password" || p === "/reset-password" || p === "/setup" || p.startsWith("/setup/") || p === "/subscribe" || p === "/plans" || p === "/centers" || p === "/about" || p === "/support" || p === "/center_setup" || isSlugPage;
+    const isAuthPage = p === "/" || p === "/manage" || p.startsWith("/manage/") || p === "/signup" || p === "/forgot-password" || p === "/reset-password" || p === "/setup" || p.startsWith("/setup/") || p === "/subscribe" || p === "/plans" || p === "/centers" || p === "/about" || p === "/support" || p === "/center_setup" || p.startsWith("/platform") || isSlugPage;
 
   if (isAuthPage) {
     return <>{children}</>;
