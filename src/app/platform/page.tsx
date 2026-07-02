@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
-  Building, Users, CreditCard, DollarSign, Activity, CalendarCheck, Server, ShieldCheck, Cpu, HardDrive, AlertTriangle, AlertCircle, RefreshCw, Zap
+  Building, Users, CreditCard, DollarSign, Activity, Calendar, Server, ShieldCheck, Cpu, HardDrive, AlertTriangle, AlertCircle, RefreshCw, Zap
 } from "lucide-react";
 import { Loader } from "@/components/Loader";
 import {
@@ -52,7 +52,7 @@ export default function PlatformDashboardPage() {
           { label: "العيادات", en: "Clinics", value: stats.totalClinics, icon: Building, color: "text-blue-600", bg: "bg-blue-50" },
           { label: "الأطباء", en: "Doctors", value: stats.totalStaff, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
           { label: "المرضى", en: "Patients", value: stats.totalPatients, icon: Activity, color: "text-emerald-600", bg: "bg-emerald-50" },
-          { label: "الجلسات", en: "Sessions", value: stats.totalSessions, icon: CalendarCheck, color: "text-purple-600", bg: "bg-purple-50" },
+          { label: "الجلسات", en: "Sessions", value: stats.totalSessions, icon: Calendar, color: "text-purple-600", bg: "bg-purple-50" },
           { label: "الإيرادات", en: "Revenue", value: `$${(stats.totalRevenue/1000).toFixed(1)}k`, icon: DollarSign, color: "text-green-600", bg: "bg-green-50" },
           { label: "الاشتراكات", en: "Active Subs", value: stats.activeSubs, icon: CreditCard, color: "text-amber-600", bg: "bg-amber-50" },
           { label: "المستخدمين", en: "Users", value: stats.registeredUsers, icon: Users, color: "text-rose-600", bg: "bg-rose-50" }
