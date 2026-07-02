@@ -279,6 +279,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           // If new Google user just provisioned, send to setup/center to complete clinic info
           if (enriched.clinicId && pendingSignup === "true" && typeof window !== 'undefined') {
             window.location.href = "/setup/center";
+          } else if (enriched.roleKey === "platform_admin" && typeof window !== 'undefined' && (window.location.pathname === "/home" || window.location.pathname === "/setup" || window.location.pathname.startsWith("/manage") || window.location.pathname === "/signup")) {
+            window.location.href = "/platform";
           }
           return enriched;
         });
@@ -299,7 +301,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       const knownPages = new Set(["home","admin","setup","login","manage","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup"]);
       const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname) && !knownPages.has(pathname.replace("/", ""));
       if (isSlugPage) return;
-      if (pathname.startsWith("/setup") || pathname === "/plans" || pathname === "/center_setup") { if (user?.clinicId && !isEnriching) { window.location.href = "/home"; } return; }
+      if (pathname.startsWith("/setup") || pathname === "/plans" || pathname === "/center_setup") { if (user?.clinicId && !isEnriching) { window.location.href = user?.roleKey === "platform_admin" ? "/platform" : "/home"; } return; }
       if (!user && status !== "authenticated") {
         if (!pathname.startsWith("/manage") && pathname !== "/signup" && pathname !== "/") {
           window.location.href = "/manage";
@@ -336,7 +338,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setIsEnriching(false);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-    window.location.href = "/home";
+    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : "/home";
   };
 
   const loginWithCredentials = async (email: string, name: string, role: string) => {
@@ -363,7 +365,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setIsEnriching(false);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-    window.location.href = "/home";
+    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : "/home";
   };
 
   const registerWithSupabase = async (email: string, pass: string, meta: any) => {
