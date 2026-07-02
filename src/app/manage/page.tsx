@@ -184,7 +184,7 @@ function ManageContent() {
 
     if (result?.error) {
       setError(result.error === "CredentialsSignin"
-        ? (isRtl ? "بيانات الدخول غير صحيحة" : "Invalid login credentials")
+        ? (isRtl ? "عذراً، البريد الإلكتروني أو كلمة المرور غير صحيحة. يرجى المحاولة مرة أخرى." : "Sorry, the email or password you entered is incorrect. Please try again.")
         : result.error);
       setIsLoading(false);
       return;
@@ -203,13 +203,13 @@ function ManageContent() {
     try {
       const result = await signIn("google", { callbackUrl: "/home", redirect: false });
       if (result?.error) {
-        setError(isRtl ? "فشل الاتصال بخدمة Google. تأكد من إعدادات الحساب." : "Failed to connect to Google. Check account configuration.");
+        setError(isRtl ? "عذراً، تعذر الاتصال بحساب Google. يرجى التحقق من اتصالك والمحاولة مجدداً." : "Unable to sign in with Google. Please check your connection and try again.");
         setIsLoading(false);
       } else if (result?.url) {
         window.location.href = result.url;
       }
     } catch (e) {
-      setError(isRtl ? "حدث خطأ أثناء الاتصال بخدمة Google" : "An error occurred while connecting to Google");
+      setError(isRtl ? "حدث خطأ غير متوقع أثناء محاولة تسجيل الدخول بواسطة Google." : "An unexpected error occurred during Google sign-in.");
       setIsLoading(false);
     }
   };
@@ -270,9 +270,11 @@ function ManageContent() {
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl p-4 mb-6 flex items-start gap-3">
-              <Shield className="w-5 h-5 shrink-0 mt-0.5" />
-              <span>{error}</span>
+            <div className="bg-red-50/80 border border-red-200/60 text-red-600 text-[13px] font-medium rounded-xl p-4 mb-6 flex items-start gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5 text-red-500">
+                <circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>
+              </svg>
+              <span className="leading-relaxed">{error}</span>
             </div>
           )}
 
