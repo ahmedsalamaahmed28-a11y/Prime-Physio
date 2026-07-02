@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
-  Building, Users, CreditCard, DollarSign, Activity, Calendar, Server, ShieldCheck, HardDrive, AlertCircle, RefreshCw, Zap, Sparkles
+  Building, Users, CreditCard, DollarSign, Activity, Calendar, Server, ShieldCheck, Database, AlertCircle, RefreshCw, Zap, Sparkles
 } from "lucide-react";
 import { Loader } from "@/components/Loader";
 import {
@@ -228,11 +228,11 @@ export default function PlatformDashboardPage() {
               <p className="text-xl font-bold text-emerald-400">{health.errorRate}%</p>
             </div>
             <div>
-              <p className="text-slate-400 text-xs mb-1 flex items-center gap-1"><HardDrive className="w-3 h-3"/> DB Usage</p>
+              <p className="text-slate-400 text-xs mb-1 flex items-center gap-1"><Database className="w-3 h-3"/> DB Usage</p>
               <p className="text-xl font-bold">{health.dbUsage}%</p>
             </div>
             <div>
-              <p className="text-slate-400 text-xs mb-1 flex items-center gap-1"><HardDrive className="w-3 h-3"/> Storage</p>
+              <p className="text-slate-400 text-xs mb-1 flex items-center gap-1"><Database className="w-3 h-3"/> Storage</p>
               <p className="text-xl font-bold">{health.storageUsage}%</p>
             </div>
             <div>
