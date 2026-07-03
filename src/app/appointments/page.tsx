@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
+import SelectMenu from "@/components/SelectMenu";
 
 interface Appointment {
   id: string;
@@ -85,8 +86,9 @@ function StatCard({ icon, label, value, sub, color }: { icon: React.ReactNode; l
   );
 }
 
-function AppointmentModal({ appt, onClose, onSave }: {
+function AppointmentModal({ appt, patientsList, onClose, onSave }: {
   appt: Appointment | null;
+  patientsList: any[];
   onClose: () => void;
   onSave: (a: Appointment) => void;
 }) {
@@ -112,11 +114,18 @@ function AppointmentModal({ appt, onClose, onSave }: {
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label>{isRtl ? "اسم المريض" : "Patient Name"}</Label>
-            <Input
-              placeholder={isRtl ? "أدخل اسم المريض..." : "Enter patient name..."}
-              value={form.patientName ?? ""}
-              onChange={(e) => setForm(f => ({ ...f, patientName: e.target.value }))}
-              dir={isRtl ? "rtl" : "ltr"}
+            <SelectMenu
+              items={patientsList.map((p) => ({ value: p.id, label: `${isRtl ? p.nameAr : (p.nameEn || p.nameAr)} (${p.id})` }))}
+              value={form.patientId ?? ""}
+              onValueChange={(val) => {
+                const patient = patientsList.find(p => p.id === val);
+                if (patient) {
+                  setForm(f => ({ ...f, patientId: patient.id, patientName: isRtl ? patient.nameAr : (patient.nameEn || patient.nameAr) }));
+                }
+              }}
+              placeholder={isRtl ? "اختر مريض..." : "Select patient..."}
+              searchPlaceholder={isRtl ? "بحث..." : "Search"}
+              nothingFound={isRtl ? "لا يوجد نتائج" : "Nothing found."}
             />
           </div>
 
@@ -216,6 +225,7 @@ export default function AppointmentsPage() {
   const clinicId = user?.clinicId;
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [patientsList, setPatientsList] = useState<any[]>([]);
   const [selectedAppt, setSelectedAppt] = useState<Appointment | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [filterTherapist, setFilterTherapist] = useState("الكل");
@@ -228,19 +238,28 @@ export default function AppointmentsPage() {
       .order("date", { ascending: true })
       .order("time", { ascending: true });
 
+    let patientsQuery = supabase.from("patients").select("id, nameAr, nameEn");
+
     if (clinicId) {
       query = query.eq("clinic_id", clinicId);
+      patientsQuery = patientsQuery.eq("clinic_id", clinicId);
     }
 
-    const { data, error } = await query;
+    const [apptsRes, patientsRes] = await Promise.all([query, patientsQuery]);
 
-    if (error) {
-      console.error("Failed to load appointments from Supabase", error);
+    if (patientsRes.error) {
+      console.error("Failed to load patients from Supabase", patientsRes.error);
+    } else {
+      setPatientsList(patientsRes.data || []);
+    }
+
+    if (apptsRes.error) {
+      console.error("Failed to load appointments from Supabase", apptsRes.error);
       setAppointments([]);
       return;
     }
 
-    setAppointments((data || []).map((row: any) => ({
+    setAppointments((apptsRes.data || []).map((row: any) => ({
       id: row.id,
       patientName: row.patient_name || "",
       patientId: row.patient_id || "",
@@ -541,6 +560,7 @@ export default function AppointmentsPage() {
       {showModal && (
         <AppointmentModal
           appt={selectedAppt}
+          patientsList={patientsList}
           onClose={() => { setShowModal(false); setSelectedAppt(null); }}
           onSave={handleSave}
         />
