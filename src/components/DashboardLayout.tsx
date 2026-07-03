@@ -34,7 +34,9 @@ import {
   BookOpen,
   Crown,
   Wifi,
-  WifiOff
+  WifiOff,
+  FileText,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -67,6 +69,9 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { nameKey: "nav_calendar", href: "/calendar", icon: Calendar },
   { nameKey: "nav_patients", href: "/patients", icon: Users },
   { nameKey: "nav_library", href: "/clinical-library", icon: BookOpen },
+  { nameKey: "nav_protocols", href: "/protocols", icon: Activity },
+  { nameKey: "nav_medical_reports", href: "/medical-reports", icon: FileText },
+  { nameKey: "nav_red_flags", href: "/red-flags", icon: AlertTriangle },
   { nameKey: "nav_nutrition", href: "/clinical-nutrition", icon: Apple },
   { nameKey: "nav_billing", href: "/billing", icon: CreditCard },
   { nameKey: "nav_hr", href: "/hr", icon: Building },
