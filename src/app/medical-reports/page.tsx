@@ -5,7 +5,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { FileText, Download, User, Calendar, Activity, CheckCircle2, FileDown } from "lucide-react";
+import { FileText, Download, User, Calendar, Activity, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -135,7 +135,7 @@ export default function MedicalReportsPage() {
 
               <div className="pt-4 border-t flex gap-2">
                 <Button className="flex-1 bg-indigo-600 hover:bg-indigo-700" onClick={handlePrint} disabled={!selectedPatientId}>
-                  <FileDown className="w-4 h-4 mr-2" />
+                  <Download className="w-4 h-4 mr-2" />
                   {isRtl ? "طباعة" : "Print"}
                 </Button>
               </div>
