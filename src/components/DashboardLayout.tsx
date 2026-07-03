@@ -309,7 +309,7 @@ export default function DashboardLayout({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 flex flex-col gap-y-1 overflow-visible">
+        <nav className="flex-1 px-4 flex flex-col gap-y-1 overflow-y-auto pb-20 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
           {SIDEBAR_ITEMS.filter((item) => {
             if (item.href === "/admin" && activeAccount?.roleKey !== "platform_admin") return false;
             if (item.href === "/analytics" && !hasPermission("view_analytics")) return false;
@@ -604,7 +604,7 @@ export default function DashboardLayout({
                 <h3 className={`text-white/80 text-sm font-semibold ${isRtl ? "text-right" : "text-left"}`}>{t("nav_section_title")}</h3>
               </div>
 
-              <nav className="flex-1 px-3 flex flex-col gap-y-1 overflow-visible">
+              <nav className="flex-1 px-3 flex flex-col gap-y-1 overflow-y-auto pb-20 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
                 {SIDEBAR_ITEMS.filter((item) => {
                   if (item.href === "/admin" && activeAccount?.roleKey !== "platform_admin") return false;
                   if (item.href === "/analytics" && !hasPermission("view_analytics")) return false;
