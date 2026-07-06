@@ -13,12 +13,14 @@ import { Separator } from "@/components/ui/separator";
 
 import BodyPainMapper, { BODY_PAIN_REGIONS } from "@/components/BodyPainMapper";
 import ProgressCharts from "@/components/ProgressCharts";
+import { AiPlannerTab } from "@/components/patients/AiPlannerTab";
+import { SmartReportsTab } from "@/components/patients/SmartReportsTab";
 import { useLanguage } from "@/lib/LanguageContext";
 import { usePermissions } from "@/lib/usePermissions";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Lock, Trash2 } from "lucide-react";
+import { Lock, Trash2, FileText, Sparkles } from "lucide-react";
 const LockIcon = Lock;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -2832,18 +2834,22 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">        <Tabs defaultValue="general">
-          <TabsList className="grid grid-cols-6 w-full max-w-3xl print:hidden">
+          <TabsList className="flex flex-wrap h-auto w-full max-w-5xl justify-start gap-1 p-1 print:hidden">
             <TabsTrigger value="general">{isRtl ? "المعلومات العامة" : "General Info"}</TabsTrigger>
             <TabsTrigger value="radiology">{isRtl ? "الأشعة والتحاليل" : "Scans & Reports"}</TabsTrigger>
             <TabsTrigger value="records">{isRtl ? "السجلات الطبية" : "Medical Records"}</TabsTrigger>
+            <TabsTrigger value="reports" className="text-teal-600 dark:text-teal-400 font-bold"><FileText className="w-3.5 h-3.5 mr-1 ml-1"/> {isRtl ? "التقارير الذكية" : "Smart Reports"}</TabsTrigger>
             <TabsTrigger value="rehab">{isRtl ? "مخطط التمارين" : "HEP Planner"}</TabsTrigger>
+            <TabsTrigger value="ai-planner" className="text-indigo-600 dark:text-indigo-400 font-bold"><Sparkles className="w-3.5 h-3.5 mr-1 ml-1"/> {isRtl ? "المولد الذكي" : "AI Planner"}</TabsTrigger>
             <TabsTrigger value="packages">{isRtl ? "الباقات" : "Packages"}</TabsTrigger>
             <TabsTrigger value="neuro">{isRtl ? "دليل الأعصاب" : "Neuro Reference"}</TabsTrigger>
           </TabsList>
           <TabsContent value="general"><GeneralInfoTab patient={patient} /></TabsContent>
           <TabsContent value="radiology"><RadiologyTab /></TabsContent>
           <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>
+          <TabsContent value="reports"><SmartReportsTab patient={patient} /></TabsContent>
           <TabsContent value="rehab"><RehabProtocolPlannerTab patient={patient} /></TabsContent>
+          <TabsContent value="ai-planner"><AiPlannerTab patient={patient} /></TabsContent>
           <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} /></TabsContent>
           <TabsContent value="neuro"><NeuroReferenceTab /></TabsContent>
         </Tabs>
