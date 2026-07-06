@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 import BodyPainMapper, { BODY_PAIN_REGIONS } from "@/components/BodyPainMapper";
+import ProgressCharts from "@/components/ProgressCharts";
 import { SmartReportsTab } from "@/components/patients/SmartReportsTab";
 import { ClinicalBrainstormTab } from "@/components/patients/ClinicalBrainstormTab";
 import { PhaseBasedProtocolsTab } from "@/components/patients/PhaseBasedProtocolsTab";

@@ -189,6 +189,198 @@ const PROTOCOLS_LIBRARY: Protocol[] = [
         ]
       }
     ]
+  },
+  {
+    id: "lumbar_disc",
+    nameAr: "بروتوكول الانزلاق الغضروفي القطني (ماكنزي)",
+    nameEn: "Lumbar Disc Herniation (McKenzie)",
+    descriptionAr: "بروتوكول يعتمد على التقييم الميكانيكي والتمارين المتكررة لتخفيف الضغط الغضروفي (Centralization).",
+    descriptionEn: "MDT based protocol focusing on centralization of symptoms.",
+    phases: [
+      {
+        id: "ld_phase_1",
+        nameAr: "المرحلة الأولى: تخفيف الألم والمركزة",
+        nameEn: "Phase 1: Pain Reduction & Centralization",
+        durationAr: "الأسابيع 0 - 2",
+        durationEn: "Weeks 0 - 2",
+        goalsAr: [
+          "تقليل الألم المنتشر (Radicular Pain)",
+          "تحقيق مركزة الألم (Centralization)",
+          "تحسين وضعية الجسم (Posture Correction)"
+        ],
+        goalsEn: [
+          "Reduce radicular pain",
+          "Achieve symptom centralization",
+          "Improve posture"
+        ],
+        precautionsAr: [
+          "تجنب الانثناء القطني (Lumbar Flexion) بشكل قاطع",
+          "تجنب الجلوس لفترات طويلة"
+        ],
+        precautionsEn: [
+          "Strictly avoid lumbar flexion",
+          "Avoid prolonged sitting"
+        ],
+        exercisesAr: [
+          "Prone Lying (الاستلقاء على البطن)",
+          "Prone on Elbows (الاستناد على الكوعين)",
+          "Extension in Lying (فرد الظهر من الانبطاح)",
+          "Posture Correction in Sitting"
+        ],
+        exercisesEn: [
+          "Prone Lying",
+          "Prone on Elbows",
+          "Extension in Lying",
+          "Posture Correction in Sitting"
+        ],
+        criteriaToProgressAr: [
+          "اختفاء الألم المنتشر للساق (Centralization)",
+          "تحسن ملحوظ في مدى حركة فرد الظهر",
+          "القدرة على الجلوس بوضعية صحيحة بدون ألم لـ 30 دقيقة"
+        ],
+        criteriaToProgressEn: [
+          "Abolition of leg symptoms",
+          "Significant improvement in extension ROM",
+          "Ability to sit with good posture pain-free"
+        ]
+      },
+      {
+        id: "ld_phase_2",
+        nameAr: "المرحلة الثانية: استعادة الحركة والتقوية الأولية",
+        nameEn: "Phase 2: Mobility Restoration & Early Strengthening",
+        durationAr: "الأسابيع 2 - 4",
+        durationEn: "Weeks 2 - 4",
+        goalsAr: [
+          "استعادة المدى الحركي الطبيعي تدريجياً",
+          "بدء تقوية عضلات الجذع (Core Stability)"
+        ],
+        goalsEn: [
+          "Gradually restore normal ROM",
+          "Initiate core stability training"
+        ],
+        precautionsAr: [
+          "إدخال حركات الانثناء بحذر شديد",
+          "تجنب حمل الأوزان الثقيلة"
+        ],
+        precautionsEn: [
+          "Introduce flexion movements with extreme caution",
+          "Avoid heavy lifting"
+        ],
+        exercisesAr: [
+          "Bird-Dog (توازن الأطراف)",
+          "Pelvic Tilts (إمالة الحوض)",
+          "Plank from Knees (لوح الارتكاز)"
+        ],
+        exercisesEn: [
+          "Bird-Dog",
+          "Pelvic Tilts",
+          "Plank from Knees"
+        ],
+        criteriaToProgressAr: [
+          "لا يوجد ألم محيطي بعد التمارين",
+          "قدرة على تثبيت الجذع أثناء التمارين"
+        ],
+        criteriaToProgressEn: [
+          "No peripheralization with new exercises",
+          "Good core stability control"
+        ]
+      }
+    ]
+  },
+  {
+    id: "frozen_shoulder",
+    nameAr: "بروتوكول الكتف المتجمد (Adhesive Capsulitis)",
+    nameEn: "Frozen Shoulder Protocol",
+    descriptionAr: "بروتوكول للتعامل مع مراحل الكتف المتجمد المختلفة: التجميد، التجمد، والذوبان.",
+    descriptionEn: "Protocol managing stages of frozen shoulder: Freezing, Frozen, Thawing.",
+    phases: [
+      {
+        id: "fs_phase_1",
+        nameAr: "المرحلة الأولى: الألم (Freezing) - تقليل الالتهاب",
+        nameEn: "Phase 1: Freezing - Pain Control",
+        durationAr: "الأشهر 0 - 3",
+        durationEn: "Months 0 - 3",
+        goalsAr: [
+          "تقليل الألم والالتهاب",
+          "الحفاظ على ما يمكن من المدى الحركي",
+          "منع التيبس التام"
+        ],
+        goalsEn: [
+          "Reduce pain and inflammation",
+          "Maintain available ROM",
+          "Prevent complete stiffness"
+        ],
+        precautionsAr: [
+          "تجنب تمطيط الأنسجة بقوة",
+          "تجنب الحركات التي تزيد الألم الحاد"
+        ],
+        precautionsEn: [
+          "No aggressive stretching",
+          "Avoid movements provoking sharp pain"
+        ],
+        exercisesAr: [
+          "Pendulum Exercises (تمارين البندول)",
+          "Passive ROM (تحريك المفصل سلبياً)",
+          "Scapular Retractions (ضم لوحي الكتف)"
+        ],
+        exercisesEn: [
+          "Pendulum Exercises",
+          "Pain-free Passive ROM",
+          "Scapular Retractions"
+        ],
+        criteriaToProgressAr: [
+          "انخفاض مستوى الألم أثناء الراحة",
+          "استقرار المدى الحركي وعدم نقصانه السريع"
+        ],
+        criteriaToProgressEn: [
+          "Decreased resting pain",
+          "Stabilization of ROM loss"
+        ]
+      },
+      {
+        id: "fs_phase_2",
+        nameAr: "المرحلة الثانية: التيبس (Frozen) - استعادة المدى الحركي",
+        nameEn: "Phase 2: Frozen - ROM Restoration",
+        durationAr: "الأشهر 4 - 9",
+        durationEn: "Months 4 - 9",
+        goalsAr: [
+          "زيادة المدى الحركي بجميع الاتجاهات",
+          "تقليل قصر المحفظة المفصلية",
+          "تحسين الميكانيكا الحيوية للكتف"
+        ],
+        goalsEn: [
+          "Increase ROM in all planes",
+          "Decrease capsular contracture",
+          "Improve shoulder biomechanics"
+        ],
+        precautionsAr: [
+          "التمدد يجب أن يكون ضمن نطاق التحمل",
+          "تجنب الإجهاد الزائد للعضلات الدوارة"
+        ],
+        precautionsEn: [
+          "Stretching should be tolerable",
+          "Avoid overstressing rotator cuff"
+        ],
+        exercisesAr: [
+          "Wall Crawl (تسلق الجدار بالأصابع)",
+          "Towel Stretch (تمطيط بالمنشفة)",
+          "Wand Exercises (تمارين العصا)"
+        ],
+        exercisesEn: [
+          "Wall Crawl",
+          "Towel Stretch for IR",
+          "Wand / Cane Exercises"
+        ],
+        criteriaToProgressAr: [
+          "تحسن كبير في المدى الحركي",
+          "القدرة على أداء المهام اليومية بألم خفيف"
+        ],
+        criteriaToProgressEn: [
+          "Significant ROM improvement",
+          "ADLs performed with minimal pain"
+        ]
+      }
+    ]
   }
 ];
 
