@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageCircle, CheckCircle, Star, Stethoscope, Activity, ClipboardList, Sparkles } from "lucide-react";
+import { MessageSquare, CheckCircle, Star, Stethoscope, Activity, ClipboardList, Sparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 interface Patient {
@@ -116,7 +116,7 @@ Your goal is to act as a sounding board, suggest differential diagnoses, recomme
 
   const quickActions = [
     {
-      icon: <MessageCircle className="w-4 h-4 mr-2 ml-2" />,
+      icon: <MessageSquare className="w-4 h-4 mr-2 ml-2" />,
       label: isRtl ? "تشخيصات تفريقية" : "Differential Diagnoses",
       prompt: isRtl 
         ? "بناءً على المعطيات الحالية، ما هي أهم 3 تشخيصات تفريقية (Differential Diagnoses) يجب أن أضعها في الاعتبار؟ وكيف أفرق بينها سريرياً؟" 

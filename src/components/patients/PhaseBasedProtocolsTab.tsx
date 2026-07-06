@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CheckAlertCircle2, CheckAlertCircle, AlertTriangle, Star, Activity, CheckAlertCircle } from "lucide-react";
+import { CheckCircle2, AlertCircle, AlertTriangle, Star, Activity, CheckCircle } from "lucide-react";
 
 interface Patient {
   id: string;
@@ -375,7 +375,7 @@ export function PhaseBasedProtocolsTab({ patient }: { patient: Patient }) {
             {/* Progress Criteria Checklist */}
             <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 mt-8">
               <h4 className="flex items-center gap-2 font-bold text-blue-900 mb-4">
-                <CheckAlertCircle className="w-5 h-5 text-blue-600" />
+                <CheckCircle className="w-5 h-5 text-blue-600" />
                 {isRtl ? "شروط الانتقال للمرحلة التالية (Criteria to Progress)" : "Criteria to Progress"}
               </h4>
               <p className="text-sm text-blue-700/80 mb-4">
@@ -389,9 +389,9 @@ export function PhaseBasedProtocolsTab({ patient }: { patient: Patient }) {
                   }`}>
                     <div className="mt-0.5">
                       {checkedCriteria[i] ? (
-                        <CheckAlertCircle2 className="w-5 h-5 text-emerald-500" />
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                       ) : (
-                        <AlertAlertCircle className="w-5 h-5 text-slate-300" />
+                        <AlertCircle className="w-5 h-5 text-slate-300" />
                       )}
                     </div>
                     <span className={`text-sm font-medium ${checkedCriteria[i] ? 'text-slate-800' : 'text-slate-600'}`}>
@@ -416,7 +416,7 @@ export function PhaseBasedProtocolsTab({ patient }: { patient: Patient }) {
                     onClick={handleAdvancePhase}
                   >
                     {isRtl ? "ترقية للمرحلة القادمة" : "Advance to Next Phase"}
-                    <CheckAlertCircle className="w-4 h-4" />
+                    <CheckCircle className="w-4 h-4" />
                   </Button>
                 </div>
               )}

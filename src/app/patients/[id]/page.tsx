@@ -22,7 +22,7 @@ import { usePermissions } from "@/lib/usePermissions";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Lock, Trash2, FileText, Sparkles, MessageCircle } from "lucide-react";
+import { Lock, Trash2, FileText, Sparkles, MessageSquare } from "lucide-react";
 const LockIcon = Lock;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -2843,7 +2843,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
             <TabsTrigger value="reports" className="text-teal-600 dark:text-teal-400 font-bold"><FileText className="w-3.5 h-3.5 mr-1 ml-1"/> {isRtl ? "التقارير الذكية" : "Smart Reports"}</TabsTrigger>
             <TabsTrigger value="protocols">{isRtl ? "بروتوكولات التأهيل" : "Rehab Protocols"}</TabsTrigger>
             <TabsTrigger value="ai-planner" className="text-indigo-600 dark:text-indigo-400 font-bold"><Sparkles className="w-3.5 h-3.5 mr-1 ml-1"/> {isRtl ? "المولد الذكي" : "AI Planner"}</TabsTrigger>
-            <TabsTrigger value="brainstorm" className="text-blue-600 dark:text-blue-400 font-bold"><MessageCircle className="w-3.5 h-3.5 mr-1 ml-1"/> {isRtl ? "التفكير السريري" : "Brainstorming"}</TabsTrigger>
+            <TabsTrigger value="brainstorm" className="text-blue-600 dark:text-blue-400 font-bold"><MessageSquare className="w-3.5 h-3.5 mr-1 ml-1"/> {isRtl ? "التفكير السريري" : "Brainstorming"}</TabsTrigger>
             <TabsTrigger value="packages">{isRtl ? "الباقات" : "Packages"}</TabsTrigger>
             <TabsTrigger value="neuro">{isRtl ? "دليل الأعصاب" : "Neuro Reference"}</TabsTrigger>
           </TabsList>
