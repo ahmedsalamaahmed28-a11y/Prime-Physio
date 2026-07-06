@@ -187,7 +187,7 @@ Your goal is to act as a sounding board, suggest differential diagnoses, recomme
           <CardHeader className="bg-white border-b py-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg text-slate-800 flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-indigo-600" />
+                <MessageSquare className="w-5 h-5 text-indigo-600" />
                 {isRtl ? "التفكير السريري المشترك" : "Clinical Brainstorming"}
               </CardTitle>
               <Badge variant="secondary" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
