@@ -378,6 +378,721 @@ const PROTOCOLS_LIBRARY: Protocol[] = [
         criteriaToProgressEn: [
           "Significant ROM improvement",
           "ADLs performed with minimal pain"
+      }
+    ]
+  },
+  {
+    id: "tkr_protocol",
+    nameAr: "بروتوكول التأهيل بعد تغيير مفصل الركبة (TKR)",
+    nameEn: "Total Knee Replacement (TKR) Protocol",
+    descriptionAr: "يركز هذا البروتوكول على تقليل التورم واستعادة الحركة الطبيعية مبكراً وخاصة الفرد الكامل للركبة.",
+    descriptionEn: "Focuses on early mobilization, swelling reduction, and achieving full knee extension.",
+    phases: [
+      {
+        id: "tkr_phase_1",
+        nameAr: "المرحلة الأولى: الحركة المبكرة وتقليل التورم",
+        nameEn: "Phase 1: Early Mobility & Swelling Control",
+        durationAr: "الأسابيع 0 - 3",
+        durationEn: "Weeks 0 - 3",
+        goalsAr: [
+          "تحقيق فرد الركبة بالكامل (0 درجة)",
+          "ثني الركبة حتى 90 درجة",
+          "تقليل التورم والألم"
+        ],
+        goalsEn: [
+          "Achieve full knee extension (0 deg)",
+          "Knee flexion to 90 deg",
+          "Reduce swelling and pain"
+        ],
+        precautionsAr: [
+          "تجنب وضع مخدة تحت الركبة (لتفادي قصر العضلات الخلفية)",
+          "الاعتماد على المشاية أو العكازات حسب تحمل الألم"
+        ],
+        precautionsEn: [
+          "Avoid placing pillow under knee",
+          "Use walker/crutches as tolerated"
+        ],
+        exercisesAr: [
+          "Ankle Pumps (مضخات الكاحل)",
+          "Quad Sets (انقباض العضلة الرباعية)",
+          "Heel Slides (سحب الكعب لثني الركبة)",
+          "Passive Knee Extension (الفرد السلبي للركبة)"
+        ],
+        exercisesEn: [
+          "Ankle Pumps",
+          "Quad Sets",
+          "Heel Slides",
+          "Passive Knee Extension"
+        ],
+        criteriaToProgressAr: [
+          "فرد الركبة بالكامل 0 درجة",
+          "ثني الركبة 90 درجة على الأقل",
+          "القدرة على رفع الساق ممدودة (SLR) بدون تأخير"
+        ],
+        criteriaToProgressEn: [
+          "Full extension 0 deg",
+          "Flexion to at least 90 deg",
+          "Good SLR without lag"
+        ]
+      },
+      {
+        id: "tkr_phase_2",
+        nameAr: "المرحلة الثانية: التقوية والمشي الطبيعي",
+        nameEn: "Phase 2: Strengthening & Normal Gait",
+        durationAr: "الأسابيع 4 - 8",
+        durationEn: "Weeks 4 - 8",
+        goalsAr: [
+          "زيادة الثني إلى 115 درجة",
+          "المشي بدون وسائل مساعدة",
+          "زيادة قوة العضلات المحيطة بالركبة"
+        ],
+        goalsEn: [
+          "Increase flexion to 115 deg",
+          "Ambulate without assistive devices",
+          "Increase knee muscle strength"
+        ],
+        precautionsAr: [
+          "تجنب الرياضات العنيفة أو الجري",
+          "تجنب الحركات المفاجئة والالتوائية"
+        ],
+        precautionsEn: [
+          "Avoid high impact sports or running",
+          "Avoid sudden twisting movements"
+        ],
+        exercisesAr: [
+          "Mini Squats (قرفصاء جزئية)",
+          "Step-ups (صعود الدرج)",
+          "Stationary Bike (الدراجة الثابتة)",
+          "Wall Slides (انزلاق الحائط)"
+        ],
+        exercisesEn: [
+          "Mini Squats",
+          "Step-ups",
+          "Stationary Bike",
+          "Wall Slides"
+        ],
+        criteriaToProgressAr: [
+          "مشي طبيعي خالي من العرج",
+          "قدرة جيدة على التوازن على قدم واحدة",
+          "ثني الركبة > 110 درجة"
+        ],
+        criteriaToProgressEn: [
+          "Normal uncompensated gait",
+          "Good single leg balance",
+          "Knee flexion > 110 deg"
+        ]
+      }
+    ]
+  },
+  {
+    id: "achilles_repair",
+    nameAr: "بروتوكول التأهيل بعد خياطة وتر أخيل",
+    nameEn: "Achilles Tendon Repair Protocol",
+    descriptionAr: "التأهيل التدريجي لوتر أخيل مع التركيز على حماية الخياطة واستعادة مرونة وقوة الوتر ببطء.",
+    descriptionEn: "Gradual rehab focusing on graft protection and slow restoration of tendon flexibility and strength.",
+    phases: [
+      {
+        id: "achilles_phase_1",
+        nameAr: "المرحلة الأولى: حماية الوتر",
+        nameEn: "Phase 1: Tendon Protection",
+        durationAr: "الأسابيع 0 - 4",
+        durationEn: "Weeks 0 - 4",
+        goalsAr: [
+          "حماية مكان الجراحة",
+          "السيطرة التامة على التورم"
+        ],
+        goalsEn: [
+          "Protect surgical site",
+          "Complete control of swelling"
+        ],
+        precautionsAr: [
+          "تجنب التمدد القوي للوتر (Dorsiflexion) نهائياً",
+          "لبس الحذاء الطبي (CAM boot) مع استخدام أسافين للكعب"
+        ],
+        precautionsEn: [
+          "Strictly avoid passive dorsiflexion",
+          "Wear CAM boot with heel wedges"
+        ],
+        exercisesAr: [
+          "حركات خفيفة للأصابع",
+          "انقباض ثابت خفيف لعضلات الساق",
+          "تقوية عضلات الحوض والركبة (بدون تحميل على الكاحل)"
+        ],
+        exercisesEn: [
+          "Gentle toe movements",
+          "Sub-maximal isometric calf contractions",
+          "Hip and knee strengthening (NWB)"
+        ],
+        criteriaToProgressAr: [
+          "التئام الجرح بشكل سليم",
+          "لا يوجد ألم أثناء الراحة"
+        ],
+        criteriaToProgressEn: [
+          "Proper wound healing",
+          "No resting pain"
+        ]
+      },
+      {
+        id: "achilles_phase_2",
+        nameAr: "المرحلة الثانية: الحركة التدريجية",
+        nameEn: "Phase 2: Gradual Mobilization",
+        durationAr: "الأسابيع 4 - 8",
+        durationEn: "Weeks 4 - 8",
+        goalsAr: [
+          "استعادة الحركة للدرجة الصفرية (Neutral)",
+          "التحميل الجزئي إلى الكامل للوزن بوجود الحذاء الطبي"
+        ],
+        goalsEn: [
+          "Restore neutral dorsiflexion",
+          "Partial to full weight bearing in CAM boot"
+        ],
+        precautionsAr: [
+          "إزالة أسافين الكعب تدريجياً حسب توجيهات الطبيب",
+          "لا تزال حركات التمدد العنيف ممنوعة"
+        ],
+        precautionsEn: [
+          "Gradually remove heel wedges per MD protocol",
+          "Aggressive stretching still contraindicated"
+        ],
+        exercisesAr: [
+          "حركة الكاحل الإيجابية (Active ROM)",
+          "استخدام الدراجة الثابتة (بكعب القدم وليس المشط)",
+          "تمارين التوازن الخفيفة داخل الحذاء الطبي"
+        ],
+        exercisesEn: [
+          "Active ROM ankle",
+          "Stationary bike (pedal with heel)",
+          "Light balance exercises in boot"
+        ],
+        criteriaToProgressAr: [
+          "المشي بوزن كامل داخل الحذاء الطبي بدون ألم",
+          "مدى حركي للكاحل يصل للصفر درجة"
+        ],
+        criteriaToProgressEn: [
+          "Full WB in boot pain-free",
+          "Ankle ROM reaches neutral"
+        ]
+      }
+    ]
+  },
+  {
+    id: "tennis_elbow",
+    nameAr: "بروتوكول مرفق التنس (Lateral Epicondylitis)",
+    nameEn: "Tennis Elbow Protocol",
+    descriptionAr: "يعتمد هذا البروتوكول على التمارين اللامركزية (Eccentric) لتخفيف الألم وتحسين قوة أوتار الكوع.",
+    descriptionEn: "Relies heavily on eccentric exercises to reduce pain and improve tendon capacity.",
+    phases: [
+      {
+        id: "te_phase_1",
+        nameAr: "المرحلة الأولى: تخفيف الألم",
+        nameEn: "Phase 1: Pain Relief",
+        durationAr: "الأسابيع 0 - 2",
+        durationEn: "Weeks 0 - 2",
+        goalsAr: [
+          "تخفيف ألم منطقة اللقيمة الجانبية",
+          "تقليل الالتهاب"
+        ],
+        goalsEn: [
+          "Relieve pain at lateral epicondyle",
+          "Reduce inflammation"
+        ],
+        precautionsAr: [
+          "تجنب الحركات المتكررة التي تسبب الألم (مثل الإمساك بقوة)",
+          "تجنب حمل الأشياء وراحة اليد متجهة للأسفل (Pronation)"
+        ],
+        precautionsEn: [
+          "Avoid repetitive pain-provoking gripping",
+          "Avoid lifting objects with forearm pronated"
+        ],
+        exercisesAr: [
+          "تمطيط لطيف لعضلات الساعد الخلفية",
+          "انقباض ثابت خفيف (Isometric Extension)",
+          "استخدام دعامة المرفق عند الحاجة"
+        ],
+        exercisesEn: [
+          "Gentle Wrist Extensor Stretch",
+          "Isometric Extension",
+          "Use of counterforce brace"
+        ],
+        criteriaToProgressAr: [
+          "انخفاض ملحوظ في ألم الـ Isometric",
+          "القدرة على التمطيط بدون ألم حاد"
+        ],
+        criteriaToProgressEn: [
+          "Significant reduction in isometric pain",
+          "Ability to stretch without sharp pain"
+        ]
+      },
+      {
+        id: "te_phase_2",
+        nameAr: "المرحلة الثانية: التقوية اللامركزية (Eccentric)",
+        nameEn: "Phase 2: Eccentric Strengthening",
+        durationAr: "الأسابيع 2 - 6",
+        durationEn: "Weeks 2 - 6",
+        goalsAr: [
+          "إعادة بناء مرونة وقوة الوتر",
+          "تحسين قوة القبضة"
+        ],
+        goalsEn: [
+          "Rebuild tendon capacity",
+          "Improve grip strength"
+        ],
+        precautionsAr: [
+          "ألم عضلي بسيط مقبول، لكن ألم المرفق الحاد غير مقبول",
+          "التقدم بالأوزان يجب أن يكون بطيئاً جداً"
+        ],
+        precautionsEn: [
+          "Mild muscle soreness acceptable, sharp joint pain is not",
+          "Progression of weights must be very slow"
+        ],
+        exercisesAr: [
+          "تمرين الإطالة اللامركزي باستخدام وزن خفيف أو FlexBar",
+          "تقوية عضلات الكف والأصابع",
+          "تقوية عضلات الكتف والظهر"
+        ],
+        exercisesEn: [
+          "Eccentric Wrist Extension (Tyler Twist)",
+          "Grip and finger strengthening",
+          "Scapular and shoulder strengthening"
+        ],
+        criteriaToProgressAr: [
+          "القدرة على حمل الأوزان الثقيلة بدون ألم",
+          "قوة قبضة متساوية مع اليد السليمة"
+        ],
+        criteriaToProgressEn: [
+          "Ability to lift heavier loads pain-free",
+          "Grip strength equal to uninvolved side"
+        ]
+      }
+    ]
+  },
+  {
+    id: "plantar_fasciitis",
+    nameAr: "بروتوكول التهاب اللفافة الأخمصية (Plantar Fasciitis)",
+    nameEn: "Plantar Fasciitis Protocol",
+    descriptionAr: "يركز على تقليل ألم الكعب الصباحي، وإطالة اللفافة ووتر أخيل، وتقوية عضلات القدم الداخلية.",
+    descriptionEn: "Focuses on reducing morning heel pain, stretching the fascia and Achilles, and intrinsic foot strengthening.",
+    phases: [
+      {
+        id: "pf_phase_1",
+        nameAr: "المرحلة الأولى: تخفيف الألم الحاد",
+        nameEn: "Phase 1: Acute Pain Relief",
+        durationAr: "الأسابيع 0 - 2",
+        durationEn: "Weeks 0 - 2",
+        goalsAr: [
+          "تقليل ألم الخطوة الأولى في الصباح",
+          "تقليل الالتهاب الموضعي",
+          "تخفيف الضغط عن الكعب"
+        ],
+        goalsEn: [
+          "Reduce first-step morning pain",
+          "Decrease local inflammation",
+          "Offload the heel"
+        ],
+        precautionsAr: [
+          "تجنب المشي حافي القدمين تماماً",
+          "تجنب الوقوف لفترات طويلة أو الجري"
+        ],
+        precautionsEn: [
+          "Strictly avoid barefoot walking",
+          "Avoid prolonged standing or running"
+        ],
+        exercisesAr: [
+          "دحرجة زجاجة ماء مثلجة تحت القدم (Ice Bottle Roll)",
+          "إطالة اللفافة الأخمصية يدوياً قبل النهوض من السرير",
+          "إطالة بطة الساق (Calf Stretch) بالمنشفة"
+        ],
+        exercisesEn: [
+          "Ice Bottle Roll under foot",
+          "Manual Plantar Fascia stretch before getting out of bed",
+          "Towel Calf Stretch"
+        ],
+        criteriaToProgressAr: [
+          "انخفاض ملحوظ في الألم الصباحي",
+          "تحمل الوقوف والمشي العادي بألم خفيف ومقبول"
+        ],
+        criteriaToProgressEn: [
+          "Significant reduction in morning pain",
+          "Tolerance to normal walking with minimal pain"
+        ]
+      },
+      {
+        id: "pf_phase_2",
+        nameAr: "المرحلة الثانية: التقوية وإعادة التأهيل",
+        nameEn: "Phase 2: Strengthening & Rehab",
+        durationAr: "الأسابيع 2 - 6",
+        durationEn: "Weeks 2 - 6",
+        goalsAr: [
+          "زيادة قوة عضلات القدم الداخلية (Intrinsic muscles)",
+          "تحسين تحمل وتر أخيل واللفافة للأحمال",
+          "العودة التدريجية للنشاط الطبيعي"
+        ],
+        goalsEn: [
+          "Increase intrinsic foot muscle strength",
+          "Improve tissue load tolerance",
+          "Gradual return to normal activity"
+        ],
+        precautionsAr: [
+          "زيادة الأحمال التدريجية وتجنب القفز المفاجئ",
+          "يجب ارتداء أحذية داعمة أثناء التمارين"
+        ],
+        precautionsEn: [
+          "Progressive loading, avoid sudden jumping",
+          "Wear supportive footwear during exercises"
+        ],
+        exercisesAr: [
+          "تجعيد المنشفة بأصابع القدم (Towel Curls)",
+          "الرفع على الأمشاط مع وضع منشفة ملفوفة تحت الأصابع (Fasciitis Calf Raises)",
+          "التقاط الأشياء الصغيرة بأصابع القدم (Marble Pick-up)",
+          "تمارين التوازن على قدم واحدة"
+        ],
+        exercisesEn: [
+          "Towel Curls with toes",
+          "Fasciitis Calf Raises (with towel roll under toes)",
+          "Marble Pick-up",
+          "Single leg balance exercises"
+        ],
+        criteriaToProgressAr: [
+          "المشي واداء المهام اليومية بدون ألم",
+          "القدرة على أداء رفع الأمشاط بقدم واحدة بدون ألم"
+        ],
+        criteriaToProgressEn: [
+          "Pain-free normal ADLs",
+          "Pain-free single leg calf raises"
+        ]
+      }
+    ]
+  },
+  {
+    id: "carpal_tunnel",
+    nameAr: "بروتوكول متلازمة النفق الرسغي (Carpal Tunnel)",
+    nameEn: "Carpal Tunnel Syndrome Protocol",
+    descriptionAr: "التأهيل التحفظي أو ما بعد الجراحة لمتلازمة النفق الرسغي لتحرير العصب المتوسط وتقوية اليد.",
+    descriptionEn: "Conservative or post-op rehab for CTS focusing on median nerve gliding and hand strengthening.",
+    phases: [
+      {
+        id: "cts_phase_1",
+        nameAr: "المرحلة الأولى: تخفيف الضغط وتحرير العصب",
+        nameEn: "Phase 1: Decompression & Nerve Gliding",
+        durationAr: "الأسابيع 0 - 3",
+        durationEn: "Weeks 0 - 3",
+        goalsAr: [
+          "تقليل التنميل والألم الليلي",
+          "الحفاظ على حركة الأصابع والرسغ",
+          "تحسين الانزلاق العصبي للعصب المتوسط"
+        ],
+        goalsEn: [
+          "Reduce numbness and night pain",
+          "Maintain finger/wrist mobility",
+          "Improve median nerve gliding"
+        ],
+        precautionsAr: [
+          "تجنب ثني الرسغ القوي لفترات طويلة",
+          "ارتداء الجبيرة (Splint) أثناء الليل أو أثناء الأنشطة المجهدة"
+        ],
+        precautionsEn: [
+          "Avoid sustained forceful wrist flexion",
+          "Wear night splint or during provocative activities"
+        ],
+        exercisesAr: [
+          "تمارين انزلاق العصب المتوسط (Median Nerve Gliding)",
+          "تمارين انزلاق الأوتار (Tendon Gliding)",
+          "حركات خفيفة ومستمرة للرسغ والأصابع (Active ROM)"
+        ],
+        exercisesEn: [
+          "Median Nerve Glides",
+          "Tendon Gliding exercises",
+          "Active ROM for wrist and digits"
+        ],
+        criteriaToProgressAr: [
+          "انخفاض ملحوظ في التنميل والأعراض الليلية",
+          "مدى حركي كامل وخالٍ من الألم للأصابع والرسغ"
+        ],
+        criteriaToProgressEn: [
+          "Significant reduction in numbness/night symptoms",
+          "Full pain-free active ROM of digits and wrist"
+        ]
+      },
+      {
+        id: "cts_phase_2",
+        nameAr: "المرحلة الثانية: التقوية واستعادة الوظيفة",
+        nameEn: "Phase 2: Strengthening & Functional Return",
+        durationAr: "الأسابيع 3 - 6",
+        durationEn: "Weeks 3 - 6",
+        goalsAr: [
+          "استعادة قوة القبضة (Grip Strength)",
+          "استعادة قوة الأصابع الدقيقة (Pinch Strength)",
+          "العودة للعمل والأنشطة اليومية الكاملة"
+        ],
+        goalsEn: [
+          "Restore grip strength",
+          "Restore pinch strength",
+          "Return to full work and ADLs"
+        ],
+        precautionsAr: [
+          "تجنب الأدوات الاهتزازية (Vibrating tools) في البداية",
+          "الاهتمام ببيئة العمل (Ergonomics) وضعية لوحة المفاتيح"
+        ],
+        precautionsEn: [
+          "Avoid vibrating tools initially",
+          "Address workstation ergonomics"
+        ],
+        exercisesAr: [
+          "تمارين الضغط على كرة إسفنجية للقبضة",
+          "تمارين استخدام المعجون الطبي (Theraputty)",
+          "تقوية عضلات الساعد (Wrist Flexion/Extension) بأوزان خفيفة"
+        ],
+        exercisesEn: [
+          "Sponge ball grip squeezing",
+          "Theraputty exercises for pinch/grip",
+          "Light resisted wrist flexion/extension"
+        ],
+        criteriaToProgressAr: [
+          "قوة قبضة طبيعية مقارنة باليد الأخرى",
+          "لا يوجد ألم أو تنميل مع المهام المجهدة"
+        ],
+        criteriaToProgressEn: [
+          "Normal grip strength symmetrical to uninvolved side",
+          "No pain or numbness with strenuous tasks"
+        ]
+      }
+    ]
+  },
+  {
+    id: "rtc_repair",
+    nameAr: "بروتوكول التأهيل بعد إصلاح الكفة المدورة (Rotator Cuff Repair)",
+    nameEn: "Rotator Cuff Repair Protocol",
+    descriptionAr: "تأهيل جراحي دقيق يركز على حماية الوتر المُصلح أولاً، ثم استعادة الحركة، ثم التقوية.",
+    descriptionEn: "Precise post-op rehab focusing on graft protection, followed by ROM, and finally strengthening.",
+    phases: [
+      {
+        id: "rtc_phase_1",
+        nameAr: "المرحلة الأولى: الحماية التامة والحركة السلبية",
+        nameEn: "Phase 1: Maximum Protection & PROM",
+        durationAr: "الأسابيع 0 - 4",
+        durationEn: "Weeks 0 - 4",
+        goalsAr: [
+          "حماية مكان العملية (الوتر المُصلح)",
+          "تقليل الألم والتورم",
+          "الحفاظ على حركة المفاصل المجاورة (الكوع، الرسغ، الرقبة)"
+        ],
+        goalsEn: [
+          "Protect surgical repair",
+          "Decrease pain and swelling",
+          "Maintain ROM of adjacent joints (elbow, wrist, cervical)"
+        ],
+        precautionsAr: [
+          "ارتداء الحمالة (Sling) طوال الوقت حسب تعليمات الجراح",
+          "ممنوع الحركة الإيجابية (Active ROM) للكتف تماماً",
+          "ممنوع رفع الأشياء أو دعم وزن الجسم على الذراع"
+        ],
+        precautionsEn: [
+          "Wear sling at all times per MD orders",
+          "NO Active ROM of the shoulder",
+          "No lifting or supporting body weight"
+        ],
+        exercisesAr: [
+          "تمارين البندول (Pendulum) السلبية تماماً",
+          "حركة سلبية للكتف بواسطة المعالج (PROM) في الحدود المسموحة",
+          "حركة إيجابية للكوع والرسغ والأصابع"
+        ],
+        exercisesEn: [
+          "Completely passive Pendulum exercises",
+          "Therapist-assisted PROM within limits",
+          "Active ROM for elbow, wrist, and hand"
+        ],
+        criteriaToProgressAr: [
+          "التئام الجرح بصورة جيدة",
+          "الوصول للمدى الحركي السلبي المستهدف للمرحلة (مثال: رفع 90 درجة)"
+        ],
+        criteriaToProgressEn: [
+          "Good wound healing",
+          "Achieved target PROM for the phase"
+        ]
+      },
+      {
+        id: "rtc_phase_2",
+        nameAr: "المرحلة الثانية: الحركة الإيجابية المساعدة (AAROM)",
+        nameEn: "Phase 2: Active-Assisted ROM (AAROM)",
+        durationAr: "الأسابيع 4 - 8",
+        durationEn: "Weeks 4 - 8",
+        goalsAr: [
+          "التخلي التدريجي عن الحمالة (Sling)",
+          "الوصول لمدى حركي إيجابي مساعد كامل أو شبه كامل",
+          "بدء تشغيل عضلات الكتف بخفة"
+        ],
+        goalsEn: [
+          "Wean from sling",
+          "Achieve full or near-full AAROM",
+          "Initiate gentle shoulder muscle activation"
+        ],
+        precautionsAr: [
+          "لا يوجد رفع للأوزان حتى الآن",
+          "تجنب الحركات المفاجئة السريعة",
+          "تجنب التمدد القوي خلف الظهر"
+        ],
+        precautionsEn: [
+          "No heavy lifting or resistance yet",
+          "Avoid sudden jerky movements",
+          "Avoid forceful stretching behind back (IR)"
+        ],
+        exercisesAr: [
+          "تمارين العصا المساعدة (Wand Exercises)",
+          "تمارين البكرة (Pulleys) ضمن نطاق خالي من الألم",
+          "انقباض ثابت خفيف للكتف (Sub-maximal Isometrics)"
+        ],
+        exercisesEn: [
+          "Wand/Cane exercises (AAROM)",
+          "Pulleys within pain-free range",
+          "Sub-maximal shoulder isometrics"
+        ],
+        criteriaToProgressAr: [
+          "مدى حركي سلبي كامل بدون ألم",
+          "القدرة على رفع الذراع (AAROM) بآلية صحيحة بدون تعويض من الرقبة"
+        ],
+        criteriaToProgressEn: [
+          "Full pain-free PROM",
+          "Good AAROM mechanics without shoulder shrugging"
+        ]
+      },
+      {
+        id: "rtc_phase_3",
+        nameAr: "المرحلة الثالثة: التقوية المبكرة",
+        nameEn: "Phase 3: Early Strengthening",
+        durationAr: "الأسابيع 8 - 12",
+        durationEn: "Weeks 8 - 12",
+        goalsAr: [
+          "استعادة المدى الحركي الإيجابي (AROM) الكامل",
+          "تقوية عضلات الكفة المدورة ولوح الكتف بشكل ديناميكي",
+          "العودة للمهام اليومية الأساسية"
+        ],
+        goalsEn: [
+          "Restore full AROM",
+          "Dynamic strengthening of RTC and scapular stabilizers",
+          "Return to basic ADLs"
+        ],
+        precautionsAr: [
+          "تجنب حمل الأوزان الثقيلة جداً أو بعيداً عن الجسم",
+          "التقدم بالأوزان يجب أن يسبقه إتقان الحركة بشكل صحيح"
+        ],
+        precautionsEn: [
+          "Avoid heavy lifting away from body",
+          "Perfect mechanics required before adding resistance"
+        ],
+        exercisesAr: [
+          "تمارين الحبل المطاطي (Theraband) الخفيفة للداخل والخارج",
+          "رفع الأوزان الخفيفة في مستوى لوح الكتف (Scaption)",
+          "تقوية عضلات الظهر السفلية للكتف (Rowing)"
+        ],
+        exercisesEn: [
+          "Light Theraband IR/ER",
+          "Scaption with light weights",
+          "Seated rows for scapular retraction"
+        ],
+        criteriaToProgressAr: [
+          "مدى حركي إيجابي (AROM) كامل بدون ألم",
+          "قوة عضلية تصل لـ 4/5"
+        ],
+        criteriaToProgressEn: [
+          "Full pain-free AROM",
+          "Muscle strength at least 4/5"
+        ]
+      }
+    ]
+  },
+  {
+    id: "cervical_radiculopathy",
+    nameAr: "بروتوكول اعتلال الجذور العنقية (Cervical Radiculopathy)",
+    nameEn: "Cervical Radiculopathy Protocol",
+    descriptionAr: "يركز على تقليل الضغط على جذور الأعصاب العنقية، مركزة الألم، وتقوية عضلات العنق العميقة.",
+    descriptionEn: "Focuses on cervical nerve root decompression, symptom centralization, and deep neck flexor strengthening.",
+    phases: [
+      {
+        id: "cr_phase_1",
+        nameAr: "المرحلة الأولى: تخفيف الألم وتقليل الضغط",
+        nameEn: "Phase 1: Pain Relief & Decompression",
+        durationAr: "الأسابيع 0 - 3",
+        durationEn: "Weeks 0 - 3",
+        goalsAr: [
+          "تقليل الألم المنتشر للذراع (Radicular Pain)",
+          "تقليل شد عضلات الرقبة والكتف",
+          "تحسين وضعية الرأس (Posture)"
+        ],
+        goalsEn: [
+          "Reduce arm radicular pain",
+          "Decrease cervical/upper trap muscle spasm",
+          "Improve head posture"
+        ],
+        precautionsAr: [
+          "تجنب الحركات التي تزيد الألم المنتشر (Peripheralization)",
+          "تجنب التمدد القوي للرقبة في البداية"
+        ],
+        precautionsEn: [
+          "Avoid movements causing peripheralization",
+          "Avoid aggressive neck stretching initially"
+        ],
+        exercisesAr: [
+          "السحب العنقي (Cervical Traction) يدوي أو آلي",
+          "تمارين الانكماش العنقي (Chin Tucks)",
+          "تحريك العصب (Nerve Gliding) الخفيف جداً إذا لم يزد الألم"
+        ],
+        exercisesEn: [
+          "Cervical Traction (Manual or Mechanical)",
+          "Chin Tucks (Cervical Retraction)",
+          "Gentle upper limb nerve glides (if tolerated)"
+        ],
+        criteriaToProgressAr: [
+          "تراجع الألم المنتشر للذراع (Centralization)",
+          "تحسن القدرة على تحريك الرقبة بدون ألم حاد"
+        ],
+        criteriaToProgressEn: [
+          "Centralization of arm pain",
+          "Improved pain-free cervical ROM"
+        ]
+      },
+      {
+        id: "cr_phase_2",
+        nameAr: "المرحلة الثانية: استعادة الحركة والتقوية العميقة",
+        nameEn: "Phase 2: Mobility & Deep Neck Flexor Strengthening",
+        durationAr: "الأسابيع 3 - 6",
+        durationEn: "Weeks 3 - 6",
+        goalsAr: [
+          "استعادة مدى الحركة العنقي الكامل",
+          "تقوية عضلات الرقبة العميقة (Deep Neck Flexors)",
+          "تقوية عضلات لوح الكتف لتثبيت القوام"
+        ],
+        goalsEn: [
+          "Restore full cervical ROM",
+          "Strengthen Deep Neck Flexors (DNF)",
+          "Strengthen scapular stabilizers for posture"
+        ],
+        precautionsAr: [
+          "التأكد من عدم عودة الألم المنتشر للذراع مع التمارين الجديدة",
+          "تجنب إرهاق عضلات الرقبة وتشنجها"
+        ],
+        precautionsEn: [
+          "Ensure no return of radicular symptoms with exercises",
+          "Avoid fatiguing neck muscles into spasm"
+        ],
+        exercisesAr: [
+          "تمارين الانكماش العنقي مع رفع الرأس من الاستلقاء",
+          "تقوية الرقبة متساوية القياس (Cervical Isometrics) في جميع الاتجاهات",
+          "تمارين تقوية الظهر العلوي (Prone Ts, Ys)"
+        ],
+        exercisesEn: [
+          "Chin tucks with head lift (DNF training)",
+          "Cervical Isometrics (all planes)",
+          "Upper back strengthening (Prone Ts, Ys)"
+        ],
+        criteriaToProgressAr: [
+          "لا يوجد ألم منتشر للذراع نهائياً",
+          "قوة طبيعية لعضلات الرقبة العميقة",
+          "الحفاظ على وضعية الرأس السليمة أثناء العمل"
+        ],
+        criteriaToProgressEn: [
+          "No radicular arm pain present",
+          "Normal Deep Neck Flexor endurance",
+          "Maintains proper head posture during work"
         ]
       }
     ]
