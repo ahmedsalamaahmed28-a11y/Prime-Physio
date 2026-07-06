@@ -34,7 +34,7 @@ const translations: Record<Language, Record<string, string>> = {
     "nav_home": "الرئيسية",
     "nav_messages": "الرسائل والمحادثات",
     "nav_ai_assistant": "AI Assistance",
-    "nav_calendar": "المواعيد",
+    "nav_calendar": "التقويم",
     "nav_patients": "الجلسات",
     "nav_billing": "المالية",
     "nav_clinic_settings": "الاعدادات",
