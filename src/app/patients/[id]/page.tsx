@@ -12,8 +12,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 import BodyPainMapper, { BODY_PAIN_REGIONS } from "@/components/BodyPainMapper";
-import ProgressCharts from "@/components/ProgressCharts";
-import { AiPlannerTab } from "@/components/patients/AiPlannerTab";
 import { SmartReportsTab } from "@/components/patients/SmartReportsTab";
 import { ClinicalBrainstormTab } from "@/components/patients/ClinicalBrainstormTab";
 import { PhaseBasedProtocolsTab } from "@/components/patients/PhaseBasedProtocolsTab";
@@ -2842,7 +2840,6 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
             <TabsTrigger value="records">{isRtl ? "السجلات الطبية" : "Medical Records"}</TabsTrigger>
             <TabsTrigger value="reports" className="text-teal-600 dark:text-teal-400 font-bold"><FileText className="w-3.5 h-3.5 mr-1 ml-1"/> {isRtl ? "التقارير الذكية" : "Smart Reports"}</TabsTrigger>
             <TabsTrigger value="protocols">{isRtl ? "بروتوكولات التأهيل" : "Rehab Protocols"}</TabsTrigger>
-            <TabsTrigger value="ai-planner" className="text-indigo-600 dark:text-indigo-400 font-bold"><Sparkles className="w-3.5 h-3.5 mr-1 ml-1"/> {isRtl ? "المولد الذكي" : "AI Planner"}</TabsTrigger>
             <TabsTrigger value="brainstorm" className="text-blue-600 dark:text-blue-400 font-bold"><MessageSquare className="w-3.5 h-3.5 mr-1 ml-1"/> {isRtl ? "التفكير السريري" : "Brainstorming"}</TabsTrigger>
             <TabsTrigger value="packages">{isRtl ? "الباقات" : "Packages"}</TabsTrigger>
             <TabsTrigger value="neuro">{isRtl ? "دليل الأعصاب" : "Neuro Reference"}</TabsTrigger>
@@ -2852,7 +2849,6 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
           <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>
           <TabsContent value="reports"><SmartReportsTab patient={patient} /></TabsContent>
           <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} /></TabsContent>
-          <TabsContent value="ai-planner"><AiPlannerTab patient={patient} /></TabsContent>
           <TabsContent value="brainstorm"><ClinicalBrainstormTab patient={patient} /></TabsContent>
           <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} /></TabsContent>
           <TabsContent value="neuro"><NeuroReferenceTab /></TabsContent>
