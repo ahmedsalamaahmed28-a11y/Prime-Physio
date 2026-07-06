@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Activity, User, ShieldAlert, Sparkles, Printer, Save, Copy } from "lucide-react";
+import { Activity, User, ShieldAlert, Sparkles, Download, Save, Copy } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 export default function AiPlannerPage() {
@@ -203,7 +203,7 @@ Please divide the plan clearly into 4 weeks, mentioning goals, exercises, and pr
                     {isRtl ? "نسخ" : "Copy"}
                   </Button>
                   <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2 text-indigo-600 border-indigo-200 hover:bg-indigo-50">
-                    <Printer className="w-4 h-4" />
+                    <Download className="w-4 h-4" />
                     {isRtl ? "طباعة" : "Print"}
                   </Button>
                 </div>
