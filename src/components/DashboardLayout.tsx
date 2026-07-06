@@ -66,7 +66,6 @@ interface SidebarItem {
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
   { nameKey: "nav_home", href: "/home", icon: Home },
-  { nameKey: "nav_calendar", href: "/calendar", icon: Calendar },
   { nameKey: "nav_patients", href: "/patients", icon: Users },
   { nameKey: "nav_library", href: "/clinical-library", icon: BookOpen },
   { nameKey: "nav_nutrition", href: "/clinical-nutrition", icon: Apple },
