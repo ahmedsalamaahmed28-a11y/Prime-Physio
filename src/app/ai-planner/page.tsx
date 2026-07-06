@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Activity, UserCircle, ShieldAlert, Sparkles, Printer, Save, Copy } from "lucide-react";
+import { Activity, User, ShieldAlert, Sparkles, Printer, Save, Copy } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 export default function AiPlannerPage() {
@@ -129,7 +129,7 @@ Please divide the plan clearly into 4 weeks, mentioning goals, exercises, and pr
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
-                    <UserCircle className="w-4 h-4 text-slate-500" />
+                    <User className="w-4 h-4 text-slate-500" />
                     {isRtl ? "العمر" : "Age"} <span className="text-rose-500">*</span>
                   </Label>
                   <Input 
