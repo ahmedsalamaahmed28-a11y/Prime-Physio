@@ -1560,73 +1560,149 @@ function RadiologyTab() {
 
 // ─── Tab: Packages ────────────────────────────────────────────────────────────
 
-function PackagesTab() {
+function PackagesTab({ patient, onUpdatePatient }: { patient: any, onUpdatePatient: (p: any) => void }) {
   const { language } = useLanguage();
   const isRtl = language === "ar";
+  const { user: authUser } = useAuth();
+  const clinicId = authUser?.clinicId;
 
-  const pkg = { 
-    nameAr: "", 
-    nameEn: "",
-    totalSessions: 0, 
-    usedSessions: 0, 
-    startDate: "", 
-    endDate: "", 
-    price: 0, 
-    statusAr: "",
-    statusEn: ""
-  };
+  // Initialize from patient data
+  const [pkg, setPkg] = useState({
+    nameAr: patient.activePackage || "كشف أول",
+    nameEn: patient.activePackage || "First Examination",
+    totalSessions: patient.sessionsTotal || 0,
+    usedSessions: patient.sessionsUsed || 0,
+    price: 0,
+  });
+
+  const [isUpdating, setIsUpdating] = useState(false);
+
   const remaining = pkg.totalSessions - pkg.usedSessions;
   const pct = pkg.totalSessions > 0 ? Math.round((pkg.usedSessions / pkg.totalSessions) * 100) : 0;
+  const isFinished = remaining <= 0 && pkg.totalSessions > 0;
+
+  const handleConsumeSession = async () => {
+    if (remaining <= 0 || isUpdating) return;
+    setIsUpdating(true);
+    const newUsed = pkg.usedSessions + 1;
+    
+    try {
+      const { error } = await supabase
+        .from("patients")
+        .update({ sessionsUsed: newUsed })
+        .eq("clinic_id", clinicId)
+        .eq("id", patient.id);
+        
+      if (!error) {
+        setPkg({ ...pkg, usedSessions: newUsed });
+        onUpdatePatient({ ...patient, sessionsUsed: newUsed });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setIsUpdating(false);
+  };
+
+  const handleRenewPackage = async () => {
+    if (isUpdating) return;
+    setIsUpdating(true);
+    
+    const newPackageName = prompt(isRtl ? "أدخل اسم الباقة الجديدة:" : "Enter new package name:", "باقة 6 جلسات");
+    if (!newPackageName) {
+      setIsUpdating(false);
+      return;
+    }
+    
+    const sessionsStr = prompt(isRtl ? "أدخل إجمالي عدد الجلسات:" : "Enter total sessions:", "6");
+    const totalSessions = parseInt(sessionsStr || "0", 10);
+    
+    if (isNaN(totalSessions) || totalSessions <= 0) {
+      alert(isRtl ? "عدد الجلسات غير صالح" : "Invalid sessions count");
+      setIsUpdating(false);
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("patients")
+        .update({ 
+          activePackage: newPackageName,
+          sessionsTotal: totalSessions,
+          sessionsUsed: 0
+        })
+        .eq("clinic_id", clinicId)
+        .eq("id", patient.id);
+        
+      if (!error) {
+        setPkg({ 
+          ...pkg, 
+          nameAr: newPackageName,
+          nameEn: newPackageName,
+          totalSessions: totalSessions,
+          usedSessions: 0
+        });
+        onUpdatePatient({ 
+          ...patient, 
+          activePackage: newPackageName,
+          sessionsTotal: totalSessions,
+          sessionsUsed: 0
+        });
+        
+        // Optionally create an invoice here or tell user to create one
+        alert(isRtl ? "تم تجديد الباقة بنجاح!" : "Package renewed successfully!");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setIsUpdating(false);
+  };
 
   return (
     <div className="pt-4 space-y-4">
-      <Card className="border-emerald-200">
+      <Card className={`border ${isFinished ? 'border-rose-200' : 'border-emerald-200'}`}>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">{isRtl ? pkg.nameAr : pkg.nameEn}</CardTitle>
-            <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200">
-              {isRtl ? pkg.statusAr : pkg.statusEn}
+            <Badge className={isFinished ? "bg-rose-100 text-rose-800" : "bg-emerald-100 text-emerald-800"}>
+              {isFinished 
+                ? (isRtl ? "منتهية" : "Finished") 
+                : (isRtl ? "نشطة" : "Active")}
             </Badge>
           </div>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">{isRtl ? "استخدام الجلسات" : "Sessions Usage"}</span>
+              <span className="text-muted-foreground">{isRtl ? "استهلاك الجلسات" : "Sessions Usage"}</span>
               <span className="font-medium">{pkg.usedSessions} / {pkg.totalSessions} {isRtl ? "جلسة" : "sessions"}</span>
             </div>
             <div className="h-3 bg-muted rounded-full overflow-hidden">
-              <div className="h-full bg-emerald-500 rounded-full transition-all" style={{ width: `${pct}%` }} />
+              <div className={`h-full rounded-full transition-all ${isFinished ? 'bg-rose-500' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} />
             </div>
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>{pct}% {isRtl ? "مُستخدم" : "used"}</span>
-              <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+              <span className={`font-semibold ${isFinished ? 'text-rose-700' : 'text-emerald-700'}`}>
                 {remaining} {isRtl ? "جلسة متبقية" : "sessions remaining"}
               </span>
             </div>
           </div>
-          <Separator />          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: isRtl ? "إجمالي الجلسات" : "Total Sessions", value: pkg.totalSessions, unit: isRtl ? "جلسة" : "sessions" },
-              { label: isRtl ? "الجلسات المنجزة" : "Completed Sessions", value: pkg.usedSessions, unit: isRtl ? "جلسة" : "sessions" },
-              { label: isRtl ? "الجلسات المتبقية" : "Remaining Sessions", value: remaining, unit: isRtl ? "جلسة" : "sessions" },
-              { label: isRtl ? "قيمة الباقة" : "Package Cost", value: `${pkg.price.toLocaleString()} EGP`, unit: "" },
-            ].map((s) => (
-              <div key={s.label} className="bg-muted/50 rounded-lg p-3 text-center">
-                <p className="text-xs text-muted-foreground mb-1">{s.label}</p>
-                <p className="text-xl font-semibold">{s.value}</p>
-                {s.unit && <p className="text-xs text-muted-foreground">{s.unit}</p>}
-              </div>
-            ))}
-          </div>
           <Separator />
-          <div className="flex justify-between text-sm">
-            <div><p className="text-xs text-muted-foreground">{isRtl ? "تاريخ البدء" : "Start Date"}</p><p className="font-medium">{pkg.startDate}</p></div>
-            <div className="text-right"><p className="text-xs text-muted-foreground">{isRtl ? "تاريخ الانتهاء" : "End Date"}</p><p className="font-medium">{pkg.endDate}</p></div>
-          </div>
           <div className="flex gap-2 pt-1">
-            <Button variant="outline" className="flex-1">{isRtl ? "تجديد الباقة" : "Renew Package"}</Button>
-            <Button className="flex-1">{isRtl ? "ترقية الباقة" : "Upgrade Package"}</Button>
+            <Button 
+              onClick={handleConsumeSession} 
+              disabled={remaining <= 0 || isUpdating} 
+              className="flex-1 bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]"
+            >
+              {isUpdating ? (isRtl ? "جاري..." : "Processing...") : (isRtl ? "استهلاك جلسة" : "Consume Session")}
+            </Button>
+            <Button 
+              onClick={handleRenewPackage}
+              disabled={isUpdating}
+              variant="outline" 
+              className="flex-1"
+            >
+              {isRtl ? "تجديد/تغيير الباقة" : "Renew/Change Package"}
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -2768,7 +2844,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
           <TabsContent value="radiology"><RadiologyTab /></TabsContent>
           <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>
           <TabsContent value="rehab"><RehabProtocolPlannerTab patient={patient} /></TabsContent>
-          <TabsContent value="packages"><PackagesTab /></TabsContent>
+          <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} /></TabsContent>
           <TabsContent value="neuro"><NeuroReferenceTab /></TabsContent>
         </Tabs>
       </div>
