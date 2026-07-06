@@ -33,6 +33,7 @@ import {
   Apple,
   BookOpen,
   Crown,
+  Wifi,
   WifiOff,
   FileText,
   AlertTriangle
