@@ -50,7 +50,6 @@ const translations: Record<Language, Record<string, string>> = {
     "nav_permissions": "الصلاحيات والأدوار",
     "nav_logout": "تسجيل الخروج",
     "nav_subscription": "خطط الاشتراك",
-    "nav_appointments": "قائمة المواعيد",
     "nav_section_title": "إدارة العيادات",
 
     // Home Dashboard
@@ -142,7 +141,6 @@ const translations: Record<Language, Record<string, string>> = {
     "nav_permissions": "Permissions",
     "nav_logout": "Logout",
     "nav_subscription": "Subscription Plans",
-    "nav_appointments": "Appointments",
     "nav_ai_assistant": "AI Assistant",
     "nav_section_title": "Clinic Management",
 
