@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,12 @@ interface Patient {
   nameAr: string;
   nameEn: string;
   age: number;
+}
+
+export interface ProtocolProgressState {
+  protocolId: string;
+  currentPhaseIndex: number;
+  checkedCriteria: Record<number, boolean>;
 }
 
 // ─── Phase-Based Protocol Data ────────────────────────────────────────────────
@@ -1385,18 +1391,41 @@ const PROTOCOLS_LIBRARY: Protocol[] = [
   }
 ];
 
-export function PhaseBasedProtocolsTab({ patient }: { patient: Patient }) {
+export function PhaseBasedProtocolsTab({ 
+  patient,
+  initialState,
+  onSaveState
+}: { 
+  patient: Patient;
+  initialState?: ProtocolProgressState | null;
+  onSaveState?: (state: ProtocolProgressState) => void;
+}) {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   
-  // State: For demo, we just use the first protocol (ACL MOON)
-  const [selectedProtocol, setSelectedProtocol] = useState<Protocol | null>(PROTOCOLS_LIBRARY[0]);
+  const [selectedProtocol, setSelectedProtocol] = useState<Protocol | null>(() => {
+    if (initialState?.protocolId) {
+      return PROTOCOLS_LIBRARY.find(p => p.id === initialState.protocolId) || PROTOCOLS_LIBRARY[0];
+    }
+    return PROTOCOLS_LIBRARY[0];
+  });
   
-  // State: Which phase is the patient currently in (0-indexed)
-  const [currentPhaseIndex, setCurrentPhaseIndex] = useState(0);
+  const [currentPhaseIndex, setCurrentPhaseIndex] = useState(() => initialState?.currentPhaseIndex || 0);
   
-  // State: Track which criteria are checked for the current phase
-  const [checkedCriteria, setCheckedCriteria] = useState<Record<number, boolean>>({});
+  const [checkedCriteria, setCheckedCriteria] = useState<Record<number, boolean>>(() => initialState?.checkedCriteria || {});
+
+
+  
+  useEffect(() => {
+    if (onSaveState && selectedProtocol) {
+      onSaveState({
+        protocolId: selectedProtocol.id,
+        currentPhaseIndex,
+        checkedCriteria,
+      });
+    }
+  }, [selectedProtocol, currentPhaseIndex, checkedCriteria]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   const handleToggleCriteria = (idx: number) => {
     setCheckedCriteria(prev => ({ ...prev, [idx]: !prev[idx] }));

@@ -2647,6 +2647,24 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
 
   const [patient, setPatient] = useState<Patient>(EMPTY_PATIENT(resolvedParams.id));
 
+  const handleSaveProtocolState = async (state: any) => {
+    if (!clinicId || !patient.id) return;
+    try {
+      const { error } = await supabase
+        .from("patients")
+        .update({ active_protocol: state })
+        .eq("clinic_id", clinicId)
+        .eq("id", patient.id);
+      if (error) {
+        console.warn("Failed to sync protocol state to Supabase:", error);
+      } else {
+        setPatient(prev => ({ ...prev, active_protocol: state }));
+      }
+    } catch (e) {
+      console.warn("Failed to sync protocol state to Supabase:", e);
+    }
+  };
+
   // Load real patient data from Supabase
   useEffect(() => {
     async function fetchPatient() {
@@ -2849,7 +2867,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
           <TabsContent value="radiology"><RadiologyTab /></TabsContent>
           <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>
           <TabsContent value="reports"><SmartReportsTab patient={patient} /></TabsContent>
-          <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} /></TabsContent>
+          <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} initialState={typeof patient.active_protocol === 'string' ? JSON.parse(patient.active_protocol) : patient.active_protocol} onSaveState={handleSaveProtocolState} /></TabsContent>
           <TabsContent value="brainstorm"><ClinicalBrainstormTab patient={patient} /></TabsContent>
           <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} /></TabsContent>
           <TabsContent value="neuro"><NeuroReferenceTab /></TabsContent>
