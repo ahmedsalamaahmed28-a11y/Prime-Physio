@@ -378,6 +378,7 @@ const PROTOCOLS_LIBRARY: Protocol[] = [
         criteriaToProgressEn: [
           "Significant ROM improvement",
           "ADLs performed with minimal pain"
+        ]
       }
     ]
   },
@@ -1093,6 +1094,291 @@ const PROTOCOLS_LIBRARY: Protocol[] = [
           "No radicular arm pain present",
           "Normal Deep Neck Flexor endurance",
           "Maintains proper head posture during work"
+        ]
+      }
+    ]
+  },
+  {
+    id: "ped_cp_spastic",
+    nameAr: "تأهيل الأطفال: الشلل الدماغي التشنجي (CP Spastic Diplegia)",
+    nameEn: "Pediatrics: CP Spastic Diplegia",
+    descriptionAr: "بروتوكول لتقليل الشد العضلي، تحسين التوازن، وتطوير المهارات الحركية الكبرى للطفل.",
+    descriptionEn: "Protocol to reduce spasticity, improve balance, and develop gross motor skills in children.",
+    phases: [
+      {
+        id: "cp_phase_1",
+        nameAr: "المرحلة الأولى: تقليل الشد والتحكم الوضعي",
+        nameEn: "Phase 1: Tone Reduction & Postural Control",
+        durationAr: "مستمر (شهور 1 - 3)",
+        durationEn: "Ongoing (Months 1 - 3)",
+        goalsAr: [
+          "تقليل التشنج في عضلات الساقين (Adductors & Calf)",
+          "تحسين التحكم في الرأس والجذع",
+          "منع التشوهات المفصلية"
+        ],
+        goalsEn: [
+          "Reduce spasticity in lower extremities",
+          "Improve head and trunk control",
+          "Prevent joint contractures"
+        ],
+        precautionsAr: [
+          "تجنب إثارة ردود الفعل الانعكاسية المرضية (Pathological Reflexes)",
+          "التعامل بلطف لعدم إخافة الطفل وزيادة التوتر"
+        ],
+        precautionsEn: [
+          "Avoid triggering pathological reflexes",
+          "Gentle handling to prevent increased tone from distress"
+        ],
+        exercisesAr: [
+          "إطالة لطيفة ومستمرة للعضلات الضامة وبطة الساق",
+          "تحفيز التوازن على الكرة العلاجية (Physioball)",
+          "الجلوس المائل المدعوم لتقوية الرقبة والجذع"
+        ],
+        exercisesEn: [
+          "Prolonged gentle stretching of adductors and plantarflexors",
+          "Vestibular stimulation on physioball",
+          "Supported inclined sitting for core/neck"
+        ],
+        criteriaToProgressAr: [
+          "انخفاض ملحوظ في درجة الشد (Ashworth Scale)",
+          "قدرة الطفل على تثبيت رأسه مستقلاً لـ 30 ثانية"
+        ],
+        criteriaToProgressEn: [
+          "Decreased Modified Ashworth Scale score",
+          "Independent head control for 30 seconds"
+        ]
+      },
+      {
+        id: "cp_phase_2",
+        nameAr: "المرحلة الثانية: التطور الحركي والمشي",
+        nameEn: "Phase 2: Motor Development & Gait",
+        durationAr: "مستمر (شهور 4 - 12)",
+        durationEn: "Ongoing (Months 4 - 12)",
+        goalsAr: [
+          "تحفيز الحبو (Crawling) والوقوف",
+          "تحسين نمط المشي (استخدام الجبائر إذا لزم الأمر)",
+          "زيادة الاستقلالية الحركية"
+        ],
+        goalsEn: [
+          "Promote crawling and standing",
+          "Improve gait pattern (with orthotics if needed)",
+          "Increase functional independence"
+        ],
+        precautionsAr: [
+          "مراقبة نمو العظام لتجنب الخلع (خاصة مفصل الحوض)",
+          "استخدام الجبائر (AFO) لمنع سقوط القدم والمشي على الأمشاط"
+        ],
+        precautionsEn: [
+          "Monitor for hip subluxation",
+          "Ensure consistent AFO wear to prevent toe walking"
+        ],
+        exercisesAr: [
+          "تدريب الوقوف في جهاز الوقوف (Standers)",
+          "المشي باستخدام المشاية الخلفية (Posterior Walker)",
+          "تمارين نقل الوزن (Weight Shifting) من الجانب للجانب"
+        ],
+        exercisesEn: [
+          "Standing frame training",
+          "Gait training with posterior walker",
+          "Lateral weight shifting exercises"
+        ],
+        criteriaToProgressAr: [
+          "المشي لمسافات قصيرة بمساعدة",
+          "تحسن التوازن أثناء الوقوف"
+        ],
+        criteriaToProgressEn: [
+          "Assisted ambulation for short distances",
+          "Improved standing balance"
+        ]
+      }
+    ]
+  },
+  {
+    id: "ped_erbs",
+    nameAr: "تأهيل الأطفال: ملخ الولادة (Erb's Palsy)",
+    nameEn: "Pediatrics: Erb's Palsy",
+    descriptionAr: "تأهيل لإصابة الضفيرة العضدية للأطفال لاستعادة حركة و وظيفة الذراع المصاب.",
+    descriptionEn: "Brachial plexus injury rehab aiming to restore upper extremity mobility and function.",
+    phases: [
+      {
+        id: "erbs_phase_1",
+        nameAr: "المرحلة الأولى: حماية المفصل والتنشيط المبكر",
+        nameEn: "Phase 1: Joint Protection & Early Activation",
+        durationAr: "من الولادة حتى 3 شهور",
+        durationEn: "Birth to 3 months",
+        goalsAr: [
+          "منع خلع مفصل الكتف",
+          "الحفاظ على المدى الحركي الكامل السلبي (PROM)",
+          "تشجيع الإدراك الحسي للذراع المصاب"
+        ],
+        goalsEn: [
+          "Prevent shoulder subluxation",
+          "Maintain full PROM",
+          "Encourage sensory awareness of affected arm"
+        ],
+        precautionsAr: [
+          "ممنوع سحب الطفل من ذراعه نهائياً",
+          "دعم الذراع جيداً أثناء حمل الطفل"
+        ],
+        precautionsEn: [
+          "NEVER pull child by the affected arm",
+          "Always support the arm during handling/carrying"
+        ],
+        exercisesAr: [
+          "حركات سلبية (PROM) لطيفة لكل مفاصل الذراع",
+          "تحفيز لمسي للذراع بمواد مختلفة",
+          "تثبيت الكتف بحمالة خفيفة أو لصق طبي حسب الحاجة"
+        ],
+        exercisesEn: [
+          "Gentle PROM for all UE joints",
+          "Tactile sensory stimulation",
+          "Shoulder stabilization with taping if indicated"
+        ],
+        criteriaToProgressAr: [
+          "لا يوجد قصر في العضلات (Contractures)",
+          "بدء ظهور انقباض عضلي إرادي بسيط"
+        ],
+        criteriaToProgressEn: [
+          "No muscle contractures present",
+          "Initiation of trace voluntary muscle contractions"
+        ]
+      },
+      {
+        id: "erbs_phase_2",
+        nameAr: "المرحلة الثانية: التقوية واللعب الموجه",
+        nameEn: "Phase 2: Strengthening & Purposeful Play",
+        durationAr: "الشهور 4 - 12",
+        durationEn: "Months 4 - 12",
+        goalsAr: [
+          "زيادة الحركة الإيجابية للذراع (AROM)",
+          "استخدام الذراعين معاً في اللعب",
+          "تقوية العضلات الضعيفة (الدوران الخارجي ورفع الكتف)"
+        ],
+        goalsEn: [
+          "Increase AROM",
+          "Promote bimanual play",
+          "Strengthen weak muscles (ER and abduction)"
+        ],
+        precautionsAr: [
+          "تجنب تعويض الحركات بالظهر أو الرقبة",
+          "منع تكوّن نمط (Waiters Tip) عبر الجبائر الليلية إذا لزم"
+        ],
+        precautionsEn: [
+          "Avoid compensatory trunk movements",
+          "Prevent 'waiter's tip' posture"
+        ],
+        exercisesAr: [
+          "تشجيع الطفل على الوصول للألعاب باليد المصابة",
+          "تمارين الزحف لتحميل الوزن على الذراعين",
+          "العلاج المائي (Hydrotherapy) لتسهيل الحركة"
+        ],
+        exercisesEn: [
+          "Reaching for toys with affected hand",
+          "Crawling to promote weight bearing through arms",
+          "Hydrotherapy for movement facilitation"
+        ],
+        criteriaToProgressAr: [
+          "قدرة الطفل على جلب يده لفمه",
+          "استخدام اليدين معاً في حمل لعبة كبيرة"
+        ],
+        criteriaToProgressEn: [
+          "Ability to bring hand to mouth",
+          "Bimanual handling of a large toy"
+        ]
+      }
+    ]
+  },
+  {
+    id: "ped_motor_delay",
+    nameAr: "تأهيل الأطفال: تأخر النمو الحركي (Delayed Motor Development)",
+    nameEn: "Pediatrics: Delayed Motor Development",
+    descriptionAr: "بروتوكول تحفيزي لمساعدة الطفل على اكتساب المهارات الحركية الأساسية (الجلوس، الحبو، المشي) في وقتها الطبيعي.",
+    descriptionEn: "Facilitation protocol to help children achieve fundamental motor milestones.",
+    phases: [
+      {
+        id: "delay_phase_1",
+        nameAr: "المرحلة الأولى: التحكم المركزي (الرأس والجذع)",
+        nameEn: "Phase 1: Core Control (Head & Trunk)",
+        durationAr: "يُحدد حسب استجابة الطفل",
+        durationEn: "Varies by response",
+        goalsAr: [
+          "تثبيت الرأس أثناء الجلوس أو السحب للجلوس",
+          "الجلوس المستقل بدون دعم",
+          "القدرة على التقلب (Rolling) للجهتين"
+        ],
+        goalsEn: [
+          "Head stability during pull-to-sit",
+          "Independent sitting",
+          "Rolling bidirectionally"
+        ],
+        precautionsAr: [
+          "عدم ترك الطفل في وضعيات خاطئة لفترة طويلة",
+          "مراعاة فترات نوم وتغذية الطفل"
+        ],
+        precautionsEn: [
+          "Do not leave in abnormal postures",
+          "Respect sleep/feed schedules to avoid fatigue"
+        ],
+        exercisesAr: [
+          "وقت البطن (Tummy Time) مع التحفيز البصري والصوتي",
+          "التدحرج بمساعدة المعالج على بساط التمرين",
+          "الجلوس المدعوم (Supported Sitting) مع اللعب بالأيدي"
+        ],
+        exercisesEn: [
+          "Tummy time with audio/visual tracking",
+          "Assisted rolling on mat",
+          "Supported sitting focusing on midline play"
+        ],
+        criteriaToProgressAr: [
+          "جلوس مستقل ثابت لـ 1 دقيقة",
+          "قدرة تامة على التقلب في الاتجاهين"
+        ],
+        criteriaToProgressEn: [
+          "Independent sitting for 1 minute",
+          "Full independent rolling bidirectionally"
+        ]
+      },
+      {
+        id: "delay_phase_2",
+        nameAr: "المرحلة الثانية: التنقل والحركة المتقدمة",
+        nameEn: "Phase 2: Mobility & Advanced Movement",
+        durationAr: "يُحدد حسب استجابة الطفل",
+        durationEn: "Varies by response",
+        goalsAr: [
+          "الانتقال من الجلوس للحبو (Transitions)",
+          "الوقوف والمشي الجانبي على الأثاث (Cruising)",
+          "المشي المستقل"
+        ],
+        goalsEn: [
+          "Transitions (sit to quad)",
+          "Pull-to-stand and cruising",
+          "Independent walking"
+        ],
+        precautionsAr: [
+          "توفير بيئة آمنة مبطنة لتجنب إصابات السقوط",
+          "تجنب إجبار الطفل على المشي قبل استعداد مفاصل الحوض"
+        ],
+        precautionsEn: [
+          "Provide padded safe environment",
+          "Avoid forced walking before pelvic readiness"
+        ],
+        exercisesAr: [
+          "وضع الألعاب بعيداً لتشجيع الحبو",
+          "الوقوف بجانب طاولة منخفضة وتشجيع أخذ خطوات جانبية",
+          "المشي مع الإمساك بيد المعالج أو الأهل"
+        ],
+        exercisesEn: [
+          "Placing toys out of reach to encourage crawling",
+          "Standing at low table for cruising",
+          "Supported walking holding hands"
+        ],
+        criteriaToProgressAr: [
+          "الوقوف المستقل لعدة ثوانٍ",
+          "أخذ 3-5 خطوات مستقلة بدون مساعدة"
+        ],
+        criteriaToProgressEn: [
+          "Independent standing for several seconds",
+          "Taking 3-5 independent steps"
         ]
       }
     ]
