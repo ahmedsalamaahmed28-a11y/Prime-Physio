@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use, useEffect, useMemo } from "react";
+import { useState, use, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +16,8 @@ import ProgressCharts from "@/components/ProgressCharts";
 import { SmartReportsTab } from "@/components/patients/SmartReportsTab";
 import { ClinicalBrainstormTab } from "@/components/patients/ClinicalBrainstormTab";
 import { PhaseBasedProtocolsTab } from "@/components/patients/PhaseBasedProtocolsTab";
+import { PrintableReport } from "@/components/patients/PrintableReport";
+import { useReactToPrint } from "react-to-print";
 import { useLanguage } from "@/lib/LanguageContext";
 import { usePermissions } from "@/lib/usePermissions";
 import { useAuth } from "@/lib/auth";
@@ -2616,8 +2618,14 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
 export default function PatientProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const { language, t } = useLanguage();
+  const { language } = useLanguage();
   const isRtl = language === "ar";
+  
+  const componentRef = useRef<HTMLDivElement>(null);
+  const handlePrint = useReactToPrint({
+    contentRef: componentRef,
+    documentTitle: `Medical_Report_${resolvedParams.id}`,
+  });
   const { hasPermission } = usePermissions();
   const { user } = useAuth();
   const clinicId = user?.clinicId;
@@ -2826,6 +2834,11 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
             </p>
           </div>
 
+          <Button variant="outline" size="sm" onClick={() => handlePrint()} className="gap-2 print:hidden text-teal-700 border-teal-200 hover:bg-teal-50">
+            <FileText className="w-4 h-4" />
+            {isRtl ? "تصدير PDF" : "Export PDF"}
+          </Button>
+
           {/* Active Editors (Google Docs style) */}
           <div className="flex items-center -space-x-1.5 overflow-hidden rtl:space-x-reverse print:hidden">
             {activeEditors
@@ -2872,6 +2885,10 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
           <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} /></TabsContent>
           <TabsContent value="neuro"><NeuroReferenceTab /></TabsContent>
         </Tabs>
+      </div>
+
+      <div className="hidden">
+        <PrintableReport ref={componentRef} patient={patient} language={language} />
       </div>
 
       {/* Edit Profile Modal */}
