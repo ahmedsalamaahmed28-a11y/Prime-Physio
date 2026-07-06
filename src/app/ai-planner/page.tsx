@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Brain, Activity, UserCircle, ShieldAlert, Sparkles, Printer, Save, Copy } from "lucide-react";
+import { Activity, UserCircle, ShieldAlert, Sparkles, Printer, Save, Copy } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
 export default function AiPlannerPage() {
@@ -88,7 +88,7 @@ Please divide the plan clearly into 4 weeks, mentioning goals, exercises, and pr
       <div className="bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white pt-10 pb-20 px-6 print:hidden">
         <div className="max-w-5xl mx-auto flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center backdrop-blur-sm border border-white/20">
-            <Brain className="w-6 h-6 text-white" />
+            <Sparkles className="w-6 h-6 text-white" />
           </div>
           <div>
             <h1 className="text-2xl font-bold font-heading">{isRtl ? "مولد الخطط الذكي" : "AI Treatment Planner"}</h1>
@@ -179,7 +179,7 @@ Please divide the plan clearly into 4 weeks, mentioning goals, exercises, and pr
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
-                    <Brain className="w-5 h-5" />
+                    <Sparkles className="w-5 h-5" />
                     {isRtl ? "توليد خطة تأهيل" : "Generate Rehab Plan"}
                   </span>
                 )}
@@ -213,7 +213,7 @@ Please divide the plan clearly into 4 weeks, mentioning goals, exercises, and pr
               
               {!generatedPlan && !isGenerating && (
                 <div className="h-full flex flex-col items-center justify-center text-slate-400 print:hidden space-y-4 opacity-60 mt-20">
-                  <Brain className="w-20 h-20" />
+                  <Sparkles className="w-20 h-20" />
                   <p className="text-lg text-center max-w-sm">
                     {isRtl 
                       ? "أدخل بيانات الحالة الطبية ثم اضغط على 'توليد' لإنشاء خطة التأهيل الكاملة المخصصة للمريض." 

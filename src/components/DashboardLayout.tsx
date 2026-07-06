@@ -35,8 +35,7 @@ import {
   Crown,
   WifiOff,
   FileText,
-  AlertTriangle,
-  Brain
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -78,7 +77,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { nameKey: "nav_staff", href: "/staff", icon: Stethoscope },
   { nameKey: "nav_analytics", href: "/analytics", icon: BarChart3 },
   { nameKey: "nav_ai_assistant", href: "/ai-assistant", icon: Sparkles },
-  { nameKey: "nav_ai_planner", href: "/ai-planner", icon: Brain },
+  { nameKey: "nav_ai_planner", href: "/ai-planner", icon: Sparkles },
   { nameKey: "nav_admin", href: "/admin", icon: ShieldAlert },
   { nameKey: "nav_clinic_settings", href: "/profile", icon: Settings },
   { nameKey: "nav_permissions", href: "/permissions", icon: Shield },
