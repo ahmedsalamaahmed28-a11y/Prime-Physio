@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
@@ -77,6 +77,7 @@ function PatientsContent() {
 
   // Load patients and seed if empty
   useEffect(() => {
+    if (!clinicId) return;
     async function loadPatients() {
       try {
         setIsLoading(true);
@@ -134,7 +135,7 @@ function PatientsContent() {
     loadPatients();
     loadDefaultSettings();
     loadDoctors();
-  }, []);
+  }, [clinicId]);
 
   const getPatientName = (p: any) => {
     return isRtl ? p.nameAr : (

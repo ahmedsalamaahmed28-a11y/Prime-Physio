@@ -2675,6 +2675,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
 
   // Load real patient data from Supabase
   useEffect(() => {
+    if (!clinicId) return;
     async function fetchPatient() {
       try {
         const { data, error } = await supabase
@@ -2719,7 +2720,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
       }
     }
     fetchPatient();
-  }, [resolvedParams.id]);
+  }, [resolvedParams.id, clinicId]);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({
