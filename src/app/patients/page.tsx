@@ -325,6 +325,9 @@ function PatientsContent() {
       });
     } catch (dbError: any) {
       console.warn("Database insert failed, queuing for offline sync:", dbError);
+      if (typeof window !== 'undefined') {
+        alert(isRtl ? `فشل الحفظ في قاعدة البيانات: ${dbError.message || dbError}` : `Database save failed: ${dbError.message || dbError}`);
+      }
       
       // Save locally & queue for sync
       queueOfflineActions();
