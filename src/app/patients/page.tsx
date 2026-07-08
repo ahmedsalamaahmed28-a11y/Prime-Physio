@@ -182,6 +182,7 @@ function PatientsContent() {
     } catch {}
 
     let newId = "";
+    const prefix = clinicId ? clinicId.substring(0, 4).toUpperCase() : "PT";
     try {
       const { data: existing } = await supabase
         .from("patients")
@@ -189,10 +190,10 @@ function PatientsContent() {
         .eq("clinic_id", clinicId);
       const count = existing ? existing.length : 0;
       const nextNumber = count + 1;
-      newId = `PT-${String(nextNumber).padStart(2, '0')}`;
+      newId = `${prefix}-${String(nextNumber).padStart(4, '0')}`;
     } catch (err) {
       const nextNumber = patients.length + 1;
-      newId = `PT-${String(nextNumber).padStart(2, '0')}`;
+      newId = `${prefix}-${String(nextNumber).padStart(4, '0')}`;
     }
 
     const newPatient = {
