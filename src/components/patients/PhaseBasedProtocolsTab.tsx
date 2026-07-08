@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { CheckCircle2, AlertCircle, AlertTriangle, Star, Activity, CheckCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { CheckCircle2, AlertCircle, AlertTriangle, Star, Activity, CheckCircle, Search } from "lucide-react";
 
 interface Patient {
   id: string;
@@ -1410,6 +1411,8 @@ export function PhaseBasedProtocolsTab({
     return PROTOCOLS_LIBRARY[0];
   });
   
+  const [searchQuery, setSearchQuery] = useState("");
+  
   const [currentPhaseIndex, setCurrentPhaseIndex] = useState(() => initialState?.currentPhaseIndex || 0);
   
   const [checkedCriteria, setCheckedCriteria] = useState<Record<number, boolean>>(() => initialState?.checkedCriteria || {});
@@ -1458,8 +1461,20 @@ export function PhaseBasedProtocolsTab({
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4">
-            <div className="space-y-2">
-              {PROTOCOLS_LIBRARY.map((protocol) => (
+            <div className="relative mb-4">
+              <Search className={`absolute ${isRtl ? 'right-3' : 'left-3'} top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400`} />
+              <Input 
+                placeholder={isRtl ? "ابحث عن بروتوكول..." : "Search protocols..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className={isRtl ? "pr-9" : "pl-9"}
+              />
+            </div>
+            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1 pl-1 scrollbar-thin">
+              {PROTOCOLS_LIBRARY.filter(p => 
+                p.nameAr.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                p.nameEn.toLowerCase().includes(searchQuery.toLowerCase())
+              ).map((protocol) => (
                 <Button 
                   key={protocol.id}
                   variant={selectedProtocol?.id === protocol.id ? "default" : "outline"}
