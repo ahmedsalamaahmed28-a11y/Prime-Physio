@@ -23,7 +23,7 @@ import { usePermissions } from "@/lib/usePermissions";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Lock, Trash2, FileText, Sparkles, MessageSquare } from "lucide-react";
+import { Lock, Trash2, FileText, Sparkles, MessageSquare, Edit } from "lucide-react";
 const LockIcon = Lock;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -2834,47 +2834,50 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
             </p>
           </div>
 
-          <Button variant="outline" size="sm" onClick={() => handlePrint()} className="gap-2 print:hidden text-teal-700 border-teal-200 hover:bg-teal-50">
-            <FileText className="w-4 h-4" />
-            {isRtl ? "تصدير PDF" : "Export PDF"}
-          </Button>
+          <div className="flex items-center gap-3 flex-shrink-0 print:hidden">
+            {/* Active Editors (Google Docs style) */}
+            <div className="flex items-center -space-x-1.5 overflow-hidden rtl:space-x-reverse hidden sm:flex">
+              {activeEditors
+                .filter((e) => e.email !== user?.email)
+                .map((editor, i) => (
+                  <div
+                    key={editor.email || i}
+                    title={`${editor.name} (${editor.role})`}
+                    className={`w-7 h-7 rounded-full border border-white flex items-center justify-center text-[10px] font-bold text-white shadow-sm cursor-pointer select-none transition-all hover:-translate-y-0.5 ${editor.bg || "bg-teal-600"}`}
+                  >
+                    {editor.initials}
+                  </div>
+                ))}
+              {activeEditors.filter((e) => e.email !== user?.email).length > 0 && (
+                <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 dark:text-emerald-400 px-2 py-0.5 rounded-full ms-2 animate-pulse">
+                  {isRtl ? "نشط الآن" : "Active Now"}
+                </span>
+              )}
+            </div>
 
-          {/* Active Editors (Google Docs style) */}
-          <div className="flex items-center -space-x-1.5 overflow-hidden rtl:space-x-reverse print:hidden">
-            {activeEditors
-              .filter((e) => e.email !== user?.email)
-              .map((editor, i) => (
-                <div
-                  key={editor.email || i}
-                  title={`${editor.name} (${editor.role})`}
-                  className={`w-7 h-7 rounded-full border border-white flex items-center justify-center text-[10px] font-bold text-white shadow-sm cursor-pointer select-none transition-all hover:-translate-y-0.5 ${editor.bg || "bg-teal-600"}`}
-                >
-                  {editor.initials}
-                </div>
-              ))}
-            {activeEditors.filter((e) => e.email !== user?.email).length > 0 && (
-              <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 dark:text-emerald-400 px-2 py-0.5 rounded-full ms-2 animate-pulse hidden sm:inline">
-                {isRtl ? "نشط الآن" : "Active Now"}
-              </span>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Button variant="outline" size="sm" onClick={() => setIsEditOpen(true)}>{isRtl ? "تعديل البيانات" : "Edit Profile"}</Button>
+            <Button variant="outline" size="sm" onClick={() => handlePrint()} className="gap-1.5 text-teal-700 border-teal-200 hover:bg-teal-50">
+              <FileText className="w-4 h-4" />
+              {isRtl ? "تصدير PDF" : "Export PDF"}
+            </Button>
+            
+            <Button variant="default" size="sm" onClick={() => setIsEditOpen(true)} className="gap-1.5 bg-[#4F46BA] hover:bg-[#433aa3] text-white">
+              <Edit className="w-4 h-4" />
+              {isRtl ? "تعديل البيانات" : "Edit Profile"}
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">        <Tabs defaultValue="general">
-          <TabsList className="flex flex-wrap h-auto w-full max-w-5xl justify-start gap-1 p-1 print:hidden">
-            <TabsTrigger value="general">{isRtl ? "المعلومات العامة" : "General Info"}</TabsTrigger>
-            <TabsTrigger value="radiology">{isRtl ? "الأشعة والتحاليل" : "Scans & Reports"}</TabsTrigger>
-            <TabsTrigger value="records">{isRtl ? "السجلات الطبية" : "Medical Records"}</TabsTrigger>
-            <TabsTrigger value="reports" className="text-teal-600 dark:text-teal-400 font-bold"><FileText className="w-3.5 h-3.5 mr-1 ml-1"/> {isRtl ? "التقارير الذكية" : "Smart Reports"}</TabsTrigger>
-            <TabsTrigger value="protocols">{isRtl ? "بروتوكولات التأهيل" : "Rehab Protocols"}</TabsTrigger>
-            <TabsTrigger value="brainstorm" className="text-blue-600 dark:text-blue-400 font-bold"><MessageSquare className="w-3.5 h-3.5 mr-1 ml-1"/> {isRtl ? "التفكير السريري" : "Brainstorming"}</TabsTrigger>
-            <TabsTrigger value="packages">{isRtl ? "الباقات" : "Packages"}</TabsTrigger>
-            <TabsTrigger value="neuro">{isRtl ? "دليل الأعصاب" : "Neuro Reference"}</TabsTrigger>
+          <TabsList className="flex overflow-x-auto whitespace-nowrap scrollbar-hide h-auto w-full max-w-5xl justify-start gap-1.5 p-1.5 print:hidden bg-slate-100/50 dark:bg-slate-800/50 rounded-lg border border-slate-200/50">
+            <TabsTrigger value="general" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "المعلومات العامة" : "General Info"}</TabsTrigger>
+            <TabsTrigger value="radiology" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "الأشعة والتحاليل" : "Scans & Reports"}</TabsTrigger>
+            <TabsTrigger value="records" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "السجلات الطبية" : "Medical Records"}</TabsTrigger>
+            <TabsTrigger value="reports" className="text-teal-700 dark:text-teal-400 font-medium rounded-md data-[state=active]:bg-teal-50 data-[state=active]:text-teal-800"><FileText className="w-3.5 h-3.5 mr-1.5 ml-1.5"/> {isRtl ? "التقارير الذكية" : "Smart Reports"}</TabsTrigger>
+            <TabsTrigger value="protocols" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "بروتوكولات التأهيل" : "Rehab Protocols"}</TabsTrigger>
+            <TabsTrigger value="brainstorm" className="text-[#4F46BA] dark:text-indigo-400 font-medium rounded-md data-[state=active]:bg-indigo-50 data-[state=active]:text-indigo-800"><MessageSquare className="w-3.5 h-3.5 mr-1.5 ml-1.5"/> {isRtl ? "التفكير السريري" : "Brainstorming"}</TabsTrigger>
+            <TabsTrigger value="packages" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "الباقات" : "Packages"}</TabsTrigger>
+            <TabsTrigger value="neuro" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "دليل الأعصاب" : "Neuro Reference"}</TabsTrigger>
           </TabsList>
           <TabsContent value="general"><GeneralInfoTab patient={patient} /></TabsContent>
           <TabsContent value="radiology"><RadiologyTab /></TabsContent>
