@@ -413,6 +413,7 @@ export default function CalendarPage() {
 
   // Load patients and events from Supabase
   useEffect(() => {
+    if (!clinicId) return;
     const loadData = async () => {
       const { data: patientsData, error: patientsError } = await supabase.from("patients").select("id, nameAr").eq('clinic_id', clinicId);
       if (patientsError) {
@@ -458,7 +459,7 @@ export default function CalendarPage() {
       setEvents(formatted);
     };
     loadData();
-  }, []);
+  }, [clinicId]);
 
   const syncEventsState = (newEvents: CalendarEvent[]) => {
     setEvents(newEvents);
