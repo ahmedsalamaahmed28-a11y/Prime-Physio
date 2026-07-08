@@ -205,69 +205,6 @@ export default function AnalyticsPage() {
         </Card>
       </div>
 
-      {/* AI Executive Insights Section */}
-      <div className="pt-6">
-        <h2 className="text-xl font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-4">
-          <div className="bg-emerald-50 p-1.5 rounded-lg">
-            <Activity className="w-5 h-5 text-emerald-600" />
-          </div>
-          {isRtl ? "مستشار الإدارة الذكي (AI Consultant)" : "AI Executive Consultant"}
-        </h2>
-        
-        {executiveReports.length === 0 ? (
-          <Card className="border-dashed border-2 shadow-none bg-slate-50/50">
-            <CardContent className="p-8 text-center flex flex-col items-center gap-3">
-              <Sparkles className="w-10 h-10 text-slate-300" />
-              <div className="space-y-1">
-                <p className="font-bold text-slate-700">{isRtl ? "في انتظار التقارير الاستراتيجية" : "Waiting for strategic reports"}</p>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">{isRtl ? "سيقوم الوكيل الذكي (Supervisor Agent) بتحليل بيانات العيادة تلقائياً وإصدار توصيات هنا." : "The Supervisor Agent will automatically analyze clinic data and issue recommendations here."}</p>
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {executiveReports.map((report, idx) => (
-              <Card key={idx} className="shadow-sm border-emerald-100/50 bg-gradient-to-br from-white to-emerald-50/20 rounded-2xl overflow-hidden hover:shadow-md transition-all">
-                <CardHeader className="pb-3 border-b border-emerald-100/30">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-sm font-bold text-slate-800 flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-emerald-600" />
-                      {isRtl ? `تقرير شهر ${report.report_month || "الحالي"}` : `Report for ${report.report_month || "Current"}`}
-                    </CardTitle>
-                    <span className="text-[10px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full">
-                      {isRtl ? "موّلد بالذكاء الاصطناعي" : "AI Generated"}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-4 space-y-4">
-                  <div className="grid grid-cols-3 gap-2 text-center">
-                    <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-100">
-                      <p className="text-[9px] text-slate-500 font-bold mb-1">{isRtl ? "توقع الإيرادات" : "Rev Forecast"}</p>
-                      <p className="text-xs font-bold text-emerald-700">{report.revenue_forecast ? `${report.revenue_forecast} ج.م` : "-"}</p>
-                    </div>
-                    <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-100">
-                      <p className="text-[9px] text-slate-500 font-bold mb-1">{isRtl ? "مؤشر النمو" : "Growth"}</p>
-                      <p className="text-xs font-bold text-blue-700">{report.growth_forecast ? `${report.growth_forecast}%` : "-"}</p>
-                    </div>
-                    <div className="bg-white p-2 rounded-xl shadow-sm border border-slate-100">
-                      <p className="text-[9px] text-slate-500 font-bold mb-1">{isRtl ? "طاقة الاستيعاب" : "Capacity"}</p>
-                      <p className="text-xs font-bold text-indigo-700">{report.capacity_forecast ? `${report.capacity_forecast}%` : "-"}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white/60 p-3 rounded-xl border border-emerald-50 text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                    <div className="flex items-center gap-1.5 mb-2">
-                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                      <span className="text-xs font-bold text-slate-800">{isRtl ? "الرؤية الاستراتيجية:" : "Strategic Insight:"}</span>
-                    </div>
-                    {report.ai_consultant_notes || (isRtl ? "لا توجد ملاحظات." : "No notes available.")}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
     </div>
   );
 }
