@@ -250,6 +250,22 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         const pendingSignup = await getAppValue<string>("pending_google_signup", "").catch(() => "");
         const finalRoleKey = ((await getAppValue<string>("pending_role", "doctor")) || "doctor") as "admin" | "doctor" | "receptionist" | "platform_admin";
 
+        // Sync NextAuth session to Supabase so RLS policies work!
+        try {
+          const res = await fetch("/api/auth/supabase-session");
+          if (res.ok) {
+            const { session: supaSession } = await res.json();
+            if (supaSession) {
+              await supabase.auth.setSession({
+                access_token: supaSession.access_token,
+                refresh_token: supaSession.refresh_token,
+              });
+            }
+          }
+        } catch (err) {
+          console.error("Failed to sync Supabase session:", err);
+        }
+
         const name = currentUser.name || email.split("@")[0];
         const initials = name.substring(0, 2).toUpperCase();
         const newUser: User = {
