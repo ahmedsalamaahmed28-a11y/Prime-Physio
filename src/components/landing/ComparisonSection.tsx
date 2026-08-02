@@ -4,34 +4,34 @@ import { motion } from "framer-motion";
 import { X, Check } from "lucide-react";
 
 export default function ComparisonSection() {
-  const traditional = [
-    "جداول Excel معقدة",
-    "ملفات ورقية مبعثرة",
-    "جدولة يدوية للمواعيد",
-    "ضياع حجوزات المرضى",
-    "صعوبة استخراج التقارير",
+  const excel = [
+    "بطيء ويستغرق وقتاً طويلاً",
+    "إدخال بيانات يدوي ومكرر",
+    "معرض للأخطاء البشرية",
+    "خطر فقدان البيانات وتلف الملفات",
+    "لا توجد تكاملات أو تنبيهات آلية",
   ];
 
   const primePhysio = [
-    "جدولة ذكية وسريعة",
-    "ملف طبي إلكتروني (EMR)",
-    "تحليلات مالية دقيقة",
-    "تذكير تلقائي عبر واتساب",
-    "إدارة فروع متعددة",
+    "سريع وآلي بالكامل",
+    "إدارة سحابية آمنة وموثوقة",
+    "دقة متناهية وبدون أخطاء",
+    "نسخ احتياطي تلقائي للبيانات",
+    "متكامل مع أدوات العيادة الحديثة",
   ];
 
   return (
     <section id="why-us" className="py-24 bg-[#F8FAFC]">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl font-black text-slate-900 sm:text-4xl">لماذا Prime Physio؟</h2>
+          <h2 className="text-3xl font-black text-slate-900 sm:text-4xl">لماذا Prime Physio أفضل من Excel؟</h2>
           <p className="mt-4 text-lg text-slate-600 font-medium">
-            تخلص من الفوضى الإدارية وانتقل إلى بيئة عمل رقمية ترفع من كفاءة مركزك.
+            تخلص من قيود جداول Excel وانتقل إلى نظام ذكي مصمم خصيصاً لمراكز العلاج الطبيعي.
           </p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-          {/* Traditional Way */}
+          {/* Excel Way */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -42,10 +42,10 @@ export default function ComparisonSection() {
               <span className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
                 <X className="w-5 h-5 text-slate-400" />
               </span>
-              الطرق التقليدية
+              جداول Excel
             </h3>
             <ul className="space-y-4">
-              {traditional.map((item, i) => (
+              {excel.map((item, i) => (
                 <li key={i} className="flex items-center gap-3 text-slate-600 font-medium">
                   <X className="w-5 h-5 text-red-400 shrink-0" />
                   {item}

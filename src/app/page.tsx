@@ -14,8 +14,11 @@ import HowItWorks from "@/components/landing/HowItWorks";
 import TestimonialsCarousel from "@/components/landing/TestimonialsCarousel";
 import CaseStudy from "@/components/landing/CaseStudy";
 import Pricing from "@/components/landing/Pricing";
+import ROICalculator from "@/components/landing/ROICalculator";
 import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
+import BeforeAfter from "@/components/landing/BeforeAfter";
+import PatientJourney from "@/components/landing/PatientJourney";
 
 export default function LandingPage() {
   return (
@@ -36,6 +39,9 @@ export default function LandingPage() {
         {/* 6. Why Prime Physio (Comparison) */}
         <ComparisonSection />
 
+        {/* 6.5 Before/After Visual */}
+        <BeforeAfter />
+
         {/* 7. Features Bento Grid */}
         <FeaturesBento />
 
@@ -51,8 +57,8 @@ export default function LandingPage() {
         {/* 10. Integrations */}
         <Integrations />
 
-        {/* 11. How it works */}
-        <HowItWorks />
+        {/* 11. Patient Journey */}
+        <PatientJourney />
 
         {/* 12. Security & Compliance */}
         <Security />
@@ -65,6 +71,9 @@ export default function LandingPage() {
 
         {/* 15. Pricing */}
         <Pricing />
+
+        {/* 15.5 ROI Calculator */}
+        <ROICalculator />
 
         {/* 16. FAQ */}
         <FAQ />

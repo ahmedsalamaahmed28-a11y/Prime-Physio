@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
-import { Check, Play, Calendar, Users, BarChart3, Activity } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Check, Play, Calendar, Users, BarChart3, Activity, X } from "lucide-react";
 
 export default function Hero() {
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+
   return (
     <div className="relative overflow-hidden bg-white pt-24 pb-32">
       {/* Background Effects */}
@@ -44,13 +47,13 @@ export default function Hero() {
               >
                 ابدأ مجانًا
               </Link>
-              <Link
-                href="#demo"
+              <button
+                onClick={() => setIsVideoOpen(true)}
                 className="inline-flex justify-center items-center gap-2 rounded-full bg-white border border-slate-200 px-8 py-4 text-base font-bold text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 <Play className="w-5 h-5 fill-slate-700 text-slate-700" />
                 مشاهدة العرض التوضيحي
-              </Link>
+              </button>
             </div>
             
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-slate-500">
@@ -160,6 +163,48 @@ export default function Hero() {
           </motion.div>
         </div>
       </div>
+
+      {/* Video Modal */}
+      <AnimatePresence>
+        {isVideoOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm"
+          >
+            <div className="absolute inset-0" onClick={() => setIsVideoOpen(false)} />
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-5xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl border border-slate-700"
+            >
+              <button
+                onClick={() => setIsVideoOpen(false)}
+                className="absolute top-4 right-4 z-10 w-10 h-10 bg-black/50 hover:bg-black/80 rounded-full flex items-center justify-center text-white backdrop-blur-md transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+              
+              {/* Placeholder Video UI - In a real app, use an iframe for YouTube/Vimeo or a <video> tag */}
+              <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 to-indigo-900 relative">
+                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+                 <div className="w-20 h-20 bg-white/10 rounded-full flex items-center justify-center mb-6 backdrop-blur-sm animate-pulse">
+                    <Play className="w-10 h-10 text-white fill-white ml-2" />
+                 </div>
+                 <h3 className="text-2xl font-bold text-white mb-2">فيديو Demo لمدة 60 ثانية</h3>
+                 <p className="text-slate-300">سيتم تشغيل الفيديو هنا...</p>
+                 
+                 {/* Fake Progress Bar */}
+                 <div className="absolute bottom-0 left-0 w-full h-1.5 bg-slate-800">
+                    <div className="h-full bg-indigo-500 w-1/3 rounded-r-full" />
+                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
