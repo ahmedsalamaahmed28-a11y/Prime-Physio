@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import { Users, Loader2, UserMinus } from "lucide-react";
+import { Users, Loader2, Trash2 } from "lucide-react";
 
 interface User {
   id: string;
@@ -109,7 +109,7 @@ export default function PlatformUsersPage() {
                         {deleting === u.email ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
-                          <UserMinus className="w-4 h-4" />
+                          <Trash2 className="w-4 h-4" />
                         )}
                       </button>
                     </td>
