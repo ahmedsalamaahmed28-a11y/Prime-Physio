@@ -188,31 +188,74 @@ export default function PlatformSettingsPage() {
           </div>
         </div>
 
-        {/* Coming Soon Sections */}
-        <div className="p-6 border-b border-slate-100 flex items-start gap-5 hover:bg-slate-50 transition-colors cursor-pointer opacity-75">
-          <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
-            <Bell className="w-6 h-6 text-amber-600" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-bold text-slate-800 text-lg mb-1">الإشعارات المركزية</h3>
-            <p className="text-sm text-slate-500 mb-3">إرسال إشعارات وتنبيهات لجميع العيادات أو عيادات محددة (System Broadcasts).</p>
-            <div className="flex items-center gap-2">
-              <span className="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-md">قريباً في المرحلة القادمة</span>
+        {/* Broadcasts Section */}
+        <div className="p-6 border-b border-slate-100 flex flex-col items-start gap-6">
+          <div className="flex items-center gap-3 w-full">
+            <div className="w-12 h-12 rounded-full bg-amber-50 flex items-center justify-center shrink-0">
+              <Bell className="w-6 h-6 text-amber-600" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-800 text-lg mb-1">الإشعارات المركزية (System Broadcasts)</h3>
+              <p className="text-sm text-slate-500">إرسال إشعار عام يظهر لجميع المستخدمين في النظام.</p>
             </div>
           </div>
-        </div>
-
-        <div className="p-6 flex items-start gap-5 hover:bg-slate-50 transition-colors cursor-pointer opacity-75">
-          <div className="w-12 h-12 rounded-full bg-purple-50 flex items-center justify-center shrink-0">
-            <Database className="w-6 h-6 text-purple-600" />
-          </div>
-          <div className="flex-1">
-            <h3 className="font-bold text-slate-800 text-lg mb-1">النسخ الاحتياطي (Backups)</h3>
-            <p className="text-sm text-slate-500 mb-3">إعدادات النسخ الاحتياطي لقواعد البيانات واسترجاع البيانات المحذوفة.</p>
-            <div className="flex items-center gap-2">
-              <span className="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded-md">يدار حالياً عبر Supabase Dashboard</span>
+          
+          <form 
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const form = e.currentTarget;
+              const title = (form.elements.namedItem("title") as HTMLInputElement).value;
+              const message = (form.elements.namedItem("message") as HTMLTextAreaElement).value;
+              
+              if (!title || !message) return;
+              
+              try {
+                const res = await fetch("/api/admin/broadcasts", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ title, message }),
+                });
+                
+                if (res.ok) {
+                  setMessage({ text: "تم إرسال الإشعار بنجاح", type: "success" });
+                  form.reset();
+                } else {
+                  setMessage({ text: "فشل في إرسال الإشعار", type: "error" });
+                }
+              } catch (err) {
+                setMessage({ text: "حدث خطأ غير متوقع", type: "error" });
+              }
+              setTimeout(() => setMessage(null), 3000);
+            }} 
+            className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-4"
+          >
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-700">عنوان الإشعار</label>
+              <input
+                type="text"
+                name="title"
+                required
+                placeholder="مثال: تحديث جديد للنظام..."
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              />
             </div>
-          </div>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-700">محتوى الإشعار</label>
+              <textarea
+                name="message"
+                required
+                rows={3}
+                placeholder="اكتب تفاصيل الإشعار هنا..."
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"
+              ></textarea>
+            </div>
+            <button 
+              type="submit"
+              className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+            >
+              إرسال الإشعار الآن
+            </button>
+          </form>
         </div>
 
       </div>

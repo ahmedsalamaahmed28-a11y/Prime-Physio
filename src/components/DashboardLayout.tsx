@@ -161,24 +161,52 @@ export default function DashboardLayout({
     };
 
     const loadNotifications = async () => {
-      const { data, error } = await supabase
+      // Fetch system broadcasts
+      const { data: broadcastsData, error: broadcastsError } = await supabase
+        .from("system_broadcasts")
+        .select("id, title, message, created_at")
+        .order("created_at", { ascending: false })
+        .limit(3);
+        
+      if (broadcastsError) {
+        console.warn("Failed to load broadcasts", broadcastsError);
+      }
+      
+      const mappedBroadcasts: SystemNotification[] = (broadcastsData || []).map((b: any) => ({
+        id: b.id,
+        titleAr: `📢 إشعار عام: ${b.title}`,
+        titleEn: `📢 System Broadcast: ${b.title}`,
+        detailsAr: b.message,
+        detailsEn: b.message,
+        createdAt: b.created_at || new Date().toISOString(),
+      }));
+
+      // Fetch audit logs
+      const { data: auditData, error: auditError } = await supabase
         .from("audit_logs")
         .select("id, action, entity, entity_id, details, created_at")
         .order("created_at", { ascending: false })
         .limit(6);
 
-      if (error) {
-        console.warn("Failed to load notifications", error);
-        return;
+      if (auditError) {
+        console.warn("Failed to load notifications", auditError);
       }
 
       if (!active) return;
-      setNotifications((data || []).map(mapNotification));
+      
+      const mappedAuditLogs = (auditData || []).map(mapNotification);
+      
+      // Combine and sort
+      const combined = [...mappedBroadcasts, ...mappedAuditLogs].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ).slice(0, 8); // Keep top 8
+      
+      setNotifications(combined);
     };
 
     loadNotifications();
 
-    const channel = supabase
+    const channelAudit = supabase
       .channel("audit-log-notifications")
       .on(
         "postgres_changes",
@@ -188,10 +216,22 @@ export default function DashboardLayout({
         }
       )
       .subscribe();
+      
+    const channelBroadcasts = supabase
+      .channel("broadcast-notifications")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "system_broadcasts" },
+        () => {
+          loadNotifications();
+        }
+      )
+      .subscribe();
 
     return () => {
       active = false;
-      supabase.removeChannel(channel);
+      supabase.removeChannel(channelAudit);
+      supabase.removeChannel(channelBroadcasts);
     };
   }, []);
 

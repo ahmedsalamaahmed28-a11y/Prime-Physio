@@ -36,6 +36,11 @@ export default function ClinicSettingsPage() {
   const [workingHours, setWorkingHours] = useState("");
   const [saved, setSaved] = useState(false);
   const [weeklyHours, setWeeklyHours] = useState<any[]>([]);
+  
+  // Backup settings
+  const [googleDriveEmail, setGoogleDriveEmail] = useState("");
+  const [googleDriveFolder, setGoogleDriveFolder] = useState("");
+  const [backupLoading, setBackupLoading] = useState(false);
 
   // Load settings from Supabase
   useEffect(() => {
@@ -68,6 +73,9 @@ export default function ClinicSettingsPage() {
       const branches = Array.isArray(data?.branches) ? data.branches : [];
       const mainBranch = branches.find((b: any) => b.id === "main") || branches[0];
       setWeeklyHours(mainBranch?.hours || defaultWeeklyHours);
+      
+      setGoogleDriveEmail(data?.google_drive_email || "");
+      setGoogleDriveFolder(data?.google_drive_folder_link || "");
     }
 
     loadSupabaseSettings();
@@ -82,6 +90,8 @@ export default function ClinicSettingsPage() {
       address,
       working_hours: workingHours,
       branches: [{ id: "main", name: clinicName, phone, address, hours: weeklyHours }],
+      google_drive_email: googleDriveEmail,
+      google_drive_folder_link: googleDriveFolder,
     }, { onConflict: "clinic_id" });
 
     if (error) {
@@ -91,6 +101,40 @@ export default function ClinicSettingsPage() {
     }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+  };
+
+  const handleBackupNow = async () => {
+    setBackupLoading(true);
+    try {
+      const res = await fetch("/api/backup", { method: "POST" });
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        // Extract filename from Content-Disposition if possible, or use default
+        const contentDisposition = res.headers.get("Content-Disposition");
+        let filename = "clinic_backup.json";
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="(.+)"/);
+          if (filenameMatch && filenameMatch.length === 2) {
+            filename = filenameMatch[1];
+          }
+        }
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+      } else {
+        alert(isRtl ? "فشل في إنشاء النسخة الاحتياطية" : "Failed to generate backup");
+      }
+    } catch (err) {
+      console.error(err);
+      alert(isRtl ? "حدث خطأ أثناء النسخ الاحتياطي" : "An error occurred during backup");
+    } finally {
+      setBackupLoading(false);
+    }
   };
 
   return (
@@ -159,6 +203,75 @@ export default function ClinicSettingsPage() {
                 </Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+
+        {/* Backup Settings Card */}
+        <Card className="lg:col-span-2 shadow-xs">
+          <CardHeader className="border-b pb-4">
+            <CardTitle className={`text-base font-bold flex items-center gap-2 text-slate-800 ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
+              <UploadCloud className="w-5 h-5 text-emerald-600" />
+              {isRtl ? "النسخ الاحتياطي (Google Drive)" : "Backup (Google Drive)"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className={`space-y-4 ${isRtl ? "" : "text-left"}`}>
+              <p className="text-sm text-slate-500 mb-4">
+                {isRtl 
+                  ? "لربط النسخ الاحتياطي، يرجى إنشاء مجلد في جوجل درايف الخاص بك ووضع رابطه هنا. يمكنك تحميل نسخة احتياطية من جميع بياناتك في أي وقت." 
+                  : "To connect backups, create a folder in your Google Drive and place the link here. You can download a full backup of your data at any time."}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">{isRtl ? "حساب جوجل (Email)" : "Google Account (Email)"}</label>
+                  <Input 
+                    value={googleDriveEmail} 
+                    onChange={(e) => setGoogleDriveEmail(e.target.value)} 
+                    placeholder="admin@gmail.com"
+                    className={`focus-visible:ring-emerald-500 rounded-xl ${isRtl ? "" : "text-left"}`} 
+                    dir="ltr"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">{isRtl ? "رابط مجلد النسخ الاحتياطي" : "Backup Folder Link"}</label>
+                  <Input 
+                    value={googleDriveFolder} 
+                    onChange={(e) => setGoogleDriveFolder(e.target.value)} 
+                    placeholder="https://drive.google.com/drive/folders/..."
+                    className={`focus-visible:ring-emerald-500 rounded-xl ${isRtl ? "" : "text-left"}`} 
+                    dir="ltr"
+                  />
+                </div>
+              </div>
+
+              <div className={`pt-4 flex justify-end gap-3 ${isRtl ? "" : "flex-row-reverse"}`}>
+                <Button 
+                  onClick={handleSave} 
+                  variant="outline"
+                  className={`border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-bold px-6 ${isRtl ? "ml-auto" : "mr-auto"}`}
+                >
+                  {isRtl ? "حفظ إعدادات درايف" : "Save Drive Settings"}
+                </Button>
+                
+                <Button 
+                  onClick={handleBackupNow} 
+                  disabled={backupLoading}
+                  className={`bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl gap-2 font-bold px-6 shadow-md transition-all active:scale-95 flex items-center`}
+                >
+                  {backupLoading ? (
+                    <span className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      {isRtl ? "جاري التجهيز..." : "Preparing..."}
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Save className="w-4 h-4" />
+                      {isRtl ? "أخذ نسخة احتياطية الآن" : "Backup Now"}
+                    </span>
+                  )}
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
