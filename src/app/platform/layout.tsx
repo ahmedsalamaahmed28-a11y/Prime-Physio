@@ -70,13 +70,15 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
         isRtl ? "border-l right-0" : "border-r left-0"
       } border-white/10 bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white fixed top-0 bottom-0 z-10 pt-4 pb-2 shadow-xl overflow-y-auto`}>
         
-        {/* Brand */}
-        <div className="flex flex-col items-center justify-center mb-8 px-4">
-          <div className="w-12 h-12 bg-indigo-600 rounded-xl flex items-center justify-center mb-3">
-            <ShieldCheck className="w-7 h-7 text-white" />
-          </div>
-          <h1 className="text-xl font-bold tracking-wider text-white">Prime<span className="text-indigo-400">OS</span></h1>
-          <p className="text-xs text-slate-500 uppercase tracking-widest mt-1">Super Admin</p>
+        {/* Clinic Brand / Logo in Center */}
+        <div className="flex flex-col items-center justify-center mb-6 px-3">
+          <img 
+            src="/logo.png" 
+            alt="Prime Physio" 
+            className="h-12 object-contain mb-1" 
+          />
+          <h1 className="text-base font-bold tracking-wider text-white">PRIME PHYSIO</h1>
+          <p className="text-[10px] text-white/60 uppercase tracking-widest mt-1">Super Admin</p>
         </div>
 
         {/* Links */}
