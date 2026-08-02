@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import { CreditCard, Loader2, CalendarClock, ShieldAlert, CheckCircle, XCircle } from "lucide-react";
+import { CreditCard, Loader2, Calendar, ShieldAlert, CheckCircle, XCircle } from "lucide-react";
 
 interface Subscription {
   id: string;
@@ -103,7 +103,7 @@ export default function PlatformSubscriptionsPage() {
                       </td>
                       <td className="px-6 py-4 font-medium text-slate-700">
                         <div className="flex items-center gap-2">
-                          <CalendarClock className="w-4 h-4 text-slate-400" />
+                          <Calendar className="w-4 h-4 text-slate-400" />
                           {s.end_date ? new Date(s.end_date).toLocaleDateString("ar-EG") : '-'}
                         </div>
                       </td>
