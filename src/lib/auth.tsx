@@ -312,6 +312,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     if (!isAuthLoading) {
       if (!pathname) return;
 
+      // Landing page is always public
+      if (pathname === "/") return;
+
       // Force platform_admin isolation
       if (user?.roleKey === "platform_admin") {
         if (!pathname.startsWith("/platform") && pathname !== "/logout") {
@@ -320,8 +323,6 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Landing page is always public
-      if (pathname === "/") return;
       // Allow unauthenticated access to /[slug] branded login pages
       const knownPages = new Set(["home","admin","setup","login","manage","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup"]);
       const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname) && !knownPages.has(pathname.replace("/", ""));
