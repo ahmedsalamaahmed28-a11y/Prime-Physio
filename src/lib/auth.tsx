@@ -311,6 +311,15 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!isAuthLoading) {
       if (!pathname) return;
+
+      // Force platform_admin isolation
+      if (user?.roleKey === "platform_admin") {
+        if (!pathname.startsWith("/platform") && pathname !== "/logout") {
+          window.location.href = "/platform";
+          return;
+        }
+      }
+
       // Landing page is always public
       if (pathname === "/") return;
       // Allow unauthenticated access to /[slug] branded login pages
