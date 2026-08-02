@@ -68,7 +68,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
       {/* ─── DESKTOP SIDEBAR ─────────────────────────────────── */}
       <aside className={`hidden md:flex flex-col w-[260px] ${
         isRtl ? "border-l right-0" : "border-r left-0"
-      } bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white fixed top-0 bottom-0 z-10 pt-8 pb-4 shadow-xl overflow-y-auto`}>
+      } border-white/10 bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white fixed top-0 bottom-0 z-10 pt-4 pb-2 shadow-xl overflow-y-auto`}>
         
         {/* Brand */}
         <div className="flex flex-col items-center justify-center mb-8 px-4">
@@ -87,10 +87,10 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`group flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all duration-200 w-full relative ${
                   active
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-900/20"
-                    : "text-slate-400 hover:bg-white/5 hover:text-white"
+                    ? "bg-white/10 text-white shadow-sm ring-1 ring-white/20"
+                    : "text-white/70 hover:bg-white/5 hover:text-white"
                 }`}
               >
                 <item.icon className="w-5 h-5 shrink-0" />
@@ -100,11 +100,10 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
           })}
         </nav>
 
-        {/* Bottom */}
-        <div className="p-4 border-t border-white/10 mt-4">
+        <div className="p-3 border-t border-white/10 mt-4">
           <button
             onClick={logout}
-            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-rose-400 hover:bg-rose-500/10 transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-[13px] font-semibold text-rose-300 hover:bg-rose-500/10 hover:text-rose-200 transition-colors"
           >
             <LogOut className={`w-5 h-5 shrink-0 ${isRtl ? "rotate-180" : ""}`} />
             <span>{isRtl ? "تسجيل الخروج" : "Logout"}</span>
@@ -143,11 +142,13 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
                     key={item.name}
                     href={item.href}
                     onClick={closeSidebar}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium ${
-                      active ? "bg-indigo-600 text-white" : "text-slate-400 hover:text-white"
+                    className={`group flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-semibold transition-all duration-200 w-full relative ${
+                      active
+                        ? "bg-white/10 text-white shadow-sm ring-1 ring-white/20"
+                        : "text-white/70 hover:bg-white/5 hover:text-white"
                     }`}
                   >
-                    <item.icon className="w-5 h-5" />
+                    <item.icon className="w-5 h-5 shrink-0" />
                     <span>{isRtl ? item.nameAr : item.name}</span>
                   </Link>
                 );
@@ -171,7 +172,12 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
             {isRtl ? "لوحة تحكم المنصة" : "Platform Administration"}
           </div>
           <div className="flex items-center gap-4">
-             <UserDropdown />
+             <UserDropdown user={{
+               name: user?.name || "مدير المنصة",
+               username: user?.email || "",
+               initials: user?.name ? user.name.charAt(0).toUpperCase() : "M",
+               status: "online"
+             }} />
           </div>
         </header>
 
