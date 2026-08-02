@@ -10,11 +10,35 @@ export default function Hero() {
 
   return (
     <div className="relative overflow-hidden bg-white pt-24 pb-32">
-      {/* Background Effects */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-purple-500/20 blur-[120px] rounded-full mix-blend-multiply" />
-        <div className="absolute top-40 -left-20 w-72 h-72 bg-indigo-500/20 blur-[100px] rounded-full mix-blend-multiply" />
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.03]" />
+      {/* Animated Aurora Background Effects */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          animate={{ 
+            x: [0, 50, 0, -50, 0],
+            y: [0, -30, 0, 30, 0],
+            scale: [1, 1.1, 1, 0.9, 1]
+          }}
+          transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
+          className="absolute -top-40 -right-40 w-[500px] h-[500px] bg-purple-400/20 blur-[120px] rounded-full mix-blend-multiply" 
+        />
+        <motion.div 
+          animate={{ 
+            x: [0, -40, 0, 40, 0],
+            y: [0, 40, 0, -40, 0],
+            scale: [1, 0.9, 1, 1.1, 1]
+          }}
+          transition={{ repeat: Infinity, duration: 18, ease: "linear" }}
+          className="absolute top-20 -left-20 w-[600px] h-[600px] bg-indigo-400/20 blur-[120px] rounded-full mix-blend-multiply" 
+        />
+        <motion.div 
+          animate={{ 
+            x: [0, 30, -30, 0],
+            y: [0, 20, -20, 0]
+          }}
+          transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+          className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-emerald-400/10 blur-[120px] rounded-full mix-blend-multiply" 
+        />
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.02]" />
       </div>
 
       <div className="mx-auto max-w-7xl px-6 lg:px-8 relative z-10">

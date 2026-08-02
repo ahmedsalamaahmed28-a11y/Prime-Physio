@@ -2,23 +2,50 @@
 
 import { useState } from "react";
 import { CheckCircle2, XCircle, AlertCircle, Calendar, LayoutDashboard } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function BeforeAfter() {
   const [isAfter, setIsAfter] = useState(false);
 
   return (
-    <section className="py-24 bg-white overflow-hidden relative">
+    <section className="py-24 bg-slate-50 overflow-hidden relative">
+      {/* Simple Aurora/Gradient Background for Before/After */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <motion.div 
+          animate={{ x: [0, 30, 0, -30, 0], y: [0, -20, 0, 20, 0] }}
+          transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+          className="absolute -top-40 right-0 w-[400px] h-[400px] bg-red-400/10 blur-[100px] rounded-full mix-blend-multiply" 
+        />
+        <motion.div 
+          animate={{ x: [0, -30, 0, 30, 0], y: [0, 20, 0, -20, 0] }}
+          transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
+          className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 blur-[120px] rounded-full mix-blend-multiply" 
+        />
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+          className="text-center max-w-3xl mx-auto mb-16"
+        >
           <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mb-6 font-arabic">
             الفرق بين الماضي والمستقبل
           </h2>
           <p className="text-lg text-slate-600 font-arabic">
             تحول من الفوضى الورقية وإهدار الوقت إلى نظام إلكتروني متكامل يدير عيادتك بكفاءة وسهولة.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="flex justify-center mb-10">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex justify-center mb-10"
+        >
           <div className="bg-slate-100 p-1.5 rounded-full inline-flex relative overflow-hidden shadow-inner flex-row-reverse" dir="rtl">
             <div
               className={`absolute top-1.5 bottom-1.5 rounded-full bg-white shadow-sm transition-all duration-500 ease-in-out ${
@@ -42,9 +69,16 @@ export default function BeforeAfter() {
               مع PrimePhysio
             </button>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="relative max-w-5xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-slate-200/50 bg-slate-50 aspect-auto md:aspect-video flex flex-col md:flex-row" dir="rtl">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, delay: 0.3 }}
+          className="relative max-w-5xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-slate-200/50 bg-white aspect-auto md:aspect-video flex flex-col md:flex-row" 
+          dir="rtl"
+        >
           
           {/* Before State */}
           <div className={`w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center transition-opacity duration-500 ${!isAfter ? "opacity-100 relative z-10" : "opacity-0 absolute inset-0 md:relative pointer-events-none"}`}>
@@ -120,7 +154,7 @@ export default function BeforeAfter() {
              </div>
           </div>
           
-        </div>
+        </motion.div>
       </div>
     </section>
   );
