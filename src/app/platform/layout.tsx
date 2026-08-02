@@ -68,7 +68,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
       {/* ─── DESKTOP SIDEBAR ─────────────────────────────────── */}
       <aside className={`hidden md:flex flex-col w-[260px] ${
         isRtl ? "border-l right-0" : "border-r left-0"
-      } bg-[#111827] text-slate-300 fixed top-0 bottom-0 z-10 pt-8 pb-4 shadow-xl overflow-y-auto`}>
+      } bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white fixed top-0 bottom-0 z-10 pt-8 pb-4 shadow-xl overflow-y-auto`}>
         
         {/* Brand */}
         <div className="flex flex-col items-center justify-center mb-8 px-4">
@@ -113,7 +113,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
       </aside>
 
       {/* ─── MOBILE HEADER & SIDEBAR ─────────────────────────── */}
-      <div className="md:hidden flex items-center justify-between bg-[#111827] text-white p-4 sticky top-0 z-20 shadow-sm">
+      <div className="md:hidden flex items-center justify-between bg-[#4F46BA] text-white p-4 sticky top-0 z-20 shadow-sm">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-6 h-6 text-indigo-400" />
           <span className="font-bold">PrimeOS</span>
@@ -126,7 +126,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
       {isOpen && (
         <div className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={closeSidebar}>
           <div 
-            className={`absolute top-0 bottom-0 w-[260px] bg-[#111827] flex flex-col ${isRtl ? "right-0" : "left-0"}`} 
+            className={`absolute top-0 bottom-0 w-[260px] bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white flex flex-col ${isRtl ? "right-0" : "left-0"}`}
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-4 border-b border-white/10">

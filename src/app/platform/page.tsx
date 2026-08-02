@@ -206,7 +206,7 @@ export default function PlatformDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Health */}
-        <div className="bg-[#111827] text-white p-5 rounded-2xl shadow-sm relative overflow-hidden">
+        <div className="bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white p-5 rounded-2xl shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 p-3 opacity-20">
             <Server className="w-24 h-24" />
           </div>
