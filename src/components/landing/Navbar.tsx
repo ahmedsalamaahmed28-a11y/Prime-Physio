@@ -10,7 +10,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
-  const { user, status } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -109,7 +109,7 @@ export default function Navbar() {
         </div>
 
         <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-4 items-center">
-          {user || status === "authenticated" ? (
+          {user ? (
             <Link
               href={user?.roleKey === "platform_admin" ? "/platform" : "/home"}
               className="rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-105 transition-all flex items-center gap-2"
@@ -176,7 +176,7 @@ export default function Navbar() {
                   ))}
                 </div>
                 <div className="py-6 flex flex-col gap-3">
-                  {user || status === "authenticated" ? (
+                  {user ? (
                     <Link
                       href={user?.roleKey === "platform_admin" ? "/platform" : "/home"}
                       onClick={() => setMobileMenuOpen(false)}
