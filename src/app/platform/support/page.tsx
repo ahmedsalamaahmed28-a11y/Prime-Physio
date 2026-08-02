@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import { Headset, MessagesSquare, Clock, HelpCircle } from "lucide-react";
+import { Phone, MessageSquare, Clock, HelpCircle } from "lucide-react";
 
 export default function PlatformSupportPage() {
   const { user } = useAuth();
@@ -21,7 +21,7 @@ export default function PlatformSupportPage() {
     <div className="space-y-6 max-w-6xl mx-auto pb-10">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Headset className="w-6 h-6 text-indigo-600" />
+          <Phone className="w-6 h-6 text-indigo-600" />
           <h1 className="text-xl font-bold text-slate-800">تذاكر الدعم الفني</h1>
         </div>
         
@@ -46,7 +46,7 @@ export default function PlatformSupportPage() {
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
-            <MessagesSquare className="w-6 h-6" />
+            <MessageSquare className="w-6 h-6" />
           </div>
           <div>
             <p className="text-xs text-slate-500 font-bold mb-1">متوسط سرعة الرد</p>
@@ -67,7 +67,7 @@ export default function PlatformSupportPage() {
 
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden min-h-[400px] flex flex-col items-center justify-center text-center p-6">
         <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-          <MessagesSquare className="w-10 h-10 text-slate-300" />
+          <MessageSquare className="w-10 h-10 text-slate-300" />
         </div>
         <h3 className="text-lg font-bold text-slate-700 mb-2">صندوق الوارد فارغ</h3>
         <p className="text-slate-500 max-w-sm mb-6">
