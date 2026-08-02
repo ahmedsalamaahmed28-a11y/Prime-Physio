@@ -73,6 +73,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { nameKey: "nav_hr", href: "/hr", icon: Building },
   { nameKey: "nav_staff", href: "/staff", icon: Stethoscope },
   { nameKey: "nav_analytics", href: "/analytics", icon: BarChart3 },
+  { nameKey: "nav_admin", href: "/admin", icon: ShieldAlert },
   { nameKey: "nav_clinic_settings", href: "/profile", icon: Settings },
   { nameKey: "nav_permissions", href: "/permissions", icon: Shield },
   { nameKey: "nav_subscription", href: "/subscription", icon: Crown },
@@ -310,6 +311,7 @@ export default function DashboardLayout({
         {/* Navigation */}
         <nav className="flex-1 px-3 flex flex-col gap-y-0.5 overflow-y-auto pb-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
           {SIDEBAR_ITEMS.filter((item) => {
+            if (item.href === "/admin" && activeAccount?.roleKey !== "platform_admin") return false;
             if (item.href === "/analytics" && !hasPermission("view_analytics")) return false;
             if (item.href === "/profile" && !hasPermission("manage_settings")) return false;
             if (item.href === "/permissions" && !hasPermission("manage_settings")) return false;
@@ -604,6 +606,7 @@ export default function DashboardLayout({
 
               <nav className="flex-1 px-3 flex flex-col gap-y-1 overflow-y-auto pb-20 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
                 {SIDEBAR_ITEMS.filter((item) => {
+                  if (item.href === "/admin" && activeAccount?.roleKey !== "platform_admin") return false;
                   if (item.href === "/analytics" && !hasPermission("view_analytics")) return false;
                   if (item.href === "/profile" && !hasPermission("manage_settings")) return false;
                   if (item.href === "/permissions" && !hasPermission("manage_settings")) return false;
