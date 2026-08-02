@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import { DollarSign, Loader2, FileText, BadgeCheck } from "lucide-react";
+import { DollarSign, Loader2, FileText, CheckCircle } from "lucide-react";
 
 interface Payment {
   id: string;
@@ -102,7 +102,7 @@ export default function PlatformPaymentsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-700">
-                        <BadgeCheck className="w-3.5 h-3.5" /> ناجح
+                        <CheckCircle className="w-3.5 h-3.5" /> ناجح
                       </span>
                     </td>
                   </tr>
