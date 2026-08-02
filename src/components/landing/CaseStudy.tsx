@@ -18,7 +18,7 @@ export default function CaseStudy() {
                 كيف ساعد Prime Physio أحد المراكز على زيادة كفاءة العمل؟
               </h2>
               <p className="text-lg text-indigo-100 font-medium leading-relaxed mb-8">
-                &quot;كانت الإدارة الورقية والجدولة اليدوية تستنزف وقتنا وتؤدي إلى أخطاء مكلفة. بعد الانتقال إلى Prime Physio، تحولت عيادتنا بالكامل لبيئة رقمية فعالة وسريعة.&quot;
+                &quot;كانت الإدارة الورقية والجدولة اليدوية بتضيع وقتنا كله وبتعملنا مشاكل وحجوزات بتدخل في بعضها. بس من يوم ما اشتغلنا على برايم فيزيو، العيادة كلها بقت شغالة سيستم ديجيتال مريح وسريع جداً.&quot;
               </p>
               <div className="flex items-center gap-4 border-t border-white/20 pt-6 mt-8">
                 <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center font-bold text-indigo-700 text-xl shrink-0">
