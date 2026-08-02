@@ -3,7 +3,7 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import { BarChart3, TrendingUp, Users, Activity, MousePointerClick } from "lucide-react";
+import { BarChart3, TrendingUp, Users, Activity } from "lucide-react";
 
 export default function PlatformAnalyticsPage() {
   const { user } = useAuth();
@@ -63,7 +63,7 @@ export default function PlatformAnalyticsPage() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-slate-500 font-semibold text-sm">معدل تحويل الزوار (Conversion)</h3>
             <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
-              <MousePointerClick className="w-5 h-5" />
+              <Activity className="w-5 h-5" />
             </div>
           </div>
           <p className="text-3xl font-bold text-slate-800">18.5%</p>
