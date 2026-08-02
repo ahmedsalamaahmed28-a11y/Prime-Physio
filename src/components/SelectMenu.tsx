@@ -105,3 +105,4 @@ const SelectItem = React.forwardRef<
     </Select.Item>
   );
 });
+SelectItem.displayName = "SelectItem";

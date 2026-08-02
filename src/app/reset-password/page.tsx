@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Lock, Eye, EyeClosed, ArrowRight, CheckCircle, Mail } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Loader } from "@/components/Loader";
+import Link from "next/link";
 
 import { cn } from "@/lib/utils"
 
@@ -145,12 +146,12 @@ export default function ResetPasswordPage() {
                   ? "يمكنك الآن تسجيل الدخول باستخدام كلمة المرور الجديدة"
                   : "You can now sign in with your new password"}
               </p>
-              <a
+              <Link
                 href="/login"
                 className="inline-block bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 px-6 rounded-lg transition-all duration-200 flex items-center justify-center text-sm"
               >
                 {isRtl ? "تسجيل الدخول" : "Sign In"}
-              </a>
+              </Link>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -264,9 +265,9 @@ export default function ResetPasswordPage() {
               </button>
 
               <div className="pt-2 text-center">
-                <a href="/login" className="text-xs text-[#4F46BA] hover:text-[#4338ca] font-medium transition-colors">
+                <Link href="/login" className="text-xs text-[#4F46BA] hover:text-[#4338ca] font-medium transition-colors">
                   {isRtl ? "العودة لتسجيل الدخول" : "Back to Sign In"}
-                </a>
+                </Link>
               </div>
             </form>
           )}

@@ -131,7 +131,7 @@ export default function DashboardLayout({
 
     const mapNotification = (row: any): SystemNotification => {
       const action = String(row.action || "").toUpperCase();
-      const module = String(row.module || row.entity || "").toUpperCase();
+      const moduleName = String(row.module || row.entity || "").toUpperCase();
       const details = String(row.details || row.entity_id || "");
 
       let titleAr = "تنبيه جديد";
@@ -152,8 +152,8 @@ export default function DashboardLayout({
 
       return {
         id: row.id,
-        titleAr: module ? `${titleAr} • ${module}` : titleAr,
-        titleEn: module ? `${titleEn} • ${module}` : titleEn,
+        titleAr: moduleName ? `${titleAr} • ${moduleName}` : titleAr,
+        titleEn: moduleName ? `${titleEn} • ${moduleName}` : titleEn,
         detailsAr: details || "تم تنفيذ عملية داخل النظام",
         detailsEn: details || "An action was performed in the system",
         createdAt: row.created_at || new Date().toISOString(),

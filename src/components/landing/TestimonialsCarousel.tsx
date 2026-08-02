@@ -54,7 +54,7 @@ export default function TestimonialsCarousel() {
                     ))}
                   </div>
                   <p className="text-slate-700 font-medium leading-relaxed mb-8 text-lg">
-                    "{test.content}"
+                    &quot;{test.content}&quot;
                   </p>
                 </div>
                 <div className="flex items-center gap-4 border-t border-slate-100 pt-6">
