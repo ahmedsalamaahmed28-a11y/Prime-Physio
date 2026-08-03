@@ -18,7 +18,7 @@ interface NotificationItem {
 }
 
 export default function NotificationsPage() {
-  const { activeAccount } = useAuth();
+  const { user } = useAuth();
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -47,11 +47,11 @@ export default function NotificationsPage() {
 
       // Fetch Audit Logs if clinic
       let mappedAudit: NotificationItem[] = [];
-      if (activeAccount?.clinicId) {
+      if (user?.clinicId) {
         const { data: audit } = await supabase
           .from("audit_logs")
           .select("*")
-          .eq("clinic_id", activeAccount.clinicId)
+          .eq("clinic_id", user.clinicId)
           .order("created_at", { ascending: false })
           .limit(50);
 
@@ -89,10 +89,10 @@ export default function NotificationsPage() {
       setLoading(false);
     }
 
-    if (activeAccount) {
+    if (user) {
       fetchAll();
     }
-  }, [activeAccount]);
+  }, [user]);
 
   return (
     <DashboardLayout>
