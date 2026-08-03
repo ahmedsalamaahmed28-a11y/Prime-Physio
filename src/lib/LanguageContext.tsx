@@ -14,7 +14,7 @@ interface LanguageContextType {
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
-const translations: Record<Language, Record<string, string>> = {
+export const defaultTranslations: Record<Language, Record<string, string>> = {
   ar: {
     // Layout & Header
     "brand_title": "PRIME PHYSIO",
@@ -203,13 +203,31 @@ const translations: Record<Language, Record<string, string>> = {
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>("ar");
+  const [dynamicTranslations, setDynamicTranslations] = useState<Record<Language, Record<string, string>> | null>(null);
 
   const pathname = usePathname();
 
   useEffect(() => {
+    // Fetch user language preference
     getAppValue<Language>("ui_language", "ar").then((savedLang) => {
       if (savedLang === "ar" || savedLang === "en") setLanguage(savedLang);
     });
+
+    // Fetch dynamic translations from platform_content
+    const fetchTranslations = async () => {
+      try {
+        const res = await fetch("/api/public/translations");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.translations) {
+            setDynamicTranslations(data.translations);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch dynamic translations", err);
+      }
+    };
+    fetchTranslations();
   }, []);
 
   useEffect(() => {
@@ -236,7 +254,11 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const t = (key: string): string => {
-    return translations[language][key] || key;
+    // Return dynamic translation if exists, otherwise fallback to default
+    if (dynamicTranslations && dynamicTranslations[language] && dynamicTranslations[language][key]) {
+      return dynamicTranslations[language][key];
+    }
+    return defaultTranslations[language][key] || key;
   };
 
   return (

@@ -76,6 +76,7 @@ Multi-tenant SaaS clinic management platform with Arabic-first UI, secure auth (
 - RLS uses `security definer` on `is_platform_admin()` function so anon-key users can read `platform_admins` table
 - DashboardLayout shows loading spinner when `clinicId === undefined` — prevents all pages from rendering with stale clinicId before `enrichUserWithClinic` completes
 - Error boundary conventions in this Next.js version: `error.tsx` (route-level, preserves layout, uses `unstable_retry` prop), `global-error.tsx` (catches root layout, defines own html/body)
+- **Deployment**: Vercel GitHub integration is sometimes delayed or failing. Always deploy directly using `npx vercel --prod --yes` from the command line.
 
 ### Session: Setup/center Onboarding Fix (2026-06-21)
 - **Root cause #1**: `auth.tsx:270-272` redirected authenticated users from `/login` (including `/login?setup=center`) to `/home` before the center form could render — the auth guard's `isAuthPage` redirect didn't account for setup flows.

@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import { FileText, Save, Loader2, CreditCard, Plus, Trash2, Settings } from "lucide-react";
+import { defaultTranslations } from "@/lib/LanguageContext";
+import { FileText, Save, Loader2, CreditCard, Plus, Trash2, Settings, MessageSquare, Search } from "lucide-react";
 
 export default function PlatformCMSPage() {
   const { user } = useAuth();
@@ -21,6 +22,8 @@ export default function PlatformCMSPage() {
     brandName: "PRIME PHYSIO",
     sidebarTitle: "Clinic Management"
   });
+  const [translationsContent, setTranslationsContent] = useState<Record<"ar" | "en", Record<string, string>>>({ ar: {}, en: {} });
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     if (user && user.roleKey !== "platform_admin") {
@@ -43,6 +46,9 @@ export default function PlatformCMSPage() {
         if (data.content.branding) {
           setBrandingContent(data.content.branding);
         }
+        if (data.content.translations) {
+          setTranslationsContent(data.content.translations);
+        }
       } else {
         setMessage({ text: "فشل في تحميل المحتوى", type: "error" });
       }
@@ -61,7 +67,8 @@ export default function PlatformCMSPage() {
       const updates = {
         hero: heroContent,
         pricing: pricingPlans,
-        branding: brandingContent
+        branding: brandingContent,
+        translations: translationsContent
       };
 
       const res = await fetch("/api/admin/content", {
@@ -126,6 +133,23 @@ export default function PlatformCMSPage() {
     newPlans.splice(index, 1);
     setPricingPlans(newPlans);
   };
+
+  const updateTranslation = (lang: "ar" | "en", key: string, value: string) => {
+    setTranslationsContent(prev => ({
+      ...prev,
+      [lang]: {
+        ...(prev[lang] || {}),
+        [key]: value
+      }
+    }));
+  };
+
+  // Filter translations for the editor
+  const filteredTranslationKeys = Object.keys(defaultTranslations.ar).filter(key => 
+    key.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    defaultTranslations.ar[key].toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (translationsContent.ar && translationsContent.ar[key]?.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   if (!user || user.roleKey !== "platform_admin") return null;
 
@@ -359,6 +383,71 @@ export default function PlatformCMSPage() {
                   لا توجد باقات لعرضها. اضغط على "إضافة باقة" للبدء.
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* UI Translations Section */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-slate-50 border-b border-slate-100 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <MessageSquare className="w-5 h-5 text-slate-500" />
+                <h2 className="font-bold text-slate-800">تخصيص نصوص وأزرار النظام (UI Translations)</h2>
+              </div>
+              <div className="relative">
+                <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="ابحث عن نص للتعجيل..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-4 pr-9 py-1.5 border border-slate-200 rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+            
+            <div className="p-6">
+              <p className="text-sm text-slate-500 mb-6">
+                يمكنك هنا تغيير أي نص يظهر داخل لوحة تحكم المنصة (مثل عناوين الأزرار، نصوص القائمة الجانبية، رسائل النجاح أو الخطأ). اترك الحقل فارغاً للعودة للنص الافتراضي.
+              </p>
+              
+              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-200">
+                {filteredTranslationKeys.map(key => (
+                  <div key={key} className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="col-span-1 md:col-span-2">
+                      <span className="text-xs font-mono bg-slate-200 text-slate-600 px-2 py-0.5 rounded">{key}</span>
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700">النص العربي</label>
+                      <input
+                        type="text"
+                        placeholder={defaultTranslations.ar[key]}
+                        value={translationsContent.ar?.[key] ?? ""}
+                        onChange={(e) => updateTranslation("ar", key, e.target.value)}
+                        className="w-full border border-slate-200 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                    
+                    <div className="space-y-1.5">
+                      <label className="block text-xs font-bold text-slate-700">النص الإنجليزي (English)</label>
+                      <input
+                        dir="ltr"
+                        type="text"
+                        placeholder={defaultTranslations.en[key] || ""}
+                        value={translationsContent.en?.[key] ?? ""}
+                        onChange={(e) => updateTranslation("en", key, e.target.value)}
+                        className="w-full border border-slate-200 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 text-left"
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                {filteredTranslationKeys.length === 0 && (
+                  <div className="text-center py-8 text-slate-500">
+                    لا توجد نتائج مطابقة للبحث.
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
