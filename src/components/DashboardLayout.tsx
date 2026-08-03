@@ -110,6 +110,7 @@ export default function DashboardLayout({
   const [notifications, setNotifications] = useState<SystemNotification[]>([]);
   const [branchLogo, setBranchLogo] = useState<string | null>(null);
   const [branchName, setBranchName] = useState<string | null>(null);
+  const [platformBranding, setPlatformBranding] = useState<{brandName: string, sidebarTitle: string} | null>(null);
   
   const activeAccount = user;
 
@@ -236,6 +237,22 @@ export default function DashboardLayout({
     };
   }, []);
 
+  // Fetch global platform branding
+  useEffect(() => {
+    const fetchBranding = async () => {
+      try {
+        const res = await fetch("/api/public/branding");
+        if (res.ok) {
+          const data = await res.json();
+          setPlatformBranding(data.branding);
+        }
+      } catch (err) {
+        console.error("Failed to fetch platform branding:", err);
+      }
+    };
+    fetchBranding();
+  }, []);
+
   useEffect(() => {
     if (!user?.clinicId || !activeBranchId) {
       setBranchLogo(user?.logoUrl || null);
@@ -329,8 +346,8 @@ export default function DashboardLayout({
             }}
           />
           <div id="brand-fallback" className="hidden text-center">
-            <h1 className="text-base font-bold tracking-wider text-white">{branchName || "PRIME PHYSIO"}</h1>
-            <p className="text-[10px] text-white/60">{branchName ? "" : "Clinic Management"}</p>
+            <h1 className="text-base font-bold tracking-wider text-white">{branchName || platformBranding?.brandName || "PRIME PHYSIO"}</h1>
+            <p className="text-[10px] text-white/60">{branchName ? "" : (platformBranding?.sidebarTitle || "Clinic Management")}</p>
           </div>
           {branchName && (
             <span className="text-[10px] text-white/70 text-center leading-tight max-w-full truncate px-1 mt-1">
@@ -621,7 +638,7 @@ export default function DashboardLayout({
                     }}
                   />
                   <div id="mobile-brand-fallback" className="hidden text-center">
-                    <span className="font-bold text-base text-white">PRIME PHYSIO</span>
+                    <span className="font-bold text-base text-white">{platformBranding?.brandName || "PRIME PHYSIO"}</span>
                   </div>
                   {branchName && (
                     <span className="text-[11px] text-white/70 text-center leading-tight max-w-full truncate px-1">

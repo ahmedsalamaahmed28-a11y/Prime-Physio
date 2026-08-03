@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import { FileText, Save, Loader2, CreditCard } from "lucide-react";
+import { FileText, Save, Loader2, CreditCard, Plus, Trash2, Settings } from "lucide-react";
 
 export default function PlatformCMSPage() {
   const { user } = useAuth();
@@ -14,11 +14,13 @@ export default function PlatformCMSPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
 
-  // For Hero Section Edit
+  // States for CMS sections
   const [heroContent, setHeroContent] = useState<any>(null);
-
-  // For Pricing Edit (using raw JSON for now due to complexity, or we could build a full form)
-  const [pricingJson, setPricingJson] = useState("");
+  const [pricingPlans, setPricingPlans] = useState<any[]>([]);
+  const [brandingContent, setBrandingContent] = useState<any>({
+    brandName: "PRIME PHYSIO",
+    sidebarTitle: "Clinic Management"
+  });
 
   useEffect(() => {
     if (user && user.roleKey !== "platform_admin") {
@@ -35,7 +37,12 @@ export default function PlatformCMSPage() {
         const data = await res.json();
         setContent(data.content);
         if (data.content.hero) setHeroContent(data.content.hero);
-        if (data.content.pricing) setPricingJson(JSON.stringify(data.content.pricing, null, 2));
+        if (data.content.pricing && Array.isArray(data.content.pricing)) {
+          setPricingPlans(data.content.pricing);
+        }
+        if (data.content.branding) {
+          setBrandingContent(data.content.branding);
+        }
       } else {
         setMessage({ text: "فشل في تحميل المحتوى", type: "error" });
       }
@@ -51,18 +58,10 @@ export default function PlatformCMSPage() {
     setSaving(true);
     setMessage(null);
     try {
-      let parsedPricing = content.pricing;
-      try {
-        parsedPricing = JSON.parse(pricingJson);
-      } catch (e) {
-        setMessage({ text: "خطأ في صيغة JSON للباقات", type: "error" });
-        setSaving(false);
-        return;
-      }
-
       const updates = {
         hero: heroContent,
-        pricing: parsedPricing
+        pricing: pricingPlans,
+        branding: brandingContent
       };
 
       const res = await fetch("/api/admin/content", {
@@ -84,6 +83,48 @@ export default function PlatformCMSPage() {
       setSaving(false);
       setTimeout(() => setMessage(null), 3000);
     }
+  };
+
+  // Helpers for Pricing Form Builder
+  const updatePlan = (index: number, field: string, value: any) => {
+    const newPlans = [...pricingPlans];
+    newPlans[index][field] = value;
+    setPricingPlans(newPlans);
+  };
+
+  const addFeature = (planIndex: number) => {
+    const newPlans = [...pricingPlans];
+    if (!newPlans[planIndex].features) newPlans[planIndex].features = [];
+    newPlans[planIndex].features.push("");
+    setPricingPlans(newPlans);
+  };
+
+  const updateFeature = (planIndex: number, featureIndex: number, value: string) => {
+    const newPlans = [...pricingPlans];
+    newPlans[planIndex].features[featureIndex] = value;
+    setPricingPlans(newPlans);
+  };
+
+  const removeFeature = (planIndex: number, featureIndex: number) => {
+    const newPlans = [...pricingPlans];
+    newPlans[planIndex].features.splice(featureIndex, 1);
+    setPricingPlans(newPlans);
+  };
+
+  const addPlan = () => {
+    setPricingPlans([...pricingPlans, {
+      name: "باقة جديدة",
+      description: "وصف الباقة",
+      price: "0",
+      isPopular: false,
+      features: []
+    }]);
+  };
+
+  const removePlan = (index: number) => {
+    const newPlans = [...pricingPlans];
+    newPlans.splice(index, 1);
+    setPricingPlans(newPlans);
   };
 
   if (!user || user.roleKey !== "platform_admin") return null;
@@ -117,11 +158,45 @@ export default function PlatformCMSPage() {
         </div>
       ) : (
         <div className="space-y-6">
+          
+          {/* Platform Branding Section */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="bg-slate-50 border-b border-slate-100 p-4 flex items-center gap-3">
+              <Settings className="w-5 h-5 text-slate-500" />
+              <h2 className="font-bold text-slate-800">هوية المنصة الداخلية (Platform Branding)</h2>
+            </div>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-1.5 md:col-span-2">
+                <p className="text-sm text-slate-500 mb-2">تستخدم هذه الإعدادات لتخصيص لوحة التحكم الداخلية للمشتركين (مثل القائمة الجانبية).</p>
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-slate-700">اسم المنصة (Brand Name)</label>
+                <input
+                  type="text"
+                  value={brandingContent?.brandName || ""}
+                  onChange={(e) => setBrandingContent({...brandingContent, brandName: e.target.value})}
+                  placeholder="PRIME PHYSIO"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="block text-sm font-medium text-slate-700">عنوان القائمة الجانبية (Sidebar Title)</label>
+                <input
+                  type="text"
+                  value={brandingContent?.sidebarTitle || ""}
+                  onChange={(e) => setBrandingContent({...brandingContent, sidebarTitle: e.target.value})}
+                  placeholder="Clinic Management"
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Hero Section */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="bg-slate-50 border-b border-slate-100 p-4 flex items-center gap-3">
               <FileText className="w-5 h-5 text-slate-500" />
-              <h2 className="font-bold text-slate-800">قسم البداية (Hero Section)</h2>
+              <h2 className="font-bold text-slate-800">قسم البداية للصفحة الرئيسية (Hero Section)</h2>
             </div>
             
             {heroContent && (
@@ -169,22 +244,121 @@ export default function PlatformCMSPage() {
             )}
           </div>
 
-          {/* Pricing Section */}
+          {/* Pricing Section - Dynamic Builder */}
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="bg-slate-50 border-b border-slate-100 p-4 flex items-center gap-3">
-              <CreditCard className="w-5 h-5 text-slate-500" />
-              <h2 className="font-bold text-slate-800">الباقات والأسعار (Pricing Plans)</h2>
+            <div className="bg-slate-50 border-b border-slate-100 p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CreditCard className="w-5 h-5 text-slate-500" />
+                <h2 className="font-bold text-slate-800">الباقات والأسعار (Pricing Plans)</h2>
+              </div>
+              <button 
+                onClick={addPlan}
+                className="text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1"
+              >
+                <Plus className="w-4 h-4" /> إضافة باقة
+              </button>
             </div>
             
-            <div className="p-6">
-              <p className="text-sm text-slate-500 mb-4">يمكنك تعديل أسعار ومميزات الباقات هنا باستخدام صيغة JSON المتقدمة حالياً.</p>
-              <textarea
-                dir="ltr"
-                rows={15}
-                value={pricingJson}
-                onChange={(e) => setPricingJson(e.target.value)}
-                className="w-full font-mono text-sm border border-slate-200 rounded-lg p-4 bg-slate-900 text-green-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-y"
-              />
+            <div className="p-6 space-y-8">
+              {pricingPlans.map((plan, planIdx) => (
+                <div key={planIdx} className="bg-slate-50 border border-slate-200 rounded-xl p-5 relative">
+                  <button 
+                    onClick={() => removePlan(planIdx)}
+                    className="absolute top-4 left-4 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    title="حذف الباقة"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                  
+                  <h3 className="font-bold text-lg mb-4 text-slate-800">باقة #{planIdx + 1}</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium text-slate-700">اسم الباقة</label>
+                      <input
+                        type="text"
+                        value={plan.name || ""}
+                        onChange={(e) => updatePlan(planIdx, "name", e.target.value)}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="block text-sm font-medium text-slate-700">السعر (شهرياً - ج.م)</label>
+                      <input
+                        type="text"
+                        value={plan.price || ""}
+                        onChange={(e) => updatePlan(planIdx, "price", e.target.value)}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                    <div className="space-y-1.5 md:col-span-2">
+                      <label className="block text-sm font-medium text-slate-700">وصف قصير</label>
+                      <input
+                        type="text"
+                        value={plan.description || ""}
+                        onChange={(e) => updatePlan(planIdx, "description", e.target.value)}
+                        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mb-4 flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      id={`popular-${planIdx}`}
+                      checked={plan.isPopular || false}
+                      onChange={(e) => updatePlan(planIdx, "isPopular", e.target.checked)}
+                      className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                    />
+                    <label htmlFor={`popular-${planIdx}`} className="text-sm font-medium text-slate-700 cursor-pointer">
+                      تمييز هذه الباقة (الأكثر طلباً)
+                    </label>
+                  </div>
+
+                  <div className="mt-6 border-t border-slate-200 pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-sm font-bold text-slate-800">المميزات (Features)</label>
+                      <button 
+                        onClick={() => addFeature(planIdx)}
+                        className="text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded-lg transition-colors flex items-center gap-1"
+                      >
+                        <Plus className="w-3 h-3" /> إضافة ميزة
+                      </button>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      {plan.features?.map((feature: string, featureIdx: number) => (
+                        <div key={featureIdx} className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={feature}
+                            onChange={(e) => updateFeature(planIdx, featureIdx, e.target.value)}
+                            placeholder="اكتب الميزة هنا..."
+                            className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                          />
+                          <button 
+                            onClick={() => removeFeature(planIdx, featureIdx)}
+                            className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="حذف الميزة"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                      {(!plan.features || plan.features.length === 0) && (
+                        <p className="text-sm text-slate-500 italic">لا توجد مميزات مضافة بعد.</p>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
+              ))}
+              
+              {pricingPlans.length === 0 && (
+                <div className="text-center py-8 text-slate-500">
+                  لا توجد باقات لعرضها. اضغط على "إضافة باقة" للبدء.
+                </div>
+              )}
             </div>
           </div>
 
