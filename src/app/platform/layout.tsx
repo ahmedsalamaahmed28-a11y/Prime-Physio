@@ -68,7 +68,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
     <div className={`min-h-screen bg-[#F3F4F6] flex flex-col ${isRtl ? "md:flex-row-reverse" : "md:flex-row"} text-slate-800`} dir={isRtl ? "rtl" : "ltr"}>
       
       {/* ─── DESKTOP SIDEBAR ─────────────────────────────────── */}
-      <aside className={`hidden md:flex flex-col w-[260px] ${
+      <aside className={`hidden md:flex flex-col w-[220px] ${
         isRtl ? "border-l right-0" : "border-r left-0"
       } border-white/10 bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white fixed top-0 bottom-0 z-10 pt-4 pb-2 shadow-xl overflow-y-auto`}>
         
@@ -129,7 +129,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
       {isOpen && (
         <div className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={closeSidebar}>
           <div 
-            className={`absolute top-0 bottom-0 w-[260px] bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white flex flex-col ${isRtl ? "right-0" : "left-0"}`}
+            className={`absolute top-0 bottom-0 w-[220px] bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white flex flex-col ${isRtl ? "right-0" : "left-0"}`}
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between p-4 border-b border-white/10">
@@ -169,7 +169,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
       )}
 
       {/* ─── MAIN CONTENT ────────────────────────────────────── */}
-      <main className={`flex-1 w-full ${isRtl ? "md:pr-[260px]" : "md:pl-[260px]"} min-h-screen flex flex-col`}>
+      <main className={`flex-1 w-full ${isRtl ? "md:pr-[220px]" : "md:pl-[220px]"} min-h-screen flex flex-col`}>
         {/* Top Header */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-10 hidden md:flex shadow-sm">
           <div className="text-sm font-medium text-slate-500">
