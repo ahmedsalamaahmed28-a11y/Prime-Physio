@@ -74,6 +74,7 @@ const SIDEBAR_ITEMS: SidebarItem[] = [
   { nameKey: "nav_staff", href: "/staff", icon: Stethoscope },
   { nameKey: "nav_analytics", href: "/analytics", icon: BarChart3 },
   { nameKey: "nav_admin", href: "/admin", icon: ShieldAlert },
+  { nameKey: "nav_cms", href: "/platform/cms", icon: FileText },
   { nameKey: "nav_clinic_settings", href: "/profile", icon: Settings },
   { nameKey: "nav_permissions", href: "/permissions", icon: Shield },
   { nameKey: "nav_subscription", href: "/subscription", icon: Crown },

@@ -82,10 +82,24 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
 
 export async function requireRole(
   req: NextRequest,
-  allowedRoles: Array<"admin" | "doctor" | "receptionist">
-): Promise<AuthUser & { roleKey: string }> {
+  allowedRoles: Array<"admin" | "doctor" | "receptionist" | "platform_admin">
+): Promise<AuthUser & { roleKey: string; clinicId?: string }> {
   const authed = await requireAuth(req);
   const admin = getAdminClient();
+
+  // If checking for platform_admin, verify in platform_admins table
+  if (allowedRoles.includes("platform_admin")) {
+    const { data: platformAdmin } = await admin
+      .from("platform_admins")
+      .select("*")
+      .eq("email", authed.email)
+      .limit(1)
+      .maybeSingle();
+
+    if (platformAdmin) {
+      return { ...authed, roleKey: "platform_admin" };
+    }
+  }
 
   const { data: staff } = await admin
     .from("staff")
@@ -95,6 +109,9 @@ export async function requireRole(
     .maybeSingle();
 
   if (!staff) {
+    if (allowedRoles.includes("platform_admin")) {
+        throw new Error("Unauthorized — you are not a platform admin");
+    }
     throw new Error("لم يتم العثور على حساب الموظف");
   }
 

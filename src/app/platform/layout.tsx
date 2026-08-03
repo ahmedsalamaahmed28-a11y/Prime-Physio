@@ -20,7 +20,8 @@ import {
   LogOut,
   Menu,
   X,
-  ShieldCheck
+  ShieldCheck,
+  FileText
 } from "lucide-react";
 import { UserDropdown } from "@/components/UserDropdown";
 
@@ -34,6 +35,7 @@ const SIDEBAR_ITEMS = [
   { name: "Support", nameAr: "الدعم الفني", href: "/platform/support", icon: HelpCircle },
   { name: "AI Insights", nameAr: "تحليلات الذكاء الاصطناعي", href: "/platform/ai-insights", icon: Sparkles },
   { name: "Audit Logs", nameAr: "سجل النشاط", href: "/platform/audit-logs", icon: History },
+  { name: "Content CMS", nameAr: "إدارة المحتوى", href: "/platform/cms", icon: FileText },
   { name: "System Settings", nameAr: "إعدادات النظام", href: "/platform/settings", icon: Settings },
 ];
 

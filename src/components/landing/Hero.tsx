@@ -5,8 +5,19 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, Play, Calendar, Users, BarChart3, Activity, X } from "lucide-react";
 
-export default function Hero() {
+export default function Hero({ cmsContent }: { cmsContent?: any }) {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
+
+  // Fallback defaults if DB is empty
+  const badgeText = cmsContent?.badgeText || "أكثر من 100 مركز علاج طبيعي يعتمد على Prime Physio";
+  const titlePart1 = cmsContent?.titlePart1 || "نظام إدارة متكامل لمراكز";
+  const titlePart2 = cmsContent?.titlePart2 || "العلاج الطبيعي";
+  const description = cmsContent?.description || "إدارة المرضى، الجلسات، الأطباء، الملفات الطبية، الفواتير، والتقارير المالية من منصة واحدة مصممة خصيصًا لمراكز العلاج الطبيعي.";
+  const primaryButtonText = cmsContent?.primaryButtonText || "ابدأ مجانًا";
+  const secondaryButtonText = cmsContent?.secondaryButtonText || "مشاهدة العرض التوضيحي";
+  const feature1 = cmsContent?.feature1 || "بدون بطاقة ائتمانية";
+  const feature2 = cmsContent?.feature2 || "إعداد خلال دقائق";
+  const feature3 = cmsContent?.feature3 || "دعم فني عربي";
 
   return (
     <div className="relative overflow-hidden bg-white pt-24 pb-32">
@@ -53,15 +64,15 @@ export default function Hero() {
           >
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-sm font-semibold mb-6">
               <span className="flex h-2 w-2 rounded-full bg-indigo-500"></span>
-              أكثر من 100 مركز علاج طبيعي يعتمد على Prime Physio
+              {badgeText}
             </div>
             
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-slate-900 leading-[1.15] mb-6">
-              نظام إدارة متكامل لمراكز <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#7C3AED]">العلاج الطبيعي</span>
+              {titlePart1} <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#4F46E5] to-[#7C3AED]">{titlePart2}</span>
             </h1>
             
             <p className="text-lg sm:text-xl leading-relaxed text-slate-600 mb-8 font-medium">
-              إدارة المرضى، الجلسات، الأطباء، الملفات الطبية، الفواتير، والتقارير المالية من منصة واحدة مصممة خصيصًا لمراكز العلاج الطبيعي.
+              {description}
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -69,21 +80,21 @@ export default function Hero() {
                 href="/signup"
                 className="inline-flex justify-center items-center gap-2 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-8 py-4 text-base font-bold text-white shadow-xl shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:scale-105 transition-all"
               >
-                ابدأ مجانًا
+                {primaryButtonText}
               </Link>
               <button
                 onClick={() => setIsVideoOpen(true)}
                 className="inline-flex justify-center items-center gap-2 rounded-full bg-white border border-slate-200 px-8 py-4 text-base font-bold text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 <Play className="w-5 h-5 fill-slate-700 text-slate-700" />
-                مشاهدة العرض التوضيحي
+                {secondaryButtonText}
               </button>
             </div>
             
             <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-slate-500">
-              <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-green-500" /> بدون بطاقة ائتمانية</div>
-              <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-green-500" /> إعداد خلال دقائق</div>
-              <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-green-500" /> دعم فني عربي</div>
+              <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-green-500" /> {feature1}</div>
+              <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-green-500" /> {feature2}</div>
+              <div className="flex items-center gap-1.5"><Check className="w-4 h-4 text-green-500" /> {feature3}</div>
             </div>
           </motion.div>
 

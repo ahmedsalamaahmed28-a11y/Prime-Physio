@@ -5,10 +5,10 @@ import { motion } from "framer-motion";
 import { Check, Star } from "lucide-react";
 import Link from "next/link";
 
-export default function Pricing() {
+export default function Pricing({ cmsContent }: { cmsContent?: any }) {
   const [isAnnual, setIsAnnual] = useState(false);
 
-  const plans = [
+  const defaultPlans = [
     {
       name: "الأساسية (Starter)",
       description: "مثالية للعيادات الصغيرة والناشئة.",
@@ -55,6 +55,22 @@ export default function Pricing() {
       popular: false,
     },
   ];
+
+  // Try to parse plans from cmsContent if it exists
+  let plans = defaultPlans;
+  if (cmsContent && cmsContent.plans && Array.isArray(cmsContent.plans)) {
+    // Map the new CMS format to the old UI format
+    plans = cmsContent.plans.map((p: any) => ({
+      name: p.name,
+      description: p.description,
+      priceMonthly: p.price.replace(/,/g, ''), // Convert CMS string to UI string
+      priceYearly: (parseInt(p.price.replace(/,/g, '')) * 10).toString(), // estimate 2 months free
+      features: p.features,
+      cta: p.isPopular ? "ابدأ الإصدار المميز" : "اشترك الآن",
+      popular: p.isPopular || false,
+    }));
+  }
+
 
   return (
     <section id="pricing" className="py-24 bg-white relative">

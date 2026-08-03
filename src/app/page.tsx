@@ -1,3 +1,4 @@
+import { getAdminClient } from "@/lib/supabase";
 
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
@@ -20,7 +21,19 @@ import Footer from "@/components/landing/Footer";
 import BeforeAfter from "@/components/landing/BeforeAfter";
 import PatientJourney from "@/components/landing/PatientJourney";
 
-export default function LandingPage() {
+export const revalidate = 0; // Disable static rendering so content updates immediately
+
+export default async function LandingPage() {
+  const supabase = getAdminClient();
+  const { data } = await supabase.from("platform_content").select("*");
+  
+  const contentMap: Record<string, any> = {};
+  if (data) {
+    data.forEach(row => {
+      contentMap[row.key] = row.content;
+    });
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-[#4F46E5] selection:text-white">
       {/* 2. Main Navigation */}
@@ -28,7 +41,7 @@ export default function LandingPage() {
 
       <main className="flex-grow">
         {/* 3. Hero Section */}
-        <Hero />
+        <Hero cmsContent={contentMap.hero} />
 
         {/* 4. Trusted By / Social Proof */}
         <TrustedStrip />
@@ -70,7 +83,7 @@ export default function LandingPage() {
         <CaseStudy />
 
         {/* 15. Pricing */}
-        <Pricing />
+        <Pricing cmsContent={contentMap.pricing} />
 
         {/* 15.5 ROI Calculator */}
         <ROICalculator />
