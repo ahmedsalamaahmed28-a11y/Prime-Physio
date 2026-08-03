@@ -568,6 +568,7 @@ export default function DashboardLayout({
                      <button 
                        onClick={() => {
                          setIsNotificationsOpen(false);
+                         router.push("/notifications");
                        }}
                         className="text-xs font-bold text-[#4F46BA] hover:text-[#4338ca] transition-colors"
                      >
