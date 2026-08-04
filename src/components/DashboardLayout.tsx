@@ -280,7 +280,7 @@ export default function DashboardLayout({
     })();
   }, [user?.clinicId, activeBranchId, user?.logoUrl, user?.shortName]);
 
-    const knownDashboardPages = new Set(["home","hr","admin","patients","doctors","calendar","billing","reports","chat","ai-assistant","ai-planner","staff","settings","subscription","permissions","security","profile","analytics","packages","clinic-settings","clinical-library","clinical-nutrition","protocols","medical-reports","red-flags","users-permissions"]);
+    const knownDashboardPages = new Set(["home","hr","admin","patients","doctors","calendar","billing","reports","chat","ai-assistant","ai-planner","staff","settings","subscription","permissions","security","profile","analytics","packages","clinic-settings","clinical-library","clinical-nutrition","protocols","medical-reports","red-flags","users-permissions","notifications"]);
     const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname || "") && !knownDashboardPages.has((pathname || "").replace("/", ""));
     const p = pathname || "";
     const isAuthPage = p === "/" || p === "/manage" || p.startsWith("/manage/") || p === "/signup" || p === "/forgot-password" || p === "/reset-password" || p === "/setup" || p.startsWith("/setup/") || p === "/subscribe" || p === "/plans" || p === "/centers" || p === "/about" || p === "/support" || p === "/center_setup" || p.startsWith("/platform") || isSlugPage;
@@ -575,7 +575,7 @@ export default function DashboardLayout({
                          setIsNotificationsOpen(false);
                          router.push("/notifications");
                        }}
-                        className="text-xs font-bold text-[#4F46BA] hover:text-[#4338ca] transition-colors"
+                       className="w-full py-2 text-xs font-bold text-[#4F46BA] hover:text-[#4338ca] transition-colors cursor-pointer"
                      >
                        {isRtl ? "عرض كافة الإشعارات" : "View All Notifications"}
                      </button>
