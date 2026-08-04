@@ -289,6 +289,11 @@ export default function DashboardLayout({
     return <>{children}</>;
   }
 
+  // Force platform_admin isolation during render to prevent flash
+  if (activeAccount?.roleKey === "platform_admin" && pathname && !pathname.startsWith("/platform")) {
+    return <LoadingSpinner />;
+  }
+
   // Wait for enrichUserWithClinic to set clinicId before rendering pages
   if (activeAccount && activeAccount.clinicId === undefined) {
     return <LoadingSpinner />;
