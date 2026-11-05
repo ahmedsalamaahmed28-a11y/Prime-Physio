@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + 1);
     const { data: existing, error: existingError } = await admin.from("subscriptions")
-      .select("id").eq("clinic_id", user.clinicId).eq("status", "active").maybeSingle();
+      .select("id").eq("clinic_id", user.clinicId).eq("status", "active").order("created_at", { ascending: false }).limit(1).maybeSingle();
     if (existingError) return NextResponse.json({ error: "Unable to verify subscription" }, { status: 500 });
     if (existing) return NextResponse.json({ error: "An active subscription already exists" }, { status: 409 });
 
