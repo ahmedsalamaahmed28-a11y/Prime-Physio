@@ -220,11 +220,10 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         const enriched = await enrichUserWithClinic(newUser);
         setIsEnriching(false);
 
-        setUser((prev) => {
-          if (prev?.email === enriched.email && prev?.clinicId !== undefined) return prev;
-          setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-          return enriched;
-        });
+        // Always accept the latest authoritative enrichment result. A previous null clinicId
+        // must not block a later successful lookup for the same email.
+        setUser(enriched);
+        setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
         setAppValue("pending_role", "doctor").catch(() => {});
       } else if (event === "SIGNED_OUT") {
         setUser(null);
@@ -285,17 +284,15 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         const enriched = await enrichUserWithClinic(newUser);
         if (!active) return;
         setIsEnriching(false);
-        setUser((prev) => {
-          if (prev?.email === enriched.email && prev?.clinicId !== undefined) return prev;
-          setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-          // If new Google user just provisioned, send to setup/center to complete clinic info
-          if (enriched.clinicId && pendingSignup === "true" && typeof window !== 'undefined') {
-            window.location.href = "/setup/center";
-          } else if (enriched.roleKey === "platform_admin" && typeof window !== 'undefined' && (window.location.pathname === "/home" || window.location.pathname === "/setup" || window.location.pathname.startsWith("/manage") || window.location.pathname === "/signup")) {
-            window.location.href = "/platform";
-          }
-          return enriched;
-        });
+        // Do not keep stale clinic data from an earlier enrichment attempt.
+        setUser(enriched);
+        setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
+        // If new Google user just provisioned, send to setup/center to complete clinic info.
+        if (enriched.clinicId && pendingSignup === "true" && typeof window !== "undefined") {
+          window.location.href = "/setup/center";
+        } else if (enriched.roleKey === "platform_admin" && typeof window !== "undefined" && (window.location.pathname === "/home" || window.location.pathname === "/setup" || window.location.pathname.startsWith("/manage") || window.location.pathname === "/signup")) {
+          window.location.href = "/platform";
+        }
       };
 
       loadRoleState();
@@ -341,7 +338,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       }
       if (pathname === "/signup") return;
       if (pathname.startsWith("/manage")) return;
-      if ((user?.clinicId === undefined || user?.clinicId === null) && !user?.isPlatformAdmin && user?.email && !isEnriching) {
+      // Redirect only after enrichment has confirmed that the account has no clinic.
+      // undefined means the lookup is unresolved and must not trigger an onboarding redirect.
+      if (user?.clinicId === null && !user?.isPlatformAdmin && user?.email && !isEnriching) {
         const setupPaths = ["/manage", "/signup", "/setup", "/setup/center", "/plans", "/center_setup"];
         if (!setupPaths.includes(pathname)) {
           window.location.href = "/setup";
