@@ -81,3 +81,44 @@
 .pp-trusted-group{gap:64px;}
 .pp-trusted-marquee:before{background:linear-gradient(to right,#f8fafc,transparent);}
 .pp-trusted-marquee:after{background:linear-gradient(to left,#f8fafc,transparent);}
+
+
+/* Main-branch brand identity: indigo-to-violet logo and primary actions. */
+.pp-landing .pp-brand-mark{
+  background:linear-gradient(to bottom right,#4F46E5,#7C3AED);
+  box-shadow:0 10px 20px -8px rgba(99,102,241,.45);
+}
+.pp-landing .pp-brand-accent{color:#4F46E5;}
+.pp-landing .pp-nav>a.is-active:not(.pp-button),
+.pp-landing .pp-nav>a:not(.pp-button):hover,
+.pp-landing .pp-login-link:hover{color:#4F46E5;}
+.pp-landing .pp-nav>a.is-active:not(.pp-button){background:#EEF2FF;}
+.pp-landing .pp-button-primary{
+  background:linear-gradient(to right,#4F46E5,#7C3AED);
+  color:#fff;
+  border-color:transparent;
+  box-shadow:0 10px 22px -9px rgba(99,102,241,.45);
+}
+.pp-landing .pp-button-primary:hover{
+  background:linear-gradient(to right,#4338CA,#6D28D9);
+  color:#fff;
+  box-shadow:0 12px 26px -9px rgba(99,102,241,.62);
+}
+.pp-landing .pp-button-outline{
+  color:#4F46E5;
+  border-color:#E0E7FF;
+}
+.pp-landing .pp-button-outline:hover{
+  color:#4338CA;
+  border-color:#A5B4FC;
+  background:#EEF2FF;
+}
+.pp-landing .pp-button-accent{
+  background:linear-gradient(to right,#4F46E5,#7C3AED);
+  color:#fff;
+  box-shadow:0 10px 22px -9px rgba(99,102,241,.4);
+}
+.pp-landing .pp-button-accent:hover{
+  background:linear-gradient(to right,#4338CA,#6D28D9);
+  color:#fff;
+}
