@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, ArrowUp, Mail, ShieldCheck, Stethoscope } from "lucide-react";
+import { Activity, ChevronUp, Mail, ShieldCheck, Stethoscope } from "lucide-react";
 
 const footerGroups = [
   {
@@ -80,7 +80,7 @@ export default function Footer() {
           <p className="pp-footer-made">حلول تقنية ترتقي بإدارة العلاج الطبيعي</p>
           <a className="pp-footer-top" href="#top" aria-label="العودة إلى أعلى الصفحة">
             <span>العودة للأعلى</span>
-            <ArrowUp aria-hidden="true" />
+            <ChevronUp aria-hidden="true" />
           </a>
         </div>
       </div>
