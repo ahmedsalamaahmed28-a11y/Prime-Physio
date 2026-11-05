@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomInt } from "crypto";
 import { getAdminClient } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
 import { sendVerificationCode } from "@/lib/email";
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Generate 4-digit OTP
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
+    const code = randomInt(100000, 1000000).toString();
 
     // Store the OTP in app_key_values
     const key = `password_reset_${cleanEmail.replace(/[^a-z0-9]/g, "_")}`;
@@ -51,10 +52,10 @@ export async function POST(req: NextRequest) {
     // Send the OTP via email
     const emailSent = await sendVerificationCode(cleanEmail, code);
 
-    return NextResponse.json({
-      success: true,
-      devCode: emailSent ? undefined : code,
-    });
+    if (!emailSent && process.env.NODE_ENV === "production") {
+      return NextResponse.json({ success: false, error: "Unable to send verification email" }, { status: 503 });
+    }
+    return NextResponse.json({ success: true, ...(process.env.NODE_ENV !== "production" && !emailSent ? { devCode: code } : {}) });
   } catch (err) {
     console.error("[ForgotPassword] Error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
