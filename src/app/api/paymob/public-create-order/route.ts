@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     const billingPeriod = body?.billingPeriod === "yearly" ? "yearly" : "monthly";
     const billingData = body?.billingData && typeof body.billingData === "object" ? body.billingData : null;
     const email = typeof billingData?.email === "string" ? billingData.email.toLowerCase().trim() : "";
-    if (!billingData || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || email.length > 254) {
+    if (!billingData || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
       return NextResponse.json({ error: "يرجى إدخال بريد إلكتروني صحيح" }, { status: 400 });
     }
 
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
     const apiKey = process.env.PAYMOB_API_KEY;
     const integrationId = process.env.PAYMOB_INTEGRATION_ID;
     const iframeId = process.env.PAYMOB_IFRAME_ID;
-    if (!apiKey || !integrationId || !iframeId || !/^\\d+$/.test(integrationId) || !/^\\d+$/.test(iframeId)) {
+    if (!apiKey || !integrationId || !iframeId || !/^\d+$/.test(integrationId) || !/^\d+$/.test(iframeId)) {
       console.error("[Paymob] Required payment configuration is missing or invalid");
       return NextResponse.json({ error: "خدمة الدفع غير مهيأة" }, { status: 503 });
     }
