@@ -67,7 +67,7 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
   const closeSidebar = () => setIsOpen(false);
 
   return (
-    <div className={`min-h-screen bg-[#F3F4F6] flex flex-col ${isRtl ? "md:flex-row-reverse" : "md:flex-row"} text-slate-800`} dir={isRtl ? "rtl" : "ltr"}>
+    <div className={`pc-shell min-h-screen bg-[#F3F4F6] flex flex-col ${isRtl ? "md:flex-row-reverse" : "md:flex-row"} text-slate-800`} dir={isRtl ? "rtl" : "ltr"}>
       
       {/* ─── DESKTOP SIDEBAR ─────────────────────────────────── */}
       <aside className={`hidden md:flex flex-col w-[220px] ${
