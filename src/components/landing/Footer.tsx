@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Activity, ArrowUp, Mail, MapPin, ShieldCheck, Stethoscope } from "lucide-react";
+import { Activity, ArrowUp, Mail, ShieldCheck, Stethoscope } from "lucide-react";
 
 const footerGroups = [
   {
