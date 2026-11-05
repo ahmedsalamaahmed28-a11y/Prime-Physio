@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
 import { setAppValue } from "@/lib/appStorage";
 import { Loader } from "@/components/Loader";
-import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Eye, EyeOff, Mail, Phone, ShieldCheck, User } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Eye, EyeOff, Mail, ShieldCheck, User } from "lucide-react";
 
 function SignupPageContent() {
   const { language } = useLanguage();
@@ -15,47 +15,39 @@ function SignupPageContent() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [code, setCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
   const cleanEmail = useMemo(() => email.trim().toLowerCase(), [email]);
   const fullName = useMemo(() => (firstName.trim() + " " + lastName.trim()).trim(), [firstName, lastName]);
-  const strongPassword = password.length >= 12 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password) && /[^A-Za-z0-9]/.test(password);
+  const hasLength = password.length >= 12;
+  const hasComplexity = /[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password) && /[^A-Za-z0-9]/.test(password);
+  const hasNoSpaces = !/\s/.test(password);
+  const passwordReady = hasLength && hasComplexity && hasNoSpaces;
 
   const requestCode = async () => {
     setError("");
     setNotice("");
-    if (!firstName.trim() || !lastName.trim() || !cleanEmail || !phone.trim()) {
-      setError(isRtl ? "يرجى إدخال جميع البيانات المطلوبة." : "Please complete all required fields.");
+    if (!firstName.trim() || !lastName.trim() || !cleanEmail) {
+      setError(isRtl ? "يرجى إدخال الاسم الأول واسم العائلة والبريد الإلكتروني." : "Please enter your first name, last name and email.");
       return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       setError(isRtl ? "البريد الإلكتروني غير صحيح." : "Enter a valid email address.");
       return;
     }
-    const localPhone = phone.replace(/\D/g, "");
-    if (!/^1[0125]\d{8}$/.test(localPhone)) {
-      setError(isRtl ? "أدخل رقم هاتف مصري صحيحًا مكوّنًا من 10 أرقام بعد +20." : "Enter a valid Egyptian mobile number after +20.");
-      return;
-    }
-    if (!strongPassword) {
-      setError(isRtl ? "كلمة المرور يجب أن تكون 12 حرفًا على الأقل، وبها حرف كبير وصغير ورقم ورمز." : "Password must be at least 12 characters and include uppercase, lowercase, a number and a symbol.");
+    if (!passwordReady) {
+      setError(isRtl ? "كلمة المرور يجب أن تتكون من 12 حرفًا على الأقل، وتشمل حرفًا كبيرًا وصغيرًا ورقمًا ورمزًا، دون مسافات." : "Use at least 12 characters, including uppercase, lowercase, a number and a special character, with no spaces.");
       return;
     }
     if (password !== confirmPassword) {
       setError(isRtl ? "كلمتا المرور غير متطابقتين." : "Passwords do not match.");
-      return;
-    }
-    if (!acceptedTerms) {
-      setError(isRtl ? "يجب الموافقة على شروط الاستخدام وسياسة الخصوصية للمتابعة." : "Please accept the Terms of Use and Privacy Policy.");
       return;
     }
 
@@ -70,8 +62,8 @@ function SignupPageContent() {
       if (!response.ok) throw new Error(data.error || (isRtl ? "تعذر إرسال رمز التحقق." : "Could not send the verification code."));
       setStep("verify");
       setNotice(isRtl
-        ? "إذا كان البريد مؤهلًا للتسجيل، فسيصلك رمز التفعيل خلال دقائق. تحقق أيضًا من مجلد الرسائل غير المرغوب فيها."
-        : "If this email is eligible, the activation code will arrive shortly. Check your spam folder too.");
+        ? "إذا كان البريد مؤهلًا للتسجيل، فسيصلك رمز التفعيل. تحقق أيضًا من مجلد الرسائل غير المرغوب فيها."
+        : "If this email is eligible, an activation code will be sent. Check your spam folder too.");
     } catch (err) {
       setError(err instanceof Error ? err.message : (isRtl ? "حدث خطأ غير متوقع." : "Something went wrong."));
     } finally {
@@ -96,13 +88,7 @@ function SignupPageContent() {
       const response = await fetch("/api/auth/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: cleanEmail,
-          code,
-          name: fullName,
-          phone: "+20" + phone.replace(/\D/g, ""),
-          password,
-        }),
+        body: JSON.stringify({ email: cleanEmail, code, name: fullName, password }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || (isRtl ? "تعذر تفعيل الحساب." : "Could not activate the account."));
@@ -111,9 +97,7 @@ function SignupPageContent() {
       await setAppValue("pending_role", "admin");
       const login = await signIn("credentials", { email: cleanEmail, password, redirect: false });
       if (login?.error) {
-        setNotice(isRtl
-          ? "تم إنشاء الحساب وتفعيل البريد بنجاح. يمكنك الآن تسجيل الدخول."
-          : "Your account is created and your email is verified. You can now sign in.");
+        setNotice(isRtl ? "تم إنشاء الحساب وتفعيل البريد بنجاح. يمكنك الآن تسجيل الدخول." : "Your account is created and your email is verified. You can now sign in.");
         setStep("details");
         setPassword("");
         setConfirmPassword("");
@@ -127,75 +111,70 @@ function SignupPageContent() {
     }
   };
 
-  const inputClass = "h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-800 outline-none transition focus:border-[#4F46BA] focus:ring-4 focus:ring-[#4F46BA]/10 placeholder:text-slate-400";
-  const labelClass = "mb-2 block text-xs font-bold text-slate-700";
+  const inputClass = "h-12 w-full rounded-lg border border-slate-300 bg-white px-4 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#5B50C7] focus:ring-4 focus:ring-[#5B50C7]/10";
+  const labelClass = "mb-2 block text-sm font-semibold text-slate-700";
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#f7f8fc] px-4 py-8 sm:py-12" dir={isRtl ? "rtl" : "ltr"}>
-      <div className="w-full max-w-[480px]">
-        <header className="mb-7 text-center">
-          <Link href="/" className="mb-6 inline-flex items-center justify-center gap-2">
+    <main className="min-h-screen bg-[#f8f9fc] text-slate-800" dir={isRtl ? "rtl" : "ltr"}>
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto flex min-h-[76px] max-w-6xl items-center justify-between gap-5 px-5">
+          <Link href="/" className="flex shrink-0 items-center gap-2.5">
             <img src="/logo.png" alt="Prime Physio" className="h-10 w-10 object-contain" />
-            <span className="text-lg font-extrabold text-[#4F46BA]">Prime Physio</span>
+            <span className="text-xl font-extrabold tracking-tight text-slate-900">Prime <span className="text-[#5B50C7]">Physio</span></span>
           </Link>
-          <h1 className="text-2xl font-extrabold text-slate-900 sm:text-[28px]">{isRtl ? "أنشئ حسابك" : "Create your account"}</h1>
-          <p className="mt-2 text-sm text-slate-500">
-            {step === "details"
-              ? (isRtl ? "الخطوة 1 من 2 · ثم فعّله بالكود الذي نرسله لبريدك." : "Step 1 of 2 · Then activate it with the code we email you.")
-              : (isRtl ? "الخطوة 2 من 2 · أدخل كود التفعيل المرسل إلى بريدك." : "Step 2 of 2 · Enter the activation code sent to your email.")}
-          </p>
-        </header>
+          <nav className="hidden items-center gap-7 text-sm font-medium text-slate-600 md:flex">
+            <Link href="/#features" className="transition hover:text-[#5B50C7]">{isRtl ? "المميزات" : "Features"}</Link>
+            <Link href="/#how" className="transition hover:text-[#5B50C7]">{isRtl ? "كيف يعمل" : "How it works"}</Link>
+            <Link href="/manage" className="transition hover:text-[#5B50C7]">{isRtl ? "دخول المالك" : "Owner login"}</Link>
+          </nav>
+          <Link href="/manage" className="rounded-lg border border-[#5B50C7] px-4 py-2 text-sm font-bold text-[#5B50C7] transition hover:bg-[#5B50C7] hover:text-white">{isRtl ? "تسجيل الدخول" : "Log in"}</Link>
+        </div>
+      </header>
 
-        <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-[0_16px_50px_rgba(15,23,42,0.08)] sm:p-8">
-          <div className="mb-7 flex items-center gap-3">
-            {[1, 2].map((number) => (
-              <React.Fragment key={number}>
-                <div className={"flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold " + ((step === "details" ? number === 1 : number === 2) ? "bg-[#4F46BA] text-white" : number === 1 ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-400")}>
-                  {step === "verify" && number === 1 ? <CheckCircle2 className="h-4 w-4" /> : number}
-                </div>
-                {number === 1 && <div className={"h-px flex-1 " + (step === "verify" ? "bg-emerald-300" : "bg-slate-200")} />}
-              </React.Fragment>
-            ))}
+      <div className="mx-auto flex max-w-6xl justify-center px-4 py-12 sm:py-16">
+        <section className="w-full max-w-[590px]">
+          <div className="mb-8 text-center">
+            <span className="mb-3 inline-flex rounded-full bg-[#5B50C7]/10 px-3 py-1 text-xs font-bold text-[#5B50C7]">{isRtl ? "ابدأ مع Prime Physio" : "GET STARTED WITH PRIME PHYSIO"}</span>
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{isRtl ? "أنشئ حسابك" : "Create your account"}</h1>
+            <p className="mt-3 text-sm leading-6 text-slate-500">{step === "details" ? (isRtl ? "أنشئ حساب مالك المركز وابدأ في تجهيز عيادتك." : "Create your clinic owner account and get your practice ready.") : (isRtl ? "الخطوة 2 من 2 · فعّل بريدك الإلكتروني للمتابعة." : "Step 2 of 2 · Verify your email to continue.")}</p>
           </div>
 
-          {error && <div role="alert" className="mb-5 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-3 text-xs leading-5 text-red-700"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /><span>{error}</span></div>}
-          {notice && <div role="status" className="mb-5 flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs leading-5 text-emerald-800"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /><span>{notice}</span></div>}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-[0_12px_40px_rgba(15,23,42,0.06)] sm:p-9">
+            {step === "verify" && <div className="mb-6 flex items-center gap-3"><div className="h-1.5 flex-1 rounded-full bg-emerald-400" /><div className="h-1.5 flex-1 rounded-full bg-[#5B50C7]" /></div>}
+            {error && <div role="alert" className="mb-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm leading-5 text-red-700"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /><span>{error}</span></div>}
+            {notice && <div role="status" className="mb-5 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm leading-5 text-emerald-800"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /><span>{notice}</span></div>}
 
-          {step === "details" ? (
-            <form onSubmit={handleDetails} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div><label className={labelClass}>{isRtl ? "الاسم الأول" : "First name"} *</label><div className="relative"><User className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input autoComplete="given-name" required value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass + (isRtl ? " pr-10" : " pl-10")} /></div></div>
-                <div><label className={labelClass}>{isRtl ? "اسم العائلة" : "Last name"} *</label><input autoComplete="family-name" required value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} /></div>
-              </div>
-
-              <div><label className={labelClass}>{isRtl ? "البريد الإلكتروني" : "Email"} *</label><div className="relative"><Mail className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className={inputClass + (isRtl ? " pr-10" : " pl-10")} /></div><p className="mt-1.5 text-[11px] text-slate-400">{isRtl ? "سنرسل كود التفعيل إلى هذا البريد." : "We’ll send the activation code to this email."}</p></div>
-
-              <div><label className={labelClass}>{isRtl ? "رقم الهاتف المحمول" : "Mobile number"} *</label><div className="flex gap-2" dir="ltr"><span className="flex h-12 items-center rounded-xl border border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">+20</span><div className="relative flex-1"><Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><input type="tel" inputMode="numeric" autoComplete="tel-national" required value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^\d]/g, "").slice(0, 10))} placeholder="10xxxxxxxx" className={inputClass + " pl-10"} /></div></div><p className="mt-1.5 text-[11px] leading-5 text-slate-400">{isRtl ? "يُفضّل أن يكون عليه واتساب؛ يستخدمه فريق Prime Physio لمساعدتك في تجهيز مركزك. لا يظهر للآخرين." : "Preferably WhatsApp-enabled. Our team may use it to help set up your center; it is not shown publicly."}</p></div>
-
-              <div><label className={labelClass}>{isRtl ? "كلمة المرور" : "Password"} *</label><div className="relative"><input type={showPassword ? "text" : "password"} autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass + (isRtl ? " pl-11" : " pr-11")} /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={isRtl ? "إظهار كلمة المرور" : "Show password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>
-                <ul className="mt-2 space-y-1 text-[11px] text-slate-500"><li className={password.length >= 12 ? "text-emerald-600" : ""}>{password.length >= 12 ? "✓" : "•"} {isRtl ? "12 حرفًا أو أكثر" : "12 characters or more"}</li><li className={/[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password) && /[^A-Za-z0-9]/.test(password) ? "text-emerald-600" : ""}>{/[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password) && /[^A-Za-z0-9]/.test(password) ? "✓" : "•"} {isRtl ? "حرف كبير وصغير ورقم ورمز" : "Uppercase, lowercase, number and symbol"}</li><li>{isRtl ? "يتم رفض كلمات المرور الشائعة أو التي ظهرت في تسريبات." : "Common or previously breached passwords are rejected."}</li></ul>
-              </div>
-
-              <div><label className={labelClass}>{isRtl ? "أعد كتابة كلمة المرور" : "Confirm password"} *</label><div className="relative"><input type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputClass + (isRtl ? " pl-11" : " pr-11")} /><button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={isRtl ? "إظهار تأكيد كلمة المرور" : "Show confirm password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></div>
-
-              <label className="flex cursor-pointer items-start gap-2 pt-1 text-xs leading-5 text-slate-600"><input type="checkbox" checked={acceptedTerms} onChange={(e) => setAcceptedTerms(e.target.checked)} className="mt-1 h-4 w-4 accent-[#4F46BA]" /><span>{isRtl ? "أوافق على شروط الاستخدام وسياسة الخصوصية." : "I agree to the Terms of Use and Privacy Policy."}</span></label>
-
-              <button type="submit" disabled={loading} className="mt-2 flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-sm font-bold text-white shadow-md shadow-indigo-200 transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60">
-                {loading ? <Loader size={18} /> : <>{isRtl ? "إنشاء الحساب" : "Create account"} {isRtl ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}</>}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerify} className="space-y-5">
-              <div className="text-center"><div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-[#4F46BA]"><ShieldCheck className="h-7 w-7" /></div><h2 className="text-lg font-extrabold text-slate-800">{isRtl ? "تحقق من بريدك الإلكتروني" : "Verify your email"}</h2><p className="mt-2 text-xs leading-6 text-slate-500">{isRtl ? "أدخل رمز التفعيل المكوّن من 6 أرقام الذي أرسلناه إلى" : "Enter the 6-digit activation code sent to"} <b dir="ltr" className="inline-block text-slate-700">{cleanEmail}</b></p></div>
-              <input aria-label={isRtl ? "رمز التفعيل" : "Activation code"} autoComplete="one-time-code" inputMode="numeric" maxLength={6} required value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50 text-center text-2xl font-extrabold tracking-[0.5em] text-slate-800 outline-none focus:border-[#4F46BA] focus:ring-4 focus:ring-[#4F46BA]/10" dir="ltr" placeholder="••••••" />
-              <button type="submit" disabled={loading || code.length !== 6} className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-sm font-bold text-white disabled:opacity-60">{loading ? <Loader size={18} /> : isRtl ? "تأكيد وإنشاء الحساب" : "Verify and create account"}</button>
-              <div className="flex items-center justify-between text-xs"><button type="button" onClick={() => { setStep("details"); setError(""); setNotice(""); }} className="font-semibold text-slate-500 hover:text-slate-800">{isRtl ? "تعديل البيانات" : "Edit details"}</button><button type="button" disabled={loading} onClick={requestCode} className="font-bold text-[#4F46BA] hover:text-[#3730a3] disabled:opacity-50">{isRtl ? "إعادة إرسال الكود" : "Resend code"}</button></div>
-            </form>
-          )}
+            {step === "details" ? (
+              <form onSubmit={handleDetails} className="space-y-5">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div><label className={labelClass}>{isRtl ? "الاسم الأول" : "First name"} <span className="text-red-500">*</span></label><div className="relative"><User className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input autoComplete="given-name" required value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass + (isRtl ? " pr-10" : " pl-10")} /></div></div>
+                  <div><label className={labelClass}>{isRtl ? "اسم العائلة" : "Last name"} <span className="text-red-500">*</span></label><input autoComplete="family-name" required value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} /></div>
+                </div>
+                <div><label className={labelClass}>{isRtl ? "البريد الإلكتروني" : "Email"} <span className="text-red-500">*</span></label><div className="relative"><Mail className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className={inputClass + (isRtl ? " pr-10" : " pl-10")} /></div></div>
+                <div><label className={labelClass}>{isRtl ? "كلمة المرور" : "Password"} <span className="text-red-500">*</span></label><div className="relative"><input type={showPassword ? "text" : "password"} autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={isRtl ? "إظهار كلمة المرور" : "Show password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>
+                  <ul className="mt-2 space-y-1.5 text-xs text-slate-500">
+                    <li className={hasLength ? "text-emerald-600" : ""}>{hasLength ? "✓" : "•"} {isRtl ? "12 حرفًا أو أكثر" : "At least 12 characters"}</li>
+                    <li className={hasComplexity ? "text-emerald-600" : ""}>{hasComplexity ? "✓" : "•"} {isRtl ? "حرف كبير وحرف صغير ورقم ورمز خاص" : "Uppercase, lowercase, number and special character"}</li>
+                    <li className={hasNoSpaces ? "text-emerald-600" : "text-red-500"}>{hasNoSpaces ? "✓" : "•"} {isRtl ? "بدون مسافات" : "No spaces"}</li>
+                    <li>{isRtl ? "يتم رفض كلمات المرور الشائعة أو التي ظهرت في تسريبات." : "Common or previously breached passwords are rejected."}</li>
+                  </ul>
+                </div>
+                <div><label className={labelClass}>{isRtl ? "أعد كتابة كلمة المرور" : "Re-type password"} <span className="text-red-500">*</span></label><div className="relative"><input type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={isRtl ? "إظهار تأكيد كلمة المرور" : "Show confirm password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></div>
+                <button type="submit" disabled={loading} className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#5146B8] to-[#7657D5] px-5 text-sm font-bold text-white shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60">{loading ? <Loader size={18} /> : <>{isRtl ? "إنشاء الحساب" : "Create account"} {isRtl ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}</>}</button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerify} className="space-y-5">
+                <div className="text-center"><div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#5B50C7]/10 text-[#5B50C7]"><ShieldCheck className="h-7 w-7" /></div><h2 className="text-xl font-bold text-slate-900">{isRtl ? "تحقق من بريدك الإلكتروني" : "Verify your email"}</h2><p className="mt-2 text-sm leading-6 text-slate-500">{isRtl ? "أدخل رمز التفعيل المكوّن من 6 أرقام المرسل إلى" : "Enter the 6-digit activation code sent to"} <b dir="ltr" className="inline-block text-slate-800">{cleanEmail}</b></p></div>
+                <input aria-label={isRtl ? "رمز التفعيل" : "Activation code"} autoComplete="one-time-code" inputMode="numeric" maxLength={6} required value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} className="h-14 w-full rounded-lg border border-slate-300 bg-slate-50 text-center text-2xl font-bold tracking-[0.5em] text-slate-800 outline-none focus:border-[#5B50C7] focus:ring-4 focus:ring-[#5B50C7]/10" dir="ltr" placeholder="••••••" />
+                <button type="submit" disabled={loading || code.length !== 6} className="flex h-12 w-full items-center justify-center rounded-lg bg-gradient-to-r from-[#5146B8] to-[#7657D5] text-sm font-bold text-white disabled:opacity-60">{loading ? <Loader size={18} /> : isRtl ? "تأكيد وإنشاء الحساب" : "Verify and create account"}</button>
+                <div className="flex items-center justify-between text-xs"><button type="button" onClick={() => { setStep("details"); setError(""); setNotice(""); }} className="font-semibold text-slate-500 hover:text-slate-800">{isRtl ? "العودة وتعديل البيانات" : "Back to edit details"}</button><button type="button" disabled={loading} onClick={requestCode} className="font-bold text-[#5B50C7] hover:underline disabled:opacity-50">{isRtl ? "إعادة إرسال الكود" : "Resend code"}</button></div>
+              </form>
+            )}
+          </div>
+          <p className="mt-6 text-center text-sm text-slate-500">{isRtl ? "لديك حساب بالفعل؟" : "Already have an account?"} <Link href="/manage" className="font-bold text-[#5B50C7] hover:underline">{isRtl ? "دخول المالك" : "Owner login"}</Link></p>
         </section>
-
-        <p className="mt-6 text-center text-sm text-slate-500">{isRtl ? "لديك حساب بالفعل؟" : "Already have an account?"} <Link href="/manage" className="font-bold text-[#4F46BA] hover:underline">{isRtl ? "سجّل الدخول" : "Sign in"}</Link></p>
       </div>
+      <footer className="border-t border-slate-200 bg-white py-5 text-center text-xs text-slate-400">© {new Date().getFullYear()} Prime Physio. {isRtl ? "جميع الحقوق محفوظة." : "All rights reserved."}</footer>
     </main>
   );
 }
