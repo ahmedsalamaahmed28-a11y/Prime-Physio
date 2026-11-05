@@ -60,6 +60,8 @@ function isSuccessfulPayment(obj: any): boolean {
     obj?.error_occured === false &&
     obj?.is_refunded !== true &&
     obj?.is_voided !== true &&
+    obj?.is_auth !== true &&
+    (obj?.is_capture === true || obj?.is_captured === true || obj?.is_standalone_payment === true) &&
     String(obj?.currency || "").toUpperCase() === "EGP" &&
     String(obj?.integration_id ?? "") === String(process.env.PAYMOB_INTEGRATION_ID || "");
 }
@@ -127,7 +129,7 @@ async function persistSubscription(obj: any): Promise<{ clinicId: string | null;
     !planId || !allowedPlans.has(planId) ||
     !Number.isFinite(expectedAmount) || expectedAmount <= 0 ||
     expectedAmount !== Number(obj.amount_cents) ||
-    !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
     !["monthly", "yearly"].includes(String(info.billingPeriod))
   ) {
     throw new Error("Paymob transaction does not match the stored order");
@@ -145,6 +147,16 @@ async function persistSubscription(obj: any): Promise<{ clinicId: string | null;
       throw new Error("Order was already associated with a different transaction");
     }
     return { clinicId: existing.clinic_id, duplicate: true };
+  }
+
+  const { data: existingTransaction, error: transactionLookupError } = await admin
+    .from("subscriptions")
+    .select("order_id")
+    .eq("transaction_id", transactionId)
+    .maybeSingle();
+  if (transactionLookupError) throw transactionLookupError;
+  if (existingTransaction) {
+    throw new Error("Transaction was already used for a different order");
   }
 
   const months = info.billingPeriod === "yearly" ? 12 : 1;
@@ -219,7 +231,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => null);
     const obj = body?.obj;
-    const hmac = typeof body?.hmac === "string" ? body.hmac : "";
+    const hmac = req.nextUrl.searchParams.get("hmac") || (typeof body?.hmac === "string" ? body.hmac : "");
 
     if (!obj || typeof obj !== "object" || !verifyHmac(transactionFields(obj), hmac)) {
       return NextResponse.json({ ok: false }, { status: 400, headers: { "Cache-Control": "no-store, private" } });
