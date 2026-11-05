@@ -44,9 +44,10 @@ export async function GET() {
 
     if (authResult.error) {
       // Migrate the legacy SHA-256 shadow password without touching ordinary Supabase users.
+      // Never attempt the historical hard-coded fallback credential. It was predictable
+      // and could allow direct Supabase Auth sign-in outside this NextAuth session bridge.
       const legacyPasswords = [
         createHash("sha256").update(email + secret + "SHADOW").digest("hex"),
-        createHash("sha256").update(email + "fallback_secret_123456789" + "SHADOW").digest("hex"),
       ];
       let legacySessionUser: typeof authResult.data.user | null = null;
 
