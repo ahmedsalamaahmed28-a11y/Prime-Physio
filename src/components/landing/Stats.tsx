@@ -2,19 +2,19 @@
 
 import { motion } from "framer-motion";
 import {
-  Building2,
+  Building,
   CalendarDays,
   Stethoscope,
-  HeartHandshake,
-  Headset,
+  Heart,
+  Headphones,
 } from "lucide-react";
 
 const stats = [
-  { id: "centers", label: "مركز", value: "+100", icon: Building2 },
+  { id: "centers", label: "مركز", value: "+100", icon: Building },
   { id: "sessions", label: "جلسة", value: "+25K", icon: CalendarDays },
   { id: "doctors", label: "طبيب", value: "+150", icon: Stethoscope },
-  { id: "satisfaction", label: "رضا العملاء", value: "98%", icon: HeartHandshake },
-  { id: "support", label: "دعم فني", value: "24/7", icon: Headset },
+  { id: "satisfaction", label: "رضا العملاء", value: "98%", icon: Heart },
+  { id: "support", label: "دعم فني", value: "24/7", icon: Headphones },
 ];
 
 export default function Stats() {
