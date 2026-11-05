@@ -15,6 +15,20 @@ export default function TrustedStrip() {
     { icon: LayoutDashboard, name: "HealthCore" }
   ];
 
+  const renderLogos = (hidden = false) => (
+    <div className="pp-trusted-strip-group" aria-hidden={hidden}>
+      {logos.map((logo) => (
+        <div
+          key={logo.name}
+          className="pp-trusted-strip-item flex items-center gap-3 text-slate-400 hover:text-indigo-600 transition-colors duration-300 cursor-default select-none grayscale hover:grayscale-0 opacity-70 hover:opacity-100"
+        >
+          <logo.icon className="w-8 h-8" />
+          <span className="text-2xl font-black tracking-tight font-sans" dir="ltr">{logo.name}</span>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <div className="w-full bg-slate-50 border-y border-slate-200/60 py-12 overflow-hidden" dir="rtl">
       <div className="max-w-7xl mx-auto px-6 mb-8">
@@ -23,20 +37,11 @@ export default function TrustedStrip() {
         </p>
       </div>
 
-      <div className="relative flex overflow-x-hidden group">
-        <div className="animate-infinite-scroll flex items-center gap-16 whitespace-nowrap px-8">
-          {[...logos, ...logos, ...logos].map((logo, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-3 text-slate-400 hover:text-indigo-600 transition-colors duration-300 cursor-default select-none grayscale hover:grayscale-0 opacity-70 hover:opacity-100"
-            >
-              <logo.icon className="w-8 h-8" />
-              <span className="text-2xl font-black tracking-tight font-sans" dir="ltr">{logo.name}</span>
-            </div>
-          ))}
+      <div className="pp-trusted-strip-viewport">
+        <div className="pp-trusted-strip-track">
+          {renderLogos()}
+          {renderLogos(true)}
         </div>
-        
-        {/* Gradients to fade edges */}
         <div className="pointer-events-none absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-slate-50 to-transparent z-10" />
         <div className="pointer-events-none absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-slate-50 to-transparent z-10" />
       </div>
