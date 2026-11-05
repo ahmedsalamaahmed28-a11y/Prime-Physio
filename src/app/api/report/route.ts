@@ -70,7 +70,27 @@ async function callGemini(modelName: string, prompt: string) {
 export async function POST(req: NextRequest) {
   try {
     await requireRole(req, ["admin", "doctor"]);
-    const { type, patientInfo, clinicalData } = await req.json();
+    const body = await req.json().catch(() => null);
+    const type = body?.type;
+    const patientInfo = body?.patientInfo;
+    const clinicalData = body?.clinicalData;
+    if (!["referral", "progress"].includes(type) || !patientInfo || typeof patientInfo !== "object" || !clinicalData || typeof clinicalData !== "object") {
+      return NextResponse.json({ error: "Invalid report request" }, { status: 400 });
+    }
+    const fields = [
+      patientInfo.nameEn, patientInfo.id, patientInfo.dob, patientInfo.gender,
+      clinicalData.diagnosis, clinicalData.rom, clinicalData.notes,
+    ];
+    if (fields.some((value) => typeof value !== "string" && typeof value !== "number")) {
+      return NextResponse.json({ error: "Invalid report data" }, { status: 400 });
+    }
+    if (fields.some((value) => String(value).length > 4000) ||
+        !Number.isFinite(Number(clinicalData.vasScore)) ||
+        Number(clinicalData.vasScore) < 0 || Number(clinicalData.vasScore) > 10) {
+      return NextResponse.json({ error: "Report data exceeds allowed limits" }, { status: 400 });
+    }
+    const reportPayloadSize = JSON.stringify({ patientInfo, clinicalData }).length;
+    if (reportPayloadSize > 12000) return NextResponse.json({ error: "Report request is too large" }, { status: 413 });
 
     let prompt = "";
 
@@ -127,7 +147,7 @@ Include standard insurance clinical report sections:
       try {
         console.log("Generating report with DeepSeek...");
         const text = await callDeepSeek(prompt);
-        return NextResponse.json({ report: text });
+        return NextResponse.json({ report: text }, { headers: { "Cache-Control": "no-store, private" } });
       } catch (err: any) {
         console.warn("DeepSeek report failed, falling back to Gemini...", err.message);
       }
@@ -159,11 +179,11 @@ Include standard insurance clinical report sections:
       { status: 500 }
     );
   } catch (error: any) {
-    const status = error.message === "Unauthorized" || error.message === "غير مصرح — صلاحية غير كافية" ? 401 : 500;
+    const status = /unauthorized/i.test(error.message) ? 401 : /forbidden|غير مصرح|صلاحية غير كافية/i.test(error.message) ? 403 : /Invalid report|Report data/i.test(error.message) ? 400 : 500;
     console.error("Report Generator API Error:", error);
     return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status }
+      { error: status === 400 ? "Invalid report request" : status === 401 ? "Unauthorized" : status === 403 ? "Forbidden" : "Internal server error" },
+      { status, headers: { "Cache-Control": "no-store, private" } }
     );
   }
 }
