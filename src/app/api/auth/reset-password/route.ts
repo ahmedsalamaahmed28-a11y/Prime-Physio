@@ -1,89 +1,80 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
+import { consumeVerificationCode, normalizeAuthEmail } from "@/lib/verificationCodes";
+
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, code, newPassword } = await req.json();
+    const body = await req.json().catch(() => null);
+    const email = normalizeAuthEmail(body?.email);
+    const code = typeof body?.code === "string" ? body.code.trim() : "";
+    const newPassword = typeof body?.newPassword === "string" ? body.newPassword : "";
 
-    if (!email || !code || !newPassword) {
-      return NextResponse.json({ error: "جميع الحقول مطلوبة" }, { status: 400 });
+    if (!email || !/^\d{6}$/.test(code) || !newPassword) {
+      return NextResponse.json({ error: "جميع الحقول مطلوبة بشكل صحيح" }, { status: 400 });
     }
-
-    if (newPassword.length < 6) {
-      return NextResponse.json({ error: "كلمة المرور يجب أن تكون 6 أحرف على الأقل" }, { status: 400 });
+    if (newPassword.length < 10 || newPassword.length > 128) {
+      return NextResponse.json({ error: "كلمة المرور يجب أن تكون 10 أحرف على الأقل وبحد أقصى 128 حرفًا" }, { status: 400 });
     }
 
     const admin = getAdminClient();
-    const cleanEmail = email.toLowerCase().trim();
-
-    // Verify the code from app_key_values
-    const key = `password_reset_${cleanEmail.replace(/[^a-z0-9]/g, "_")}`;
-    const { data: kv } = await admin
-      .from("app_key_values")
-      .select("value")
-      .eq("key", key)
-      .maybeSingle();
-
-    if (!kv) {
-      return NextResponse.json({ error: "لم يتم طلب رمز تحقق" }, { status: 400 });
-    }
-
-    const stored = kv.value as { code: string; expires_at: number; used: boolean };
-
-    if (stored.used) {
-      return NextResponse.json({ error: "رمز التحقق مستخدم بالفعل" }, { status: 400 });
-    }
-
-    if (stored.code !== code) {
-      return NextResponse.json({ error: "رمز التحقق غير صحيح" }, { status: 400 });
-    }
-
-    if (Date.now() > stored.expires_at) {
-      return NextResponse.json({ error: "انتهت صلاحية رمز التحقق" }, { status: 400 });
-    }
-
-    // Mark code as used
-    await admin.from("app_key_values").upsert({
-      key,
-      value: { ...stored, used: true },
-    });
-
-    // Update or create the password in auth_accounts
-    const passwordHash = await bcrypt.hash(newPassword, 10);
-
-    const { data: existing } = await admin
+    const { data: existing, error: accountError } = await admin
       .from("auth_accounts")
       .select("id")
-      .eq("email", cleanEmail)
+      .eq("email", email)
       .maybeSingle();
 
-    let updateError;
-    if (existing) {
-      const result = await admin
-        .from("auth_accounts")
-        .update({ password_hash: passwordHash })
-        .eq("email", cleanEmail);
-      updateError = result.error;
-    } else {
-      // Google user creating a password for the first time
-      const result = await admin
-        .from("auth_accounts")
-        .insert({
-          email: cleanEmail,
-          password_hash: passwordHash,
-          created_at: new Date().toISOString(),
-        });
-      updateError = result.error;
+    if (accountError) throw accountError;
+
+    if (!existing) {
+      const { data: staffUser, error: staffError } = await admin
+        .from("staff")
+        .select("id")
+        .eq("email", email)
+        .maybeSingle();
+      if (staffError) throw staffError;
+      if (!staffUser) {
+        return NextResponse.json({ error: "رمز التحقق غير صحيح أو منتهي الصلاحية" }, { status: 400 });
+      }
     }
 
-    if (updateError) {
-      return NextResponse.json({ error: "فشل تحديث كلمة المرور" }, { status: 500 });
+    // Atomic one-time consumption prevents concurrent reuse of the same OTP.
+    const consumed = await consumeVerificationCode(admin, email, "password_reset", code);
+    if (!consumed) {
+      return NextResponse.json({ error: "رمز التحقق غير صحيح أو منتهي الصلاحية أو تم استخدامه" }, { status: 400 });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    if (existing) {
+      const { error } = await admin
+        .from("auth_accounts")
+        .update({ password_hash: passwordHash, verified: true, updated_at: new Date().toISOString() })
+        .eq("id", existing.id);
+      if (error) throw error;
+    } else {
+      const { data: staffUser, error: staffError } = await admin
+        .from("staff")
+        .select("name, role")
+        .eq("email", email)
+        .maybeSingle();
+      if (staffError || !staffUser) throw staffError || new Error("Staff account not found");
+
+      const { error } = await admin.from("auth_accounts").insert({
+        email,
+        password_hash: passwordHash,
+        verified: true,
+        name: staffUser.name || email.split("@")[0],
+        provider: "email",
+        role: staffUser.role || "doctor",
+      });
+      if (error) throw error;
     }
 
     return NextResponse.json({ success: true });
-  } catch (err) {
-    console.error("[ResetPassword] Error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  } catch (error) {
+    console.error("[ResetPassword] Error:", error);
+    return NextResponse.json({ error: "فشل تحديث كلمة المرور. إذا استمر الخطأ، اطلب رمزًا جديدًا." }, { status: 500 });
   }
 }
