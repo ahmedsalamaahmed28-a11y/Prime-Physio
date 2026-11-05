@@ -49,7 +49,6 @@ BEGIN
       consumed_at = NULL,
       created_at = now()
   WHERE public.auth_verification_codes.created_at <= now() - interval '60 seconds'
-     OR public.auth_verification_codes.consumed_at IS NOT NULL
      OR public.auth_verification_codes.expires_at <= now()
   RETURNING true INTO stored;
 
