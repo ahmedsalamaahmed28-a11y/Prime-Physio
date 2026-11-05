@@ -28,11 +28,14 @@ export const authOptions = {
 
         const { data, error } = await admin
           .from("auth_accounts")
-          .select("id, email, password_hash")
+          .select("id, email, password_hash, verified")
           .eq("email", credentials.email.toLowerCase().trim())
           .maybeSingle();
 
         if (error || !data) return null;
+
+        // Unverified accounts must never receive a credentials session.
+        if (data.verified !== true) return null;
 
         const valid = await bcrypt.compare(credentials.password, data.password_hash);
         if (!valid) return null;
@@ -49,6 +52,13 @@ export const authOptions = {
     signIn: "/manage",
   },
   callbacks: {
+    async signIn({ user, account, profile }: any) {
+      if (account?.provider === "google") {
+        const googleProfile = profile as { email_verified?: boolean } | undefined;
+        return Boolean(user?.email && googleProfile?.email_verified === true);
+      }
+      return true;
+    },
     async jwt({ token, user }: any) {
       if (user) {
         token.id = user.id;
@@ -69,10 +79,5 @@ export const authOptions = {
 };
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const proto = req.headers["x-forwarded-proto"] || "http";
-  const host = req.headers["x-forwarded-host"] || req.headers.host;
-  if (host) {
-    process.env.NEXTAUTH_URL = `${proto}://${host}`;
-  }
   return NextAuth(req, res, authOptions);
 }
