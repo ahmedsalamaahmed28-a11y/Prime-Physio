@@ -9,7 +9,7 @@ export interface AuthUser {
   clinicId?: string;
 }
 
-function mapStaffRoleToRoleKey(role: string): "admin" | "doctor" | "receptionist" {
+function mapStaffRoleToRoleKey(role: string): "admin" | "doctor" | "receptionist" | "unknown" {
   switch (role) {
     case "admin":
     case "مدير العياده":
@@ -18,8 +18,13 @@ function mapStaffRoleToRoleKey(role: string): "admin" | "doctor" | "receptionist
     case "موظف استقبال":
     case "receptionist":
       return "receptionist";
-    default:
+    case "استشاري علاج طبيعي":
+    case "أخصائي علاج طبيعي":
+    case "ممارس علاج طبيعي":
+    case "doctor":
       return "doctor";
+    default:
+      return "unknown";
   }
 }
 
