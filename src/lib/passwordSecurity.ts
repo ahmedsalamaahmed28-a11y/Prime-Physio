@@ -10,6 +10,7 @@ export async function validateNewPassword(password: string): Promise<void> {
   if (
     password.length < 12 ||
     password.length > 128 ||
+    Buffer.byteLength(password, "utf8") > 72 ||
     !/[a-z]/.test(password) ||
     !/[A-Z]/.test(password) ||
     !/[0-9]/.test(password) ||
