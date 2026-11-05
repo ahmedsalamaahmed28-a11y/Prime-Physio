@@ -909,7 +909,7 @@ export default function CalendarPage() {
         selectedDate={selectedDate}
         patientsList={patients}
         doctorsList={doctorsList}
-        clinicId={clinicId}
+        clinicId={clinicId || undefined}
         onClose={() => setSelectedDate(null)}
         onSave={handleSaveNew}
       />
