@@ -1990,28 +1990,90 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
     return null;
   }, [localProtocolState, patient]);
 
+  const PROTOCOL_PROGRAM_TITLE = "__prime_physio_active_protocol_state__";
+
+  // Load the clinic-scoped protocol from Supabase so it follows the patient
+  // across devices. Local storage remains a temporary offline fallback only.
+  useEffect(() => {
+    if (!clinicId || !patient?.id) return;
+
+    let cancelled = false;
+    const loadProtocolState = async () => {
+      const { data, error } = await supabase
+        .from("patient_programs")
+        .select("id, exercises")
+        .eq("clinic_id", clinicId)
+        .eq("patient_id", patient.id)
+        .eq("title", PROTOCOL_PROGRAM_TITLE)
+        .maybeSingle();
+
+      if (cancelled) return;
+      if (error) {
+        console.warn("Could not load the saved clinical protocol:", error.message || error);
+        return;
+      }
+      if (data?.exercises) {
+        setLocalProtocolState(data.exercises as ProtocolState);
+        try {
+          localStorage.setItem(`patient_active_protocol_${patient.id}`, JSON.stringify(data.exercises));
+        } catch {}
+      }
+    };
+
+    loadProtocolState();
+    return () => { cancelled = true; };
+  }, [clinicId, patient?.id]);
+
   const persistProtocolState = async (state: ProtocolState | null) => {
+    if (!clinicId || !patient?.id) {
+      throw new Error("Missing clinic or patient context; protocol was not saved.");
+    }
+
+    const { data: existing, error: lookupError } = await supabase
+      .from("patient_programs")
+      .select("id")
+      .eq("clinic_id", clinicId)
+      .eq("patient_id", patient.id)
+      .eq("title", PROTOCOL_PROGRAM_TITLE)
+      .maybeSingle();
+
+    if (lookupError) throw lookupError;
+
+    if (state) {
+      if (existing?.id) {
+        const { error } = await supabase
+          .from("patient_programs")
+          .update({ exercises: state })
+          .eq("clinic_id", clinicId)
+          .eq("patient_id", patient.id)
+          .eq("id", existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("patient_programs")
+          .insert({
+            clinic_id: clinicId,
+            patient_id: patient.id,
+            title: PROTOCOL_PROGRAM_TITLE,
+            exercises: state,
+          });
+        if (error) throw error;
+      }
+    } else if (existing?.id) {
+      const { error } = await supabase
+        .from("patient_programs")
+        .delete()
+        .eq("clinic_id", clinicId)
+        .eq("patient_id", patient.id)
+        .eq("id", existing.id);
+      if (error) throw error;
+    }
+
     setLocalProtocolState(state);
     try {
-      if (state) {
-        localStorage.setItem(`patient_active_protocol_${patient.id}`, JSON.stringify(state));
-      } else {
-        localStorage.removeItem(`patient_active_protocol_${patient.id}`);
-      }
+      if (state) localStorage.setItem(`patient_active_protocol_${patient.id}`, JSON.stringify(state));
+      else localStorage.removeItem(`patient_active_protocol_${patient.id}`);
     } catch {}
-
-    try {
-      const { error } = await supabase
-        .from("patients")
-        .update({ active_protocol: state })
-        .eq('clinic_id', clinicId)
-        .eq("id", patient.id);
-      if (error) {
-        console.warn("Protocol saved locally; Supabase sync skipped or failed.", error.message || error);
-      }
-    } catch (e) {
-      console.warn("Protocol saved locally; Supabase sync skipped or failed.", e);
-    }
   };
 
   const activeProtocol = useMemo(() => {
