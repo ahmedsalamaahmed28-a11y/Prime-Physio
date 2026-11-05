@@ -41,10 +41,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Failed to create subscription" }, { status: 500 });
     }
 
-    const { error: settingsError } = await admin.from("clinic_settings").update({
-      subscription_id: subscription.id, subscription_status: "active", subscription_plan: "basic",
-    }).eq("clinic_id", user.clinicId);
-    if (settingsError) console.error("[Subscribe] Clinic settings sync failed:", settingsError.message);
+    // Subscription state is authoritative in the subscriptions table; clinic_settings
+    // has no subscription_status/subscription_plan columns.
 
     return NextResponse.json({ success: true, clinicId: user.clinicId, subscriptionId: subscription.id });
   } catch (err) {
