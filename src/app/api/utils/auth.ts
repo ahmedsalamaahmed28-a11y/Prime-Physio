@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
 
 export interface AuthUser {
   email: string;
@@ -13,6 +13,7 @@ function mapStaffRoleToRoleKey(role: string): "admin" | "doctor" | "receptionist
   switch (role) {
     case "admin":
     case "مدير العياده":
+    case "مدير العيادة":
       return "admin";
     case "موظف استقبال":
     case "receptionist":
