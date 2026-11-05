@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
 import bcrypt from "bcryptjs";
 import { consumeVerificationCode, normalizeAuthEmail } from "@/lib/verificationCodes";
 
