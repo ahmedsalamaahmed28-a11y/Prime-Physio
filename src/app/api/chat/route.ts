@@ -73,20 +73,34 @@ async function callGemini(messages: any[]) {
 export async function POST(req: NextRequest) {
   try {
     await requireRole(req, ["admin", "doctor"]);
-    const { messages } = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!Array.isArray(body?.messages) || body.messages.length < 1 || body.messages.length > 30) {
+      return NextResponse.json({ error: "Invalid chat history" }, { status: 400 });
+    }
+    const messages = body.messages.map((message: any) => {
+      if (!message || !["user", "assistant"].includes(message.role) || typeof message.content !== "string") {
+        throw new Error("Invalid chat message");
+      }
+      const content = message.content.trim();
+      if (!content || content.length > 8000) throw new Error("Chat message exceeds the allowed size");
+      return { role: message.role, content };
+    });
+    if (messages.reduce((sum: number, message: { content: string }) => sum + message.content.length, 0) > 30000) {
+      return NextResponse.json({ error: "Chat request is too large" }, { status: 413 });
+    }
 
     // Use DeepSeek first if API key is present
     if (deepseekApiKey) {
       try {
         console.log("Calling DeepSeek API...");
         const text = await callDeepSeek(messages);
-        return NextResponse.json({ content: text, provider: "DeepSeek" });
+        return NextResponse.json({ content: text, provider: "DeepSeek" }, { headers: { "Cache-Control": "no-store, private" } });
       } catch (err: any) {
         console.warn("DeepSeek call failed, attempting fallback to Gemini...", err.message);
         // Fallback to Gemini if DeepSeek fails and Gemini key is configured
         if (geminiApiKey) {
           const text = await callGemini(messages);
-          return NextResponse.json({ content: text, provider: "Gemini (Fallback)" });
+          return NextResponse.json({ content: text, provider: "Gemini (Fallback)" }, { headers: { "Cache-Control": "no-store, private" } });
         }
         return NextResponse.json(
           { error: `DeepSeek Error: ${err.message}` },
@@ -99,7 +113,7 @@ export async function POST(req: NextRequest) {
     if (geminiApiKey) {
       console.log("Calling Gemini API...");
       const text = await callGemini(messages);
-      return NextResponse.json({ content: text, provider: "Gemini" });
+      return NextResponse.json({ content: text, provider: "Gemini" }, { headers: { "Cache-Control": "no-store, private" } });
     }
 
     return NextResponse.json(
@@ -107,11 +121,11 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   } catch (error: any) {
-    const status = error.message === "Unauthorized" || error.message === "غير مصرح — صلاحية غير كافية" ? 401 : 500;
+    const status = /unauthorized/i.test(error.message) ? 401 : /forbidden|غير مصرح|صلاحية غير كافية/i.test(error.message) ? 403 : /Invalid chat|exceeds the allowed size/i.test(error.message) ? 400 : 500;
     console.error("Chat API Route Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to process chat request" },
-      { status }
+      { error: status === 400 ? "Invalid chat request" : status === 401 ? "Unauthorized" : status === 403 ? "Forbidden" : "Failed to process chat request" },
+      { status, headers: { "Cache-Control": "no-store, private" } }
     );
   }
 }
