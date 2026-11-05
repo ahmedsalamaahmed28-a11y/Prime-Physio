@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Activity, Menu, X, LayoutDashboard, Globe2 } from "lucide-react";
+import { Activity, Menu, X, LayoutDashboard, Globe } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 
@@ -92,7 +92,7 @@ export default function Navbar() {
           <span className="pp-nav-divider" aria-hidden="true" />
 
           <button type="button" className="pp-language" onClick={() => { toggleLanguage(); closeMenu(); }}>
-            <Globe2 aria-hidden="true" />
+            <Globe aria-hidden="true" />
             {language === "ar" ? "English" : "العربية"}
           </button>
 
