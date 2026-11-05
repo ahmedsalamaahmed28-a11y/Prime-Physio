@@ -4,42 +4,38 @@ import { requireAuthOnly, requireRole } from "../../utils/auth";
 
 export async function POST(req: NextRequest) {
   try {
-    let user;
-    let clinicId: string | undefined;
-    let roleKey: string | undefined;
+    const user = await requireAuthOnly(req);
     const admin = getAdminClient();
+    const { data: staff, error: staffError } = await admin.from("staff")
+      .select("clinic_id,role").eq("email", user.email).limit(1).maybeSingle();
+    if (staffError) return NextResponse.json({ error: "Unable to verify account ownership" }, { status: 500 });
 
-    // Try to get role and clinic (works for users subscribed to a clinic)
-    try {
-      const roleResult = await requireRole(req, ["admin", "doctor", "receptionist"]);
-      user = roleResult;
-      clinicId = roleResult.clinicId;
-      roleKey = roleResult.roleKey;
-    } catch {
-      // Fall back to just auth (for users who signed up but haven't subscribed yet)
-      user = await requireAuthOnly(req);
+    if (staff?.clinic_id) {
+      const roleResult = await requireRole(req, ["admin"]);
+      if (roleResult.clinicId !== staff.clinic_id) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+
+      const clinicId = roleResult.clinicId;
+      // Only the owning clinic administrator may initiate clinic-wide deletion.
+      const tables = ["patients", "sessions", "appointments", "invoices", "branches", "clinic_settings", "subscriptions", "staff"];
+      for (const table of tables) {
+        const { error } = await admin.from(table).delete().eq("clinic_id", clinicId);
+        if (error) {
+          console.error("[AccountDelete] Failed deleting clinic table:", table, error.message);
+          return NextResponse.json({ error: "تعذر إكمال حذف بيانات العيادة؛ لم يتم حذف الحساب" }, { status: 500 });
+        }
+      }
+      const { error: clinicDeleteError } = await admin.from("clinics").delete().eq("id", clinicId);
+      if (clinicDeleteError) return NextResponse.json({ error: "تعذر حذف العيادة" }, { status: 500 });
+    } else if (staff) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    if (clinicId) {
-      // Delete all clinic-related data
-      await admin.from("patients").delete().eq("clinic_id", clinicId);
-      await admin.from("sessions").delete().eq("clinic_id", clinicId);
-      await admin.from("appointments").delete().eq("clinic_id", clinicId);
-      await admin.from("invoices").delete().eq("clinic_id", clinicId);
-      await admin.from("branches").delete().eq("clinic_id", clinicId);
-      await admin.from("clinic_settings").delete().eq("clinic_id", clinicId);
-      await admin.from("subscriptions").delete().eq("clinic_id", clinicId);
-      await admin.from("staff").delete().eq("clinic_id", clinicId);
-      await admin.from("clinics").delete().eq("id", clinicId);
-    }
-
-    // Delete from auth_accounts table
-    await admin.from("auth_accounts").delete().eq("email", user.email);
-
+    const { error: accountError } = await admin.from("auth_accounts").delete().eq("email", user.email);
+    if (accountError) return NextResponse.json({ error: "تعذر حذف الحساب" }, { status: 500 });
     return NextResponse.json({ success: true });
-  } catch (err: any) {
-    console.error("Account deletion error:", err);
-    const status = err.message === "Unauthorized" ? 401 : err.message === "Forbidden" ? 403 : 500;
-    return NextResponse.json({ error: err.message }, { status });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "";
+    const status = message === "Unauthorized" ? 401 : /forbidden|insufficient|membership/i.test(message) ? 403 : 500;
+    return NextResponse.json({ error: status === 401 ? "Unauthorized" : status === 403 ? "Forbidden" : "Internal server error" }, { status });
   }
 }
