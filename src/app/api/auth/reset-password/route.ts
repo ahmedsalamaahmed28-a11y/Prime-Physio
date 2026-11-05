@@ -1,86 +1,47 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac } from "crypto";
 import { getAdminClient } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, code, newPassword } = await req.json();
-
-    if (!email || !code || !newPassword) {
+    const body = await req.json();
+    const email = typeof body?.email === "string" ? body.email.toLowerCase().trim() : "";
+    const code = typeof body?.code === "string" ? body.code.trim() : "";
+    const newPassword = typeof body?.newPassword === "string" ? body.newPassword : "";
+    if (!email || !/^\d{6}$/.test(code) || !newPassword) {
       return NextResponse.json({ error: "جميع الحقول مطلوبة" }, { status: 400 });
     }
-
-    if (newPassword.length < 6) {
-      return NextResponse.json({ error: "كلمة المرور يجب أن تكون 6 أحرف على الأقل" }, { status: 400 });
+    if (newPassword.length < 10 || newPassword.length > 128) {
+      return NextResponse.json({ error: "كلمة المرور يجب أن تكون بين 10 و128 حرفًا" }, { status: 400 });
     }
+    const pepper = process.env.AUTH_OTP_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!pepper || pepper.length < 32) return NextResponse.json({ error: "خدمة التحقق غير مهيأة" }, { status: 503 });
 
+    const codeHash = createHmac("sha256", pepper).update(`password_reset:${email}:${code}`).digest("hex");
     const admin = getAdminClient();
-    const cleanEmail = email.toLowerCase().trim();
-
-    // Verify the code from app_key_values
-    const key = `password_reset_${cleanEmail.replace(/[^a-z0-9]/g, "_")}`;
-    const { data: kv } = await admin
-      .from("app_key_values")
-      .select("value")
-      .eq("key", key)
-      .maybeSingle();
-
-    if (!kv) {
-      return NextResponse.json({ error: "لم يتم طلب رمز تحقق" }, { status: 400 });
-    }
-
-    const stored = kv.value as { code: string; expires_at: number; used: boolean };
-
-    if (stored.used) {
-      return NextResponse.json({ error: "رمز التحقق مستخدم بالفعل" }, { status: 400 });
-    }
-
-    if (stored.code !== code) {
-      return NextResponse.json({ error: "رمز التحقق غير صحيح" }, { status: 400 });
-    }
-
-    if (Date.now() > stored.expires_at) {
-      return NextResponse.json({ error: "انتهت صلاحية رمز التحقق" }, { status: 400 });
-    }
-
-    // Mark code as used
-    await admin.from("app_key_values").upsert({
-      key,
-      value: { ...stored, used: true },
+    const { data: consumed, error: consumeError } = await admin.rpc("consume_auth_verification_code", {
+      p_email: email, p_purpose: "password_reset", p_code_hash: codeHash,
     });
+    if (consumeError) {
+      console.error("[ResetPassword] Secure code consumption failed:", consumeError.message);
+      return NextResponse.json({ error: "تعذر التحقق من الرمز" }, { status: 500 });
+    }
+    if (consumed !== true) return NextResponse.json({ error: "رمز التحقق غير صحيح أو منتهي الصلاحية أو مستخدم" }, { status: 400 });
 
-    // Update or create the password in auth_accounts
-    const passwordHash = await bcrypt.hash(newPassword, 10);
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+    const { data: existing, error: lookupError } = await admin.from("auth_accounts").select("id").eq("email", email).maybeSingle();
+    if (lookupError) return NextResponse.json({ error: "تعذر تحديث كلمة المرور" }, { status: 500 });
 
-    const { data: existing } = await admin
-      .from("auth_accounts")
-      .select("id")
-      .eq("email", cleanEmail)
-      .maybeSingle();
-
-    let updateError;
     if (existing) {
-      const result = await admin
-        .from("auth_accounts")
-        .update({ password_hash: passwordHash })
-        .eq("email", cleanEmail);
-      updateError = result.error;
+      const { error } = await admin.from("auth_accounts").update({ password_hash: passwordHash }).eq("email", email);
+      if (error) return NextResponse.json({ error: "فشل تحديث كلمة المرور" }, { status: 500 });
     } else {
-      // Google user creating a password for the first time
-      const result = await admin
-        .from("auth_accounts")
-        .insert({
-          email: cleanEmail,
-          password_hash: passwordHash,
-          created_at: new Date().toISOString(),
-        });
-      updateError = result.error;
+      const { data: staff, error: staffError } = await admin.from("staff").select("id").eq("email", email).maybeSingle();
+      if (staffError || !staff) return NextResponse.json({ error: "الحساب غير موجود" }, { status: 404 });
+      const { error } = await admin.from("auth_accounts").insert({ email, password_hash: passwordHash, verified: true, provider: "email" });
+      if (error) return NextResponse.json({ error: "فشل إنشاء بيانات كلمة المرور" }, { status: 500 });
     }
-
-    if (updateError) {
-      return NextResponse.json({ error: "فشل تحديث كلمة المرور" }, { status: 500 });
-    }
-
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[ResetPassword] Error:", err);
