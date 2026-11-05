@@ -48,14 +48,49 @@ export function PWAProvider({ children }: { children: React.ReactNode }) {
 
     // 4. Register custom Service Worker
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/api/sw")
-        .then((reg) => {
-          console.log("[PWA Provider] Service Worker registered with scope:", reg.scope);
-        })
-        .catch((err) => {
+      const registerServiceWorker = async () => {
+        try {
+          const rootScope = `${window.location.origin}/`;
+
+          // Remove the legacy /api/ registration created when scope was omitted.
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(
+            registrations
+              .filter((registration) => {
+                const worker =
+                  registration.active ||
+                  registration.waiting ||
+                  registration.installing;
+                if (!worker || registration.scope === rootScope) return false;
+
+                try {
+                  const scriptUrl = new URL(worker.scriptURL);
+                  return (
+                    scriptUrl.origin === window.location.origin &&
+                    scriptUrl.pathname === "/api/sw"
+                  );
+                } catch {
+                  return false;
+                }
+              })
+              .map((registration) => registration.unregister())
+          );
+
+          const registration = await navigator.serviceWorker.register("/api/sw", {
+            scope: "/",
+            updateViaCache: "none",
+          });
+          await registration.update().catch(() => undefined);
+          console.log(
+            "[PWA Provider] Service Worker registered with scope:",
+            registration.scope
+          );
+        } catch (err) {
           console.error("[PWA Provider] Service Worker registration failed:", err);
-        });
+        }
+      };
+
+      void registerServiceWorker();
     }
 
     // 5. Initial sync if online
