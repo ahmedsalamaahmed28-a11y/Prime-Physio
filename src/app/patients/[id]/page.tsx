@@ -772,7 +772,6 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
   const [isLoadingSessions, setIsLoadingSessions] = useState(true);
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);  const [form, setForm] = useState({ diagnosis: "", vasScore: 0, notes: "" });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
 
   // Load sessions from Supabase on mount
   useEffect(() => {
@@ -1366,17 +1365,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
                         </div>
                         <div className="flex items-center gap-2">
                           {idx === 0 && <Badge className="bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200">{isRtl ? "أحدث جلسة" : "Latest Session"}</Badge>}
-                          {hasPermission("edit_emr") && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => setDeletingSessionId(session.id)}
-                              className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 p-1 h-7 w-7 rounded-lg transition-colors"
-                              title={isRtl ? "حذف الجلسة" : "Delete Session"}
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          )}
+                          
                         </div>
                       </div>
                       <div className="space-y-1">
@@ -1411,36 +1400,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
       </div>
       ) : null}
 
-      {/* Delete Session Confirmation Dialog */}
-      <Dialog open={!!deletingSessionId} onOpenChange={(open: boolean) => !open && setDeletingSessionId(null)}>
-        <DialogContent className="sm:max-w-sm text-center" showCloseButton={false}>
-          <div className="flex flex-col items-center justify-center space-y-4 pt-4">
-            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-2">
-              <Trash2 className="w-8 h-8" />
-            </div>
-            <DialogTitle className="text-xl font-bold text-slate-800">
-              {isRtl ? "تأكيد حذف الجلسة" : "Confirm Delete Session"}
-            </DialogTitle>
-            <DialogDescription className="text-sm text-slate-500">
-              {isRtl
-                ? "هل أنت متأكد من حذف هذه الجلسة نهائياً؟ لا يمكن التراجع عن هذا الإجراء."
-                : "Are you sure you want to permanently delete this session? This action cannot be undone."}
-            </DialogDescription>
-          </div>
-          <div className={`mt-6 flex gap-3 w-full ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
-            <Button type="button" variant="outline" onClick={() => setDeletingSessionId(null)} className="flex-1 rounded-xl font-bold">
-              {isRtl ? "إلغاء" : "Cancel"}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => deletingSessionId && handleDeleteSession(deletingSessionId)}
-              className="flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold"
-            >
-              {isRtl ? "نعم، احذف الجلسة" : "Yes, Delete Session"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      
     </div>
   );
 }
