@@ -1417,6 +1417,22 @@ export function PhaseBasedProtocolsTab({
   
   const [checkedCriteria, setCheckedCriteria] = useState<Record<number, boolean>>(() => initialState?.checkedCriteria || {});
 
+  // The parent loads the saved state asynchronously. Rehydrate this tab when
+  // that server-backed state arrives, without resetting it on every render.
+  useEffect(() => {
+    if (!initialState?.protocolId) return;
+    const nextProtocol = PROTOCOLS_LIBRARY.find((protocol) => protocol.id === initialState.protocolId);
+    if (!nextProtocol) return;
+
+    setSelectedProtocol((current) => current?.id === nextProtocol.id ? current : nextProtocol);
+    setCurrentPhaseIndex((current) => current === initialState.currentPhaseIndex ? current : initialState.currentPhaseIndex);
+    setCheckedCriteria((current) => {
+      const next = initialState.checkedCriteria || {};
+      return JSON.stringify(current) === JSON.stringify(next) ? current : next;
+    });
+  }, [initialState?.protocolId, initialState?.currentPhaseIndex, JSON.stringify(initialState?.checkedCriteria || {})]);
+
+
 
   
   useEffect(() => {
