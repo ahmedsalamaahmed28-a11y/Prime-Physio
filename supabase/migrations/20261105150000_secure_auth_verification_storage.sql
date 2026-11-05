@@ -65,3 +65,44 @@ GRANT ALL ON TABLE public.app_key_values TO service_role;
 -- Old OTPs were stored in a globally readable table; invalidate and remove only those temporary entries.
 DELETE FROM public.app_key_values
 WHERE key LIKE 'verification_%' OR key LIKE 'password_reset_%';
+
+CREATE OR REPLACE FUNCTION public.check_auth_verification_code(
+  p_email text,
+  p_purpose text,
+  p_code_hash text
+)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+DECLARE
+  valid_code boolean := false;
+BEGIN
+  UPDATE public.auth_verification_codes
+  SET
+    attempts = attempts + 1,
+    consumed_at = CASE WHEN attempts + 1 >= 5 THEN now() ELSE consumed_at END
+  WHERE email = lower(trim(p_email))
+    AND purpose = p_purpose
+    AND code_hash <> p_code_hash
+    AND consumed_at IS NULL
+    AND expires_at > now()
+    AND attempts < 5;
+
+  SELECT EXISTS (
+    SELECT 1 FROM public.auth_verification_codes
+    WHERE email = lower(trim(p_email))
+      AND purpose = p_purpose
+      AND code_hash = p_code_hash
+      AND consumed_at IS NULL
+      AND expires_at > now()
+      AND attempts < 5
+  ) INTO valid_code;
+
+  RETURN valid_code;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.check_auth_verification_code(text, text, text) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.check_auth_verification_code(text, text, text) TO service_role;
