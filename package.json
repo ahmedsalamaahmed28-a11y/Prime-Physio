@@ -64,5 +64,6 @@
   },
   "overrides": {
     "proxy-addr": "2.0.8"
-  }
+  },
+  "description": "Prime Physio clinic management application"
 }
