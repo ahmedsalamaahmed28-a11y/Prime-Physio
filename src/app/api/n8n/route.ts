@@ -1,22 +1,35 @@
 import { NextResponse } from 'next/server';
-import { getAdminClient } from '@/lib/supabase';
+import { timingSafeEqual } from 'crypto';
+import { getAdminClient } from '@/lib/supabase-admin';
 
-// You should set this in your Vercel Environment Variables
-const N8N_SECURE_TOKEN = process.env.N8N_SECURE_TOKEN || "prime_physio_n8n_secret_123";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
   try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader || authHeader !== `Bearer ${N8N_SECURE_TOKEN}`) {
+    const configuredToken = process.env.N8N_SECURE_TOKEN;
+    const configuredClinicId = process.env.N8N_ALLOWED_CLINIC_ID;
+    if (!configuredToken || configuredToken.length < 32 || !configuredClinicId) {
+      return NextResponse.json({ error: "Integration is not securely configured" }, { status: 503 });
+    }
+
+    const authHeader = req.headers.get("authorization") || "";
+    const suppliedToken = Buffer.from(authHeader.replace(/^Bearer\s+/i, ""));
+    const expectedToken = Buffer.from(configuredToken);
+    if (
+      !/^Bearer\s+/i.test(authHeader) ||
+      suppliedToken.length !== expectedToken.length ||
+      !timingSafeEqual(suppliedToken, expectedToken)
+    ) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await req.json();
-    const { action, clinicId, data } = body;
-
-    if (!clinicId) {
-      return NextResponse.json({ error: "clinicId is required" }, { status: 400 });
+    const { action, clinicId: requestedClinicId, data } = body || {};
+    if (!requestedClinicId || requestedClinicId !== configuredClinicId) {
+      return NextResponse.json({ error: "Clinic is not authorized for this integration" }, { status: 403 });
     }
+    const clinicId = configuredClinicId;
 
     const supabaseAdmin = getAdminClient();
 
