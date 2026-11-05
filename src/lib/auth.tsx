@@ -389,7 +389,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       name: prefixArabicName(name, roleKey),
       email,
       initials,
-      role,
+      role: getArabicRoleLabel(roleKey),
       roleKey,
       bg: "bg-gradient-to-br from-[#0d8a8a] to-[#085454]",
       nameEn: prefixEnglishName(name, roleKey),
@@ -406,6 +406,14 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
   const registerWithSupabase = async (email: string, pass: string, meta: any) => {
     try {
+      const passwordCheck = await fetch("/api/auth/validate-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pass }),
+      });
+      const passwordResult = await passwordCheck.json().catch(() => ({}));
+      if (!passwordCheck.ok) return { error: passwordResult.error || "كلمة المرور لا تستوفي متطلبات الأمان" };
+
       const { error } = await supabase.auth.signUp({
         email,
         password: pass,
