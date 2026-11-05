@@ -1,30 +1,33 @@
-import { supabase } from "@/lib/supabase";
+const STORAGE_PREFIX = "prime-physio:";
+
+function storageKey(key: string) {
+  return `${STORAGE_PREFIX}${key}`;
+}
 
 export async function getAppValue<T>(key: string, fallback: T): Promise<T> {
-  const { data, error } = await supabase
-    .from("app_key_values")
-    .select("value")
-    .eq("key", key)
-    .maybeSingle();
+  if (typeof window === "undefined") return fallback;
 
-  if (error || data?.value === undefined || data?.value === null) {
-    if (error) console.error(`Failed to load ${key} from Supabase`, error);
+  try {
+    const raw = window.localStorage.getItem(storageKey(key));
+    if (raw === null) return fallback;
+    return JSON.parse(raw) as T;
+  } catch (error) {
+    console.error(`Failed to load ${key} from local storage`, error);
     return fallback;
   }
-
-  return data.value as T;
 }
 
 export async function setAppValue<T>(key: string, value: T): Promise<void> {
-  if (value === null || value === undefined) {
-    const { error } = await supabase.from("app_key_values").delete().eq("key", key);
-    if (error) throw error;
-    return;
+  if (typeof window === "undefined") return;
+
+  try {
+    if (value === null || value === undefined) {
+      window.localStorage.removeItem(storageKey(key));
+      return;
+    }
+    window.localStorage.setItem(storageKey(key), JSON.stringify(value));
+  } catch (error) {
+    console.error(`Failed to save ${key} to local storage`, error);
+    throw error;
   }
-
-  const { error } = await supabase
-    .from("app_key_values")
-    .upsert({ key, value }, { onConflict: "key" });
-
-  if (error) throw error;
 }
