@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { SessionProvider, signOut, useSession } from "next-auth/react";
+import { SessionProvider, signOut, useSession, getSession } from "next-auth/react";
 import { supabase } from "@/lib/supabase";
 import { getAppValue, setAppValue } from "@/lib/appStorage";
 
@@ -27,8 +27,8 @@ interface AuthContextType {
   user: User | null;
   activeBranchId: string | null;
   setActiveBranchId: (id: string | null) => void;
-  loginWithGoogle: (email: string) => void;
-  loginWithCredentials: (email: string, name: string, role: string) => void;
+  loginWithGoogle: (email: string) => Promise<void>;
+  loginWithCredentials: (email: string, name: string, role: string) => Promise<void>;
   registerWithSupabase: (email: string, pass: string, meta: any) => Promise<{ error?: string }>;
   loginWithSupabase: (email: string, pass: string) => Promise<{ error?: string }>;
   logout: () => void;
@@ -192,8 +192,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, authSession) => {
       if (authSession?.user) {
-        const pendingRole = (await getAppValue<string>("pending_role", "doctor")) || "doctor";
-        const roleKey = (authSession.user.user_metadata?.role || pendingRole || "doctor") as "admin" | "doctor" | "receptionist";
+        // User metadata and browser storage are user-controlled; the staff table is the role source of truth.
+        const roleKey = "doctor" as const;
         const name = authSession.user.user_metadata?.full_name || authSession.user.email?.split("@")[0] || "مستخدم";
 
         const newUser: User = {
@@ -240,7 +240,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         const currentUser = session.user!;
         const email = currentUser.email || "";
         const pendingSignup = await getAppValue<string>("pending_google_signup", "").catch(() => "");
-        const finalRoleKey = ((await getAppValue<string>("pending_role", "doctor")) || "doctor") as "admin" | "doctor" | "receptionist" | "platform_admin";
+        // Never trust a role stored in localStorage. enrichUserWithClinic resolves it from the server-side staff record.
+        const finalRoleKey = "doctor" as const;
 
         // Sync NextAuth session to Supabase so RLS policies work!
         try {
@@ -338,6 +339,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   }, [user, pathname, isAuthLoading, status]);
 
   const loginWithGoogle = async (email: string) => {
+    const activeSession = await getSession();
+    if (!activeSession?.user?.email || activeSession.user.email.toLowerCase() !== email.toLowerCase()) return;
     const name = email.split("@")[0];
     const uppercaseName = name.charAt(0).toUpperCase() + name.slice(1);
     const newUser: User = {
@@ -360,12 +363,10 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginWithCredentials = async (email: string, name: string, role: string) => {
+    const activeSession = await getSession();
+    if (!activeSession?.user?.email || activeSession.user.email.toLowerCase() !== email.toLowerCase()) return;
     const initials = name.substring(0, 2).toUpperCase();
-    const roleKey = (email.startsWith("admin")
-      ? "admin"
-      : email.startsWith("reception")
-      ? "receptionist"
-      : "doctor") as "admin" | "doctor" | "receptionist";
+    const roleKey = "doctor" as const;
 
     const newUser: User = {
       name: prefixArabicName(name, roleKey),
