@@ -139,27 +139,18 @@ function NewAppointmentDialog({
     let cancelled = false;
     const loadPatientPlan = async () => {
       setPlansLoading(true);
-      const [plansResult, programResult] = await Promise.all([
-        supabase.from("treatment_plans")
-          .select("id,goals,session_plan,status,created_at")
-          .eq("clinic_id", clinicId)
-          .eq("patient_id", patientId)
-          .eq("status", "active")
-          .order("created_at", { ascending: false }),
-        supabase.from("patient_programs")
-          .select("exercises")
-          .eq("clinic_id", clinicId)
-          .eq("patient_id", patientId)
-          .neq("title", "__prime_physio_active_protocol_state__")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle(),
-      ]);
+      const plansResult = await supabase.from("treatment_plans")
+        .select("id,goals,session_plan,target_exercises,status,created_at")
+        .eq("clinic_id", clinicId)
+        .eq("patient_id", patientId)
+        .eq("status", "active")
+        .order("created_at", { ascending: false });
 
       if (cancelled) return;
       if (plansResult.error) {
         console.error("Could not load active treatment plans:", plansResult.error);
         setTreatmentPlans([]);
+        setTargetExercisesText("");
       } else {
         const plans = plansResult.data || [];
         setTreatmentPlans(plans);
@@ -167,13 +158,7 @@ function NewAppointmentDialog({
         setTreatmentPlanId(latest?.id || "");
         setSessionIntervention(latest?.session_plan || "");
         setSessionObjectives(latest?.goals || "");
-      }
-
-      if (programResult.error) {
-        console.error("Could not load home exercises:", programResult.error);
-        setTargetExercisesText("");
-      } else {
-        const exercises = Array.isArray(programResult.data?.exercises) ? programResult.data.exercises : [];
+        const exercises = Array.isArray(latest?.target_exercises) ? latest.target_exercises : [];
         setTargetExercisesText(exercises
           .map((item: any) => typeof item === "string" ? item : (item?.name || item?.title || ""))
           .filter(Boolean)
@@ -294,6 +279,11 @@ function NewAppointmentDialog({
                 setTreatmentPlanId(e.target.value);
                 setSessionIntervention(selected?.session_plan || "");
                 setSessionObjectives(selected?.goals || "");
+                const exercises = Array.isArray(selected?.target_exercises) ? selected.target_exercises : [];
+                setTargetExercisesText(exercises
+                  .map((item: any) => typeof item === "string" ? item : (item?.name || item?.title || ""))
+                  .filter(Boolean)
+                  .join("\n"));
               }}
               disabled={plansLoading}
             >
