@@ -32,14 +32,15 @@ export const authOptions = {
         }
 
         const headers = req?.headers || {};
-        const forwarded = headers["x-forwarded-for"];
         const realIp = headers["x-real-ip"];
-        const forwardedIp = Array.isArray(forwarded)
-          ? forwarded[0]
+        const forwarded = headers["x-forwarded-for"];
+        const forwardedValues = Array.isArray(forwarded)
+          ? forwarded
           : typeof forwarded === "string"
-            ? forwarded.split(",")[0]
-            : "";
-        const ip = String(forwardedIp || realIp || "unknown").trim().slice(0, 128);
+            ? forwarded.split(",")
+            : [];
+        // Prefer the proxy-normalized x-real-ip; otherwise use the final forwarded hop.
+        const ip = String(realIp || forwardedValues[forwardedValues.length - 1] || "unknown").trim().slice(0, 128);
         const ipHash = createHmac("sha256", secret).update(ip).digest("hex");
 
         try {
