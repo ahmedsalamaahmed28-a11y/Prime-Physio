@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase-admin";
 import bcrypt from "bcryptjs";
-import { consumeVerificationCode, normalizeAuthEmail } from "@/lib/verificationCodes";
+import { checkVerificationCode, consumeVerificationCode, normalizeAuthEmail } from "@/lib/verificationCodes";
 import { validateNewPassword } from "@/lib/passwordSecurity";
 
 export const runtime = "nodejs";
@@ -40,6 +40,11 @@ export async function POST(req: NextRequest) {
     if (staffLookupError) throw staffLookupError;
     if (existingStaff) {
       return NextResponse.json({ error: "تعذر إنشاء الحساب بهذه البيانات" }, { status: 409 });
+    }
+
+    const codeValid = await checkVerificationCode(admin, email, "signup", code);
+    if (!codeValid) {
+      return NextResponse.json({ error: "رمز التحقق غير صحيح أو منتهي الصلاحية" }, { status: 400 });
     }
 
     try {
