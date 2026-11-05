@@ -17,11 +17,21 @@ const PLAN_NAMES: Record<string, string> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { planId, billingData, billingPeriod } = await req.json();
+    const body = await req.json();
+    const planId = body?.planId;
+    const billingPeriod = body?.billingPeriod === "yearly" ? "yearly" : "monthly";
+    const billingData = body?.billingData && typeof body.billingData === "object" ? body.billingData : null;
+    const email = typeof billingData?.email === "string" ? billingData.email.toLowerCase().trim() : "";
+    if (!billingData || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || email.length > 254) {
+      return NextResponse.json({ error: "يرجى إدخال بريد إلكتروني صحيح" }, { status: 400 });
+    }
 
     // No clinicId yet; it will be attached when they sign up
     const resolvedClinicId: string | null = null;
 
+    if (typeof planId !== "string" || !["silver", "gold"].includes(planId)) {
+      return NextResponse.json({ error: "خطة غير صحيحة" }, { status: 400 });
+    }
     let amountCents = PLAN_PRICES[planId];
     if (!amountCents) {
       return NextResponse.json({ error: "خطة غير صحيحة" }, { status: 400 });
@@ -31,9 +41,13 @@ export async function POST(req: NextRequest) {
       amountCents = Math.round(amountCents * 12 * 0.8);
     }
 
-    const apiKey          = process.env.PAYMOB_API_KEY!;
-    const integrationId   = process.env.PAYMOB_INTEGRATION_ID!;
-    const iframeId        = process.env.PAYMOB_IFRAME_ID!;
+    const apiKey = process.env.PAYMOB_API_KEY;
+    const integrationId = process.env.PAYMOB_INTEGRATION_ID;
+    const iframeId = process.env.PAYMOB_IFRAME_ID;
+    if (!apiKey || !integrationId || !iframeId || !/^\\d+$/.test(integrationId) || !/^\\d+$/.test(iframeId)) {
+      console.error("[Paymob] Required payment configuration is missing or invalid");
+      return NextResponse.json({ error: "خدمة الدفع غير مهيأة" }, { status: 503 });
+    }
 
     // ── Step 1: Authentication ────────────────────────────────────────────
     const authRes = await fetch(`${PAYMOB_BASE}/auth/tokens`, {
@@ -86,7 +100,7 @@ export async function POST(req: NextRequest) {
         planId,
         planName: PLAN_NAMES[planId],
         price: amountCents / 100,
-        email: billingData?.email || "",
+        email,
         billingPeriod,
         clinicId: resolvedClinicId,
       },
@@ -98,7 +112,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Step 3: Get Payment Key ───────────────────────────────────────────
-    const billing = billingData || {
+    const billing = {
       apartment:     "N/A",
       email:         "client@primephysio.com",
       floor:         "N/A",
@@ -112,6 +126,8 @@ export async function POST(req: NextRequest) {
       country:       "EG",
       last_name:     "Physio",
       state:         "Cairo",
+      ...billingData,
+      email,
     };
 
     const pkRes = await fetch(`${PAYMOB_BASE}/acceptance/payment_keys`, {
@@ -152,6 +168,6 @@ export async function POST(req: NextRequest) {
     const msg = err instanceof Error ? err.message : String(err);
     const status = msg === "Unauthorized" || msg === "غير مصرح — صلاحية غير كافية" ? 401 : 500;
     console.error("[Paymob] Unexpected error:", msg);
-    return NextResponse.json({ error: "خطأ غير متوقع في نظام الدفع", details: msg }, { status });
+    return NextResponse.json({ error: "خطأ غير متوقع في نظام الدفع" }, { status });
   }
 }
