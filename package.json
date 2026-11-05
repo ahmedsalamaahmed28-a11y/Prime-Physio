@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "security:audit": "npm audit --omit=dev --audit-level=high"
+    "security:audit": "npm audit --omit=dev --audit-level=high",
+    "security:refresh-lock": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund"
   },
   "browserslist": [
     "last 2 Chrome versions",
