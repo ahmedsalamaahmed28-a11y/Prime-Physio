@@ -133,7 +133,7 @@ export async function requireRole(
 
   const roleKey = mapStaffRoleToRoleKey(staff.role);
 
-  if (!allowedRoles.includes(roleKey)) {
+  if (roleKey === "unknown" || !allowedRoles.includes(roleKey)) {
     throw new Error("غير مصرح — صلاحية غير كافية");
   }
 
