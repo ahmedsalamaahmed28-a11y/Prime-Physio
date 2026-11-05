@@ -474,35 +474,31 @@ export default function CalendarPage() {
   const done = events.filter((e) => e.status === "منتهي").length;
 
   const handleSaveNew = async (ev: CalendarEvent) => {
-    // Check subscription limit for sessions
+    if (!clinicId) {
+      alert(isRtl ? "تعذر تحديد العيادة الحالية." : "The active clinic could not be identified.");
+      return;
+    }
+
     try {
       const limitRes = await fetch(`/api/subscription/check-limit?clinic_id=${clinicId}&resource=sessions`);
       if (limitRes.ok) {
         const limitData = await limitRes.json();
         if (!limitData.allowed) {
           setAlertMsg(isRtl
-            ? "لقد تجاوزت الحد المسموح به لعدد الجلسات الشهرية في خطتك الحالية. يرجى ترقية اشتراكك."
+            ? "لقد تجاوزت الحد الأقصى للجلسات الشهرية في خطتك الحالية. يرجى ترقية اشتراكك."
             : "You have reached the monthly session limit for your current plan. Please upgrade your subscription.");
           return;
         }
       }
-    } catch { }
 
-    const generateUUID = () => {
-      if (typeof crypto !== "undefined" && crypto.randomUUID) {
-        return crypto.randomUUID();
-      }
-      return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
-        const r = (Math.random() * 16) | 0;
-        const v = c === "x" ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-      });
-    };
+      const newId = typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (ch) => {
+            const r = Math.random() * 16 | 0;
+            return (ch === "x" ? r : (r & 0x3) | 0x8).toString(16);
+          });
 
-    const newId = generateUUID();
-
-    try {
-      const { error } = await supabase.from("appointments").insert({
+      const { error: appointmentError } = await supabase.from("appointments").insert({
         id: newId,
         clinic_id: clinicId,
         patient_id: ev.patientId,
@@ -513,91 +509,184 @@ export default function CalendarPage() {
         start_time: ev.start.toISOString(),
         end_time: ev.end.toISOString()
       });
-      if (!error) {
-        ev.id = newId;
 
-        // Generate Invoice for this session
-        const invoiceDesc = isRtl ? `جلسة: ${ev.visitType}` : `Session: ${ev.visitType}`;
-        let defaultPrice = "100";
-        const { data: settings } = await supabase
-          .from("clinic_settings")
-          .select("default_session_price")
-          .eq("user_id", "default")
-          .eq('clinic_id', clinicId)
-          .maybeSingle();
-        if (settings?.default_session_price) defaultPrice = String(settings.default_session_price);
+      if (appointmentError) throw appointmentError;
 
-        const invoiceAmt = isRtl ? `${defaultPrice} ج.م` : `${defaultPrice} EGP`;
+      const invoiceDesc = isRtl ? `جلسة: ${ev.visitType}` : `Session: ${ev.visitType}`;
+      let defaultPrice = "100";
+      const { data: settings, error: settingsError } = await supabase
+        .from("clinic_settings")
+        .select("default_session_price")
+        .eq("user_id", "default")
+        .eq("clinic_id", clinicId)
+        .maybeSingle();
 
-        try {
-          await supabase.from("invoices").insert([{
-            id: `INV-${newId}`,
-            clinic_id: clinicId,
-            patient_id: ev.patientId,
-            patient_name: ev.patientName,
-            description: invoiceDesc,
-            amount: invoiceAmt,
-            status: isRtl ? "انتظار" : "Pending",
-            payment_method: "—",
-            date: ev.start.toISOString().split("T")[0]
-          }]);
-        } catch (invErr) {
-          console.warn("Failed to generate invoice", invErr);
-        }
+      if (!settingsError && settings?.default_session_price) {
+        defaultPrice = String(settings.default_session_price);
       }
-    } catch (err) {
-      console.warn("DB insert failed", err);
+
+      const invoiceAmt = isRtl ? `${defaultPrice} ج.م` : `${defaultPrice} EGP`;
+      const { error: invoiceError } = await supabase.from("invoices").insert({
+        id: `INV-${newId}`,
+        clinic_id: clinicId,
+        patient_id: ev.patientId,
+        patient_name: ev.patientName,
+        description: invoiceDesc,
+        amount: invoiceAmt,
+        status: isRtl ? "انتظار" : "Pending",
+        payment_method: "—",
+        date: ev.start.toISOString().split("T")[0]
+      });
+
+      if (invoiceError) {
+        // Keep appointment + invoice creation consistent if invoice creation fails.
+        const { error: rollbackError } = await supabase
+          .from("appointments")
+          .delete()
+          .eq("id", newId)
+          .eq("clinic_id", clinicId);
+        if (rollbackError) {
+          console.error("Appointment rollback failed after invoice error:", rollbackError);
+        }
+        throw invoiceError;
+      }
+
+      ev.id = newId;
+      syncEventsState([...events, ev]);
+      setSelectedDate(null);
+    } catch (err: any) {
+      console.error("Failed to save appointment and invoice:", err);
+      alert(isRtl
+        ? "لم يتم حفظ الموعد والفاتورة. لم تتم إضافة الموعد إلى التقويم: " + (err.message || err)
+        : "The appointment and invoice were not saved. The calendar was not updated: " + (err.message || err));
     }
-    syncEventsState([...events, ev]);
-    setSelectedDate(null);
   };
 
   const handleUpdate = async (updated: CalendarEvent) => {
+    if (!clinicId) return;
     try {
-      await supabase.from("appointments").update({
-        doctor_name: updated.doctor,
-        appointment_type: updated.visitType,
-        status: updated.status,
-        start_time: updated.start.toISOString(),
-        end_time: updated.end.toISOString()
-      }).eq("id", updated.id).eq('clinic_id', clinicId);
-    } catch (err) { }
-    syncEventsState(events.map((e) => e.id === updated.id ? updated : e));
-    setSelectedEvent(null);
+      const { data, error } = await supabase
+        .from("appointments")
+        .update({
+          doctor_name: updated.doctor,
+          appointment_type: updated.visitType,
+          status: updated.status,
+          start_time: updated.start.toISOString(),
+          end_time: updated.end.toISOString()
+        })
+        .eq("id", updated.id)
+        .eq("clinic_id", clinicId)
+        .select("id")
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) throw new Error("Appointment was not found or you do not have permission to update it.");
+
+      syncEventsState(events.map((e) => e.id === updated.id ? updated : e));
+      setSelectedEvent(null);
+    } catch (err: any) {
+      console.error("Failed to update appointment:", err);
+      alert(isRtl ? "فشل تحديث الموعد: " + (err.message || err) : "Appointment update failed: " + (err.message || err));
+    }
   };
 
   const handleCancel = async (id: string) => {
+    if (!clinicId) return;
     try {
-      await supabase.from("appointments").update({ status: "ملغي" }).eq("id", id).eq('clinic_id', clinicId);
-    } catch (err) { }
-    syncEventsState(events.map((e) => e.id === id ? { ...e, status: "ملغي" } : e));
+      const { data, error } = await supabase
+        .from("appointments")
+        .update({ status: "ملغي" })
+        .eq("id", id)
+        .eq("clinic_id", clinicId)
+        .select("id")
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) throw new Error("Appointment was not found or you do not have permission to cancel it.");
+
+      syncEventsState(events.map((e) => e.id === id ? { ...e, status: "ملغي" } : e));
+    } catch (err: any) {
+      console.error("Failed to cancel appointment:", err);
+      alert(isRtl ? "فشل إلغاء الموعد: " + (err.message || err) : "Appointment cancellation failed: " + (err.message || err));
+    }
   };
 
   const handleComplete = async (id: string) => {
-    const completedEvent = events.find(e => e.id === id);
+    if (!clinicId) return;
+    const completedEvent = events.find((event) => event.id === id);
+    if (!completedEvent || completedEvent.status === "منتهي") return;
+
+    let previousSessionsUsed: number | null = null;
+    let patientId: string | null = null;
+    let patientCountUpdated = false;
+
     try {
-      await supabase.from("appointments").update({ status: "منتهي" }).eq("id", id).eq('clinic_id', clinicId);
-
-      // Update patient sessionsUsed + set status to active
-      if (completedEvent) {
-        const { data: patient } = await supabase
-          .from("patients")
-          .select("sessionsUsed")
-          .eq("id", completedEvent.patientId)
-          .eq('clinic_id', clinicId)
-          .single();
-
-        if (patient) {
-          await supabase.from("patients").update({
-            sessionsUsed: (patient.sessionsUsed || 0) + 1,
-            status: "نشط"
-          }).eq("id", completedEvent.patientId).eq('clinic_id', clinicId);
-        }
+      if (!completedEvent.patientId) {
+        throw new Error("The appointment is not linked to a patient.");
       }
-    } catch (err) {
-      console.warn("Failed to update completion status:", err);
+
+      patientId = completedEvent.patientId;
+      const { data: patient, error: patientLoadError } = await supabase
+        .from("patients")
+        .select("id, sessionsUsed")
+        .eq("id", patientId)
+        .eq("clinic_id", clinicId)
+        .maybeSingle();
+
+      if (patientLoadError) throw patientLoadError;
+      if (!patient) throw new Error("The linked patient record could not be found.");
+
+      previousSessionsUsed = patient.sessionsUsed == null ? null : Number(patient.sessionsUsed);
+      const nextSessionsUsed = (previousSessionsUsed ?? 0) + 1;
+      let patientUpdate = supabase
+        .from("patients")
+        .update({ sessionsUsed: nextSessionsUsed, status: "نشط" })
+        .eq("id", patientId)
+        .eq("clinic_id", clinicId);
+
+      patientUpdate = previousSessionsUsed === null
+        ? patientUpdate.is("sessionsUsed", null)
+        : patientUpdate.eq("sessionsUsed", previousSessionsUsed);
+
+      const { data: updatedPatient, error: patientUpdateError } = await patientUpdate
+        .select("id")
+        .maybeSingle();
+
+      if (patientUpdateError) throw patientUpdateError;
+      if (!updatedPatient) {
+        throw new Error("The session count changed concurrently. Refresh the patient record and try again.");
+      }
+      patientCountUpdated = true;
+
+      const { data: updatedAppointment, error: appointmentError } = await supabase
+        .from("appointments")
+        .update({ status: "منتهي" })
+        .eq("id", id)
+        .eq("clinic_id", clinicId)
+        .select("id")
+        .maybeSingle();
+
+      if (appointmentError) throw appointmentError;
+      if (!updatedAppointment) throw new Error("The appointment could not be marked as completed.");
+
+      syncEventsState(events.map((event) => event.id === id ? { ...event, status: "منتهي" } : event));
+    } catch (err: any) {
+      // Compensate if the patient count was changed but appointment completion failed.
+      if (patientCountUpdated && patientId) {
+        const { error: rollbackError } = await supabase
+          .from("patients")
+          .update({ sessionsUsed: previousSessionsUsed })
+          .eq("id", patientId)
+          .eq("clinic_id", clinicId)
+          .eq("sessionsUsed", (previousSessionsUsed ?? 0) + 1);
+        if (rollbackError) console.error("Session count rollback failed:", rollbackError);
+      }
+
+      console.error("Failed to complete appointment:", err);
+      alert(isRtl
+        ? "لم يتم اعتماد انتهاء الجلسة أو تحديث العداد: " + (err.message || err)
+        : "The session was not completed and the counter was not updated: " + (err.message || err));
     }
-    syncEventsState(events.map((e) => e.id === id ? { ...e, status: "منتهي" } : e));
   };
 
   return (
