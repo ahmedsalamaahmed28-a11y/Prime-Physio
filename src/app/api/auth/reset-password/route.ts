@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase-admin";
 import bcrypt from "bcryptjs";
-import { consumeVerificationCode, normalizeAuthEmail } from "@/lib/verificationCodes";
+import { checkVerificationCode, consumeVerificationCode, normalizeAuthEmail } from "@/lib/verificationCodes";
 import { validateNewPassword } from "@/lib/passwordSecurity";
 
 export const runtime = "nodejs";
@@ -18,15 +18,6 @@ export async function POST(req: NextRequest) {
     }
     if (newPassword.length < 12 || newPassword.length > 128) {
       return NextResponse.json({ error: "كلمة المرور يجب أن تكون 12 حرفًا على الأقل وبحد أقصى 128 حرفًا" }, { status: 400 });
-    }
-
-    try {
-      await validateNewPassword(newPassword);
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : "";
-      if (reason === "PASSWORD_TOO_WEAK") return NextResponse.json({ error: "كلمة المرور يجب أن تكون 12 حرفًا على الأقل وتحتوي على حرف كبير وصغير ورقم ورمز." }, { status: 400 });
-      if (reason === "PASSWORD_COMPROMISED") return NextResponse.json({ error: "كلمة المرور ظهرت في تسريبات سابقة. اختر كلمة مرور مختلفة." }, { status: 400 });
-      return NextResponse.json({ error: "تعذر فحص أمان كلمة المرور حاليًا. حاول مرة أخرى." }, { status: 503 });
     }
 
     const admin = getAdminClient();
@@ -48,6 +39,20 @@ export async function POST(req: NextRequest) {
       if (!staffUser) {
         return NextResponse.json({ error: "رمز التحقق غير صحيح أو منتهي الصلاحية" }, { status: 400 });
       }
+    }
+
+    const codeValid = await checkVerificationCode(admin, email, "password_reset", code);
+    if (!codeValid) {
+      return NextResponse.json({ error: "رمز التحقق غير صحيح أو منتهي الصلاحية" }, { status: 400 });
+    }
+
+    try {
+      await validateNewPassword(newPassword);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "";
+      if (reason === "PASSWORD_TOO_WEAK") return NextResponse.json({ error: "كلمة المرور يجب أن تكون 12 حرفًا على الأقل وتحتوي على حرف كبير وصغير ورقم ورمز." }, { status: 400 });
+      if (reason === "PASSWORD_COMPROMISED") return NextResponse.json({ error: "كلمة المرور ظهرت في تسريبات سابقة. اختر كلمة مرور مختلفة." }, { status: 400 });
+      return NextResponse.json({ error: "تعذر فحص أمان كلمة المرور حاليًا. حاول مرة أخرى." }, { status: 503 });
     }
 
     // Atomic one-time consumption prevents concurrent reuse of the same OTP.
