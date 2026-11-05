@@ -22,10 +22,20 @@ import BeforeAfter from "@/components/landing/BeforeAfter";
 import PatientJourney from "@/components/landing/PatientJourney";
 export const revalidate = 0;
 export default async function LandingPage() {
-  const supabase = getAdminClient();
-  const { data } = await supabase.from("platform_content").select("*");
   const contentMap: Record<string, any> = {};
-  if (data) data.forEach((row) => { contentMap[row.key] = row.content; });
+  try {
+    const supabase = getAdminClient();
+    const { data, error } = await supabase.from("platform_content").select("*");
+    if (error) {
+      console.error("Landing CMS content could not be loaded:", error.message);
+    } else if (data) {
+      data.forEach((row) => { contentMap[row.key] = row.content; });
+    }
+  } catch (error) {
+    // Public landing page remains available with safe defaults when preview
+    // environments intentionally do not contain the service-role key.
+    console.warn("Landing CMS is unavailable; rendering default content.", error);
+  }
   return <div className="pp-landing min-h-screen flex flex-col">
     <Navbar />
     <main className="flex-grow">
