@@ -57,15 +57,15 @@ function ManageContent() {
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotStep, setForgotStep] = useState<"email" | "otp" | "reset" | "success">("email");
   const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotOtp, setForgotOtp] = useState(["", "", "", ""]);
+  const [forgotOtp, setForgotOtp] = useState(["", "", "", "", "", ""]);
   const [forgotNewPassword, setForgotNewPassword] = useState("");
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState("");
   const [forgotShowPassword, setForgotShowPassword] = useState(false);
   const [forgotShowConfirm, setForgotShowConfirm] = useState(false);
   const [forgotError, setForgotError] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
-  const [forgotShowCode, setForgotShowCode] = useState("");
-  const forgotOtpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+  
+  const forgotOtpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   const handleForgotSendOtp = async () => {
     setForgotError("");
@@ -86,7 +86,7 @@ function ManageContent() {
         setForgotOtp(data.devCode.split("").slice(0, 4));
         setForgotShowCode(data.devCode);
       } else {
-        setForgotShowCode("");
+  
       }
       setForgotStep("otp");
       setTimeout(() => forgotOtpRefs[0].current?.focus(), 100);
@@ -112,7 +112,7 @@ function ManageContent() {
   const handleForgotVerify = async () => {
     const code = forgotOtp.join("");
     setForgotError("");
-    if (code.length !== 4) {
+    if (code.length !== 6) {
       setForgotError(isRtl ? "يرجى إدخال رمز التحقق كاملاً" : "Please enter the full code");
       return;
     }
@@ -136,8 +136,8 @@ function ManageContent() {
   const handleForgotResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setForgotError("");
-    if (forgotNewPassword.length < 6) {
-      setForgotError(isRtl ? "كلمة المرور يجب أن تكون 6 أحرف على الأقل" : "Password must be at least 6 characters");
+    if (forgotNewPassword.length < 10) {
+      setForgotError(isRtl ? "كلمة المرور يجب أن تكون 10 أحرف على الأقل" : "Password must be at least 10 characters");
       return;
     }
     if (forgotNewPassword !== forgotConfirmPassword) {
@@ -172,7 +172,7 @@ function ManageContent() {
     setIsLoading(true);
 
     const cleanEmail = email.trim().toLowerCase();
-    const cleanPassword = password.trim();
+    const cleanPassword = password;
 
     await setAppValue("current_user", null);
     await setAppValue("pending_role", "doctor");
@@ -333,7 +333,7 @@ function ManageContent() {
                   {isRtl ? "تذكرني" : "Remember me"}
                 </label>
               </div>
-              <button type="button" onClick={() => { setShowForgotModal(true); setForgotStep("email"); setForgotOtp(["","","",""]); setForgotNewPassword(""); setForgotConfirmPassword(""); setForgotShowCode(""); setForgotError(""); }} className="text-sm font-semibold text-[#4F46BA] hover:text-[#3730a3] transition-colors">
+              <button type="button" onClick={() => { setShowForgotModal(true); setForgotStep("email"); setForgotOtp(["","","","","",""]); setForgotNewPassword(""); setForgotConfirmPassword(""); setForgotShowCode(""); setForgotError(""); }} className="text-sm font-semibold text-[#4F46BA] hover:text-[#3730a3] transition-colors">
                 {isRtl ? "نسيت كلمة المرور؟" : "Forgot password?"}
               </button>
             </div>
@@ -462,7 +462,7 @@ function ManageContent() {
                   </div>
                   <button
                     onClick={handleForgotVerify}
-                    disabled={forgotOtp.join("").length !== 4 || forgotLoading}
+                    disabled={forgotOtp.join("").length !== 6 || forgotLoading}
                     className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-9 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
                   >
                     {forgotLoading ? (
