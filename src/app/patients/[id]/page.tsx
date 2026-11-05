@@ -15,6 +15,7 @@ import BodyPainMapper, { BODY_PAIN_REGIONS } from "@/components/BodyPainMapper";
 import ProgressCharts from "@/components/ProgressCharts";
 import { SmartReportsTab } from "@/components/patients/SmartReportsTab";
 import { PhaseBasedProtocolsTab } from "@/components/patients/PhaseBasedProtocolsTab";
+import { ClinicalWorkflowTab } from "@/components/patients/ClinicalWorkflowTab";
 import { PrintableReport } from "@/components/patients/PrintableReport";
 import { useReactToPrint } from "react-to-print";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -2990,6 +2991,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
             <TabsTrigger value="radiology" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "الأشعة والتحاليل" : "Scans & Reports"}</TabsTrigger>
             <TabsTrigger value="records" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "السجلات الطبية" : "Medical Records"}</TabsTrigger>
             <TabsTrigger value="reports" className="text-teal-700 dark:text-teal-400 font-medium rounded-md data-[state=active]:bg-teal-50 data-[state=active]:text-teal-800"><FileText className="w-3.5 h-3.5 mr-1.5 ml-1.5"/> {isRtl ? "التقارير الذكية" : "Smart Reports"}</TabsTrigger>
+            <TabsTrigger value="clinical" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "التقييم والخطة العلاجية" : "Evaluation & Care Plan"}</TabsTrigger>
             <TabsTrigger value="protocols" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "بروتوكولات التأهيل" : "Rehab Protocols"}</TabsTrigger>
             <TabsTrigger value="packages" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "الباقات" : "Packages"}</TabsTrigger>
             <TabsTrigger value="neuro" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "دليل الأعصاب" : "Neuro Reference"}</TabsTrigger>
@@ -2998,6 +3000,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
           <TabsContent value="radiology"><RadiologyTab /></TabsContent>
           <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>
           <TabsContent value="reports"><SmartReportsTab patient={patient} /></TabsContent>
+          <TabsContent value="clinical"><ClinicalWorkflowTab patientId={patient.id} clinicId={clinicId} isRtl={isRtl} /></TabsContent>
           <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} initialState={typeof patient.active_protocol === 'string' ? JSON.parse(patient.active_protocol) : patient.active_protocol} onSaveState={handleSaveProtocolState} /></TabsContent>
           <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} /></TabsContent>
           <TabsContent value="neuro"><NeuroReferenceTab /></TabsContent>
