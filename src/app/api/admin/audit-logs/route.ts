@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
 
     // Try to get clinic names if clinic_id exists
     const clinicIds = Array.from(new Set(logs?.filter(l => l.clinic_id).map(l => l.clinic_id) || []));
-    let clinicsMap: Record<string, string> = {};
+    const clinicsMap: Record<string, string> = {};
     
     if (clinicIds.length > 0) {
       const { data: clinics } = await admin
