@@ -892,90 +892,50 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!clinicId || isSubmitting) return;
     setIsSubmitting(true);
-
     const therapistName = "";
     const today = new Date().toISOString().split("T")[0];
-
-    // Build the session row — matches Supabase sessions table schema
-    const sessionRow: any = {
-      patient_id: patient.id,
-      clinic_id: clinicId,
-      date: today,
-      diagnosis: form.diagnosis,
-      vasScore: form.vasScore,
-      notes: form.notes || "",
-      therapist: therapistName,
-    };
 
     try {
       const { data: inserted, error } = await supabase
         .from("sessions")
-        .insert([sessionRow])
+        .insert([{
+          patient_id: patient.id,
+          clinic_id: clinicId,
+          date: today,
+          diagnosis: form.diagnosis,
+          vasScore: String(form.vasScore),
+          notes: form.notes || "",
+          therapist: therapistName,
+        }])
         .select()
         .single();
-
       if (error) throw error;
 
       const newSession: Session = {
         id: inserted.id,
         date: inserted.date,
         diagnosis: inserted.diagnosis || form.diagnosis,
-        vasScore: inserted.vasScore ?? inserted.vas_score ?? form.vasScore,
+        vasScore: Number(inserted.vasScore ?? inserted.vas_score ?? form.vasScore),
         rom: inserted.rom || "",
         notes: inserted.notes || form.notes,
         therapist: inserted.therapist || therapistName,
       };
-
-      // Also create/update appointment record so home page reflects this session
-      const startTime = new Date();
-      startTime.setSeconds(0, 0);
-      const endTime = new Date(startTime);
-      endTime.setMinutes(endTime.getMinutes() + 45);
-
-      await supabase.from("appointments").insert([{
-        patient_id: patient.id,
-        clinic_id: clinicId,
-        patient_name: patient.nameAr,
-        doctor_name: therapistName,
-        appointment_type: "جلسة علاج",
-        status: "مؤكد",
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
-      }]).then(() => {}, () => {}); // best-effort — don't block on failure
-
-      setSessions([newSession, ...sessions]);
-    } catch (err) {
-      console.warn("Failed to save session to Supabase:", err);
-      // Fallback: add to local state with temp id
-      const newSession: Session = {
-        id: `S-${Date.now()}`,
-        date: today,
-        diagnosis: form.diagnosis,
-        vasScore: form.vasScore,
-        rom: "",
-        notes: form.notes,
-        therapist: therapistName,
-      };
-      setSessions([newSession, ...sessions]);
+      setSessions((previous) => [newSession, ...previous]);
+      setForm({ diagnosis: "", vasScore: 0, notes: "" });
+      setSelectedRegions([]);
+    } catch (err: any) {
+      console.error("Failed to save clinical session:", err);
+      alert(isRtl
+        ? "لم يتم حفظ الجلسة في قاعدة البيانات: " + (err.message || err)
+        : "The session was not saved: " + (err.message || err));
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setForm({ diagnosis: "", vasScore: 0, notes: "" });
-    setSelectedRegions([]);
-    setIsSubmitting(false);
   };
 
-  const handleDeleteSession = async (sessionId: string) => {
-    try {
-      const { error } = await supabase.from("sessions").delete().eq('clinic_id', clinicId).eq("id", sessionId);
-      if (error) throw error;
-    } catch (err) {
-      console.warn("Failed to delete session from Supabase:", err);
-    }
-    // Remove from local state regardless
-    setSessions((prev) => prev.filter((s) => s.id !== sessionId));
-    setDeletingSessionId(null);
-  };  // Convert sessions data format to ProgressCharts data format
+  // Convert sessions data format to ProgressCharts data format
   const chartData = sessions.map((s) => ({
     date: s.date,
     vasScore: s.vasScore,
@@ -2961,7 +2921,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
           <TabsContent value="radiology"><RadiologyTab /></TabsContent>
           <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>
           <TabsContent value="reports"><SmartReportsTab patient={patient} /></TabsContent>
-          <TabsContent value="clinical"><ClinicalWorkflowTab patientId={patient.id} clinicId={clinicId} isRtl={isRtl} /></TabsContent>
+          <TabsContent value="clinical"><ClinicalWorkflowTab patientId={patient.id} clinicId={clinicId || undefined} isRtl={isRtl} /></TabsContent>
           <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} initialState={typeof patient.active_protocol === 'string' ? JSON.parse(patient.active_protocol) : patient.active_protocol} onSaveState={handleSaveProtocolState} /></TabsContent>
           <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} /></TabsContent>
           <TabsContent value="neuro"><NeuroReferenceTab /></TabsContent>
