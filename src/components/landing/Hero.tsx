@@ -12,7 +12,7 @@ export default function Hero({ cmsContent }: { cmsContent?: any }) {
   const titlePart1 = cmsContent?.titlePart1 || "إدارة مركزك الطبي";
   const titlePart2 = cmsContent?.titlePart2 || "بكل سهولة واحترافية";
   const description = cmsContent?.description || "نظّم ملفات المرضى والجلسات والمواعيد والفريق والحسابات من مكان واحد. تجربة عربية واضحة تساعدك على متابعة تفاصيل مركزك واتخاذ قرارات أفضل.";
-  const primaryButtonText = cmsContent?.primaryButtonText || "ابدأ الآن";
+  const primaryButtonText = "أنشئ مركزك";
   const secondaryButtonText = cmsContent?.secondaryButtonText || "اكتشف المميزات";
   const feature1 = cmsContent?.feature1 || "إدارة متكاملة للمرضى والجلسات";
   const feature2 = cmsContent?.feature2 || "صلاحيات واضحة لفريق العمل";
@@ -37,8 +37,8 @@ export default function Hero({ cmsContent }: { cmsContent?: any }) {
             <Link href="/signup" className="pp-button pp-button-primary pp-button-large">
               {primaryButtonText}<ArrowLeft aria-hidden="true" />
             </Link>
-            <Link href="#features" className="pp-button pp-button-outline pp-button-large">
-              {secondaryButtonText}
+            <Link href="/manage" className="pp-button pp-button-outline pp-button-large">
+              دخول المالك
             </Link>
           </div>
 
