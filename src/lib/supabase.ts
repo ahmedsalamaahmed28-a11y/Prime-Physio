@@ -9,6 +9,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // Server-side admin client — uses service role key, bypasses RLS
 // Only use in API routes, never expose to the browser
 export const getAdminClient = () => {
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  return createClient(supabaseUrl, serviceKey);
+  if (typeof window !== "undefined") {
+    throw new Error("The Supabase service-role client is server-only");
+  }
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceKey) {
+    throw new Error("Supabase server credentials are not configured");
+  }
+  return createClient(supabaseUrl, serviceKey, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
 };
