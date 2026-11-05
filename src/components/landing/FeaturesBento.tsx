@@ -5,7 +5,7 @@ import {
   CalendarDays,
   ClipboardCheck,
   CreditCard,
-  Scan,
+  ClipboardCheck,
   BarChart3,
   ShieldCheck,
   Sparkles,
@@ -42,7 +42,7 @@ const features = [
     description:
       "تسجيل حضور الفريق بمسح QR، وربط التأخيرات والأذونات والإجازات بسجلات المرتبات والحوافز وكشوف الرواتب.",
     details: ["تسجيل حضور سريع", "احتساب التأخيرات والإجازات"],
-    icon: Scan,
+    icon: ClipboardCheck,
     tone: "amber",
   },
   {
