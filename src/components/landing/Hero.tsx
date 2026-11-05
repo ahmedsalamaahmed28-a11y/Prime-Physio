@@ -4,7 +4,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import {
   Activity, CalendarDays, Users, ClipboardList, CreditCard,
-  Check, ArrowLeft, Clock3, Bell, TrendingUp
+  Check, ArrowLeft, Clock, Bell, TrendingUp
 } from "lucide-react";
 
 export default function Hero({ cmsContent }: { cmsContent?: any }) {
@@ -95,7 +95,7 @@ export default function Hero({ cmsContent }: { cmsContent?: any }) {
             </div>
           </div>
           <div className="pp-floating-note"><span><Check /></span><div><b>كل التفاصيل في مكان واحد</b><small>إدارة أكثر وضوحاً لمركزك</small></div></div>
-          <div className="pp-floating-clock"><Clock3 /><span>وقتك أكثر تنظيماً</span></div>
+          <div className="pp-floating-clock"><Clock /><span>وقتك أكثر تنظيماً</span></div>
         </motion.div>
       </div>
     </section>
