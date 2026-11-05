@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireRole } from "@/app/api/utils/auth";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
 import bcrypt from "bcryptjs";
+import { validateNewPassword } from "@/lib/passwordSecurity";
 
 const VALID_STAFF_ROLES = ["استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي", "موظف استقبال"];
 
@@ -14,11 +15,25 @@ export async function POST(req: NextRequest) {
     }
     const email = rawEmail.toLowerCase().trim();
 
-    // Only admin can add staff — server-side enforced
+    // Only an authenticated administrator may invite staff into their own clinic.
+    let session;
     try {
-      await requireRole(req, ["admin"]);
+      session = await requireRole(req, ["admin"]);
     } catch {
-      return NextResponse.json({ error: "غير مصرح" }, { status: 401 });
+      return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
+    }
+
+    if (!session.clinicId || session.clinicId !== clinicId) {
+      return NextResponse.json({ error: "لا يمكنك إضافة موظفين إلى عيادة أخرى" }, { status: 403 });
+    }
+
+    try {
+      await validateNewPassword(password);
+    } catch (error) {
+      return NextResponse.json(
+        { error: error instanceof Error ? error.message : "كلمة المرور غير مستوفية للشروط" },
+        { status: 400 }
+      );
     }
 
     // Prevent creating more admins via staff invite
@@ -33,14 +48,13 @@ export async function POST(req: NextRequest) {
 
     const admin = getAdminClient();
 
-    // Check if email already in auth_accounts
-    const { data: existing } = await admin
-      .from("auth_accounts")
-      .select("id")
-      .eq("email", email)
-      .maybeSingle();
+    // Check both identity and staff tables to avoid duplicate/cross-clinic identities.
+    const [{ data: existing }, { data: existingStaff }] = await Promise.all([
+      admin.from("auth_accounts").select("id").eq("email", email).maybeSingle(),
+      admin.from("staff").select("id").eq("email", email).maybeSingle(),
+    ]);
 
-    if (existing) {
+    if (existing || existingStaff) {
       return NextResponse.json({ error: "البريد الإلكتروني مستخدم بالفعل" }, { status: 400 });
     }
 
