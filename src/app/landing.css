@@ -135,3 +135,21 @@
 .pp-trusted-strip-viewport:hover .pp-trusted-strip-track{animation-play-state:paused;}
 @keyframes pp-trusted-strip-loop{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media(prefers-reduced-motion:reduce){.pp-trusted-strip-track{animation:none;transform:none}.pp-trusted-strip-group[aria-hidden="true"]{display:none}}
+
+
+/* Match main navbar glass effect while keeping the updated landing navigation intact. */
+.pp-landing .pp-header{
+  background:transparent;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  border-bottom-color:transparent;
+  box-shadow:none;
+  transition:background-color .3s ease,backdrop-filter .3s ease,-webkit-backdrop-filter .3s ease,border-color .3s ease,box-shadow .3s ease;
+}
+.pp-landing .pp-header.is-scrolled{
+  background:rgba(255,255,255,.8);
+  -webkit-backdrop-filter:saturate(180%) blur(12px);
+  backdrop-filter:saturate(180%) blur(12px);
+  border-bottom-color:rgba(226,232,240,.6);
+  box-shadow:0 2px 12px -8px rgba(15,27,45,.2);
+}
