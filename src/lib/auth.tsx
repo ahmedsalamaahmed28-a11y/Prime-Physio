@@ -362,7 +362,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : "/home";
   };
 
-  const loginWithCredentials = async (email: string, name: string, role: string) => {
+  const loginWithCredentials = async (email: string, name: string, _role: string) => {
     const activeSession = await getSession();
     if (!activeSession?.user?.email || activeSession.user.email.toLowerCase() !== email.toLowerCase()) return;
     const initials = name.substring(0, 2).toUpperCase();
