@@ -24,18 +24,29 @@ const centers = [
   { icon: LayoutDashboard, name: "HealthCore" },
 ];
 
+function CenterItems({ duplicate = false }: { duplicate?: boolean }) {
+  return (
+    <div className="pp-trusted-group" aria-hidden={duplicate || undefined}>
+      {centers.map(({ icon: Icon, name }) => (
+        <div className="pp-capability pp-trusted-item" key={name}>
+          <Icon aria-hidden="true" />
+          <span>{name}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function TrustedStrip() {
   return (
     <section className="pp-capabilities" aria-label="المراكز">
       <div className="pp-wrap">
         <p className="pp-capabilities-title">موثوق من قبل أفضل المراكز</p>
-        <div className="pp-capabilities-list" dir="ltr">
-          {centers.map(({ icon: Icon, name }) => (
-            <div className="pp-capability" key={name}>
-              <Icon aria-hidden="true" />
-              <span>{name}</span>
-            </div>
-          ))}
+      </div>
+      <div className="pp-trusted-marquee" dir="ltr">
+        <div className="pp-trusted-track">
+          <CenterItems />
+          <CenterItems duplicate />
         </div>
       </div>
     </section>
