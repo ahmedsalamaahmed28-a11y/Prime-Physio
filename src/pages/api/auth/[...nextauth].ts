@@ -23,7 +23,7 @@ export const authOptions = {
         if (!credentials?.email || !credentials?.password) return null;
 
         const email = String(credentials.email).trim().toLowerCase();
-        if (email.length > 254 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return null;
+        if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
 
         const secret = process.env.NEXTAUTH_SECRET;
         if (!secret || secret.length < 32) {
