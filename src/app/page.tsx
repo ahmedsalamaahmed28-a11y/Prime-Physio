@@ -32,7 +32,7 @@ export default async function LandingPage() {
       <Hero cmsContent={contentMap.hero} />
       <Stats />
       <TrustedStrip />
-      <section id="features" className="pp-section-anchor"><FeaturesBento /></section>
+      <FeaturesBento />
       <ComparisonSection />
       <BeforeAfter />
       <FeaturesDetail />
@@ -44,7 +44,7 @@ export default async function LandingPage() {
       <Security />
       <TestimonialsCarousel />
       <CaseStudy />
-      <section id="pricing" className="pp-section-anchor"><Pricing cmsContent={contentMap.pricing} /></section>
+      <Pricing cmsContent={contentMap.pricing} />
       <ROICalculator />
       <FAQ />
       <section className="pp-final-cta"><div className="pp-wrap pp-final-cta-inner">
