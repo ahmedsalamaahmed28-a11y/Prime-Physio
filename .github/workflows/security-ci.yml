@@ -40,6 +40,8 @@ jobs:
         run: npm ci --no-audit --no-fund
 
       - name: Audit production dependencies
+        id: dependency_audit
+        continue-on-error: true
         run: npm audit --omit=dev --audit-level=high
 
       - name: TypeScript
@@ -50,3 +52,9 @@ jobs:
 
       - name: Production build
         run: npm run build
+
+      - name: Preserve audit failure after running all checks
+        if: always() && steps.dependency_audit.outcome == 'failure'
+        run: |
+          echo "::error::High or critical production dependency vulnerabilities remain."
+          exit 1
