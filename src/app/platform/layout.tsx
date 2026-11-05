@@ -1,5 +1,7 @@
 "use client";
 
+import "./platform-tokens.css";
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
