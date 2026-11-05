@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac } from "crypto";
+import { getAdminClient } from "@/lib/supabase-admin";
 import { validateNewPassword } from "@/lib/passwordSecurity";
 
 export const runtime = "nodejs";
@@ -8,6 +10,19 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => null);
     const password = typeof body?.password === "string" ? body.password : "";
+    const secret = process.env.NEXTAUTH_SECRET;
+    if (!secret || secret.length < 32) {
+      return NextResponse.json({ error: "خدمة التحقق من كلمة المرور غير مهيأة بأمان" }, { status: 503 });
+    }
+    const forwarded = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",").pop()?.trim() || "unknown";
+    const ipHash = createHmac("sha256", secret).update(`password-check:${forwarded}`).digest("hex");
+    const { data: allowed, error: rateError } = await getAdminClient().rpc("check_auth_login_attempt", {
+      p_email: "password-check@prime-physio.internal",
+      p_ip_hash: ipHash,
+    });
+    if (rateError || allowed !== true) {
+      return NextResponse.json({ error: "تم تجاوز عدد محاولات التحقق. حاول بعد 15 دقيقة." }, { status: 429 });
+    }
     await validateNewPassword(password);
     return NextResponse.json({ valid: true }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error) {
