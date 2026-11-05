@@ -29,7 +29,7 @@ export default function ResetPasswordPage() {
   const isRtl = language === "ar";
 
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -37,15 +37,15 @@ export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const otpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+  const otpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get("email") || "";
     const codeParam = params.get("code") || "";
     if (emailParam) setEmail(emailParam);
-    if (codeParam.length === 4) {
-      setOtp(codeParam.split("").slice(0, 4));
+    if (codeParam.length === 6) {
+      setOtp(codeParam.split("").slice(0, 6));
     }
   }, []);
 
@@ -54,7 +54,7 @@ export default function ResetPasswordPage() {
     const newOtp = [...otp];
     newOtp[idx] = val;
     setOtp(newOtp);
-    if (val && idx < 3) otpRefs[idx + 1].current?.focus();
+    if (val && idx < 5) otpRefs[idx + 1].current?.focus();
   };
 
   const handleOtpKeyDown = (idx: number, e: React.KeyboardEvent) => {
@@ -72,13 +72,13 @@ export default function ResetPasswordPage() {
     }
 
     const code = otp.join("");
-    if (code.length !== 4) {
+    if (code.length !== 6) {
       setError(isRtl ? "رمز التحقق غير صالح" : "Invalid verification code");
       return;
     }
 
-    if (newPassword.length < 6) {
-      setError(isRtl ? "كلمة المرور يجب أن تكون 6 أحرف على الأقل" : "Password must be at least 6 characters");
+    if (newPassword.length < 10 || newPassword.length > 128) {
+      setError(isRtl ? "كلمة المرور يجب أن تكون بين 10 و128 حرفًا" : "Password must be between 10 and 128 characters");
       return;
     }
 
