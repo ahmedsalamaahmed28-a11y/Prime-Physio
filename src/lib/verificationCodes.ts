@@ -50,6 +50,7 @@ export async function issueVerificationCode(
       expires_at: expiresAt,
       attempts: 0,
       consumed_at: null,
+      created_at: new Date().toISOString(),
     },
     { onConflict: "email,purpose" }
   );
