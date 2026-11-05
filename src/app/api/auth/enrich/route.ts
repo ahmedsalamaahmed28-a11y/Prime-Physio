@@ -42,12 +42,16 @@ export async function GET(req: NextRequest) {
 
     const admin = getAdminClient();
 
-    const { data: pa } = await admin
+    const { data: pa, error: platformAdminError } = await admin
       .from("platform_admins")
       .select("id")
       .eq("email", session.user.email.toLowerCase().trim())
       .limit(1)
       .maybeSingle();
+
+    if (platformAdminError) {
+      return NextResponse.json({ error: "Unable to verify account role" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
+    }
 
     if (pa) {
       return NextResponse.json({
@@ -68,20 +72,29 @@ export async function GET(req: NextRequest) {
       .limit(1)
       .maybeSingle();
 
-    if (error || !staff?.clinic_id) {
-      return NextResponse.json({ clinicId: null, role: null });
+    if (error) {
+      return NextResponse.json({ error: "Unable to load clinic membership" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
+    }
+
+    // A confirmed missing membership or clinic is an onboarding state; a query error is not.
+    if (!staff?.clinic_id) {
+      return NextResponse.json({ clinicId: null, role: null }, { headers: { "Cache-Control": "no-store, private" } });
     }
 
     const targetClinicId = preferredClinicId || staff.clinic_id;
 
     if (preferredClinicId) {
-      const { data: staffCheck } = await admin
+      const { data: staffCheck, error: staffCheckError } = await admin
         .from("staff")
         .select("clinic_id")
         .eq("email", session.user.email.toLowerCase().trim())
         .eq("clinic_id", preferredClinicId)
         .limit(1)
         .maybeSingle();
+
+      if (staffCheckError) {
+        return NextResponse.json({ error: "Unable to verify clinic access" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
+      }
 
       if (!staffCheck) {
         return NextResponse.json({ clinicId: null, role: null, error: "Access denied" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
@@ -110,7 +123,7 @@ export async function GET(req: NextRequest) {
       logoUrl: branch?.logo_url || null,
     }, { headers: { "Cache-Control": "no-store, private" } });
   } catch {
-    return NextResponse.json({ clinicId: null, role: null });
+    return NextResponse.json({ error: "Clinic membership lookup failed" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
   }
 }
 
