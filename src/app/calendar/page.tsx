@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -40,6 +41,20 @@ interface CalendarEvent {
   visitType: VisitType;
   status: "مؤكد" | "انتظار" | "منتهي" | "ملغي";
   notes?: string;
+  treatmentPlanId?: string;
+  sessionIntervention?: string;
+  sessionObjectives?: string;
+  targetExercises?: string[];
+}
+
+interface SessionOutcome {
+  painBefore: number;
+  painAfter: number;
+  romStatus: string;
+  strengthStatus: string;
+  recoveryScore: number;
+  completedExercises: string[];
+  notes: string;
 }
 
 type VisitType = "جلسة علاج" | "كشف أول" | "متابعة" | "تقييم";
@@ -80,6 +95,7 @@ function NewAppointmentDialog({
   selectedDate,
   patientsList,
   doctorsList,
+  clinicId,
   onClose,
   onSave,
 }: {
@@ -87,6 +103,7 @@ function NewAppointmentDialog({
   selectedDate: Date | null;
   patientsList: any[];
   doctorsList: { name: string }[];
+  clinicId?: string;
   onClose: () => void;
   onSave: (ev: CalendarEvent) => void;
 }) {
@@ -97,12 +114,76 @@ function NewAppointmentDialog({
   const [visitType, setVisitType] = useState<VisitType>("جلسة علاج");
   const [duration, setDuration] = useState(45);
   const [notes, setNotes] = useState("");
+  const [treatmentPlans, setTreatmentPlans] = useState<any[]>([]);
+  const [treatmentPlanId, setTreatmentPlanId] = useState("");
+  const [sessionIntervention, setSessionIntervention] = useState("");
+  const [sessionObjectives, setSessionObjectives] = useState("");
+  const [targetExercisesText, setTargetExercisesText] = useState("");
+  const [plansLoading, setPlansLoading] = useState(false);
 
   useEffect(() => {
-    if (open && patientsList.length > 0) {
-      setPatientId(patientsList[0].id);
-    }
+    if (open && patientsList.length > 0) setPatientId(patientsList[0].id);
   }, [open, patientsList]);
+
+  useEffect(() => {
+    if (!open || !clinicId || !patientId) {
+      setTreatmentPlans([]);
+      setTreatmentPlanId("");
+      setSessionIntervention("");
+      setSessionObjectives("");
+      setTargetExercisesText("");
+      return;
+    }
+
+    let cancelled = false;
+    const loadPatientPlan = async () => {
+      setPlansLoading(true);
+      const [plansResult, programResult] = await Promise.all([
+        supabase.from("treatment_plans")
+          .select("id,goals,session_plan,status,created_at")
+          .eq("clinic_id", clinicId)
+          .eq("patient_id", patientId)
+          .eq("status", "active")
+          .order("created_at", { ascending: false }),
+        supabase.from("patient_programs")
+          .select("exercises")
+          .eq("clinic_id", clinicId)
+          .eq("patient_id", patientId)
+          .neq("title", "__prime_physio_active_protocol_state__")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+
+      if (cancelled) return;
+      if (plansResult.error) {
+        console.error("Could not load active treatment plans:", plansResult.error);
+        setTreatmentPlans([]);
+      } else {
+        const plans = plansResult.data || [];
+        setTreatmentPlans(plans);
+        const latest = plans[0];
+        setTreatmentPlanId(latest?.id || "");
+        setSessionIntervention(latest?.session_plan || "");
+        setSessionObjectives(latest?.goals || "");
+      }
+
+      if (programResult.error) {
+        console.error("Could not load home exercises:", programResult.error);
+        setTargetExercisesText("");
+      } else {
+        const exercises = Array.isArray(programResult.data?.exercises) ? programResult.data.exercises : [];
+        setTargetExercisesText(exercises
+          .map((item: any) => typeof item === "string" ? item : (item?.name || item?.title || ""))
+          .filter(Boolean)
+          .join("\n"));
+      }
+      setPlansLoading(false);
+    };
+
+    loadPatientPlan();
+    return () => { cancelled = true; };
+  }, [open, clinicId, patientId]);
 
   const tVisitType = (type: VisitType) => {
     if (isRtl) return type;
@@ -116,15 +197,15 @@ function NewAppointmentDialog({
   };
 
   const handleSave = () => {
-    if (!selectedDate || patientsList.length === 0) return;
+    if (!selectedDate || patientsList.length === 0 || !patientId) return;
     const patient = patientsList.find((p) => p.id === patientId) || patientsList[0];
     const start = new Date(selectedDate);
     start.setHours(9, 0, 0, 0);
     const end = new Date(start.getTime() + duration * 60000);
     const pName = isRtl ? patient.nameAr : (patient.nameEn || patient.nameAr);
     onSave({
-      id: `E-${Date.now()}`,
-      title: `${pName} — ${visitType}`,
+      id: "E-" + Date.now(),
+      title: pName + " — " + visitType,
       start,
       end,
       patientName: pName,
@@ -133,15 +214,19 @@ function NewAppointmentDialog({
       visitType,
       status: "مؤكد",
       notes,
+      treatmentPlanId: treatmentPlanId || undefined,
+      sessionIntervention,
+      sessionObjectives,
+      targetExercises: targetExercisesText.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
     });
     setNotes("");
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className={`sm:max-w-md ${isRtl ? "text-right" : "text-left"}`} dir={isRtl ? "rtl" : "ltr"}>
+      <DialogContent className={"sm:max-w-lg " + (isRtl ? "text-right" : "text-left")} dir={isRtl ? "rtl" : "ltr"}>
         <DialogHeader>
-          <DialogTitle className={`flex items-center gap-2 text-lg font-heading ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
+          <DialogTitle className={"flex items-center gap-2 text-lg font-heading " + (isRtl ? "" : "flex-row-reverse justify-end")}>
             <span className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-base">➕</span>
             <span>{isRtl ? "حجز موعد جديد" : "Book New Appointment"}</span>
           </DialogTitle>
@@ -150,12 +235,11 @@ function NewAppointmentDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          {/* Patient */}
+        <div className="space-y-4 py-2 max-h-[70vh] overflow-y-auto">
           <div className="space-y-1.5">
             <Label>{isRtl ? "المريض" : "Patient"}</Label>
             <SelectMenu
-              items={patientsList.map((p) => ({ value: p.id, label: `${isRtl ? p.nameAr : (p.nameEn || p.nameAr)} (${p.id})` }))}
+              items={patientsList.map((p) => ({ value: p.id, label: (isRtl ? p.nameAr : (p.nameEn || p.nameAr)) + " (" + p.id + ")" }))}
               value={patientId}
               onValueChange={setPatientId}
               placeholder={isRtl ? "اختر مريض..." : "Select patient..."}
@@ -164,7 +248,6 @@ function NewAppointmentDialog({
             />
           </div>
 
-          {/* Doctor */}
           <div className="space-y-1.5">
             <Label>{isRtl ? "المعالج" : "Therapist"}</Label>
             <SelectMenu
@@ -177,8 +260,7 @@ function NewAppointmentDialog({
             />
           </div>
 
-          {/* Visit type & Duration */}
-          <div className={`grid grid-cols-2 gap-3 ${isRtl ? "" : "flex-row-reverse"}`}>
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>{isRtl ? "نوع الزيارة" : "Visit Type"}</Label>
               <select
@@ -191,40 +273,70 @@ function NewAppointmentDialog({
             </div>
             <div className="space-y-1.5">
               <Label>{isRtl ? "المدة (دقيقة)" : "Duration (min)"}</Label>
-              <Input
-                type="number" min={15} max={120} step={15}
-                value={duration}
+              <Input type="number" min={15} max={120} step={15} value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
-                className={isRtl ? "text-right" : "text-left"}
-              />
+                className={isRtl ? "text-right" : "text-left"} />
             </div>
           </div>
 
-          {/* Color preview */}
-          <div className={`flex items-center gap-2 p-3 rounded-lg bg-muted/50 ${isRtl ? "" : "flex-row-reverse"}`}>
+          <div className="rounded-lg border p-3 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <Label className="font-bold">{isRtl ? "ربط الخطة العلاجية بالجلسة" : "Link treatment plan to this session"}</Label>
+              {plansLoading && <span className="text-xs text-muted-foreground">{isRtl ? "جارٍ التحميل..." : "Loading..."}</span>}
+            </div>
+            <select
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={treatmentPlanId}
+              onChange={(e) => {
+                const selected = treatmentPlans.find((plan) => plan.id === e.target.value);
+                setTreatmentPlanId(e.target.value);
+                setSessionIntervention(selected?.session_plan || "");
+                setSessionObjectives(selected?.goals || "");
+              }}
+              disabled={plansLoading}
+            >
+              <option value="">{isRtl ? "بدون خطة مرتبطة (اختياري)" : "No linked plan (optional)"}</option>
+              {treatmentPlans.map((plan) => (
+                <option key={plan.id} value={plan.id}>
+                  {(plan.goals || (isRtl ? "خطة علاجية" : "Treatment plan")).slice(0, 90)}
+                </option>
+              ))}
+            </select>
+            {!plansLoading && treatmentPlans.length === 0 && (
+              <p className="text-xs text-amber-700">{isRtl ? "لا توجد خطة نشطة لهذا المريض. يمكنك كتابة تدخل الجلسة يدويًا." : "No active plan for this patient. You can enter the session intervention manually."}</p>
+            )}
+            <div className="space-y-1.5">
+              <Label>{isRtl ? "التدخل العلاجي المطلوب في هذه الجلسة" : "Intervention for this session"}</Label>
+              <Textarea rows={3} value={sessionIntervention} onChange={(e) => setSessionIntervention(e.target.value)}
+                placeholder={isRtl ? "مثال: تمارين تحكم حركي، تقوية، علاج يدوي..." : "e.g. motor control, strengthening, manual therapy..."} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{isRtl ? "الأهداف المستهدفة" : "Session objectives"}</Label>
+              <Textarea rows={2} value={sessionObjectives} onChange={(e) => setSessionObjectives(e.target.value)}
+                placeholder={isRtl ? "الأهداف المطلوب تحقيقها في الجلسة" : "Goals to address in this session"} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{isRtl ? "التمارين المستهدفة (تمرين في كل سطر)" : "Target exercises (one per line)"}</Label>
+              <Textarea rows={3} value={targetExercisesText} onChange={(e) => setTargetExercisesText(e.target.value)}
+                placeholder={isRtl ? "اكتب التمارين التي سيؤديها المريض" : "List the exercises prescribed for this session"} />
+            </div>
+          </div>
+
+          <div className={"flex items-center gap-2 p-3 rounded-lg bg-muted/50 " + (isRtl ? "" : "flex-row-reverse")}>
             <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: VISIT_COLORS[visitType] }} />
             <p className="text-sm text-muted-foreground">
-              {isRtl ? (
-                <>سيظهر الموعد بلون <strong>{visitType}</strong> في التقويم</>
-              ) : (
-                <>Appointment will appear as <strong>{tVisitType(visitType)}</strong> in the calendar</>
-              )}
+              {isRtl ? <>سيظهر الموعد بلون <strong>{visitType}</strong> في التقويم</> : <>Appointment will appear as <strong>{tVisitType(visitType)}</strong> in the calendar</>}
             </p>
           </div>
 
-          {/* Notes */}
           <div className="space-y-1.5">
             <Label>{isRtl ? "ملاحظات (اختياري)" : "Notes (Optional)"}</Label>
-            <Input
-              placeholder={isRtl ? "أي ملاحظات إضافية..." : "Any extra notes..."}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              dir={isRtl ? "rtl" : "ltr"}
-            />
+            <Input placeholder={isRtl ? "أي ملاحظات إضافية..." : "Any extra notes..."} value={notes}
+              onChange={(e) => setNotes(e.target.value)} dir={isRtl ? "rtl" : "ltr"} />
           </div>
         </div>
 
-        <DialogFooter className={`gap-3 sm:gap-3 flex w-full ${isRtl ? "flex-row" : "flex-row-reverse"}`}>
+        <DialogFooter className={"gap-3 sm:gap-3 flex w-full " + (isRtl ? "flex-row" : "flex-row-reverse")}>
           <Button variant="outline" onClick={onClose} className="rounded-xl font-bold flex-1 transition-all active:scale-95">{isRtl ? "إلغاء" : "Cancel"}</Button>
           <Button onClick={handleSave} className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white rounded-xl font-bold flex-1 shadow-md transition-all active:scale-95">
             {isRtl ? "تأكيد الحجز" : "Confirm Booking"}
@@ -250,12 +362,21 @@ function EventDetailsDialog({
   onClose: () => void;
   onUpdate: (ev: CalendarEvent) => void;
   onCancel: (id: string) => void;
-  onComplete: (id: string) => void;
+  onComplete: (id: string, outcome: SessionOutcome) => Promise<boolean>;
 }) {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const [editing, setEditing] = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const [savingCompletion, setSavingCompletion] = useState(false);
   const [form, setForm] = useState<Partial<CalendarEvent>>({});
+  const [painBefore, setPainBefore] = useState("");
+  const [painAfter, setPainAfter] = useState("");
+  const [romStatus, setRomStatus] = useState("");
+  const [strengthStatus, setStrengthStatus] = useState("");
+  const [recoveryScore, setRecoveryScore] = useState("");
+  const [completedExercisesText, setCompletedExercisesText] = useState("");
+  const [sessionNotes, setSessionNotes] = useState("");
 
   if (!event) return null;
   const e = { ...event, ...form };
@@ -266,18 +387,45 @@ function EventDetailsDialog({
   };
 
   const saveEdit = () => {
-    onUpdate({ ...event, ...form, title: `${event.patientName} — ${form.visitType ?? event.visitType}` });
+    onUpdate({ ...event, ...form, title: event.patientName + " — " + (form.visitType ?? event.visitType) });
     setEditing(false);
     setForm({});
   };
 
+  const submitCompletion = async () => {
+    const before = Number(painBefore);
+    const after = Number(painAfter);
+    const recovery = Number(recoveryScore);
+    if (!Number.isInteger(before) || before < 0 || before > 10 || !Number.isInteger(after) || after < 0 || after > 10) {
+      alert(isRtl ? "أدخل درجة الألم قبل الجلسة وبعدها من 0 إلى 10." : "Enter pre- and post-session pain scores from 0 to 10.");
+      return;
+    }
+    if (!Number.isInteger(recovery) || recovery < 0 || recovery > 100) {
+      alert(isRtl ? "أدخل مؤشر التعافي من 0 إلى 100." : "Enter a recovery score from 0 to 100.");
+      return;
+    }
+    setSavingCompletion(true);
+    const completedExercises = completedExercisesText.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
+    const success = await onComplete(event.id, {
+      painBefore: before,
+      painAfter: after,
+      romStatus,
+      strengthStatus,
+      recoveryScore: recovery,
+      completedExercises,
+      notes: sessionNotes || event.notes || "",
+    });
+    setSavingCompletion(false);
+    if (success) onClose();
+  };
+
   return (
     <Dialog open={!!event} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md" dir="rtl">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg font-heading">
             <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: VISIT_COLORS[event.visitType] }} />
-            <Link href={`/patients/${event.patientId}`} className="text-[#4F46BA] hover:underline dark:text-[#818cf8] font-bold">
+            <Link href={"/patients/" + event.patientId} className="text-[#4F46BA] hover:underline dark:text-[#818cf8] font-bold">
               {event.patientName}
             </Link>
           </DialogTitle>
@@ -287,18 +435,16 @@ function EventDetailsDialog({
         </DialogHeader>
 
         <div className="space-y-3 py-1">
-          {/* Status badge + date row */}
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">الحالة</span>
             <Badge variant="outline" className={STATUS_STYLES[event.status] + " font-bold shadow-sm"}>{event.status}</Badge>
           </div>
           <Separator />
 
-          {/* Detail cards */}
           <div className="grid grid-cols-2 gap-2">
             {[
               { label: "رقم الملف", value: event.patientId, icon: "📁" },
-              { label: "الوقت", value: `${format(event.start, "HH:mm")} — ${format(event.end, "HH:mm")}`, icon: "🕒" },
+              { label: "الوقت", value: format(event.start, "HH:mm") + " — " + format(event.end, "HH:mm"), icon: "🕒" },
             ].map(({ label, value, icon }) => (
               <div key={label} className="bg-muted/40 rounded-lg p-3 space-y-0.5">
                 <p className="text-xs text-muted-foreground/70">{label}</p>
@@ -307,20 +453,26 @@ function EventDetailsDialog({
             ))}
           </div>
 
-          {/* Editable fields */}
+          <div className="rounded-lg border p-3 space-y-2">
+            <p className="font-semibold text-sm">{isRtl ? "الخطة والتدخل العلاجي" : "Treatment plan & intervention"}</p>
+            <p className="text-sm"><span className="text-muted-foreground">{isRtl ? "الخطة المرتبطة: " : "Linked plan: "}</span>{event.treatmentPlanId || (isRtl ? "لا توجد خطة مرتبطة" : "No linked plan")}</p>
+            <p className="text-sm"><span className="text-muted-foreground">{isRtl ? "التدخل: " : "Intervention: "}</span>{event.sessionIntervention || "—"}</p>
+            <p className="text-sm"><span className="text-muted-foreground">{isRtl ? "الأهداف: " : "Objectives: "}</span>{event.sessionObjectives || "—"}</p>
+            <div className="text-sm">
+              <span className="text-muted-foreground">{isRtl ? "التمارين المستهدفة: " : "Target exercises: "}</span>
+              {event.targetExercises?.length ? event.targetExercises.join("، ") : "—"}
+            </div>
+          </div>
+
           {editing ? (
             <div className="space-y-3 pt-1">
               <Separator />
               <div className="space-y-1.5">
                 <Label>المعالج</Label>
-                <SelectMenu
-                  items={doctorsList.map((d) => ({ value: d.name, label: d.name }))}
+                <SelectMenu items={doctorsList.map((d) => ({ value: d.name, label: d.name }))}
                   value={form.doctor ?? event.doctor}
                   onValueChange={(val) => setForm(f => ({ ...f, doctor: val }))}
-                  placeholder="اختر معالج..."
-                  searchPlaceholder="بحث..."
-                  nothingFound="لا يوجد نتائج"
-                />
+                  placeholder="اختر معالج..." searchPlaceholder="بحث..." nothingFound="لا يوجد نتائج" />
               </div>
               <div className="space-y-1.5">
                 <Label>نوع الزيارة</Label>
@@ -333,6 +485,50 @@ function EventDetailsDialog({
               <div className="space-y-1.5">
                 <Label>ملاحظات</Label>
                 <Input dir="rtl" value={form.notes ?? ""} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} />
+              </div>
+            </div>
+          ) : completing ? (
+            <div className="rounded-lg border border-indigo-200 bg-indigo-50/50 p-3 space-y-3">
+              <div>
+                <p className="font-bold text-sm">{isRtl ? "تسجيل نتائج الجلسة" : "Record session outcomes"}</p>
+                <p className="text-xs text-muted-foreground mt-1">{isRtl ? "هذه القياسات يسجلها المعالج، ثم تُضاف تلقائيًا إلى سجل تقدم المريض." : "These therapist-entered measurements are automatically added to the patient's progress history."}</p>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label>{isRtl ? "الألم قبل الجلسة (0–10)" : "Pain before (0–10)"}</Label>
+                  <Input type="number" min={0} max={10} value={painBefore} onChange={(e) => setPainBefore(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label>{isRtl ? "الألم بعد الجلسة (0–10)" : "Pain after (0–10)"}</Label>
+                  <Input type="number" min={0} max={10} value={painAfter} onChange={(e) => setPainAfter(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label>{isRtl ? "مؤشر التعافي (0–100)" : "Recovery score (0–100)"}</Label>
+                  <Input type="number" min={0} max={100} value={recoveryScore} onChange={(e) => setRecoveryScore(e.target.value)} />
+                </div>
+                <div className="space-y-1">
+                  <Label>{isRtl ? "حالة ROM" : "ROM status"}</Label>
+                  <Input value={romStatus} onChange={(e) => setRomStatus(e.target.value)} placeholder={isRtl ? "مثال: تحسن 10 درجات" : "e.g. improved by 10°"} />
+                </div>
+              </div>
+              <div className="space-y-1">
+                <Label>{isRtl ? "حالة القوة العضلية" : "Strength status"}</Label>
+                <Input value={strengthStatus} onChange={(e) => setStrengthStatus(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <Label>{isRtl ? "التمارين التي تم تنفيذها (تمرين في كل سطر)" : "Exercises completed (one per line)"}</Label>
+                <Textarea rows={3} value={completedExercisesText} onChange={(e) => setCompletedExercisesText(e.target.value)}
+                  placeholder={(event.targetExercises || []).join("\n") || (isRtl ? "اكتب التمارين التي نُفذت فعليًا" : "List exercises actually completed")} />
+              </div>
+              <div className="space-y-1">
+                <Label>{isRtl ? "ملاحظات المعالج" : "Therapist notes"}</Label>
+                <Textarea rows={2} value={sessionNotes} onChange={(e) => setSessionNotes(e.target.value)} />
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => setCompleting(false)} disabled={savingCompletion}>{isRtl ? "رجوع" : "Back"}</Button>
+                <Button className="flex-1 bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white" onClick={submitCompletion} disabled={savingCompletion}>
+                  {savingCompletion ? (isRtl ? "جارٍ الحفظ..." : "Saving...") : (isRtl ? "حفظ النتائج وإنهاء الجلسة" : "Save outcomes & complete")}
+                </Button>
               </div>
             </div>
           ) : (
@@ -353,42 +549,31 @@ function EventDetailsDialog({
         </div>
 
         <DialogFooter className="flex-col gap-2 sm:flex-col">
-          {/* Complete session — prominent green button */}
-          {event.status !== "منتهي" && event.status !== "ملغي" && (
-            <Button
-              className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] gap-2 h-11 rounded-xl shadow-md transition-all active:scale-[0.98]"
-              onClick={() => { onComplete(event.id); onClose(); }}
-            >
-              ✅ <span className="font-bold">{isRtl ? "اكتملت الجلسة" : "Complete Session"}</span>
-              <span className="text-xs opacity-75 font-normal">({isRtl ? "سيُخصم من باقة المريض" : "Deducted from patient package"})</span>
+          {event.status !== "منتهي" && event.status !== "ملغي" && !completing && (
+            <Button className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] gap-2 h-11 rounded-xl shadow-md transition-all active:scale-[0.98]"
+              onClick={() => { setSessionNotes(event.notes || ""); setCompleting(true); }}>
+              ✅ <span className="font-bold">{isRtl ? "إنهاء الجلسة وتسجيل التقدم" : "Complete session & record progress"}</span>
             </Button>
           )}
           <div className="flex gap-2 w-full">
             {editing ? (
               <>
-                <Button variant="outline" className="flex-1 rounded-xl transition-all active:scale-95" onClick={() => setEditing(false)}>{isRtl ? "تراجع" : "Back"}</Button>
-                <Button className="flex-1 rounded-xl bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white shadow-md transition-all active:scale-95" onClick={saveEdit}>{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
+                <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setEditing(false)}>تراجع</Button>
+                <Button className="flex-1 rounded-xl bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white" onClick={saveEdit}>{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
               </>
-            ) : (
+            ) : !completing ? (
               <>
                 {event.status !== "ملغي" && event.status !== "منتهي" && (
                   <>
-                    <Button variant="outline" className="flex-1 rounded-xl transition-all active:scale-95" onClick={startEdit}>
-                      ✏️ {isRtl ? "تعديل" : "Edit"}
-                    </Button>
-                    <Button
-                      variant="destructive" className="flex-1 rounded-xl transition-all active:scale-95"
-                      onClick={() => { onCancel(event.id); onClose(); }}
-                    >
-                      🗑 {isRtl ? "إلغاء" : "Cancel"}
-                    </Button>
+                    <Button variant="outline" className="flex-1 rounded-xl" onClick={startEdit}>✏️ {isRtl ? "تعديل" : "Edit"}</Button>
+                    <Button variant="destructive" className="flex-1 rounded-xl" onClick={() => { onCancel(event.id); onClose(); }}>🗑 {isRtl ? "إلغاء" : "Cancel"}</Button>
                   </>
                 )}
                 {(event.status === "ملغي" || event.status === "منتهي") && (
                   <Button variant="outline" className="flex-1 rounded-xl" onClick={onClose}>{isRtl ? "إغلاق" : "Close"}</Button>
                 )}
               </>
-            )}
+            ) : null}
           </div>
         </DialogFooter>
       </DialogContent>
@@ -453,7 +638,13 @@ export default function CalendarPage() {
           patientId: e.patient_id,
           doctor: e.doctor_name || e.therapist,
           visitType: e.appointment_type || e.type,
-          status: e.status
+          status: e.status,
+          treatmentPlanId: e.treatment_plan_id || undefined,
+          sessionIntervention: e.session_intervention || "",
+          sessionObjectives: e.session_objectives || "",
+          targetExercises: Array.isArray(e.target_exercises)
+            ? e.target_exercises.map((item: any) => typeof item === "string" ? item : (item?.name || item?.title || "")).filter(Boolean)
+            : []
         };
       });
       setEvents(formatted);
@@ -512,7 +703,7 @@ export default function CalendarPage() {
 
       const invoiceDesc = isRtl ? `جلسة: ${ev.visitType}` : `Session: ${ev.visitType}`;
       const invoiceAmt = isRtl ? `${defaultPrice} ج.م` : `${defaultPrice} EGP`;
-      const { error } = await supabase.rpc("create_appointment_with_invoice", {
+      const { error } = await supabase.rpc("create_appointment_with_care_plan", {
         p_appointment_id: newId,
         p_patient_id: ev.patientId,
         p_patient_name: ev.patientName,
@@ -527,6 +718,10 @@ export default function CalendarPage() {
         p_invoice_status: isRtl ? "انتظار" : "Pending",
         p_payment_method: "—",
         p_invoice_date: ev.start.toISOString().split("T")[0],
+        p_treatment_plan_id: ev.treatmentPlanId || null,
+        p_session_intervention: ev.sessionIntervention || null,
+        p_session_objectives: ev.sessionObjectives || null,
+        p_target_exercises: (ev.targetExercises || []).map((name) => ({ name })),
       });
 
       if (error) throw error;
@@ -590,29 +785,35 @@ export default function CalendarPage() {
     }
   };
 
-  const handleComplete = async (id: string) => {
-    if (!clinicId) return;
+  const handleComplete = async (id: string, outcome: SessionOutcome): Promise<boolean> => {
+    if (!clinicId) return false;
     const completedEvent = events.find((event) => event.id === id);
-    if (!completedEvent || completedEvent.status === "منتهي") return;
+    if (!completedEvent || completedEvent.status === "منتهي") return false;
 
     try {
-      const { data, error } = await supabase.rpc("complete_appointment_and_consume_session", {
+      const { data, error } = await supabase.rpc("complete_appointment_and_record_progress", {
         p_appointment_id: id,
-        p_diagnosis: completedEvent.visitType || null,
-        p_vas_score: null,
-        p_notes: completedEvent.notes || null,
+        p_pain_before: outcome.painBefore,
+        p_pain_after: outcome.painAfter,
+        p_rom_status: outcome.romStatus || null,
+        p_strength_status: outcome.strengthStatus || null,
+        p_recovery_score: outcome.recoveryScore,
+        p_completed_exercises: outcome.completedExercises.map((name) => ({ name })),
+        p_notes: outcome.notes || null,
       });
       if (error) throw error;
 
       syncEventsState(events.map((event) => event.id === id ? { ...event, status: "منتهي" } : event));
       if (data?.already_completed) {
-        console.info("Appointment already had a linked session; no additional session was consumed.");
+        console.info("Existing session progress was already recorded; no extra session credit was consumed.");
       }
+      return true;
     } catch (err: any) {
-      console.error("Atomic appointment completion failed:", err);
+      console.error("Atomic session completion and progress recording failed:", err);
       alert(isRtl
-        ? "لم يتم اعتماد انتهاء الجلسة أو استهلاكها: " + (err.message || err)
-        : "The appointment was not completed and no session was consumed: " + (err.message || err));
+        ? "لم يتم إنهاء الجلسة أو تحديث التقدم: " + (err.message || err)
+        : "The session was not completed and progress was not updated: " + (err.message || err));
+      return false;
     }
   };
 
@@ -705,6 +906,7 @@ export default function CalendarPage() {
         selectedDate={selectedDate}
         patientsList={patients}
         doctorsList={doctorsList}
+        clinicId={clinicId}
         onClose={() => setSelectedDate(null)}
         onSave={handleSaveNew}
       />
