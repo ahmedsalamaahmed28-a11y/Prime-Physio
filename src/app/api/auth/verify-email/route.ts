@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase-admin";
 import bcrypt from "bcryptjs";
 import { consumeVerificationCode, normalizeAuthEmail } from "@/lib/verificationCodes";
+import { validateNewPassword } from "@/lib/passwordSecurity";
 
 export const runtime = "nodejs";
 
@@ -15,7 +16,7 @@ export async function POST(req: NextRequest) {
     const password = typeof body?.password === "string" ? body.password : "";
     const name = typeof body?.name === "string" ? body.name.trim().slice(0, 120) : "";
 
-    if (!email || !/^\d{6}$/.test(code) || !clinicName || clinicName.length > 160 || !phone || phone.length > 32 || password.length < 10 || password.length > 128) {
+    if (!email || !/^\d{6}$/.test(code) || !clinicName || clinicName.length > 160 || !phone || phone.length > 32 || password.length < 12 || password.length > 128) {
       return NextResponse.json({ error: "يرجى مراجعة جميع الحقول المطلوبة" }, { status: 400 });
     }
 
@@ -39,6 +40,15 @@ export async function POST(req: NextRequest) {
     if (staffLookupError) throw staffLookupError;
     if (existingStaff) {
       return NextResponse.json({ error: "تعذر إنشاء الحساب بهذه البيانات" }, { status: 409 });
+    }
+
+    try {
+      await validateNewPassword(password);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : "";
+      if (reason === "PASSWORD_TOO_WEAK") return NextResponse.json({ error: "كلمة المرور يجب أن تكون 12 حرفًا على الأقل وتحتوي على حرف كبير وصغير ورقم ورمز." }, { status: 400 });
+      if (reason === "PASSWORD_COMPROMISED") return NextResponse.json({ error: "كلمة المرور ظهرت في تسريبات سابقة. اختر كلمة مرور مختلفة." }, { status: 400 });
+      return NextResponse.json({ error: "تعذر فحص أمان كلمة المرور حاليًا. حاول مرة أخرى." }, { status: 503 });
     }
 
     const consumed = await consumeVerificationCode(admin, email, "signup", code);
