@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase-admin";
 import { sendVerificationCode } from "@/lib/email";
-import { clearVerificationCode, issueVerificationCode, normalizeAuthEmail } from "@/lib/verificationCodes";
+import { allowOtpSendFromIp, clearVerificationCode, issueVerificationCode, normalizeAuthEmail } from "@/lib/verificationCodes";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,6 +16,10 @@ export async function POST(req: NextRequest) {
     }
 
     const admin = getAdminClient();
+    const clientIp = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",").pop()?.trim() || "unknown";
+    if (!(await allowOtpSendFromIp(admin, clientIp, "signup"))) {
+      return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." }, { headers: { "Cache-Control": "no-store, private" } });
+    }
     const { data: existing, error: lookupError } = await admin
       .from("auth_accounts")
       .select("id")
@@ -27,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     // Avoid revealing whether an email is already registered.
     if (existing) {
-      return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." });
+      return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." }, { headers: { "Cache-Control": "no-store, private" } });
     }
 
     const code = await issueVerificationCode(admin, cleanEmail, "signup");
@@ -41,7 +47,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." });
     }
 
-    return NextResponse.json({ success: true, sent: true });
+    return NextResponse.json({ success: true, sent: true }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error) {
     if (error instanceof Error && error.message === "OTP_RATE_LIMIT") {
       return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." });
