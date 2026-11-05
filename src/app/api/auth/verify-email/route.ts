@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
     if (staffLookupError) throw staffLookupError;
     if (existingStaff) {
-      return NextResponse.json({ error: "تعذر إنشاء الحساب بهذه البيانات" }, { status: 409 });
+      return NextResponse.json({ error: "تعذر إنشاء الحساب أو رمز التحقق غير صالح" }, { status: 400 });
     }
 
     const codeValid = await checkVerificationCode(admin, email, "signup", code);
