@@ -41,15 +41,16 @@ export const authOptions = {
             : [];
         // Prefer the proxy-normalized x-real-ip; otherwise use the final forwarded hop.
         const ip = String(realIp || forwardedValues[forwardedValues.length - 1] || "unknown").trim().slice(0, 128);
-        const ipHash = createHmac("sha256", secret).update(ip).digest("hex");
+        const ipHash = createHmac("sha256", secret).update(`ip:${ip}`).digest("hex");
+        const accountRateHash = createHmac("sha256", secret).update(`account:${email}`).digest("hex");
 
         try {
           const admin = getAdminClient();
-          const { data: allowed, error: rateLimitError } = await admin.rpc("check_auth_login_attempt", {
-            p_email: email,
-            p_ip_hash: ipHash,
-          });
-          if (rateLimitError || allowed !== true) return null;
+          const [ipLimit, accountLimit] = await Promise.all([
+            admin.rpc("check_auth_login_attempt", { p_email: email, p_ip_hash: ipHash }),
+            admin.rpc("check_auth_login_attempt", { p_email: email, p_ip_hash: accountRateHash }),
+          ]);
+          if (ipLimit.error || accountLimit.error || ipLimit.data !== true || accountLimit.data !== true) return null;
 
           const { data, error } = await admin
             .from("auth_accounts")
@@ -62,12 +63,12 @@ export const authOptions = {
           const valid = await bcrypt.compare(String(credentials.password), data.password_hash);
           if (!valid) return null;
 
-          const { error: clearError } = await admin.rpc("clear_auth_login_attempts", {
-            p_email: email,
-            p_ip_hash: ipHash,
-          });
-          if (clearError) {
-            console.error("[Auth] Failed to clear login attempt counter:", clearError);
+          const clearResults = await Promise.all([
+            admin.rpc("clear_auth_login_attempts", { p_email: email, p_ip_hash: ipHash }),
+            admin.rpc("clear_auth_login_attempts", { p_email: email, p_ip_hash: accountRateHash }),
+          ]);
+          if (clearResults.some((result) => result.error)) {
+            console.error("[Auth] Failed to clear one or more login attempt counters");
           }
 
           return {
