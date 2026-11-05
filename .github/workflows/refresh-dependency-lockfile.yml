@@ -30,11 +30,11 @@ jobs:
           cache: npm
 
       - name: Regenerate lockfile without lifecycle scripts
-        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+        run: npm install --package-lock-only --legacy-peer-deps --ignore-scripts --no-audit --no-fund
 
       - name: Apply non-breaking security updates
         continue-on-error: true
-        run: npm audit fix --ignore-scripts --no-fund
+        run: npm audit fix --legacy-peer-deps --ignore-scripts --no-fund
 
       - name: Commit updated lockfile
         run: |
