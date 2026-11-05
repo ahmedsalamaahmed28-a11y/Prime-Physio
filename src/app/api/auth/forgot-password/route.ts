@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase-admin";
 import { sendVerificationCode } from "@/lib/email";
-import { clearVerificationCode, issueVerificationCode, normalizeAuthEmail } from "@/lib/verificationCodes";
+import { allowOtpSendFromIp, clearVerificationCode, issueVerificationCode, normalizeAuthEmail } from "@/lib/verificationCodes";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const genericResponse = {
   success: true,
@@ -19,6 +21,10 @@ export async function POST(req: NextRequest) {
     }
 
     const admin = getAdminClient();
+    const clientIp = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",").pop()?.trim() || "unknown";
+    if (!(await allowOtpSendFromIp(admin, clientIp, "password_reset"))) {
+      return NextResponse.json(genericResponse, { headers: { "Cache-Control": "no-store, private" } });
+    }
     const { data: existingAuth, error: authError } = await admin
       .from("auth_accounts")
       .select("id, verified")
@@ -27,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     if (authError) {
       console.error("[ForgotPassword] Account lookup failed:", authError);
-      return NextResponse.json(genericResponse);
+      return NextResponse.json(genericResponse, { headers: { "Cache-Control": "no-store, private" } });
     }
 
     const { data: staffUser, error: staffError } = await admin
