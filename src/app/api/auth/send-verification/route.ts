@@ -33,14 +33,18 @@ export async function POST(req: NextRequest) {
     const code = await issueVerificationCode(admin, cleanEmail, "signup");
     const sent = await sendVerificationCode(cleanEmail, code);
     if (!sent) {
-      await clearVerificationCode(admin, cleanEmail, "signup");
-      return NextResponse.json({ error: "تعذر إرسال رسالة التحقق. حاول لاحقًا." }, { status: 503 });
+      try {
+        await clearVerificationCode(admin, cleanEmail, "signup");
+      } catch (cleanupError) {
+        console.error("[SendVerification] Failed to clear unsent code:", cleanupError);
+      }
+      return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." });
     }
 
     return NextResponse.json({ success: true, sent: true });
   } catch (error) {
     if (error instanceof Error && error.message === "OTP_RATE_LIMIT") {
-      return NextResponse.json({ error: "يرجى الانتظار دقيقة قبل طلب رمز جديد." }, { status: 429 });
+      return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." });
     }
     console.error("[SendVerification] Error:", error);
     return NextResponse.json({ error: "تعذر معالجة الطلب حاليًا" }, { status: 500 });
