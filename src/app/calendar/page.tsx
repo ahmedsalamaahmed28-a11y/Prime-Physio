@@ -42,6 +42,7 @@ interface CalendarEvent {
   status: "مؤكد" | "انتظار" | "منتهي" | "ملغي";
   notes?: string;
   treatmentPlanId?: string;
+  treatmentPlanTitle?: string;
   sessionIntervention?: string;
   sessionObjectives?: string;
   targetExercises?: string[];
@@ -215,6 +216,7 @@ function NewAppointmentDialog({
       status: "مؤكد",
       notes,
       treatmentPlanId: treatmentPlanId || undefined,
+      treatmentPlanTitle: treatmentPlans.find((plan) => plan.id === treatmentPlanId)?.goals || undefined,
       sessionIntervention,
       sessionObjectives,
       targetExercises: targetExercisesText.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
@@ -455,7 +457,7 @@ function EventDetailsDialog({
 
           <div className="rounded-lg border p-3 space-y-2">
             <p className="font-semibold text-sm">{isRtl ? "الخطة والتدخل العلاجي" : "Treatment plan & intervention"}</p>
-            <p className="text-sm"><span className="text-muted-foreground">{isRtl ? "الخطة المرتبطة: " : "Linked plan: "}</span>{event.treatmentPlanId || (isRtl ? "لا توجد خطة مرتبطة" : "No linked plan")}</p>
+            <p className="text-sm"><span className="text-muted-foreground">{isRtl ? "الخطة المرتبطة: " : "Linked plan: "}</span>{event.treatmentPlanTitle || (event.treatmentPlanId ? (isRtl ? "خطة علاجية مرتبطة" : "Linked treatment plan") : (isRtl ? "لا توجد خطة مرتبطة" : "No linked plan"))}</p>
             <p className="text-sm"><span className="text-muted-foreground">{isRtl ? "التدخل: " : "Intervention: "}</span>{event.sessionIntervention || "—"}</p>
             <p className="text-sm"><span className="text-muted-foreground">{isRtl ? "الأهداف: " : "Objectives: "}</span>{event.sessionObjectives || "—"}</p>
             <div className="text-sm">
@@ -618,7 +620,7 @@ export default function CalendarPage() {
         setDoctorsList((doctorsData || []).filter((s: any) => isDoctor(s.role)));
       }
 
-      const { data: dbEvents, error: dbErr } = await supabase.from("appointments").select("*").eq('clinic_id', clinicId);
+      const { data: dbEvents, error: dbErr } = await supabase.from("appointments").select("*, treatment_plan:treatment_plans!appointments_treatment_plan_id_fkey(id,goals)").eq('clinic_id', clinicId);
       if (dbErr) {
         console.error("Failed to load appointments from Supabase", dbErr);
         setEvents([]);
@@ -640,6 +642,7 @@ export default function CalendarPage() {
           visitType: e.appointment_type || e.type,
           status: e.status,
           treatmentPlanId: e.treatment_plan_id || undefined,
+          treatmentPlanTitle: e.treatment_plan?.goals || undefined,
           sessionIntervention: e.session_intervention || "",
           sessionObjectives: e.session_objectives || "",
           targetExercises: Array.isArray(e.target_exercises)
