@@ -12,7 +12,8 @@ function mapStaffRoleToRoleKey(role: string): string {
   if (lower === "استشاري" || lower === "أخصائي" || lower === "ممارس" || lower === "doctor") return "doctor";
   if (lower === "موظف استقبال" || lower === "receptionist") return "receptionist";
   if (lower === "platform_admin" || lower === "مدير المنصة") return "platform_admin";
-  return "doctor";
+  if (lower === "استشاري علاج طبيعي" || lower === "أخصائي علاج طبيعي" || lower === "ممارس علاج طبيعي" || lower === "doctor") return "doctor";
+  return "unknown";
 }
 
 function getArabicRoleLabel(roleKey: string) {
@@ -96,6 +97,9 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     const roleKey = mapStaffRoleToRoleKey(staff.role);
+    if (roleKey === "unknown") {
+      return NextResponse.json({ error: "Unrecognized staff role" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
+    }
     return NextResponse.json({
       clinicId: targetClinicId,
       role: staff.role,
