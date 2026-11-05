@@ -15,8 +15,12 @@ export async function GET(req: NextRequest) {
     const admin = getAdminClient();
     
     // Deterministic secure password known only to the server
-    const baseSecret = process.env.NEXTAUTH_SECRET || "fallback_secret_123456789";
-    const shadowPassword = crypto.createHash("sha256").update(email + baseSecret + "SHADOW").digest("hex");
+    const baseSecret = process.env.NEXTAUTH_SECRET;
+    if (!baseSecret || baseSecret.length < 32) {
+      console.error("[SupabaseSession] NEXTAUTH_SECRET is missing or too short");
+      return NextResponse.json({ error: "Authentication service is not configured" }, { status: 503 });
+    }
+    const shadowPassword = crypto.createHmac("sha256", baseSecret).update(`prime-physio-shadow-user:v1:${email}`).digest("hex");
 
     // Try to sign in
     let { data: authData, error: authError } = await admin.auth.signInWithPassword({
