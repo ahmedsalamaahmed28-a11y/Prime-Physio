@@ -57,7 +57,7 @@ function ManageContent() {
   const [showForgotModal, setShowForgotModal] = useState(false);
   const [forgotStep, setForgotStep] = useState<"email" | "otp" | "reset" | "success">("email");
   const [forgotEmail, setForgotEmail] = useState("");
-  const [forgotOtp, setForgotOtp] = useState(["", "", "", ""]);
+  const [forgotOtp, setForgotOtp] = useState(["", "", "", "", "", ""]);
   const [forgotNewPassword, setForgotNewPassword] = useState("");
   const [forgotConfirmPassword, setForgotConfirmPassword] = useState("");
   const [forgotShowPassword, setForgotShowPassword] = useState(false);
@@ -65,7 +65,7 @@ function ManageContent() {
   const [forgotError, setForgotError] = useState("");
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotShowCode, setForgotShowCode] = useState("");
-  const forgotOtpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+  const forgotOtpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
   const handleForgotSendOtp = async () => {
     setForgotError("");
@@ -83,7 +83,7 @@ function ManageContent() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || (isRtl ? "فشل إرسال رمز التحقق" : "Failed to send code"));
       if (data.devCode) {
-        setForgotOtp(data.devCode.split("").slice(0, 4));
+        setForgotOtp(data.devCode.split("").slice(0, 6));
         setForgotShowCode(data.devCode);
       } else {
         setForgotShowCode("");
@@ -102,7 +102,7 @@ function ManageContent() {
     const newOtp = [...forgotOtp];
     newOtp[idx] = val;
     setForgotOtp(newOtp);
-    if (val && idx < 3) forgotOtpRefs[idx + 1].current?.focus();
+    if (val && idx < 5) forgotOtpRefs[idx + 1].current?.focus();
   };
 
   const handleForgotOtpKeyDown = (idx: number, e: React.KeyboardEvent) => {
@@ -112,7 +112,7 @@ function ManageContent() {
   const handleForgotVerify = async () => {
     const code = forgotOtp.join("");
     setForgotError("");
-    if (code.length !== 4) {
+    if (code.length !== 6) {
       setForgotError(isRtl ? "يرجى إدخال رمز التحقق كاملاً" : "Please enter the full code");
       return;
     }
@@ -136,8 +136,8 @@ function ManageContent() {
   const handleForgotResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setForgotError("");
-    if (forgotNewPassword.length < 6) {
-      setForgotError(isRtl ? "كلمة المرور يجب أن تكون 6 أحرف على الأقل" : "Password must be at least 6 characters");
+    if (forgotNewPassword.length < 10 || forgotNewPassword.length > 128) {
+      setForgotError(isRtl ? "كلمة المرور يجب أن تكون بين 10 و128 حرفًا" : "Password must be between 10 and 128 characters");
       return;
     }
     if (forgotNewPassword !== forgotConfirmPassword) {
@@ -462,7 +462,7 @@ function ManageContent() {
                   </div>
                   <button
                     onClick={handleForgotVerify}
-                    disabled={forgotOtp.join("").length !== 4 || forgotLoading}
+                    disabled={forgotOtp.join("").length !== 6 || forgotLoading}
                     className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-9 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
                   >
                     {forgotLoading ? (
