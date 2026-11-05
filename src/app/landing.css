@@ -122,3 +122,16 @@
   background:linear-gradient(to right,#4338CA,#6D28D9);
   color:#fff;
 }
+
+
+/* Seamless right-to-left trusted-centers marquee. Two identical groups prevent a visible reset. */
+.pp-trusted-strip-viewport{position:relative;width:100%;overflow:hidden;margin-top:20px;padding-block:10px;}
+.pp-trusted-strip-track{display:flex;flex-direction:row;direction:rtl;width:max-content;will-change:transform;animation:pp-trusted-strip-loop 42s linear infinite;}
+.pp-trusted-strip-group{display:flex;flex:none;flex-direction:row;direction:rtl;align-items:center;gap:clamp(36px,5vw,72px);padding-inline:clamp(24px,4vw,56px);}
+.pp-trusted-strip-item{flex:none;white-space:nowrap;color:#94a3b8;opacity:.7;filter:grayscale(1);transition:color .3s,opacity .3s,filter .3s;}
+.pp-trusted-strip-item:hover{color:#4f46e5;opacity:1;filter:grayscale(0);}
+.pp-trusted-strip-item svg{width:32px;height:32px;color:currentColor;}
+.pp-trusted-strip-item span{font-size:24px;font-weight:900;letter-spacing:-.025em;}
+.pp-trusted-strip-viewport:hover .pp-trusted-strip-track{animation-play-state:paused;}
+@keyframes pp-trusted-strip-loop{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@media(prefers-reduced-motion:reduce){.pp-trusted-strip-track{animation:none;transform:none}.pp-trusted-strip-group[aria-hidden="true"]{display:none}}
