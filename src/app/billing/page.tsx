@@ -134,35 +134,23 @@ export default function BillingPage() {
   };
 
   const executeDeleteInvoice = async () => {
-    if (!deleteInvoiceId) return;
+    if (!deleteInvoiceId || !clinicId) return;
 
     try {
-      // Find the invoice to get patient_id before deleting
-      const invoice = invoices.find((inv) => inv.id === deleteInvoiceId);
-      const patientId = invoice?.patientId;
+      // An invoice is an independent financial record. Never delete its patient
+      // or any other invoices/appointments/sessions as a side effect.
+      const { error } = await supabase
+        .from("invoices")
+        .delete()
+        .eq("clinic_id", clinicId)
+        .eq("id", deleteInvoiceId);
 
-      // Delete the invoice
-      const { error } = await supabase.from("invoices").delete().eq("clinic_id", clinicId).eq("id", deleteInvoiceId);
       if (error) throw error;
 
-      // If invoice belongs to a patient, delete patient + all their related data
-      if (patientId) {
-        await supabase.from("invoices").delete().eq("clinic_id", clinicId).eq("patient_id", patientId);
-        await supabase.from("appointments").delete().eq("clinic_id", clinicId).eq("patient_id", patientId);
-        await supabase.from("sessions").delete().eq("clinic_id", clinicId).eq("patient_id", patientId);
-        await supabase.from("patients").delete().eq("clinic_id", clinicId).eq("id", patientId);
-      }
-
-      // Update local state
-      setInvoices((prev) =>
-        patientId
-          ? prev.filter((inv) => inv.patientId !== patientId)
-          : prev.filter((inv) => inv.id !== deleteInvoiceId)
-      );
-      setPatients((prev) => prev.filter((p) => p.id !== patientId));
+      setInvoices((prev) => prev.filter((inv) => inv.id !== deleteInvoiceId));
     } catch (err: any) {
       console.error("Failed to delete invoice:", err);
-      alert(isRtl ? "فشل الحذف: " + (err.message || err) : "Delete failed: " + (err.message || err));
+      alert(isRtl ? "فشل حذف الفاتورة: " + (err.message || err) : "Invoice deletion failed: " + (err.message || err));
     } finally {
       setDeleteInvoiceId(null);
     }
