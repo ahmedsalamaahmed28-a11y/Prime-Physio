@@ -82,12 +82,6 @@ function ManageContent() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || (isRtl ? "فشل إرسال رمز التحقق" : "Failed to send code"));
-      if (data.devCode) {
-        setForgotOtp(data.devCode.split("").slice(0, 4));
-        setForgotShowCode(data.devCode);
-      } else {
-  
-      }
       setForgotStep("otp");
       setTimeout(() => forgotOtpRefs[0].current?.focus(), 100);
     } catch (err: any) {
@@ -102,7 +96,7 @@ function ManageContent() {
     const newOtp = [...forgotOtp];
     newOtp[idx] = val;
     setForgotOtp(newOtp);
-    if (val && idx < 3) forgotOtpRefs[idx + 1].current?.focus();
+    if (val && idx < 5) forgotOtpRefs[idx + 1].current?.focus();
   };
 
   const handleForgotOtpKeyDown = (idx: number, e: React.KeyboardEvent) => {
@@ -333,7 +327,7 @@ function ManageContent() {
                   {isRtl ? "تذكرني" : "Remember me"}
                 </label>
               </div>
-              <button type="button" onClick={() => { setShowForgotModal(true); setForgotStep("email"); setForgotOtp(["","","","","",""]); setForgotNewPassword(""); setForgotConfirmPassword(""); setForgotShowCode(""); setForgotError(""); }} className="text-sm font-semibold text-[#4F46BA] hover:text-[#3730a3] transition-colors">
+              <button type="button" onClick={() => { setShowForgotModal(true); setForgotStep("email"); setForgotOtp(["","","","","",""]); setForgotNewPassword(""); setForgotConfirmPassword("");  setForgotError(""); }} className="text-sm font-semibold text-[#4F46BA] hover:text-[#3730a3] transition-colors">
                 {isRtl ? "نسيت كلمة المرور؟" : "Forgot password?"}
               </button>
             </div>
