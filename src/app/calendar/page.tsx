@@ -610,7 +610,7 @@ export default function CalendarPage() {
         setDoctorsList((doctorsData || []).filter((s: any) => isDoctor(s.role)));
       }
 
-      const { data: dbEvents, error: dbErr } = await supabase.from("appointments").select("*, treatment_plan:treatment_plans!appointments_treatment_plan_id_fkey(id,goals)").eq('clinic_id', clinicId);
+      const { data: dbEvents, error: dbErr } = await supabase.from("appointments").select("*, treatment_plan:treatment_plans!appointments_treatment_plan_patient_clinic_fkey(id,goals)").eq('clinic_id', clinicId);
       if (dbErr) {
         console.error("Failed to load appointments from Supabase", dbErr);
         setEvents([]);
