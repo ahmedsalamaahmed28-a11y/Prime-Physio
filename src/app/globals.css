@@ -328,3 +328,33 @@
   }
   @page { margin: 1.5cm; }
 }
+
+
+/* ── Onboarding v2 (Prime Physio adaptation) ── */
+.ob2Hint{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:6px;padding:8px 10px;border-radius:10px;background:#fff7e6;border:1px solid #f3d38b;font-size:.9rem;color:#5c4400}
+.ob2Hint[hidden]{display:none}
+.ob2HintBtn{border:0;border-radius:8px;padding:4px 10px;background:var(--primary,#119094);color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.ob2HintBtn:focus-visible{outline:2px solid var(--primary,#119094);outline-offset:2px}
+details.ob2More>summary{list-style:none;cursor:pointer}
+details.ob2More>summary::-webkit-details-marker{display:none}
+details.ob2More>summary h2::after{content:"+";margin-inline-start:8px;font-weight:700;opacity:.6}
+details.ob2More[open]>summary h2::after{content:"–"}
+.ob2Prog{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(15,23,42,.55)}
+.ob2ProgCard{width:100%;max-width:420px;background:#fff;border-radius:16px;padding:24px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.ob2ProgCard h2{margin:0 0 14px;font-size:1.15rem}
+.ob2ProgCard ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ob2ProgCard li{display:flex;align-items:center;gap:10px;color:#64748b}
+.ob2ProgCard li::before{content:"";flex:0 0 18px;height:18px;border-radius:50%;border:2px solid #cbd5e1}
+.ob2ProgCard li.is-now{color:#0f172a;font-weight:700}
+.ob2ProgCard li.is-now::before{border-color:var(--primary,#119094);border-top-color:transparent;animation:ob2spin .8s linear infinite}
+.ob2ProgCard li.is-done{color:#0f172a}
+.ob2ProgCard li.is-done::before{background:#16a34a;border-color:#16a34a}
+.ob2Fix{margin-top:14px}
+.ob2Fix summary{cursor:pointer;color:var(--primary,#119094);font-weight:700}
+.ob2Fix form{margin-top:10px;display:grid;gap:8px}
+@keyframes ob2spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.ob2ProgCard li.is-now::before{animation:none}}
+
+/* "Didn't get the code?" help */
+.ob2HelpList{margin:10px 0 4px;padding-inline-start:20px;display:grid;gap:8px;font-size:14px;line-height:1.6}
+.ob2HelpList .lp-btn{margin-top:6px}
