@@ -1587,25 +1587,26 @@ function PackagesTab({ patient, onUpdatePatient }: { patient: any, onUpdatePatie
   const isFinished = remaining <= 0 && pkg.totalSessions > 0;
 
   const handleConsumeSession = async () => {
-    if (remaining <= 0 || isUpdating) return;
+    if (remaining <= 0 || isUpdating || !clinicId) return;
     setIsUpdating(true);
-    const newUsed = pkg.usedSessions + 1;
-    
+
     try {
-      const { error } = await supabase
-        .from("patients")
-        .update({ sessionsUsed: newUsed })
-        .eq("clinic_id", clinicId)
-        .eq("id", patient.id);
-        
-      if (!error) {
-        setPkg({ ...pkg, usedSessions: newUsed });
-        onUpdatePatient({ ...patient, sessionsUsed: newUsed });
-      }
-    } catch (e) {
-      console.error(e);
+      const { data, error } = await supabase.rpc("consume_patient_session", {
+        p_patient_id: patient.id,
+        p_notes: "Manual package session consumption",
+      });
+      if (error) throw error;
+
+      const newUsed = Number(data?.sessions_used);
+      if (!Number.isFinite(newUsed)) throw new Error("The database did not return the updated session count.");
+      setPkg((current) => ({ ...current, usedSessions: newUsed }));
+      onUpdatePatient({ ...patient, sessionsUsed: newUsed });
+    } catch (err: any) {
+      console.error("Session consumption failed:", err);
+      alert(isRtl ? "تعذر استهلاك الجلسة: " + (err.message || err) : "Could not consume session: " + (err.message || err));
+    } finally {
+      setIsUpdating(false);
     }
-    setIsUpdating(false);
   };
 
   const handleRenewPackage = async () => {
