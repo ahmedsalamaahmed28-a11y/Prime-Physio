@@ -1,124 +1,65 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase";
-import { requireAuth } from "../../utils/auth";
+import { getAdminClient } from "@/lib/supabase-admin";
+import { requireRole } from "../../utils/auth";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function POST(req: NextRequest) {
   try {
-    const session = await requireAuth(req);
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // Identity and role are resolved server-side. Never use the email or role sent by the browser.
+    const session = await requireRole(req, ["admin"]);
+    const body = await req.json().catch(() => null);
 
-    const email = session.email;
-    const { name, centers } = await req.json();
+    const name = typeof body?.name === "string" ? body.name.trim().slice(0, 160) : "";
+    const centers = Array.isArray(body?.centers) ? body.centers : null;
 
-    if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
-    }
-
-    if (!centers || centers.length === 0) {
-      return NextResponse.json({ error: "At least one center is required" }, { status: 400 });
+    if (!name || !centers || centers.length < 1 || centers.length > 5) {
+      return NextResponse.json(
+        { error: "يرجى إدخال اسم العيادة ومركز واحد إلى خمسة مراكز صحيحة" },
+        { status: 400, headers: { "Cache-Control": "no-store, private" } }
+      );
     }
 
     const admin = getAdminClient();
-
-    // 1. Check if user already has a clinic in staff
-    const { data: existingStaff } = await admin
-      .from("staff")
-      .select("clinic_id")
-      .eq("email", email)
-      .limit(1)
-      .maybeSingle();
-
-    let clinicId = existingStaff?.clinic_id;
-
-    if (!clinicId) {
-      // Create new clinic
-      clinicId = crypto.randomUUID();
-      const { error: clinicError } = await admin.from("clinics").insert({
-        id: clinicId,
-        name: name || "Clinic Admin",
-        admin_email: email,
-        status: "active",
-      });
-
-      if (clinicError) {
-        return NextResponse.json({ error: "Failed to create clinic" }, { status: 500 });
-      }
-
-      // Update staff
-      await admin.from("staff").update({ clinic_id: clinicId }).eq("email", email);
-      
-      // Create settings
-      await admin.from("clinic_settings").upsert({ clinic_id: clinicId, clinic_name: name || "Clinic Admin" });
-
-      // Link any orphaned subscriptions for this email to the new clinic
-      await admin.from("subscriptions").update({ clinic_id: clinicId }).eq("user_email", email).is("clinic_id", null);
-    }
-
-    // Check for duplicate slugs
-    const slugs = centers.map((c: any) => c.slug.toLowerCase().trim());
-    const { data: existingBranches } = await admin.from("branches").select("slug").in("slug", slugs);
-    if (existingBranches && existingBranches.length > 0) {
-       return NextResponse.json({ error: `Slug already taken: ${existingBranches[0].slug}` }, { status: 400 });
-    }
-
-    // Check branch limits for existing clinic
-    if (existingStaff?.clinic_id) {
-      const { data: sub } = await admin
-        .from("subscriptions")
-        .select("plan_name")
-        .eq("clinic_id", clinicId)
-        .eq("status", "active")
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const { count: branchCount } = await admin
-        .from("branches")
-        .select("*", { count: "exact", head: true })
-        .eq("clinic_id", clinicId);
-
-      const plan = sub?.plan_name || "basic";
-      if (plan !== "gold" && branchCount && branchCount >= 1) {
-        return NextResponse.json({ error: "الخطة الحالية لا تدعم أكثر من مركز واحد. يرجى الترقية للخطة الذهبية." }, { status: 403 });
-      }
-    }
-
-    // Insert branches
-    const createdBranches = [];
-    for (const center of centers) {
-       const slug = center.slug.toLowerCase().trim();
-       const { data: branch, error: branchError } = await admin.from("branches").insert({
-          clinic_id: clinicId,
-          short_name: center.shortName,
-          full_name: center.fullName || null,
-          slug,
-          status: "active"
-       }).select("id, slug, short_name, full_name").single();
-
-       if (!branchError && branch) {
-          createdBranches.push({
-             id: branch.id,
-             slug: branch.slug,
-             shortName: branch.short_name,
-             fullName: branch.full_name
-          });
-       }
-    }
-
-    return NextResponse.json({
-      success: true,
-      clinicId,
-      createdSlugs: createdBranches.map(b => b.slug),
-      createdBranches,
+    const { data, error } = await admin.rpc("setup_clinic_transaction_server", {
+      p_email: session.email.toLowerCase().trim(),
+      p_name: name,
+      p_centers: centers,
     });
-  } catch (err) {
-    console.error("[Setup Submit] Unhandled Error:", err);
+
+    if (error) {
+      console.error("[Setup Submit] Secure onboarding RPC failed:", error);
+      return NextResponse.json(
+        { error: "تعذر إكمال إعداد العيادة حاليًا" },
+        { status: 500, headers: { "Cache-Control": "no-store, private" } }
+      );
+    }
+
+    if (!data || data.error) {
+      return NextResponse.json(
+        { error: data?.error || "فشل إعداد العيادة" },
+        { status: 400, headers: { "Cache-Control": "no-store, private" } }
+      );
+    }
+
+    return NextResponse.json(data, {
+      headers: { "Cache-Control": "no-store, private" },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (/unauthorized|غير مصرح|صلاحية غير كافية|not found/i.test(message)) {
+      return NextResponse.json(
+        { error: "غير مصرح لك بإنشاء أو تعديل المراكز" },
+        { status: 403, headers: { "Cache-Control": "no-store, private" } }
+      );
+    }
+
+    console.error("[Setup Submit] Unhandled error:", error);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Internal server error" },
-      { status: 500 }
+      { error: "حدث خطأ داخلي أثناء إعداد العيادة" },
+      { status: 500, headers: { "Cache-Control": "no-store, private" } }
     );
   }
 }
-
