@@ -71,8 +71,13 @@ function mapStaffRoleToRoleKey(staffRole: string): "admin" | "doctor" | "recepti
     case "موظف استقبال":
     case "receptionist":
       return "receptionist";
-    default:
+    case "استشاري علاج طبيعي":
+    case "أخصائي علاج طبيعي":
+    case "ممارس علاج طبيعي":
+    case "doctor":
       return "doctor";
+    default:
+      return "receptionist";
   }
 }
 
