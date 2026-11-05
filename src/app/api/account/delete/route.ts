@@ -50,21 +50,26 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const deletions = await Promise.all([
-        admin.from("patients").delete().eq("clinic_id", clinicId),
-        admin.from("sessions").delete().eq("clinic_id", clinicId),
-        admin.from("appointments").delete().eq("clinic_id", clinicId),
-        admin.from("invoices").delete().eq("clinic_id", clinicId),
-        admin.from("branches").delete().eq("clinic_id", clinicId),
-        admin.from("clinic_settings").delete().eq("clinic_id", clinicId),
-        admin.from("subscriptions").delete().eq("clinic_id", clinicId),
-        admin.from("staff").delete().eq("clinic_id", clinicId),
-      ]);
+      const deleteClinicRows = [
+        () => admin.from("patients").delete().eq("clinic_id", clinicId),
+        () => admin.from("sessions").delete().eq("clinic_id", clinicId),
+        () => admin.from("appointments").delete().eq("clinic_id", clinicId),
+        () => admin.from("invoices").delete().eq("clinic_id", clinicId),
+        () => admin.from("branches").delete().eq("clinic_id", clinicId),
+        () => admin.from("clinic_settings").delete().eq("clinic_id", clinicId),
+        () => admin.from("subscriptions").delete().eq("clinic_id", clinicId),
+        () => admin.from("staff").delete().eq("clinic_id", clinicId),
+      ];
 
-      const deletionError = deletions.find((result) => result.error)?.error;
-      if (deletionError) {
-        console.error("[AccountDelete] Clinic data deletion failed:", deletionError);
-        return NextResponse.json({ error: "Clinic deletion could not be completed safely" }, { status: 500 });
+      for (const deleteRows of deleteClinicRows) {
+        const { error: deletionError } = await deleteRows();
+        if (deletionError) {
+          console.error("[AccountDelete] Clinic data deletion failed:", deletionError);
+          return NextResponse.json(
+            { error: "Clinic deletion could not be completed safely" },
+            { status: 500 }
+          );
+        }
       }
 
       const { error: clinicDeleteError } = await admin
