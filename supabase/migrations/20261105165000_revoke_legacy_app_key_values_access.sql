@@ -15,4 +15,6 @@ GRANT ALL ON TABLE public.app_key_values TO service_role;
 
 -- Remove only obsolete OTP records from the legacy store.
 DELETE FROM public.app_key_values
-WHERE key LIKE 'verification_%' OR key LIKE 'password_reset_%';
+WHERE key LIKE 'verification_%'
+   OR key LIKE 'password_reset_%'
+   OR key IN ('current_user', 'pending_role', 'pending_google_signup');
