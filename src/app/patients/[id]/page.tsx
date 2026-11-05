@@ -2715,22 +2715,48 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
   };
 
   const [patient, setPatient] = useState<Patient>(EMPTY_PATIENT(resolvedParams.id));
+  const [protocolStateLoaded, setProtocolStateLoaded] = useState(false);
+  const protocolProgramTitle = "__prime_physio_active_protocol_state__";
 
   const handleSaveProtocolState = async (state: any) => {
-    if (!clinicId || !patient.id) return;
+    if (!clinicId || !patient.id || !protocolStateLoaded) return;
     try {
-      const { error } = await supabase
-        .from("patients")
-        .update({ active_protocol: state })
+      const { data: existing, error: lookupError } = await supabase
+        .from("patient_programs")
+        .select("id")
         .eq("clinic_id", clinicId)
-        .eq("id", patient.id);
-      if (error) {
-        console.warn("Failed to sync protocol state to Supabase:", error);
+        .eq("patient_id", patient.id)
+        .eq("title", protocolProgramTitle)
+        .maybeSingle();
+
+      if (lookupError) throw lookupError;
+
+      if (existing?.id) {
+        const { error } = await supabase
+          .from("patient_programs")
+          .update({ exercises: state })
+          .eq("clinic_id", clinicId)
+          .eq("patient_id", patient.id)
+          .eq("id", existing.id);
+        if (error) throw error;
       } else {
-        setPatient(prev => ({ ...prev, active_protocol: state }));
+        const { error } = await supabase
+          .from("patient_programs")
+          .insert({
+            clinic_id: clinicId,
+            patient_id: patient.id,
+            title: protocolProgramTitle,
+            exercises: state,
+          });
+        if (error) throw error;
       }
-    } catch (e) {
-      console.warn("Failed to sync protocol state to Supabase:", e);
+
+      setPatient((prev) => ({ ...prev, active_protocol: state as any }));
+    } catch (error: any) {
+      console.error("Failed to save clinical protocol:", error);
+      alert(isRtl
+        ? "تعذر حفظ تقدم البروتوكول على الخادم: " + (error.message || error)
+        : "Could not save protocol progress to the server: " + (error.message || error));
     }
   };
 
@@ -2782,6 +2808,34 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
     }
     fetchPatient();
   }, [resolvedParams.id, clinicId]);
+
+  // Load the active protocol from the existing clinic-scoped programs table.
+  // Keep auto-save disabled until this lookup finishes to avoid overwriting saved progress.
+  useEffect(() => {
+    if (!clinicId || !patient.id) return;
+
+    let active = true;
+    const loadSavedProtocol = async () => {
+      const { data, error } = await supabase
+        .from("patient_programs")
+        .select("exercises")
+        .eq("clinic_id", clinicId)
+        .eq("patient_id", patient.id)
+        .eq("title", protocolProgramTitle)
+        .maybeSingle();
+
+      if (!active) return;
+      if (error) {
+        console.error("Failed to load clinical protocol:", error);
+      } else if (data?.exercises) {
+        setPatient((prev) => ({ ...prev, active_protocol: data.exercises as any }));
+      }
+      setProtocolStateLoaded(true);
+    };
+
+    loadSavedProtocol();
+    return () => { active = false; };
+  }, [clinicId, patient.id]);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({
