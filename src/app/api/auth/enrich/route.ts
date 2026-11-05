@@ -1,11 +1,10 @@
-export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from "next/server";
-
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase-admin";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function mapStaffRoleToRoleKey(role: string): string {
   const lower = role?.toLowerCase().trim();
@@ -34,7 +33,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ clinicId: null, role: null });
+      return NextResponse.json({ clinicId: null, role: null }, { headers: { "Cache-Control": "no-store, private" } });
     }
 
     const { searchParams } = new URL(req.url);
@@ -84,7 +83,7 @@ export async function GET(req: NextRequest) {
         .maybeSingle();
 
       if (!staffCheck) {
-        return NextResponse.json({ clinicId: null, role: null, error: "Access denied" }, { status: 403 });
+        return NextResponse.json({ clinicId: null, role: null, error: "Access denied" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
       }
     }
 
@@ -105,7 +104,7 @@ export async function GET(req: NextRequest) {
       roleEn: getEnglishRoleLabel(roleKey),
       shortName: branch?.short_name || null,
       logoUrl: branch?.logo_url || null,
-    });
+    }, { headers: { "Cache-Control": "no-store, private" } });
   } catch {
     return NextResponse.json({ clinicId: null, role: null });
   }
