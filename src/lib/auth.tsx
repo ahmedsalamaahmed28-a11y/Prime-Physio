@@ -183,18 +183,10 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
+  // Never restore an authenticated user from localStorage. Only verified server sessions
+  // (NextAuth) or a live Supabase Auth session may establish identity.
   useEffect(() => {
-    let mounted = true;
-    getAppValue<User | null>("current_user", null)
-      .then((savedUser) => {
-        if (mounted && savedUser) setUser(savedUser);
-      })
-      .catch((e) => console.error("Failed to load user session", e))
-      .finally(() => {
-        if (mounted) setIsLoading(false);
-      });
-
-    return () => { mounted = false; };
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
