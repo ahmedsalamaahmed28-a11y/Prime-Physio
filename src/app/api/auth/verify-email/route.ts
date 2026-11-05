@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const password = typeof body?.password === "string" ? body.password : "";
     const name = typeof body?.name === "string" ? body.name.trim().slice(0, 120) : "";
 
-    if (!email || !/^\\d{6}$/.test(code) || !phone || phone.length > 32 || password.length < 12 || password.length > 128 || !name) {
+    if (!email || !/^\d{6}$/.test(code) || !phone || phone.length > 32 || password.length < 12 || password.length > 128 || !name) {
       return NextResponse.json({ error: "يرجى مراجعة جميع الحقول المطلوبة" }, { status: 400 });
     }
 
