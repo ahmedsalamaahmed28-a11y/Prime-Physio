@@ -10,7 +10,7 @@ const capabilities = [
 ];
 export default function TrustedStrip() {
   return <section className="pp-capabilities"><div className="pp-wrap">
-    <p className="pp-capabilities-title">كل أدوات إدارة مركز العلاج الطبيعي في منصة واحدة</p>
+    <p className="pp-capabilities-title">موثوق من قبل أفضل المراكز</p>
     <div className="pp-capabilities-list">{capabilities.map((item) => { const Icon = item.icon; return <div className="pp-capability" key={item.label}><Icon aria-hidden="true" /><span>{item.label}</span></div>; })}</div>
   </div></section>;
 }
