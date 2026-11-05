@@ -97,3 +97,22 @@ export async function checkVerificationCode(
   if (error) throw error;
   return data === true;
 }
+export async function allowOtpSendFromIp(
+  admin: SupabaseClient,
+  clientIp: string,
+  purpose: "signup" | "password_reset"
+): Promise<boolean> {
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret || secret.length < 32) return false;
+  const normalizedIp = (clientIp || "unknown").trim().slice(0, 128);
+  const ipHash = createHmac("sha256", secret).update(`otp-send:${purpose}:${normalizedIp}`).digest("hex");
+  const bucketEmail = purpose === "signup"
+    ? "signup-otp-send@prime-physio.internal"
+    : "password-reset-otp-send@prime-physio.internal";
+  const { data, error } = await admin.rpc("check_auth_login_attempt", {
+    p_email: bucketEmail,
+    p_ip_hash: ipHash,
+  });
+  return !error && data === true;
+}
+
