@@ -102,6 +102,30 @@ async function persistSubscription(obj: any): Promise<{ clinicId: string | null;
   }
 
   const admin = getAdminClient();
+  const { data: existing, error: existingError } = await admin
+    .from("subscriptions")
+    .select("id, clinic_id, transaction_id")
+    .eq("order_id", orderId)
+    .maybeSingle();
+
+  if (existingError) throw existingError;
+  if (existing) {
+    if (String(existing.transaction_id) !== transactionId) {
+      throw new Error("Order was already associated with a different transaction");
+    }
+    return { clinicId: existing.clinic_id, duplicate: true };
+  }
+
+  const { data: existingTransaction, error: transactionLookupError } = await admin
+    .from("subscriptions")
+    .select("order_id")
+    .eq("transaction_id", transactionId)
+    .maybeSingle();
+  if (transactionLookupError) throw transactionLookupError;
+  if (existingTransaction) {
+    throw new Error("Transaction was already used for a different order");
+  }
+
   const { data: mapping, error: mappingError } = await admin
     .from("app_key_values")
     .select("value")
@@ -133,30 +157,6 @@ async function persistSubscription(obj: any): Promise<{ clinicId: string | null;
     !["monthly", "yearly"].includes(String(info.billingPeriod))
   ) {
     throw new Error("Paymob transaction does not match the stored order");
-  }
-
-  const { data: existing, error: existingError } = await admin
-    .from("subscriptions")
-    .select("id, clinic_id, transaction_id")
-    .eq("order_id", orderId)
-    .maybeSingle();
-
-  if (existingError) throw existingError;
-  if (existing) {
-    if (String(existing.transaction_id) !== transactionId) {
-      throw new Error("Order was already associated with a different transaction");
-    }
-    return { clinicId: existing.clinic_id, duplicate: true };
-  }
-
-  const { data: existingTransaction, error: transactionLookupError } = await admin
-    .from("subscriptions")
-    .select("order_id")
-    .eq("transaction_id", transactionId)
-    .maybeSingle();
-  if (transactionLookupError) throw transactionLookupError;
-  if (existingTransaction) {
-    throw new Error("Transaction was already used for a different order");
   }
 
   const months = info.billingPeriod === "yearly" ? 12 : 1;
