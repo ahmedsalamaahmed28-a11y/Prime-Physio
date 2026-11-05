@@ -5,16 +5,16 @@ import {
   Building,
   CalendarDays,
   Stethoscope,
-  Heart,
-  Headphones,
+  Activity,
+  Mail,
 } from "lucide-react";
 
 const stats = [
   { id: "centers", label: "مركز", value: "+100", icon: Building },
   { id: "sessions", label: "جلسة", value: "+25K", icon: CalendarDays },
   { id: "doctors", label: "طبيب", value: "+150", icon: Stethoscope },
-  { id: "satisfaction", label: "رضا العملاء", value: "98%", icon: Heart },
-  { id: "support", label: "دعم فني", value: "24/7", icon: Headphones },
+  { id: "satisfaction", label: "رضا العملاء", value: "98%", icon: Activity },
+  { id: "support", label: "دعم فني", value: "24/7", icon: Mail },
 ];
 
 export default function Stats() {
