@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase";
 import { requireRole } from "../utils/auth";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function POST(req: NextRequest) {
   try {
     // Only clinic admins can trigger a backup for their clinic
@@ -47,7 +51,10 @@ export async function POST(req: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="backup_${user.clinicId}_${new Date().toISOString().split('T')[0]}.json"`
+        "Content-Disposition": `attachment; filename="backup_${user.clinicId}_${new Date().toISOString().split('T')[0]}.json"`,
+        "Cache-Control": "no-store, private",
+        "Pragma": "no-cache",
+        "X-Content-Type-Options": "nosniff"
       }
     });
 
