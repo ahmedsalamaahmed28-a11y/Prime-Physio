@@ -192,6 +192,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, authSession) => {
       if (authSession?.user) {
+        // Shadow sessions are only a bridge for RLS; NextAuth remains the actual web identity.
+        if (authSession.user.app_metadata?.auth_source === "nextauth-shadow") return;
         // User metadata and browser storage are user-controlled; the staff table is the role source of truth.
         const roleKey = "doctor" as const;
         const name = authSession.user.user_metadata?.full_name || authSession.user.email?.split("@")[0] || "مستخدم";
