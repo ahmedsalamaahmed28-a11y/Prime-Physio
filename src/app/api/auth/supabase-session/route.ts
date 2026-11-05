@@ -26,6 +26,10 @@ export async function GET() {
     }
 
     const email = session.user.email.toLowerCase().trim();
+    const nextAuthExpiresAt = Math.floor(new Date(session.expires).getTime() / 1000);
+    if (!Number.isFinite(nextAuthExpiresAt) || nextAuthExpiresAt <= Math.floor(Date.now() / 1000)) {
+      return NextResponse.json({ error: "Authentication session expired" }, { status: 401, headers: { "Cache-Control": "no-store, private" } });
+    }
     const secret = process.env.NEXTAUTH_SECRET;
     if (!secret || secret.length < 32) {
       return NextResponse.json({ error: "Authentication is not configured securely" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
@@ -57,7 +61,11 @@ export async function GET() {
       if (legacySessionUser) {
         const { error: upgradeError } = await admin.auth.admin.updateUserById(legacySessionUser.id, {
           password: shadowPassword,
-          app_metadata: { ...(legacySessionUser.app_metadata || {}), auth_source: "nextauth-shadow" },
+          app_metadata: {
+            ...(legacySessionUser.app_metadata || {}),
+            auth_source: "nextauth-shadow",
+            nextauth_expires_at: nextAuthExpiresAt,
+          },
         });
         if (upgradeError) throw upgradeError;
         authResult = await admin.auth.signInWithPassword({ email, password: shadowPassword });
@@ -81,7 +89,7 @@ export async function GET() {
             email,
             password: shadowPassword,
             email_confirm: true,
-            app_metadata: { auth_source: "nextauth-shadow" },
+            app_metadata: { auth_source: "nextauth-shadow", nextauth_expires_at: nextAuthExpiresAt },
           });
           if (createError) throw createError;
           authResult = await admin.auth.signInWithPassword({ email, password: shadowPassword });
@@ -94,9 +102,18 @@ export async function GET() {
       return NextResponse.json({ error: "Failed to establish data session" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
     }
 
-    if (authResult.data.user.app_metadata?.auth_source !== "nextauth-shadow") {
+    const currentAppMetadata = authResult.data.user.app_metadata || {};
+    const storedNextAuthExpiry = Number(currentAppMetadata.nextauth_expires_at || 0);
+    if (
+      currentAppMetadata.auth_source !== "nextauth-shadow" ||
+      storedNextAuthExpiry !== nextAuthExpiresAt
+    ) {
       const { error: metadataError } = await admin.auth.admin.updateUserById(authResult.data.user.id, {
-        app_metadata: { ...(authResult.data.user.app_metadata || {}), auth_source: "nextauth-shadow" },
+        app_metadata: {
+          ...currentAppMetadata,
+          auth_source: "nextauth-shadow",
+          nextauth_expires_at: nextAuthExpiresAt,
+        },
       });
       if (metadataError) throw metadataError;
       authResult = await admin.auth.signInWithPassword({ email, password: shadowPassword });
