@@ -33,6 +33,65 @@ export async function POST(req: Request) {
 
     const supabaseAdmin = getAdminClient();
 
+    // The n8n credential is scoped to one clinic, but record IDs supplied in a payload
+    // must also belong to that clinic before they can be linked or modified.
+    const scopedReferences: Array<{ table: string; id: unknown }> = [];
+    const addScopedReference = (table: string, id: unknown) => {
+      if (id !== undefined && id !== null && id !== "") scopedReferences.push({ table, id });
+    };
+
+    switch (action) {
+      case "add_to_waitlist":
+      case "save_assessment":
+      case "save_treatment_plan":
+      case "save_soap_note":
+      case "update_progress":
+      case "flag_patient_risk":
+      case "save_discharge":
+      case "generate_invoice":
+      case "log_outstanding_recovery":
+      case "save_insurance_claim":
+        addScopedReference("patients", data?.patientId);
+        break;
+      case "track_referral":
+        addScopedReference("patients", data?.referrerId);
+        addScopedReference("patients", data?.referredPatientId);
+        break;
+      default:
+        break;
+    }
+
+    if (["save_assessment", "save_soap_note", "generate_invoice"].includes(action)) {
+      addScopedReference("appointments", data?.appointmentId);
+    }
+    if (action === "save_treatment_plan") addScopedReference("assessments", data?.assessmentId);
+    if (action === "save_discharge") addScopedReference("treatment_plans", data?.treatmentPlanId);
+    if (["log_outstanding_recovery", "save_insurance_claim"].includes(action)) {
+      addScopedReference("invoices", data?.invoiceId);
+    }
+    if (["save_hr_attendance", "save_payroll_draft"].includes(action)) {
+      addScopedReference("staff", data?.staffId);
+    }
+
+    for (const reference of scopedReferences) {
+      if (typeof reference.id !== "string" && typeof reference.id !== "number") {
+        return NextResponse.json({ error: "Invalid related record identifier" }, { status: 400 });
+      }
+      const { data: related, error: relatedError } = await (supabaseAdmin as any)
+        .from(reference.table)
+        .select("id")
+        .eq("id", reference.id)
+        .eq("clinic_id", clinicId)
+        .maybeSingle();
+      if (relatedError) {
+        console.error("[n8n] Related-record scope check failed:", reference.table, relatedError);
+        return NextResponse.json({ error: "Unable to verify related record" }, { status: 500 });
+      }
+      if (!related) {
+        return NextResponse.json({ error: "Related record does not belong to the authorized clinic" }, { status: 403 });
+      }
+    }
+
     switch (action) {
       case 'get_patients':
         const { data: patients, error: pError } = await supabaseAdmin
