@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "جميع الحقول مطلوبة بشكل صحيح" }, { status: 400 });
     }
     if (newPassword.length < 12 || newPassword.length > 128) {
-      return NextResponse.json({ error: "كلمة المرور يجب أن تكون 10 أحرف على الأقل وبحد أقصى 128 حرفًا" }, { status: 400 });
+      return NextResponse.json({ error: "كلمة المرور يجب أن تكون 12 حرفًا على الأقل وبحد أقصى 128 حرفًا" }, { status: 400 });
     }
 
     try {
