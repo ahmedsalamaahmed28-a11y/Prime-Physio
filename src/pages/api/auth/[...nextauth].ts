@@ -58,7 +58,11 @@ export const authOptions: NextAuthOptions = {
             .eq("email", email)
             .maybeSingle();
 
-          if (error || !data || data.verified !== true) return null;
+          if (error || !data || data.verified !== true) {
+            // Keep nonexistent and unverified accounts close to the same bcrypt response time.
+            await bcrypt.hash("Prime-Physio-invalid-login-dummy", 12);
+            return null;
+          }
 
           const valid = await bcrypt.compare(String(credentials.password), data.password_hash);
           if (!valid) return null;
