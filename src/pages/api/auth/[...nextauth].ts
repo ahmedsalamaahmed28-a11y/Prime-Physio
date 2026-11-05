@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { NextApiRequest, NextApiResponse } from "next";
 import { getAdminClient } from "@/lib/supabase-admin";
 import bcrypt from "bcryptjs";
+import { createHmac } from "crypto";
 
 export const authOptions = {
   providers: [
@@ -18,33 +19,70 @@ export const authOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const admin = getAdminClient();
+        const email = String(credentials.email).trim().toLowerCase();
+        if (email.length > 254 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) return null;
 
-        const { data, error } = await admin
-          .from("auth_accounts")
-          .select("id, email, password_hash, verified")
-          .eq("email", credentials.email.toLowerCase().trim())
-          .maybeSingle();
+        const secret = process.env.NEXTAUTH_SECRET;
+        if (!secret || secret.length < 32) {
+          console.error("[Auth] NEXTAUTH_SECRET is missing or too short");
+          return null;
+        }
 
-        if (error || !data) return null;
+        const headers = req?.headers || {};
+        const forwarded = headers["x-forwarded-for"];
+        const realIp = headers["x-real-ip"];
+        const forwardedIp = Array.isArray(forwarded)
+          ? forwarded[0]
+          : typeof forwarded === "string"
+            ? forwarded.split(",")[0]
+            : "";
+        const ip = String(forwardedIp || realIp || "unknown").trim().slice(0, 128);
+        const ipHash = createHmac("sha256", secret).update(ip).digest("hex");
 
-        // Unverified accounts must never receive a credentials session.
-        if (data.verified !== true) return null;
+        try {
+          const admin = getAdminClient();
+          const { data: allowed, error: rateLimitError } = await admin.rpc("check_auth_login_attempt", {
+            p_email: email,
+            p_ip_hash: ipHash,
+          });
+          if (rateLimitError || allowed !== true) return null;
 
-        const valid = await bcrypt.compare(credentials.password, data.password_hash);
-        if (!valid) return null;
+          const { data, error } = await admin
+            .from("auth_accounts")
+            .select("id, email, password_hash, verified")
+            .eq("email", email)
+            .maybeSingle();
 
-        return {
-          id: data.id,
-          email: data.email,
-          name: data.email.split("@")[0],
-        };
-      },
+          if (error || !data || data.verified !== true) return null;
+
+          const valid = await bcrypt.compare(String(credentials.password), data.password_hash);
+          if (!valid) return null;
+
+          const { error: clearError } = await admin.rpc("clear_auth_login_attempts", {
+            p_email: email,
+            p_ip_hash: ipHash,
+          });
+          if (clearError) {
+            console.error("[Auth] Failed to clear login attempt counter:", clearError);
+          }
+
+          return {
+            id: data.id,
+            email: data.email,
+            name: data.email.split("@")[0],
+          };
+        } catch (error) {
+          console.error("[Auth] Credentials authorization failed:", error);
+          return null;
+        }
+      }
     }),
   ],
+  session: { strategy: "jwt", maxAge: 8 * 60 * 60 },
+  jwt: { maxAge: 8 * 60 * 60 },
   pages: {
     signIn: "/manage",
   },
