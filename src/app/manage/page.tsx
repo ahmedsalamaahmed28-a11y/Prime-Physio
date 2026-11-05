@@ -432,11 +432,7 @@ function ManageContent() {
                   <div className="flex items-center gap-2 text-amber-600 bg-amber-50 rounded-lg p-3">
                     <Shield className="w-4 h-4 shrink-0" />
                     <span className="text-xs font-medium">
-                      {forgotShowCode
-                        ? (isRtl
-                            ? `رمز التحقق: ${forgotShowCode}`
-                            : `Verification code: ${forgotShowCode}`)
-                        : (isRtl ? "تم إرسال رمز التحقق إلى بريدك الإلكتروني" : "Code sent to your email")}
+                      {isRtl ? "تم إرسال رمز التحقق إلى بريدك الإلكتروني" : "A verification code has been sent to your email"}
                     </span>
                   </div>
                   <div className="flex items-center justify-center gap-3" dir="ltr">
