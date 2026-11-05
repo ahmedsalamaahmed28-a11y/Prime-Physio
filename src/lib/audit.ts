@@ -6,7 +6,7 @@ export interface AuditLog {
   user_name: string;
   action: string;
   module: string;
-  details: string;
+  details: string | Record<string, unknown>;
   created_at: string;
 }
 
