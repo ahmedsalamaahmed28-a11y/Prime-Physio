@@ -1,103 +1,105 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
+import { requireRole } from "../utils/auth";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, name, planId, clinicId: rawClinicId } = await req.json();
-    let clinicId = rawClinicId;
+    const user = await requireRole(req, ["admin"]);
+    const body = await req.json().catch(() => null);
+    const requestedClinicId = typeof body?.clinicId === "string" ? body.clinicId : "";
 
-    if (!email || !name || !planId) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    if (!user.clinicId || (requestedClinicId && requestedClinicId !== user.clinicId)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // This endpoint is only for the free plan. Paid plans are activated exclusively
+    // by the verified Paymob callback after checking its HMAC signature.
+    if (body?.planId !== "basic") {
+      return NextResponse.json(
+        { error: "Paid subscriptions must be activated through verified payment" },
+        { status: 403 }
+      );
+    }
+
+    const email = user.email.toLowerCase().trim();
+    const clinicId = user.clinicId;
     const admin = getAdminClient();
-    const normalizedEmail = email.toLowerCase().trim();
 
-    // Resolve clinicId from staff record if not provided
-    if (!clinicId) {
-      const { data: staffLookup } = await admin
-        .from("staff")
-        .select("clinic_id")
-        .eq("email", normalizedEmail)
-        .maybeSingle();
-
-      if (!staffLookup?.clinic_id) {
-        return NextResponse.json({ error: "لم يتم العثور على حساب. الرجاء إنشاء حساب أولاً." }, { status: 404 });
-      }
-      clinicId = staffLookup.clinic_id;
-    }
-
-    // Check if clinic exists
     const { data: clinic, error: clinicError } = await admin
       .from("clinics")
-      .select("id, name, status")
+      .select("id, status, admin_email")
       .eq("id", clinicId)
-      .single();
+      .maybeSingle();
 
-    if (clinicError || !clinic) {
-      return NextResponse.json({ error: "Clinic not found" }, { status: 404 });
+    if (clinicError || !clinic || clinic.status !== "active" || clinic.admin_email?.toLowerCase().trim() !== email) {
+      return NextResponse.json({ error: "Clinic ownership could not be verified" }, { status: 403 });
     }
 
-    if (clinic.status !== "active") {
-      return NextResponse.json({ error: "Clinic is not active" }, { status: 400 });
-    }
-
-    // Get staff record for this email
-    const { data: staff, error: staffError } = await admin
-      .from("staff")
-      .select("id, role")
-      .eq("email", normalizedEmail)
+    const { data: existingSubscription, error: existingError } = await admin
+      .from("subscriptions")
+      .select("id, plan_name, status")
       .eq("clinic_id", clinicId)
-      .single();
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
 
-    if (staffError || !staff) {
-      return NextResponse.json({ error: "Staff record not found for this clinic" }, { status: 404 });
+    if (existingError) {
+      console.error("[Subscribe] Existing subscription lookup failed:", existingError);
+      return NextResponse.json({ error: "Unable to verify subscription" }, { status: 500 });
     }
 
-    // Create subscription based on plan
+    if (existingSubscription) {
+      if (existingSubscription.plan_name === "basic") {
+        return NextResponse.json({
+          success: true,
+          clinicId,
+          subscriptionId: existingSubscription.id,
+          alreadyActive: true,
+        });
+      }
+      return NextResponse.json(
+        { error: "An active subscription already exists" },
+        { status: 409 }
+      );
+    }
+
     const endDate = new Date();
     endDate.setMonth(endDate.getMonth() + 1);
 
-    const subscriptionData: any = {
-      user_email: normalizedEmail,
-      clinic_id: clinicId,
-      plan_name: planId,
-      plan_price: planId === "basic" ? 0 : (planId === "silver" ? 1000 : 1500),
-      status: "active",
-      start_date: new Date().toISOString(),
-      end_date: endDate.toISOString(),
-    };
-
     const { data: subscription, error: subscriptionError } = await admin
       .from("subscriptions")
-      .insert(subscriptionData)
+      .insert({
+        user_email: email,
+        clinic_id: clinicId,
+        plan_name: "basic",
+        plan_price: 0,
+        status: "active",
+        start_date: new Date().toISOString(),
+        end_date: endDate.toISOString(),
+      })
       .select("id")
       .single();
 
     if (subscriptionError || !subscription) {
+      console.error("[Subscribe] Free subscription creation failed:", subscriptionError);
       return NextResponse.json({ error: "Failed to create subscription" }, { status: 500 });
     }
 
-    // Update clinic_settings with subscription info
-    await admin
-      .from("clinic_settings")
-      .update({
-        subscription_id: subscription.id,
-        subscription_status: "active",
-        subscription_plan: planId,
-      })
-      .eq("clinic_id", clinicId);
-
-    return NextResponse.json({
-      success: true,
-      clinicId,
-      subscriptionId: subscription.id,
-    });
-  } catch (err) {
-    console.error("[Subscribe] Error:", err);
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Internal server error" },
-      { status: 500 }
+      { success: true, clinicId, subscriptionId: subscription.id },
+      { headers: { "Cache-Control": "no-store, private" } }
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const status = /unauthorized/i.test(message) ? 401 : 403;
+    return NextResponse.json(
+      { error: status === 401 ? "Unauthorized" : "Forbidden" },
+      { status, headers: { "Cache-Control": "no-store, private" } }
     );
   }
 }

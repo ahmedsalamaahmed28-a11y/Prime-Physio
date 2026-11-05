@@ -1,62 +1,69 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase";
-import bcrypt from "bcryptjs";
+import { getAdminClient } from "@/lib/supabase-admin";
 import { sendVerificationCode } from "@/lib/email";
+import { allowOtpSendFromIp, clearVerificationCode, issueVerificationCode, normalizeAuthEmail } from "@/lib/verificationCodes";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const genericResponse = {
+  success: true,
+  message: "إذا كان البريد مرتبطًا بحساب، فستصلك رسالة تتضمن تعليمات إعادة تعيين كلمة المرور.",
+};
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
-
-    if (!email) {
-      return NextResponse.json({ error: "يرجى إدخال البريد الإلكتروني" }, { status: 400 });
+    const body = await req.json().catch(() => null);
+    const cleanEmail = normalizeAuthEmail(body?.email);
+    if (!cleanEmail) {
+      return NextResponse.json({ error: "يرجى إدخال بريد إلكتروني صحيح" }, { status: 400 });
     }
 
     const admin = getAdminClient();
-    const cleanEmail = email.toLowerCase().trim();
-
-    // Check if the email exists in auth_accounts (email/password users)
-    const { data: existingAuth } = await admin
+    const clientIp = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",").pop()?.trim() || "unknown";
+    if (!(await allowOtpSendFromIp(admin, clientIp, "password_reset"))) {
+      return NextResponse.json(genericResponse, { headers: { "Cache-Control": "no-store, private" } });
+    }
+    const { data: existingAuth, error: authError } = await admin
       .from("auth_accounts")
+      .select("id, verified")
+      .eq("email", cleanEmail)
+      .maybeSingle();
+
+    if (authError) {
+      console.error("[ForgotPassword] Account lookup failed:", authError);
+      return NextResponse.json(genericResponse, { headers: { "Cache-Control": "no-store, private" } });
+    }
+
+    const { data: staffUser, error: staffError } = await admin
+      .from("staff")
       .select("id")
       .eq("email", cleanEmail)
       .maybeSingle();
 
-    // If not found in auth_accounts, check if it's a Google OAuth user
-    if (!existingAuth) {
-      const { data: staffUser } = await admin
-        .from("staff")
-        .select("id")
-        .eq("email", cleanEmail)
-        .maybeSingle();
-
-      if (!staffUser) {
-        // Don't reveal that the email doesn't exist
-        return NextResponse.json({ success: true });
-      }
-      // Google user: allow them to set a password too
+    if (staffError) {
+      console.error("[ForgotPassword] Staff lookup failed:", staffError);
+      return NextResponse.json(genericResponse);
     }
 
-    // Generate 4-digit OTP
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
+    const eligible = (existingAuth?.verified === true) || (!existingAuth && !!staffUser);
+    if (!eligible) return NextResponse.json(genericResponse);
 
-    // Store the OTP in app_key_values
-    const key = `password_reset_${cleanEmail.replace(/[^a-z0-9]/g, "_")}`;
-    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    try {
+      const code = await issueVerificationCode(admin, cleanEmail, "password_reset");
+      const sent = await sendVerificationCode(cleanEmail, code);
+      if (!sent) await clearVerificationCode(admin, cleanEmail, "password_reset");
+    } catch (error) {
+      if (!(error instanceof Error && error.message === "OTP_RATE_LIMIT")) {
+        console.error("[ForgotPassword] Could not issue/send code:", error);
+      }
+      // Keep the response generic to prevent account enumeration.
+    }
 
-    await admin.from("app_key_values").upsert({
-      key,
-      value: { code, expires_at: expiresAt, used: false },
-    });
-
-    // Send the OTP via email
-    const emailSent = await sendVerificationCode(cleanEmail, code);
-
-    return NextResponse.json({
-      success: true,
-      devCode: emailSent ? undefined : code,
-    });
-  } catch (err) {
-    console.error("[ForgotPassword] Error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(genericResponse);
+  } catch (error) {
+    console.error("[ForgotPassword] Error:", error);
+    return NextResponse.json(genericResponse);
   }
 }

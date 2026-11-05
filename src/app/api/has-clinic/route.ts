@@ -1,30 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
+import { requireAuth } from "../utils/auth";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
   try {
-    const email = new URL(req.url).searchParams.get("email");
-    if (!email) return NextResponse.json({ hasClinic: false });
+    const user = await requireAuth(req);
+    const requestedEmail = req.nextUrl.searchParams.get("email")?.toLowerCase().trim();
+    if (requestedEmail && requestedEmail !== user.email.toLowerCase().trim()) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
+    }
 
-    const admin = getAdminClient();
-    const { data: clinic } = await admin
-      .from("clinics")
-      .select("id")
-      .eq("admin_email", email)
-      .limit(1)
-      .maybeSingle();
-
-    if (clinic) return NextResponse.json({ hasClinic: true });
-
-    const { data: staff } = await admin
+    const { data: staff, error } = await getAdminClient()
       .from("staff")
       .select("clinic_id")
-      .eq("email", email)
+      .eq("email", user.email.toLowerCase().trim())
       .limit(1)
       .maybeSingle();
-
-    return NextResponse.json({ hasClinic: !!staff });
-  } catch {
-    return NextResponse.json({ hasClinic: false });
+    if (error) return NextResponse.json({ error: "Unable to verify clinic membership" }, { status: 500 });
+    return NextResponse.json({ hasClinic: Boolean(staff?.clinic_id) }, {
+      headers: { "Cache-Control": "no-store, private" },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const status = /unauthorized/i.test(message) ? 401 : 500;
+    return NextResponse.json({ error: status === 401 ? "Unauthorized" : "Internal server error" }, { status });
   }
 }

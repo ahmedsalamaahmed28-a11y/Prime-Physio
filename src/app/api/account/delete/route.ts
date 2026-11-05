@@ -1,45 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase";
-import { requireAuthOnly, requireRole } from "../../utils/auth";
+import { requireAuthOnly } from "../../utils/auth";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+// Clinic deletion spans many related tables and cannot safely be performed as
+// a sequence of independent REST deletes. Keep this endpoint closed until an
+// atomic archival/deletion RPC and a verified recovery path are available.
 export async function POST(req: NextRequest) {
   try {
-    let user;
-    let clinicId: string | undefined;
-    let roleKey: string | undefined;
-    const admin = getAdminClient();
-
-    // Try to get role and clinic (works for users subscribed to a clinic)
-    try {
-      const roleResult = await requireRole(req, ["admin", "doctor", "receptionist"]);
-      user = roleResult;
-      clinicId = roleResult.clinicId;
-      roleKey = roleResult.roleKey;
-    } catch {
-      // Fall back to just auth (for users who signed up but haven't subscribed yet)
-      user = await requireAuthOnly(req);
-    }
-
-    if (clinicId) {
-      // Delete all clinic-related data
-      await admin.from("patients").delete().eq("clinic_id", clinicId);
-      await admin.from("sessions").delete().eq("clinic_id", clinicId);
-      await admin.from("appointments").delete().eq("clinic_id", clinicId);
-      await admin.from("invoices").delete().eq("clinic_id", clinicId);
-      await admin.from("branches").delete().eq("clinic_id", clinicId);
-      await admin.from("clinic_settings").delete().eq("clinic_id", clinicId);
-      await admin.from("subscriptions").delete().eq("clinic_id", clinicId);
-      await admin.from("staff").delete().eq("clinic_id", clinicId);
-      await admin.from("clinics").delete().eq("id", clinicId);
-    }
-
-    // Delete from auth_accounts table
-    await admin.from("auth_accounts").delete().eq("email", user.email);
-
-    return NextResponse.json({ success: true });
-  } catch (err: any) {
-    console.error("Account deletion error:", err);
-    const status = err.message === "Unauthorized" ? 401 : err.message === "Forbidden" ? 403 : 500;
-    return NextResponse.json({ error: err.message }, { status });
+    await requireAuthOnly(req);
+    return NextResponse.json(
+      { error: "Account and clinic deletion are temporarily unavailable. Contact platform support to preserve and close records safely." },
+      { status: 409, headers: { "Cache-Control": "no-store, private" } }
+    );
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const status = /unauthorized/i.test(message) ? 401 : 500;
+    return NextResponse.json(
+      { error: status === 401 ? "Unauthorized" : "Account deletion unavailable" },
+      { status, headers: { "Cache-Control": "no-store, private" } }
+    );
   }
 }

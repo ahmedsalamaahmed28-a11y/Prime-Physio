@@ -1,11 +1,12 @@
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { NextApiRequest, NextApiResponse } from "next";
-import { createClient } from "@supabase/supabase-js";
+import { getAdminClient } from "@/lib/supabase-admin";
 import bcrypt from "bcryptjs";
+import { createHmac } from "crypto";
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || "",
@@ -18,37 +19,87 @@ export const authOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const admin = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-          process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-        );
+        const email = String(credentials.email).trim().toLowerCase();
+        if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
 
-        const { data, error } = await admin
-          .from("auth_accounts")
-          .select("id, email, password_hash")
-          .eq("email", credentials.email.toLowerCase().trim())
-          .maybeSingle();
+        const secret = process.env.NEXTAUTH_SECRET;
+        if (!secret || secret.length < 32) {
+          console.error("[Auth] NEXTAUTH_SECRET is missing or too short");
+          return null;
+        }
 
-        if (error || !data) return null;
+        const headers = req?.headers || {};
+        const realIp = headers["x-real-ip"];
+        const forwarded = headers["x-forwarded-for"];
+        const forwardedValues = Array.isArray(forwarded)
+          ? forwarded
+          : typeof forwarded === "string"
+            ? forwarded.split(",")
+            : [];
+        // Prefer the proxy-normalized x-real-ip; otherwise use the final forwarded hop.
+        const ip = String(realIp || forwardedValues[forwardedValues.length - 1] || "unknown").trim().slice(0, 128);
+        const ipHash = createHmac("sha256", secret).update(`ip:${ip}`).digest("hex");
+        const accountRateHash = createHmac("sha256", secret).update(`account:${email}`).digest("hex");
 
-        const valid = await bcrypt.compare(credentials.password, data.password_hash);
-        if (!valid) return null;
+        try {
+          const admin = getAdminClient();
+          const [ipLimit, accountLimit] = await Promise.all([
+            admin.rpc("check_auth_login_attempt", { p_email: email, p_ip_hash: ipHash }),
+            admin.rpc("check_auth_login_attempt", { p_email: email, p_ip_hash: accountRateHash }),
+          ]);
+          if (ipLimit.error || accountLimit.error || ipLimit.data !== true || accountLimit.data !== true) return null;
 
-        return {
-          id: data.id,
-          email: data.email,
-          name: data.email.split("@")[0],
-        };
-      },
+          const { data, error } = await admin
+            .from("auth_accounts")
+            .select("id, email, password_hash, verified")
+            .eq("email", email)
+            .maybeSingle();
+
+          if (error || !data || data.verified !== true) {
+            // Keep nonexistent and unverified accounts close to the same bcrypt response time.
+            await bcrypt.hash("Prime-Physio-invalid-login-dummy", 12);
+            return null;
+          }
+
+          const valid = await bcrypt.compare(String(credentials.password), data.password_hash);
+          if (!valid) return null;
+
+          const clearResults = await Promise.all([
+            admin.rpc("clear_auth_login_attempts", { p_email: email, p_ip_hash: ipHash }),
+            admin.rpc("clear_auth_login_attempts", { p_email: email, p_ip_hash: accountRateHash }),
+          ]);
+          if (clearResults.some((result) => result.error)) {
+            console.error("[Auth] Failed to clear one or more login attempt counters");
+          }
+
+          return {
+            id: data.id,
+            email: data.email,
+            name: data.email.split("@")[0],
+          };
+        } catch (error) {
+          console.error("[Auth] Credentials authorization failed:", error);
+          return null;
+        }
+      }
     }),
   ],
+  session: { strategy: "jwt", maxAge: 8 * 60 * 60 },
+  jwt: { maxAge: 8 * 60 * 60 },
   pages: {
     signIn: "/manage",
   },
   callbacks: {
+    async signIn({ user, account, profile }: any) {
+      if (account?.provider === "google") {
+        const googleProfile = profile as { email_verified?: boolean } | undefined;
+        return Boolean(user?.email && googleProfile?.email_verified === true);
+      }
+      return true;
+    },
     async jwt({ token, user }: any) {
       if (user) {
         token.id = user.id;
@@ -69,10 +120,5 @@ export const authOptions = {
 };
 
 export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const proto = req.headers["x-forwarded-proto"] || "http";
-  const host = req.headers["x-forwarded-host"] || req.headers.host;
-  if (host) {
-    process.env.NEXTAUTH_URL = `${proto}://${host}`;
-  }
   return NextAuth(req, res, authOptions);
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { SessionProvider, signOut, useSession } from "next-auth/react";
+import { SessionProvider, signOut, useSession, getSession } from "next-auth/react";
 import { supabase } from "@/lib/supabase";
 import { getAppValue, setAppValue } from "@/lib/appStorage";
 
@@ -27,8 +27,8 @@ interface AuthContextType {
   user: User | null;
   activeBranchId: string | null;
   setActiveBranchId: (id: string | null) => void;
-  loginWithGoogle: (email: string) => void;
-  loginWithCredentials: (email: string, name: string, role: string) => void;
+  loginWithGoogle: (email: string) => Promise<void>;
+  loginWithCredentials: (email: string, name: string, role: string) => Promise<void>;
   registerWithSupabase: (email: string, pass: string, meta: any) => Promise<{ error?: string }>;
   loginWithSupabase: (email: string, pass: string) => Promise<{ error?: string }>;
   logout: () => void;
@@ -71,8 +71,13 @@ function mapStaffRoleToRoleKey(staffRole: string): "admin" | "doctor" | "recepti
     case "موظف استقبال":
     case "receptionist":
       return "receptionist";
-    default:
+    case "استشاري علاج طبيعي":
+    case "أخصائي علاج طبيعي":
+    case "ممارس علاج طبيعي":
+    case "doctor":
       return "doctor";
+    default:
+      return "receptionist";
   }
 }
 
@@ -182,26 +187,21 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   const [isEnriching, setIsEnriching] = useState(false);
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const nextAuthEmailRef = useRef<string | null>(null);
 
+  // Never restore an authenticated user from localStorage. Only verified server sessions
+  // (NextAuth) or a live Supabase Auth session may establish identity.
   useEffect(() => {
-    let mounted = true;
-    getAppValue<User | null>("current_user", null)
-      .then((savedUser) => {
-        if (mounted && savedUser) setUser(savedUser);
-      })
-      .catch((e) => console.error("Failed to load user session", e))
-      .finally(() => {
-        if (mounted) setIsLoading(false);
-      });
-
-    return () => { mounted = false; };
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, authSession) => {
       if (authSession?.user) {
-        const pendingRole = (await getAppValue<string>("pending_role", "doctor")) || "doctor";
-        const roleKey = (authSession.user.user_metadata?.role || pendingRole || "doctor") as "admin" | "doctor" | "receptionist";
+        // Shadow sessions are only a bridge for RLS; NextAuth remains the actual web identity.
+        if (authSession.user.app_metadata?.auth_source === "nextauth-shadow") return;
+        // User metadata and browser storage are user-controlled; the staff table is the role source of truth.
+        const roleKey = "doctor" as const;
         const name = authSession.user.user_metadata?.full_name || authSession.user.email?.split("@")[0] || "مستخدم";
 
         const newUser: User = {
@@ -210,12 +210,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           initials: name.substring(0, 2).toUpperCase(),
           role: getArabicRoleLabel(roleKey),
           roleKey,
-          bg:
-            roleKey === "admin"
-              ? "bg-gradient-to-br from-[#0d8a8a] to-[#085454]"
-              : roleKey === "doctor"
-              ? "bg-gradient-to-br from-emerald-500 to-teal-600"
-              : "bg-gradient-to-br from-amber-500 to-orange-600",
+          bg: "bg-gradient-to-br from-emerald-500 to-teal-600",
           nameEn: prefixEnglishName(name, roleKey),
           roleEn: getEnglishRoleLabel(roleKey),
           initialsEn: name.substring(0, 2).toUpperCase(),
@@ -244,18 +239,23 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
+      const sessionEmail = (session.user.email || "").toLowerCase();
+      nextAuthEmailRef.current = sessionEmail;
+      let active = true;
+
       const loadRoleState = async () => {
         const currentUser = session.user!;
         const email = currentUser.email || "";
         const pendingSignup = await getAppValue<string>("pending_google_signup", "").catch(() => "");
-        const finalRoleKey = ((await getAppValue<string>("pending_role", "doctor")) || "doctor") as "admin" | "doctor" | "receptionist" | "platform_admin";
+        // Never trust a role stored in localStorage. enrichUserWithClinic resolves it from the server-side staff record.
+        const finalRoleKey = "doctor" as const;
 
         // Sync NextAuth session to Supabase so RLS policies work!
         try {
           const res = await fetch("/api/auth/supabase-session");
           if (res.ok) {
             const { session: supaSession } = await res.json();
-            if (supaSession) {
+            if (supaSession && active) {
               await supabase.auth.setSession({
                 access_token: supaSession.access_token,
                 refresh_token: supaSession.refresh_token,
@@ -274,12 +274,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           initials,
           role: getArabicRoleLabel(finalRoleKey),
           roleKey: finalRoleKey,
-          bg:
-            finalRoleKey === "admin"
-              ? "bg-gradient-to-br from-[#0d8a8a] to-[#085454]"
-              : finalRoleKey === "doctor"
-              ? "bg-gradient-to-br from-emerald-500 to-teal-600"
-              : "bg-gradient-to-br from-amber-500 to-orange-600",
+          bg: "bg-gradient-to-br from-emerald-500 to-teal-600",
           image: currentUser.image || undefined,
           nameEn: prefixEnglishName(name, finalRoleKey),
           roleEn: `${getEnglishRoleLabel(finalRoleKey)} (Google)`,
@@ -288,6 +283,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
         setIsEnriching(true);
         const enriched = await enrichUserWithClinic(newUser);
+        if (!active) return;
         setIsEnriching(false);
         setUser((prev) => {
           if (prev?.email === enriched.email && prev?.clinicId !== undefined) return prev;
@@ -303,6 +299,15 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       };
 
       loadRoleState();
+      return () => { active = false; };
+    } else if (status === "unauthenticated" && nextAuthEmailRef.current) {
+      const expiredEmail = nextAuthEmailRef.current;
+      nextAuthEmailRef.current = null;
+      setIsEnriching(false);
+      setUser((prev) => prev?.email?.toLowerCase() === expiredEmail ? null : prev);
+      setAppValue("current_user", null).catch(() => {});
+      // Revoke the long-lived Supabase shadow session when its NextAuth owner expires.
+      supabase.auth.signOut().catch((error) => console.error("Failed to revoke expired shadow session:", error));
     }
   }, [session, status]);
 
@@ -346,6 +351,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   }, [user, pathname, isAuthLoading, status]);
 
   const loginWithGoogle = async (email: string) => {
+    const activeSession = await getSession();
+    if (!activeSession?.user?.email || activeSession.user.email.toLowerCase() !== email.toLowerCase()) return;
     const name = email.split("@")[0];
     const uppercaseName = name.charAt(0).toUpperCase() + name.slice(1);
     const newUser: User = {
@@ -367,19 +374,17 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : "/home";
   };
 
-  const loginWithCredentials = async (email: string, name: string, role: string) => {
+  const loginWithCredentials = async (email: string, name: string, _role: string) => {
+    const activeSession = await getSession();
+    if (!activeSession?.user?.email || activeSession.user.email.toLowerCase() !== email.toLowerCase()) return;
     const initials = name.substring(0, 2).toUpperCase();
-    const roleKey = (email.startsWith("admin")
-      ? "admin"
-      : email.startsWith("reception")
-      ? "receptionist"
-      : "doctor") as "admin" | "doctor" | "receptionist";
+    const roleKey = "doctor" as const;
 
     const newUser: User = {
       name: prefixArabicName(name, roleKey),
       email,
       initials,
-      role,
+      role: getArabicRoleLabel(roleKey),
       roleKey,
       bg: "bg-gradient-to-br from-[#0d8a8a] to-[#085454]",
       nameEn: prefixEnglishName(name, roleKey),
@@ -396,6 +401,14 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
   const registerWithSupabase = async (email: string, pass: string, meta: any) => {
     try {
+      const passwordCheck = await fetch("/api/auth/validate-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: pass }),
+      });
+      const passwordResult = await passwordCheck.json().catch(() => ({}));
+      if (!passwordCheck.ok) return { error: passwordResult.error || "كلمة المرور لا تستوفي متطلبات الأمان" };
+
       const { error } = await supabase.auth.signUp({
         email,
         password: pass,

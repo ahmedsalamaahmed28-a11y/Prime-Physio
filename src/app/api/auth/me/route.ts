@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
 import { requireAuth } from "../../utils/auth";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
   try {
@@ -25,7 +28,7 @@ export async function GET(req: NextRequest) {
         user: { email, name: staff?.name || "" },
         subscription: null,
         hasClinic: false,
-      });
+      }, { headers: { "Cache-Control": "no-store, private" } });
     }
 
     // Get subscription
@@ -49,7 +52,7 @@ export async function GET(req: NextRequest) {
       clinicId: staff.clinic_id,
       branches: branches || [],
       hasClinic: true,
-    });
+    }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (err) {
     return NextResponse.json({ user: null, subscription: null, hasClinic: false });
   }

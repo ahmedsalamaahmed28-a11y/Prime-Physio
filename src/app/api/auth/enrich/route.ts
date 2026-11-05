@@ -1,16 +1,19 @@
-export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 function mapStaffRoleToRoleKey(role: string): string {
   const lower = role?.toLowerCase().trim();
-  if (lower === "مدير العياده" || lower === "admin" || lower === "clinic_admin") return "admin";
+  if (lower === "مدير العياده" || lower === "مدير العيادة" || lower === "admin" || lower === "clinic_admin") return "admin";
   if (lower === "استشاري" || lower === "أخصائي" || lower === "ممارس" || lower === "doctor") return "doctor";
   if (lower === "موظف استقبال" || lower === "receptionist") return "receptionist";
   if (lower === "platform_admin" || lower === "مدير المنصة") return "platform_admin";
-  return "doctor";
+  if (lower === "استشاري علاج طبيعي" || lower === "أخصائي علاج طبيعي" || lower === "ممارس علاج طبيعي" || lower === "doctor") return "doctor";
+  return "unknown";
 }
 
 function getArabicRoleLabel(roleKey: string) {
@@ -31,7 +34,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ clinicId: null, role: null });
+      return NextResponse.json({ clinicId: null, role: null }, { headers: { "Cache-Control": "no-store, private" } });
     }
 
     const { searchParams } = new URL(req.url);
@@ -81,7 +84,7 @@ export async function GET(req: NextRequest) {
         .maybeSingle();
 
       if (!staffCheck) {
-        return NextResponse.json({ clinicId: null, role: null, error: "Access denied" }, { status: 403 });
+        return NextResponse.json({ clinicId: null, role: null, error: "Access denied" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
       }
     }
 
@@ -94,6 +97,9 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     const roleKey = mapStaffRoleToRoleKey(staff.role);
+    if (roleKey === "unknown") {
+      return NextResponse.json({ error: "Unrecognized staff role" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
+    }
     return NextResponse.json({
       clinicId: targetClinicId,
       role: staff.role,
@@ -102,7 +108,7 @@ export async function GET(req: NextRequest) {
       roleEn: getEnglishRoleLabel(roleKey),
       shortName: branch?.short_name || null,
       logoUrl: branch?.logo_url || null,
-    });
+    }, { headers: { "Cache-Control": "no-store, private" } });
   } catch {
     return NextResponse.json({ clinicId: null, role: null });
   }

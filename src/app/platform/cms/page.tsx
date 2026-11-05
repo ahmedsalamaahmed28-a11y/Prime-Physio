@@ -380,7 +380,7 @@ export default function PlatformCMSPage() {
               
               {pricingPlans.length === 0 && (
                 <div className="text-center py-8 text-slate-500">
-                  لا توجد باقات لعرضها. اضغط على "إضافة باقة" للبدء.
+                  لا توجد باقات لعرضها. اضغط على &quot;إضافة باقة&quot; للبدء.
                 </div>
               )}
             </div>

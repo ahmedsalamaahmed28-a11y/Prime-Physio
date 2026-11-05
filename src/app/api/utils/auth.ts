@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
 
 export interface AuthUser {
   email: string;
@@ -9,16 +9,22 @@ export interface AuthUser {
   clinicId?: string;
 }
 
-function mapStaffRoleToRoleKey(role: string): "admin" | "doctor" | "receptionist" {
+function mapStaffRoleToRoleKey(role: string): "admin" | "doctor" | "receptionist" | "unknown" {
   switch (role) {
     case "admin":
     case "مدير العياده":
+    case "مدير العيادة":
       return "admin";
     case "موظف استقبال":
     case "receptionist":
       return "receptionist";
-    default:
+    case "استشاري علاج طبيعي":
+    case "أخصائي علاج طبيعي":
+    case "ممارس علاج طبيعي":
+    case "doctor":
       return "doctor";
+    default:
+      return "unknown";
   }
 }
 
@@ -57,7 +63,12 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
         }
         const parsed = JSON.parse(tokenValue);
         const { data: { user }, error } = await getAdminClient().auth.getUser(parsed.access_token);
-        if (!error && user?.email) {
+        if (
+          !error &&
+          user?.email &&
+          (user.email_confirmed_at || user.confirmed_at) &&
+          user.app_metadata?.auth_source !== "nextauth-shadow"
+        ) {
           return { email: user.email, userId: user.id };
         }
       } catch (e) {
@@ -72,7 +83,12 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
   const authHeader = req.headers.get("authorization");
   if (authHeader?.startsWith("Bearer ")) {
     const { data: { user }, error } = await getAdminClient().auth.getUser(authHeader.slice(7));
-    if (!error && user?.email) {
+    if (
+      !error &&
+      user?.email &&
+      (user.email_confirmed_at || user.confirmed_at) &&
+      user.app_metadata?.auth_source !== "nextauth-shadow"
+    ) {
       return { email: user.email, userId: user.id };
     }
   }
@@ -117,7 +133,7 @@ export async function requireRole(
 
   const roleKey = mapStaffRoleToRoleKey(staff.role);
 
-  if (!allowedRoles.includes(roleKey)) {
+  if (roleKey === "unknown" || !allowedRoles.includes(roleKey)) {
     throw new Error("غير مصرح — صلاحية غير كافية");
   }
 
