@@ -46,4 +46,6 @@ jobs:
             exit 0
           fi
           git commit -m "chore: refresh dependency lockfile with security fixes"
-          git push origin security/critical-hardening
+          git fetch origin security/critical-hardening
+          git rebase origin/security/critical-hardening
+          git push origin HEAD:security/critical-hardening
