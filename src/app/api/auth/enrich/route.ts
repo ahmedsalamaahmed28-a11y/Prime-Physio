@@ -8,7 +8,7 @@ export const revalidate = 0;
 
 function mapStaffRoleToRoleKey(role: string): string {
   const lower = role?.toLowerCase().trim();
-  if (lower === "مدير العياده" || lower === "admin" || lower === "clinic_admin") return "admin";
+  if (lower === "مدير العياده" || lower === "مدير العيادة" || lower === "admin" || lower === "clinic_admin") return "admin";
   if (lower === "استشاري" || lower === "أخصائي" || lower === "ممارس" || lower === "doctor") return "doctor";
   if (lower === "موظف استقبال" || lower === "receptionist") return "receptionist";
   if (lower === "platform_admin" || lower === "مدير المنصة") return "platform_admin";
