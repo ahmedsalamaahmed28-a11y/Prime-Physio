@@ -4,9 +4,9 @@ import { motion } from "framer-motion";
 import {
   CalendarDays,
   ClipboardCheck,
-  WalletCards,
-  QrCode,
-  ChartNoAxesCombined,
+  CreditCard,
+  Scan,
+  BarChart3,
   ShieldCheck,
   Sparkles,
   Check,
@@ -34,7 +34,7 @@ const features = [
     description:
       "إدارة الإيصالات والفواتير وقوائم الأسعار وأسعار التأمين والتعاقدات، مع متابعة واضحة للمستحقات المتأخرة.",
     details: ["متابعة الدفعات والفواتير", "كشف بالمبالغ المستحقة"],
-    icon: WalletCards,
+    icon: CreditCard,
     tone: "emerald",
   },
   {
@@ -42,7 +42,7 @@ const features = [
     description:
       "تسجيل حضور الفريق بمسح QR، وربط التأخيرات والأذونات والإجازات بسجلات المرتبات والحوافز وكشوف الرواتب.",
     details: ["تسجيل حضور سريع", "احتساب التأخيرات والإجازات"],
-    icon: QrCode,
+    icon: Scan,
     tone: "amber",
   },
   {
@@ -50,7 +50,7 @@ const features = [
     description:
       "لوحة متابعة مباشرة وتقارير مالية وتقارير للجلسات والأخصائيين وتطور الحالات، جاهزة للطباعة والمشاركة.",
     details: ["مؤشرات أداء واضحة", "تقارير قابلة للطباعة والمشاركة"],
-    icon: ChartNoAxesCombined,
+    icon: BarChart3,
     tone: "violet",
   },
   {
