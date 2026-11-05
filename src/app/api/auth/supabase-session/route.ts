@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
         email,
         password: shadowPassword,
         email_confirm: true,
+        app_metadata: { auth_source: "nextauth-shadow" },
       });
 
       if (createError) {
@@ -53,12 +54,27 @@ export async function GET(req: NextRequest) {
       authError = retryAuth.error;
     }
 
+    if (authData?.user && authData.user.app_metadata?.auth_source !== "nextauth-shadow") {
+      const { error: metadataError } = await admin.auth.admin.updateUserById(authData.user.id, {
+        app_metadata: { ...(authData.user.app_metadata || {}), auth_source: "nextauth-shadow" },
+      });
+      if (metadataError) {
+        console.error("[SupabaseSession] Failed to mark shadow user:", metadataError);
+        return NextResponse.json({ error: "Failed to secure Supabase session" }, { status: 500 });
+      }
+
+      // Re-authenticate so the newly issued access token contains the server-only app_metadata marker.
+      const refreshed = await admin.auth.signInWithPassword({ email, password: shadowPassword });
+      authData = refreshed.data;
+      authError = refreshed.error;
+    }
+
     if (authError || !authData?.session) {
       console.error("[SupabaseSession] Failed to sign in shadow user:", authError);
       return NextResponse.json({ error: "Failed to authenticate with Supabase" }, { status: 500 });
     }
 
-    return NextResponse.json({ session: authData.session });
+    return NextResponse.json({ session: authData.session }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error: any) {
     console.error("[SupabaseSession] Unhandled error:", error);
     return NextResponse.json({ error: error.message || "Unknown error" }, { status: 500 });
