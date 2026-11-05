@@ -129,6 +129,13 @@ export default function DashboardLayout({
   }, []);
 
   useEffect(() => {
+    // DashboardLayout is also mounted on public/auth pages. Do not query
+    // clinic-scoped tables until a verified user session is available.
+    if (!user?.email) {
+      setNotifications([]);
+      return;
+    }
+
     let active = true;
 
     const mapNotification = (row: any): SystemNotification => {
@@ -235,7 +242,7 @@ export default function DashboardLayout({
       supabase.removeChannel(channelAudit);
       supabase.removeChannel(channelBroadcasts);
     };
-  }, []);
+  }, [user?.email, user?.clinicId]);
 
   // Fetch global platform branding
   useEffect(() => {
