@@ -3,6 +3,7 @@ import { getAdminClient } from "@/lib/supabase-admin";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { createHash, createHmac } from "crypto";
+import type { User as SupabaseAuthUser } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -49,7 +50,7 @@ export async function GET() {
       const legacyPasswords = [
         createHash("sha256").update(email + secret + "SHADOW").digest("hex"),
       ];
-      let legacySessionUser: typeof authResult.data.user | null = null;
+      let legacySessionUser: SupabaseAuthUser | null = null;
 
       for (const legacyPassword of legacyPasswords) {
         const legacy = await admin.auth.signInWithPassword({ email, password: legacyPassword });
