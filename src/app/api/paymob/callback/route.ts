@@ -1,197 +1,245 @@
 import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
-import { getAdminClient } from "@/lib/supabase";
+import crypto, { timingSafeEqual } from "crypto";
+import { getAdminClient } from "@/lib/supabase-admin";
 
-async function checkClinicHasBranch(clinicId: string | null): Promise<boolean> {
-  if (!clinicId) return false;
-  try {
-    const admin = getAdminClient();
-    const { count } = await admin
-      .from("branches")
-      .select("id", { count: "exact", head: true })
-      .eq("clinic_id", clinicId);
-    return (count ?? 0) > 0;
-  } catch {
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+const PAYMOB_HMAC_FIELDS = [
+  "amount_cents", "created_at", "currency", "error_occured",
+  "has_parent_transaction", "id", "integration_id", "is_3d_secure",
+  "is_auth", "is_capture", "is_refunded", "is_standalone_payment",
+  "is_voided", "order", "owner", "pending",
+  "source_data.pan", "source_data.sub_type", "source_data.type",
+  "success",
+] as const;
+
+type FlatTransaction = Record<string, string>;
+
+function verifyHmac(data: FlatTransaction, receivedHmac: string): boolean {
+  const secret = process.env.PAYMOB_HMAC_SECRET;
+  if (!secret || secret.length < 32 || !/^[a-f0-9]{128}$/i.test(receivedHmac)) {
     return false;
   }
+
+  const message = PAYMOB_HMAC_FIELDS.map((key) => data[key] ?? "").join("");
+  const calculated = crypto.createHmac("sha512", secret).update(message).digest();
+  const received = Buffer.from(receivedHmac, "hex");
+  return received.length === calculated.length && timingSafeEqual(received, calculated);
 }
 
-async function persistSubscription(orderId: string, transactionId: string, email: string) {
-  try {
-    const admin = getAdminClient();
-    const { data: mapping } = await admin
-      .from("app_key_values")
-      .select("value")
-      .eq("key", `paymob_order_${orderId}`)
-      .maybeSingle();
+function transactionFields(obj: any): FlatTransaction {
+  return {
+    amount_cents: String(obj?.amount_cents ?? ""),
+    created_at: String(obj?.created_at ?? ""),
+    currency: String(obj?.currency ?? ""),
+    error_occured: String(obj?.error_occured ?? ""),
+    has_parent_transaction: String(obj?.has_parent_transaction ?? ""),
+    id: String(obj?.id ?? ""),
+    integration_id: String(obj?.integration_id ?? ""),
+    is_3d_secure: String(obj?.is_3d_secure ?? ""),
+    is_auth: String(obj?.is_auth ?? ""),
+    is_capture: String(obj?.is_capture ?? ""),
+    is_refunded: String(obj?.is_refunded ?? ""),
+    is_standalone_payment: String(obj?.is_standalone_payment ?? ""),
+    is_voided: String(obj?.is_voided ?? ""),
+    order: String(obj?.order?.id ?? ""),
+    owner: String(obj?.owner ?? ""),
+    pending: String(obj?.pending ?? ""),
+    "source_data.pan": String(obj?.source_data?.pan ?? ""),
+    "source_data.sub_type": String(obj?.source_data?.sub_type ?? ""),
+    "source_data.type": String(obj?.source_data?.type ?? ""),
+    success: String(obj?.success ?? ""),
+  };
+}
 
-    const info = mapping?.value || { planId: "basic", planName: "Prime Physio", price: 0, email: email || "", clinicId: null };
-    const cleanEmail = (info.email || email || "unknown@primephysio.com").toLowerCase().trim();
+function isCapturedPayment(obj: any): boolean {
+  return obj?.success === true &&
+    obj?.pending === false &&
+    obj?.error_occured === false &&
+    obj?.is_auth === true &&
+    obj?.is_capture === true &&
+    obj?.is_refunded !== true &&
+    obj?.is_voided !== true &&
+    String(obj?.currency || "").toUpperCase() === "EGP" &&
+    String(obj?.integration_id ?? "") === String(process.env.PAYMOB_INTEGRATION_ID || "");
+}
 
-    // Use clinicId from mapping (set at create-order time)
-    let clinicId = info.clinicId || null;
+function safeRedirectPage(target: URL) {
+  const serialized = JSON.stringify(target.toString()).replace(/</g, "\\u003c");
+  return new NextResponse(
+    `<!doctype html><html><body><script>window.top.location.href = ${serialized};</script></body></html>`,
+    { headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store, private", "X-Content-Type-Options": "nosniff" } }
+  );
+}
 
-    // Fallback: find clinic_id from staff if not in mapping
-    if (!clinicId) {
-      try {
-        const { data: staff } = await admin
-          .from("staff")
-          .select("clinic_id")
-          .eq("email", cleanEmail)
-          .maybeSingle();
-        clinicId = staff?.clinic_id || null;
-      } catch {}
-    }
-
-    const endDate = new Date();
-    endDate.setMonth(endDate.getMonth() + 1);
-
-    const { error } = await admin.from("subscriptions").insert({
-      user_email: cleanEmail,
-      clinic_id: clinicId,
-      plan_name: info.planId || "basic",
-      plan_price: info.price || 0,
-      status: "active",
-      order_id: String(orderId),
-      transaction_id: String(transactionId),
-      start_date: new Date().toISOString(),
-      end_date: endDate.toISOString(),
-    });
-
-    if (error) {
-      console.error("[Paymob] Failed to save subscription:", error);
-    } else {
-      console.log(`[Paymob] ✅ Subscription saved: ${info.planId} for ${cleanEmail}`);
-      // Clean up mapping
-      await admin.from("app_key_values").delete().eq("key", `paymob_order_${orderId}`);
-    }
-
-    return clinicId;
-  } catch (err) {
-    console.error("[Paymob] Subscription persist error:", err);
-    return null;
+function getBaseUrl() {
+  const configured = process.env.NEXT_PUBLIC_BASE_URL;
+  if (!configured) throw new Error("NEXT_PUBLIC_BASE_URL is required");
+  const url = new URL(configured);
+  if (url.protocol !== "https:" && url.hostname !== "localhost") {
+    throw new Error("NEXT_PUBLIC_BASE_URL must use HTTPS");
   }
+  return url;
 }
 
-// ─── Paymob Transaction Callback (GET redirect + POST webhook) ─────────────
-// Paymob redirects the user here after payment with query params
-// and also sends a POST webhook with full transaction data
-
-function verifyHmac(data: Record<string, string>, receivedHmac: string): boolean {
-  const secret = process.env.PAYMOB_HMAC_SECRET;
-  if (!secret) return true; // skip verification if not configured yet
-
-  // Paymob HMAC concatenation order (alphabetical by key)
-  const keys = [
-    "amount_cents", "created_at", "currency", "error_occured",
-    "has_parent_transaction", "id", "integration_id", "is_3d_secure",
-    "is_auth", "is_capture", "is_refunded", "is_standalone_payment",
-    "is_voided", "order", "owner", "pending",
-    "source_data.pan", "source_data.sub_type", "source_data.type",
-    "success",
-  ];
-
-  const message = keys.map((k) => data[k] ?? "").join("");
-  const calculated = crypto
-    .createHmac("sha512", secret)
-    .update(message)
-    .digest("hex");
-
-  return calculated === receivedHmac;
+async function checkClinicHasBranch(clinicId: string): Promise<boolean> {
+  const admin = getAdminClient();
+  const { count, error } = await admin
+    .from("branches")
+    .select("id", { count: "exact", head: true })
+    .eq("clinic_id", clinicId);
+  if (error) throw error;
+  return (count ?? 0) > 0;
 }
 
-// ── GET: User redirect after payment ────────────────────────────────────────
+async function persistSubscription(obj: any): Promise<{ clinicId: string | null; duplicate: boolean }> {
+  const orderId = String(obj?.order?.id ?? "");
+  const transactionId = String(obj?.id ?? "");
+  if (!/^\d+$/.test(orderId) || !/^\d+$/.test(transactionId)) {
+    throw new Error("Invalid Paymob order or transaction ID");
+  }
+
+  const admin = getAdminClient();
+  const { data: mapping, error: mappingError } = await admin
+    .from("app_key_values")
+    .select("value")
+    .eq("key", `paymob_order_${orderId}`)
+    .maybeSingle();
+
+  if (mappingError) throw mappingError;
+  if (!mapping?.value || typeof mapping.value !== "object") {
+    throw new Error("Paymob order mapping not found");
+  }
+
+  const info = mapping.value as {
+    planId?: string;
+    price?: number;
+    email?: string;
+    billingPeriod?: string;
+    clinicId?: string | null;
+  };
+
+  const planId = info.planId;
+  const email = typeof info.email === "string" ? info.email.trim().toLowerCase() : "";
+  const expectedAmount = Math.round(Number(info.price) * 100);
+  const allowedPlans = new Set(["silver", "gold"]);
+  if (
+    !planId || !allowedPlans.has(planId) ||
+    !Number.isFinite(expectedAmount) || expectedAmount <= 0 ||
+    expectedAmount !== Number(obj.amount_cents) ||
+    !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) ||
+    !["monthly", "yearly"].includes(String(info.billingPeriod))
+  ) {
+    throw new Error("Paymob transaction does not match the stored order");
+  }
+
+  const { data: existing, error: existingError } = await admin
+    .from("subscriptions")
+    .select("id, clinic_id, transaction_id")
+    .eq("order_id", orderId)
+    .maybeSingle();
+
+  if (existingError) throw existingError;
+  if (existing) {
+    if (String(existing.transaction_id) !== transactionId) {
+      throw new Error("Order was already associated with a different transaction");
+    }
+    return { clinicId: existing.clinic_id, duplicate: true };
+  }
+
+  const months = info.billingPeriod === "yearly" ? 12 : 1;
+  const endDate = new Date();
+  endDate.setMonth(endDate.getMonth() + months);
+
+  const { error: insertError } = await admin.from("subscriptions").insert({
+    user_email: email,
+    clinic_id: info.clinicId || null,
+    plan_name: planId,
+    plan_price: Number(info.price),
+    status: "active",
+    order_id: orderId,
+    transaction_id: transactionId,
+    start_date: new Date().toISOString(),
+    end_date: endDate.toISOString(),
+  });
+
+  if (insertError) {
+    if (insertError.code === "23505") {
+      const { data: raced } = await admin
+        .from("subscriptions")
+        .select("clinic_id, transaction_id")
+        .eq("order_id", orderId)
+        .maybeSingle();
+      if (raced && String(raced.transaction_id) === transactionId) {
+        return { clinicId: raced.clinic_id, duplicate: true };
+      }
+    }
+    throw insertError;
+  }
+
+  const { error: cleanupError } = await admin
+    .from("app_key_values")
+    .delete()
+    .eq("key", `paymob_order_${orderId}`);
+  if (cleanupError) console.error("[Paymob] Could not remove processed order mapping:", cleanupError);
+
+  return { clinicId: info.clinicId || null, duplicate: false };
+}
+
+// GET is only a browser redirect. A signed redirect is not used to activate a subscription;
+// activation happens only from the authenticated Paymob server-to-server webhook below.
 export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const success    = searchParams.get("success");
-  const orderId    = searchParams.get("order");
-  const txId       = searchParams.get("id");
-  const hmac       = searchParams.get("hmac") || "";
+  const search = new URL(req.url).searchParams;
+  const data: FlatTransaction = {};
+  search.forEach((value, key) => { data[key] = value; });
 
-  // Build flat object for HMAC verification
-  const data: Record<string, string> = {};
-  searchParams.forEach((val, key) => { data[key] = val; });
+  const base = getBaseUrl();
+  const target = new URL("/subscription/failed", base);
+  target.searchParams.set("reason", "invalid");
 
-  const isValid   = verifyHmac(data, hmac);
-  const isPaid    = success === "true" && isValid;
+  const valid = verifyHmac(data, search.get("hmac") || "");
+  const successful = search.get("success") === "true" &&
+    search.get("pending") === "false" &&
+    search.get("error_occured") === "false" &&
+    search.get("is_auth") === "true" &&
+    search.get("is_capture") === "true" &&
+    search.get("is_refunded") !== "true" &&
+    search.get("is_voided") !== "true" &&
+    search.get("currency") === "EGP" &&
+    search.get("integration_id") === String(process.env.PAYMOB_INTEGRATION_ID || "");
 
-  const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-
-  if (isPaid) {
-    const clinicId = await persistSubscription(orderId || "", txId || "", "");
-    if (!clinicId) {
-      // It was a public checkout and the user doesn't have a clinic yet
-      const redirectPath = `${base}/signup?payment=success`;
-      return new NextResponse(
-        `<html><body><script>window.top.location.href = "${redirectPath}";</script></body></html>`,
-        { headers: { "Content-Type": "text/html" } }
-      );
-    }
-
-    // If clinic has no branch yet → send to center setup; otherwise → home
-    const hasBranch = await checkClinicHasBranch(clinicId);
-    const redirectPath = hasBranch ? "/home" : "/setup?step=clinic";
-    return new NextResponse(
-      `<html><body><script>window.top.location.href = "${base}${redirectPath}";</script></body></html>`,
-      { headers: { "Content-Type": "text/html" } }
-    );
-  } else {
-    const redirectPath = `${base}/subscription/failed?order=${orderId}&reason=${success === "false" ? "declined" : "invalid"}`;
-    return new NextResponse(
-      `<html><body><script>window.top.location.href = "${redirectPath}";</script></body></html>`,
-      { headers: { "Content-Type": "text/html" } }
-    );
+  if (valid && successful) {
+    const successTarget = new URL("/signup", base);
+    successTarget.searchParams.set("payment", "success");
+    return safeRedirectPage(successTarget);
   }
+
+  return safeRedirectPage(target);
 }
 
-// ── POST: Paymob server-to-server webhook ────────────────────────────────────
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { obj, hmac } = body;
+    const body = await req.json().catch(() => null);
+    const obj = body?.obj;
+    const hmac = typeof body?.hmac === "string" ? body.hmac : "";
 
-    if (!obj) return NextResponse.json({ ok: true });
-
-    // Flatten obj for HMAC
-    const flat: Record<string, string> = {
-      amount_cents:            String(obj.amount_cents ?? ""),
-      created_at:              String(obj.created_at ?? ""),
-      currency:                String(obj.currency ?? ""),
-      error_occured:           String(obj.error_occured ?? ""),
-      has_parent_transaction:  String(obj.has_parent_transaction ?? ""),
-      id:                      String(obj.id ?? ""),
-      integration_id:          String(obj.integration_id ?? ""),
-      is_3d_secure:            String(obj.is_3d_secure ?? ""),
-      is_auth:                 String(obj.is_auth ?? ""),
-      is_capture:              String(obj.is_capture ?? ""),
-      is_refunded:             String(obj.is_refunded ?? ""),
-      is_standalone_payment:   String(obj.is_standalone_payment ?? ""),
-      is_voided:               String(obj.is_voided ?? ""),
-      order:                   String(obj.order?.id ?? ""),
-      owner:                   String(obj.owner ?? ""),
-      pending:                 String(obj.pending ?? ""),
-      "source_data.pan":       String(obj.source_data?.pan ?? ""),
-      "source_data.sub_type":  String(obj.source_data?.sub_type ?? ""),
-      "source_data.type":      String(obj.source_data?.type ?? ""),
-      success:                 String(obj.success ?? ""),
-    };
-
-    const isValid = verifyHmac(flat, hmac);
-    if (!isValid) {
-      console.warn("[Paymob Webhook] HMAC mismatch — possible tampered request");
-      return NextResponse.json({ ok: false }, { status: 400 });
+    if (!obj || typeof obj !== "object" || !verifyHmac(transactionFields(obj), hmac)) {
+      return NextResponse.json({ ok: false }, { status: 400, headers: { "Cache-Control": "no-store, private" } });
     }
 
-    if (obj.success === true) {
-      console.log(`[Paymob] ✅ Payment confirmed — Order: ${obj.order?.id}, TX: ${obj.id}`);
-      await persistSubscription(String(obj.order?.id || ""), String(obj.id || ""), obj.owner || "");
-    } else {
-      console.log(`[Paymob] ❌ Payment failed — Order: ${obj.order?.id}`);
+    if (!isCapturedPayment(obj)) {
+      return NextResponse.json({ ok: true, ignored: true }, { headers: { "Cache-Control": "no-store, private" } });
     }
 
-    return NextResponse.json({ ok: true });
-  } catch (err) {
-    console.error("[Paymob Webhook] Error:", err);
-    return NextResponse.json({ ok: false }, { status: 500 });
+    const persisted = await persistSubscription(obj);
+    return NextResponse.json(
+      { ok: true, duplicate: persisted.duplicate },
+      { headers: { "Cache-Control": "no-store, private" } }
+    );
+  } catch (error) {
+    console.error("[Paymob Webhook] Rejected or failed:", error);
+    return NextResponse.json({ ok: false }, { status: 500, headers: { "Cache-Control": "no-store, private" } });
   }
 }
