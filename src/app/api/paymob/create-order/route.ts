@@ -91,23 +91,23 @@ export async function POST(req: NextRequest) {
 
     const { id: orderId } = await orderRes.json();
 
-    // Store order info for callback lookup (including clinicId for redirect logic)
-    try {
-      const admin = getAdminClient();
-      await admin.from("app_key_values").upsert({
-        key: `paymob_order_${orderId}`,
-        value: {
-          planId,
-          planName: PLAN_NAMES[planId],
-          price: amountCents / 100,
-          email: billingData?.email || "",
-          billingPeriod,
-          clinicId: resolvedClinicId,
-        },
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "key" });
-    } catch (e) {
-      console.warn("[Paymob] Failed to store order mapping:", e);
+    // Persist the server-side order mapping before creating a payment key.
+    const admin = getAdminClient();
+    const { error: mappingError } = await admin.from("app_key_values").upsert({
+      key: `paymob_order_${orderId}`,
+      value: {
+        planId,
+        planName: PLAN_NAMES[planId],
+        price: amountCents / 100,
+        email: billingData?.email || "",
+        billingPeriod,
+        clinicId: resolvedClinicId,
+      },
+      updated_at: new Date().toISOString(),
+    }, { onConflict: "key" });
+    if (mappingError) {
+      console.error("[Paymob] Failed to persist checkout mapping:", mappingError.message);
+      return NextResponse.json({ error: "تعذر حفظ بيانات طلب الدفع بأمان. يرجى المحاولة مرة أخرى." }, { status: 503 });
     }
 
     // ── Step 3: Get Payment Key ───────────────────────────────────────────
