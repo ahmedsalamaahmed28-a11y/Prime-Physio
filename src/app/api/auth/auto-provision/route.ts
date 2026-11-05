@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     // 1. Check if user is already in staff
     const { data: existingStaff, error: staffLookupError } = await admin
       .from("staff")
-      .select("clinic_id")
+      .select("clinic_id, role")
       .eq("email", email)
       .limit(1)
       .maybeSingle();
@@ -43,7 +43,22 @@ export async function POST(req: NextRequest) {
     }
 
     if (existingStaff?.clinic_id) {
-      return NextResponse.json({ clinicId: existingStaff.clinic_id, clinicName });
+      return NextResponse.json(
+        { clinicId: existingStaff.clinic_id, clinicName },
+        { headers: { "Cache-Control": "no-store, private" } }
+      );
+    }
+
+    if (
+      existingStaff &&
+      !["admin", "clinic_admin", "مدير العياده", "مدير العيادة"].includes(
+        String(existingStaff.role || "").toLowerCase().trim()
+      )
+    ) {
+      return NextResponse.json(
+        { error: "Only an unassigned clinic administrator can create a clinic" },
+        { status: 403, headers: { "Cache-Control": "no-store, private" } }
+      );
     }
 
     // 2. Check if clinic already exists for this authenticated email
@@ -117,7 +132,7 @@ export async function POST(req: NextRequest) {
 
     // 5. Create default clinic settings
     const { error: settingsError } = await admin.from("clinic_settings").upsert(
-      { clinic_id: clinicId, clinic_name: clinicName },
+      { user_id: email, clinic_id: clinicId, clinic_name: clinicName },
       { onConflict: "clinic_id" }
     );
 
@@ -139,7 +154,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Clinic created but subscription linking failed" }, { status: 500 });
     }
 
-    return NextResponse.json({ clinicId, clinicName });
+    return NextResponse.json(
+      { clinicId, clinicName },
+      { headers: { "Cache-Control": "no-store, private" } }
+    );
   } catch (err) {
     console.error("[AutoProvision] Unhandled error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
