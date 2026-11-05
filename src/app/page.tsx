@@ -59,7 +59,7 @@ export default async function LandingPage() {
       <FAQ />
       <section className="pp-final-cta"><div className="pp-wrap pp-final-cta-inner">
         <div><h2>ابدأ بتنظيم مركزك مع Prime Physio</h2><p>اجمع إدارة المرضى والجلسات والفريق والحسابات في مكان واحد.</p></div>
-        <div className="pp-final-actions"><a href="/signup" className="pp-button pp-button-accent">أنشئ حسابك</a><a href="/manage" className="pp-button pp-button-light-outline">تسجيل الدخول</a></div>
+        <div className="pp-final-actions"><a href="/signup" className="pp-button pp-button-accent">أنشئ مركزك</a><a href="/manage" className="pp-button pp-button-light-outline">دخول المالك</a></div>
       </div></section>
     </main>
     <div id="contact"><Footer /></div>
