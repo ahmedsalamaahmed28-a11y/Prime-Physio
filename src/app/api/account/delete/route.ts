@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     const { data: staff, error } = await admin.from("staff")
       .select("clinic_id").eq("email", user.email).limit(1).maybeSingle();
     if (error) return NextResponse.json({ error: "Unable to verify account ownership" }, { status: 500 });
-    if (staff?.clinic_id) {
+    if (staff) {
       // Clinic-wide deletion is deliberately disabled until an atomic archival/deletion workflow exists.
       return NextResponse.json({ error: "Clinic account deletion is temporarily unavailable. Contact platform support to preserve and close clinic records safely." }, { status: 409 });
     }
