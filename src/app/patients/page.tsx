@@ -365,6 +365,10 @@ function PatientsContent() {
         "appointments",
         "sessions",
         "patient_evaluations",
+        "assessments",
+        "treatment_plans",
+        "progress_tracking",
+        "discharges",
         "patient_programs",
         "peer_reviews",
       ] as const;
