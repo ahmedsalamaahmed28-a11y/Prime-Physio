@@ -166,14 +166,8 @@ async function persistSubscription(obj: PaymobTransaction): Promise<string | nul
     return null;
   }
 
-  if (clinicId) {
-    const { error: settingsError } = await admin.from("clinic_settings").update({
-      subscription_id: inserted.id,
-      subscription_status: "active",
-      subscription_plan: planId,
-    }).eq("clinic_id", clinicId);
-    if (settingsError) console.error("[Paymob] Subscription saved but clinic settings sync failed:", settingsError.message);
-  }
+  // The subscriptions table is the source of truth for plan and expiry.
+  // Do not write non-existent subscription fields into clinic_settings.
 
   await admin.from("app_key_values").delete().eq("key", `paymob_order_${orderId}`);
   return clinicId;
