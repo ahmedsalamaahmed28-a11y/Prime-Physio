@@ -1,4 +1,5 @@
-const CACHE_NAME = 'prime-physio-cache-v1';
+const CACHE_NAME = 'prime-physio-cache-v2';
+const CACHE_PREFIX = 'prime-physio-cache-';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',
@@ -23,10 +24,12 @@ self.addEventListener('activate', (event) => {
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
-          if (cache !== CACHE_NAME) {
-            console.log('[Service Worker] Clearing old cache', cache);
+          // Only remove caches owned by this app; never touch unrelated origin caches.
+          if (cache.startsWith(CACHE_PREFIX) && cache !== CACHE_NAME) {
+            console.log('[Service Worker] Clearing old app cache', cache);
             return caches.delete(cache);
           }
+          return Promise.resolve(false);
         })
       );
     }).then(() => self.clients.claim())
