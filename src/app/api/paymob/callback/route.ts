@@ -54,12 +54,10 @@ function transactionFields(obj: any): FlatTransaction {
   };
 }
 
-function isCapturedPayment(obj: any): boolean {
+function isSuccessfulPayment(obj: any): boolean {
   return obj?.success === true &&
     obj?.pending === false &&
     obj?.error_occured === false &&
-    obj?.is_auth === true &&
-    obj?.is_capture === true &&
     obj?.is_refunded !== true &&
     obj?.is_voided !== true &&
     String(obj?.currency || "").toUpperCase() === "EGP" &&
@@ -203,8 +201,6 @@ export async function GET(req: NextRequest) {
   const successful = search.get("success") === "true" &&
     search.get("pending") === "false" &&
     search.get("error_occured") === "false" &&
-    search.get("is_auth") === "true" &&
-    search.get("is_capture") === "true" &&
     search.get("is_refunded") !== "true" &&
     search.get("is_voided") !== "true" &&
     search.get("currency") === "EGP" &&
@@ -229,7 +225,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false }, { status: 400, headers: { "Cache-Control": "no-store, private" } });
     }
 
-    if (!isCapturedPayment(obj)) {
+    if (!isSuccessfulPayment(obj)) {
       return NextResponse.json({ ok: true, ignored: true }, { headers: { "Cache-Control": "no-store, private" } });
     }
 
