@@ -107,8 +107,8 @@ export default function Navbar() {
             </Link>
           ) : (
             <>
-              <Link href="/manage" className="pp-login-link" onClick={closeMenu}>تسجيل الدخول</Link>
-              <Link href="/signup" className="pp-button pp-button-primary pp-nav-cta" onClick={closeMenu}>ابدأ الآن</Link>
+              <Link href="/manage" className="pp-login-link" onClick={closeMenu}>دخول المالك</Link>
+              <Link href="/signup" className="pp-button pp-button-primary pp-nav-cta" onClick={closeMenu}>أنشئ مركزك</Link>
             </>
           )}
         </nav>
