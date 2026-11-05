@@ -1,33 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase";
-import { Pool } from "pg";
 import bcrypt from "bcryptjs";
-
-async function ensureVerifiedColumn() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const ref = supabaseUrl.replace("https://", "").replace(".supabase.co", "");
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  if (!ref || !serviceKey) return;
-
-  const pool = new Pool({
-    host: `db.${ref}.supabase.co`,
-    port: 6543,
-    database: "postgres",
-    user: "postgres",
-    password: serviceKey,
-    ssl: { rejectUnauthorized: false },
-    max: 1,
-    connectionTimeoutMillis: 10000,
-  });
-
-  const client = await pool.connect();
-  try {
-    await client.query("alter table public.auth_accounts add column if not exists verified boolean not null default false");
-  } finally {
-    client.release();
-    await pool.end();
-  }
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -90,9 +63,10 @@ export async function POST(req: NextRequest) {
       email: cleanEmail,
       password_hash: passwordHash,
       verified: true,
-      name: name || cleanEmail.split("@")[0],
-      provider: provider || "email",
-      role: role || "admin",
+      name: typeof name === "string" && name.trim() ? name.trim().slice(0, 120) : cleanEmail.split("@")[0],
+      provider: provider === "google" ? "google" : "email",
+      // Public sign-up must never be able to assign privileged platform roles.
+      role: "admin",
     };
 
     let recordId: string | null = null;
@@ -103,25 +77,11 @@ export async function POST(req: NextRequest) {
       .select("id")
       .single();
 
-    if (authError?.message?.includes("verified")) {
-      // Column doesn't exist yet — auto-migrate and retry
-      await ensureVerifiedColumn();
-      const { data: retryRecord, error: retryError } = await admin
-        .from("auth_accounts")
-        .insert(insertPayload)
-        .select("id")
-        .single();
-
-      if (retryError || !retryRecord) {
-        console.error("[VerifyEmail] Retry failed:", retryError);
-        return NextResponse.json({ error: "فشل إنشاء الحساب", details: retryError?.message }, { status: 500 });
-      }
-      recordId = retryRecord.id;
-    } else if (authError || !authRecord) {
-      return NextResponse.json({ error: "فشل إنشاء الحساب", details: authError?.message }, { status: 500 });
-    } else {
-      recordId = authRecord.id;
+    if (authError || !authRecord) {
+      console.error("[VerifyEmail] Account creation failed:", authError?.message);
+      return NextResponse.json({ error: "فشل إنشاء الحساب" }, { status: 500 });
     }
+    recordId = authRecord.id;
 
     // Also create staff record (clinic_id = null — onboarding will link it)
     const { error: staffError } = await admin.from("staff").upsert({
