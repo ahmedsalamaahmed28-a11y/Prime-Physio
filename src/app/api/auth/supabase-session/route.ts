@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
-import crypto from "crypto";
+import { createHmac } from "crypto";
 
 export async function GET(req: NextRequest) {
   try {
@@ -15,8 +15,11 @@ export async function GET(req: NextRequest) {
     const admin = getAdminClient();
     
     // Deterministic secure password known only to the server
-    const baseSecret = process.env.NEXTAUTH_SECRET || "fallback_secret_123456789";
-    const shadowPassword = crypto.createHash("sha256").update(email + baseSecret + "SHADOW").digest("hex");
+    const baseSecret = process.env.NEXTAUTH_SECRET;
+    if (!baseSecret || baseSecret.length < 32) {
+      return NextResponse.json({ error: "Authentication is not configured securely" }, { status: 503 });
+    }
+    const shadowPassword = createHmac("sha256", baseSecret).update(`${email}:prime-physio-shadow-user`).digest("hex");
 
     // Try to sign in
     let { data: authData, error: authError } = await admin.auth.signInWithPassword({
