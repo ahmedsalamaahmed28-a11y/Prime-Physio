@@ -1,46 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase";
 import { sendVerificationCode } from "@/lib/email";
+import { clearVerificationCode, issueVerificationCode, normalizeAuthEmail } from "@/lib/verificationCodes";
+
+export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email } = await req.json();
-
-    if (!email || !email.includes("@")) {
+    const body = await req.json().catch(() => null);
+    const cleanEmail = normalizeAuthEmail(body?.email);
+    if (!cleanEmail) {
       return NextResponse.json({ error: "البريد الإلكتروني غير صحيح" }, { status: 400 });
     }
 
     const admin = getAdminClient();
-    const cleanEmail = email.toLowerCase().trim();
-
-    const { data: existing } = await admin
+    const { data: existing, error: lookupError } = await admin
       .from("auth_accounts")
       .select("id")
       .eq("email", cleanEmail)
       .maybeSingle();
 
-    if (existing) {
-      return NextResponse.json({ error: "البريد الإلكتروني مسجل بالفعل" }, { status: 400 });
+    if (lookupError) {
+      console.error("[SendVerification] Account lookup failed:", lookupError);
+      return NextResponse.json({ error: "تعذر معالجة الطلب حاليًا" }, { status: 503 });
     }
 
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
-    const expiresAt = Date.now() + 10 * 60 * 1000;
-    const key = `verification_${cleanEmail.replace(/[^a-z0-9]/g, "_")}`;
+    // Avoid revealing whether an email is already registered.
+    if (existing) {
+      return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." });
+    }
 
-    await admin.from("app_key_values").upsert({
-      key,
-      value: { code, expires_at: expiresAt, used: false },
-    });
-
+    const code = await issueVerificationCode(admin, cleanEmail, "signup");
     const sent = await sendVerificationCode(cleanEmail, code);
+    if (!sent) {
+      await clearVerificationCode(admin, cleanEmail, "signup");
+      return NextResponse.json({ error: "تعذر إرسال رسالة التحقق. حاول لاحقًا." }, { status: 503 });
+    }
 
-    return NextResponse.json({
-      sent,
-      devCode: sent ? undefined : code,
-      smtpMissing: !sent,
-    });
-  } catch (err) {
-    console.error("[SendVerification] Error:", err);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json({ success: true, sent: true });
+  } catch (error) {
+    if (error instanceof Error && error.message === "OTP_RATE_LIMIT") {
+      return NextResponse.json({ error: "يرجى الانتظار دقيقة قبل طلب رمز جديد." }, { status: 429 });
+    }
+    console.error("[SendVerification] Error:", error);
+    return NextResponse.json({ error: "تعذر معالجة الطلب حاليًا" }, { status: 500 });
   }
 }
