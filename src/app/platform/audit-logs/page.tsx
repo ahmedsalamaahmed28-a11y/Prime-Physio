@@ -8,11 +8,21 @@ interface AuditLog {
   id: string;
   action: string;
   entity: string;
-  details: string;
+  details: unknown;
   created_at: string;
   user_email: string;
   user_name: string;
   clinic_name: string;
+}
+
+function formatAuditDetails(details: unknown): string {
+  if (typeof details === "string") return details;
+  if (details == null) return "";
+  try {
+    return JSON.stringify(details);
+  } catch {
+    return String(details);
+  }
 }
 
 export default function PlatformAuditLogsPage() {
@@ -44,7 +54,7 @@ export default function PlatformAuditLogsPage() {
 
   const filteredLogs = logs.filter(log => 
     log.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    log.details?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    formatAuditDetails(log.details).toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.action?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -117,7 +127,7 @@ export default function PlatformAuditLogsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-slate-600 max-w-md truncate">
-                      {log.details}
+                      {formatAuditDetails(log.details)}
                     </td>
                   </tr>
                 ))}
