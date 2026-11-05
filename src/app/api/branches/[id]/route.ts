@@ -7,9 +7,11 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
     const user = await requireRole(req, ["admin"]);
     const { id } = await context.params;
     const body = await req.json();
-    const allowed = ["short_name", "full_name", "slug", "logo_url"] as const;
-    const updates: Record<string, unknown> = {};
-    for (const key of allowed) if (Object.prototype.hasOwnProperty.call(body, key)) updates[key] = body[key];
+    const updates: { short_name?: string; full_name?: string; slug?: string; logo_url?: string | null } = {};
+    if (typeof body?.short_name === "string" && body.short_name.trim().length > 0 && body.short_name.length <= 120) updates.short_name = body.short_name.trim();
+    if (typeof body?.full_name === "string" && body.full_name.trim().length > 0 && body.full_name.length <= 200) updates.full_name = body.full_name.trim();
+    if (typeof body?.slug === "string" && /^[a-z0-9-]{3,50}$/.test(body.slug.trim().toLowerCase())) updates.slug = body.slug.trim().toLowerCase();
+    if (body?.logo_url === null || typeof body?.logo_url === "string") updates.logo_url = body.logo_url;
     if (Object.keys(updates).length === 0) return NextResponse.json({ error: "No valid fields supplied" }, { status: 400 });
 
     const admin = getAdminClient();
