@@ -58,7 +58,12 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
         }
         const parsed = JSON.parse(tokenValue);
         const { data: { user }, error } = await getAdminClient().auth.getUser(parsed.access_token);
-        if (!error && user?.email) {
+        if (
+          !error &&
+          user?.email &&
+          (user.email_confirmed_at || user.confirmed_at) &&
+          user.app_metadata?.auth_source !== "nextauth-shadow"
+        ) {
           return { email: user.email, userId: user.id };
         }
       } catch (e) {
@@ -73,7 +78,12 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
   const authHeader = req.headers.get("authorization");
   if (authHeader?.startsWith("Bearer ")) {
     const { data: { user }, error } = await getAdminClient().auth.getUser(authHeader.slice(7));
-    if (!error && user?.email) {
+    if (
+      !error &&
+      user?.email &&
+      (user.email_confirmed_at || user.confirmed_at) &&
+      user.app_metadata?.auth_source !== "nextauth-shadow"
+    ) {
       return { email: user.email, userId: user.id };
     }
   }
