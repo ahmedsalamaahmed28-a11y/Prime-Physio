@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { NextApiRequest, NextApiResponse } from "next";
-import { createClient } from "@supabase/supabase-js";
+import { getAdminClient } from "@/lib/supabase-admin";
 import bcrypt from "bcryptjs";
 
 export const authOptions = {
@@ -21,10 +21,7 @@ export const authOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null;
 
-        const admin = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-          process.env.SUPABASE_SERVICE_ROLE_KEY || ""
-        );
+        const admin = getAdminClient();
 
         const { data, error } = await admin
           .from("auth_accounts")
