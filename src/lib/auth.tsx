@@ -205,12 +205,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           initials: name.substring(0, 2).toUpperCase(),
           role: getArabicRoleLabel(roleKey),
           roleKey,
-          bg:
-            roleKey === "admin"
-              ? "bg-gradient-to-br from-[#0d8a8a] to-[#085454]"
-              : roleKey === "doctor"
-              ? "bg-gradient-to-br from-emerald-500 to-teal-600"
-              : "bg-gradient-to-br from-amber-500 to-orange-600",
+          bg: "bg-gradient-to-br from-emerald-500 to-teal-600",
           nameEn: prefixEnglishName(name, roleKey),
           roleEn: getEnglishRoleLabel(roleKey),
           initialsEn: name.substring(0, 2).toUpperCase(),
@@ -274,12 +269,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           initials,
           role: getArabicRoleLabel(finalRoleKey),
           roleKey: finalRoleKey,
-          bg:
-            finalRoleKey === "admin"
-              ? "bg-gradient-to-br from-[#0d8a8a] to-[#085454]"
-              : finalRoleKey === "doctor"
-              ? "bg-gradient-to-br from-emerald-500 to-teal-600"
-              : "bg-gradient-to-br from-amber-500 to-orange-600",
+          bg: "bg-gradient-to-br from-emerald-500 to-teal-600",
           image: currentUser.image || undefined,
           nameEn: prefixEnglishName(name, finalRoleKey),
           roleEn: `${getEnglishRoleLabel(finalRoleKey)} (Google)`,
