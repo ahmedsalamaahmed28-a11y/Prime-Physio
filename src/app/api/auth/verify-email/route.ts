@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac } from "crypto";
 import { getAdminClient } from "@/lib/supabase";
 import bcrypt from "bcryptjs";
 
@@ -13,37 +14,24 @@ export async function POST(req: NextRequest) {
     const admin = getAdminClient();
     const cleanEmail = email.toLowerCase().trim();
 
-    // Verify the code from app_key_values
-    const key = `verification_${cleanEmail.replace(/[^a-z0-9]/g, "_")}`;
-    const { data: kv } = await admin
-      .from("app_key_values")
-      .select("value")
-      .eq("key", key)
-      .maybeSingle();
-
-    if (!kv) {
-      return NextResponse.json({ error: "لم يتم طلب رمز تحقق" }, { status: 400 });
+    const pepper = process.env.AUTH_OTP_SECRET || process.env.NEXTAUTH_SECRET;
+    if (!pepper || pepper.length < 32) {
+      return NextResponse.json({ error: "خدمة التحقق غير مهيأة" }, { status: 503 });
     }
-
-    const stored = kv.value as { code: string; expires_at: number; used: boolean };
-
-    if (stored.used) {
-      return NextResponse.json({ error: "رمز التحقق مستخدم بالفعل" }, { status: 400 });
-    }
-
-    if (stored.code !== code) {
+    if (!/^\\d{6}$/.test(String(code))) {
       return NextResponse.json({ error: "رمز التحقق غير صحيح" }, { status: 400 });
     }
-
-    if (Date.now() > stored.expires_at) {
-      return NextResponse.json({ error: "انتهت صلاحية رمز التحقق" }, { status: 400 });
-    }
-
-    // Mark code as used
-    await admin.from("app_key_values").upsert({
-      key,
-      value: { ...stored, used: true },
+    const codeHash = createHmac("sha256", pepper).update(`signup:${cleanEmail}:${code}`).digest("hex");
+    const { data: consumed, error: consumeError } = await admin.rpc("consume_auth_verification_code", {
+      p_email: cleanEmail, p_purpose: "signup", p_code_hash: codeHash,
     });
+    if (consumeError) {
+      console.error("[VerifyEmail] Secure code consumption failed:", consumeError.message);
+      return NextResponse.json({ error: "تعذر التحقق من الرمز" }, { status: 500 });
+    }
+    if (consumed !== true) {
+      return NextResponse.json({ error: "رمز التحقق غير صحيح أو منتهي الصلاحية أو مستخدم" }, { status: 400 });
+    }
 
     // Check race condition
     const { data: existing } = await admin
@@ -57,7 +45,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Create auth_accounts entry
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 12);
 
     const insertPayload = {
       email: cleanEmail,
