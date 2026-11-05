@@ -26,13 +26,25 @@ export async function issueVerificationCode(
   email: string,
   purpose: VerificationPurpose
 ) {
+  const cleanEmail = email.toLowerCase().trim();
+  const { data: previous, error: previousError } = await admin
+    .from("auth_verification_codes")
+    .select("created_at")
+    .eq("email", cleanEmail)
+    .eq("purpose", purpose)
+    .maybeSingle();
+  if (previousError) throw previousError;
+  if (previous?.created_at && Date.now() - new Date(previous.created_at).getTime() < 60_000) {
+    throw new Error("OTP_RATE_LIMIT");
+  }
+
   const code = generateVerificationCode();
-  const codeHash = hashVerificationCode(email, purpose, code);
+  const codeHash = hashVerificationCode(cleanEmail, purpose, code);
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
   const { error } = await admin.from("auth_verification_codes").upsert(
     {
-      email: email.toLowerCase().trim(),
+      email: cleanEmail,
       purpose,
       code_hash: codeHash,
       expires_at: expiresAt,
@@ -59,6 +71,22 @@ export async function consumeVerificationCode(
     p_code_hash: codeHash,
   });
 
+  if (error) throw error;
+  return data === true;
+}
+
+export async function checkVerificationCode(
+  admin: SupabaseClient,
+  email: string,
+  purpose: VerificationPurpose,
+  code: string
+) {
+  const codeHash = hashVerificationCode(email, purpose, code);
+  const { data, error } = await admin.rpc("check_auth_verification_code", {
+    p_email: email.toLowerCase().trim(),
+    p_purpose: purpose,
+    p_code_hash: codeHash,
+  });
   if (error) throw error;
   return data === true;
 }
