@@ -292,9 +292,14 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         // Do not keep stale clinic data from an earlier enrichment attempt.
         setUser(enriched);
         setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-        // If new Google user just provisioned, send to setup/center to complete clinic info.
-        if (enriched.clinicId && pendingSignup === "true" && typeof window !== "undefined") {
-          window.location.href = "/setup/center";
+        // Consume the one-time Google-signup marker after a clinic has been
+        // successfully resolved. Sending a user with clinicId to /setup/center
+        // conflicts with the setup guard, which redirects them back to /home.
+        if (enriched.clinicId && pendingSignup === "true") {
+          await setAppValue("pending_google_signup", "").catch(() => {});
+          if (typeof window !== "undefined" && window.location.pathname !== "/home") {
+            window.location.href = "/home";
+          }
         } else if (enriched.roleKey === "platform_admin" && typeof window !== "undefined" && (window.location.pathname === "/home" || window.location.pathname === "/setup" || window.location.pathname.startsWith("/manage") || window.location.pathname === "/signup")) {
           window.location.href = "/platform";
         }
