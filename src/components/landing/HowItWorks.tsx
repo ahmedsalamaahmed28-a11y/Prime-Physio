@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Building2, MailCheck, CalendarCheck, ArrowLeft } from "lucide-react";
+import { Building, UserPlus, Zap, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
 export default function HowItWorks() {
@@ -10,19 +10,19 @@ export default function HowItWorks() {
       number: "01",
       title: "أنشئ حسابك",
       description: "سجّل كمالك مركز علاج طبيعي، وأكمل تفعيل حسابك من خلال رسالة التأكيد التي تصلك على بريدك الإلكتروني.",
-      icon: <MailCheck className="h-6 w-6 text-[#4F46E5]" />,
+      icon: <UserPlus className="h-6 w-6 text-[#4F46E5]" />,
     },
     {
       number: "02",
       title: "جهّز مركزك",
       description: "اختر رابطًا مميزًا لمركزك، وأضف الخدمات والأسعار وبيانات فريق العمل حتى يصبح مركزك جاهزًا لاستقبال الحجوزات.",
-      icon: <Building2 className="h-6 w-6 text-[#4F46E5]" />,
+      icon: <Building className="h-6 w-6 text-[#4F46E5]" />,
     },
     {
       number: "03",
       title: "ابدأ الحجز",
       description: "شارك رابط مركزك مع المرضى وفريق العمل، وابدأ في تنظيم المواعيد ومتابعة الحجوزات من مكان واحد.",
-      icon: <CalendarCheck className="h-6 w-6 text-[#4F46E5]" />,
+      icon: <Zap className="h-6 w-6 text-[#4F46E5]" />,
     },
   ];
 
