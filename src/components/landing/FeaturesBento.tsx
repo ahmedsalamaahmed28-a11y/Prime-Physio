@@ -5,7 +5,6 @@ import {
   CalendarDays,
   ClipboardCheck,
   CreditCard,
-  ClipboardCheck,
   BarChart3,
   ShieldCheck,
   Sparkles,
