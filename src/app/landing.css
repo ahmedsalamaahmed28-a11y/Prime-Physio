@@ -22,3 +22,35 @@
 @media(min-width:1024px){.pp-menu-toggle{display:none}.pp-nav{display:flex;position:static;flex-direction:row;align-items:center;gap:3px;padding:0;border:0;box-shadow:none;background:transparent;margin-inline-start:auto}.pp-nav>a:not(.pp-button),.pp-language{padding:8px 10px;font-size:13px}.pp-nav-divider{width:1px;height:22px;margin:0 5px}.pp-nav-cta{margin-inline-start:4px;min-height:40px;padding-inline:17px}.pp-login-link{padding:8px 6px;font-size:13px}.pp-hero-grid{grid-template-columns:1.02fr 1fr;gap:56px}.pp-hero-visual{margin:0;padding-inline:8px 20px}.pp-dashboard-window{transform:perspective(1200px) rotateY(-2deg)}}
 @media(max-width:560px){.pp-hero-actions{display:grid;grid-template-columns:1fr}.pp-hero-actions .pp-button{width:100%}.pp-dashboard-panels{grid-template-columns:1fr}.pp-team-panel{display:none}.pp-floating-clock{inset-inline-end:-4px;top:24%;padding:8px;font-size:9px}.pp-floating-note{inset-inline-start:-4px;padding:8px;font-size:9px}.pp-kpi{padding:8px 6px}.pp-kpi b{font-size:10px}.pp-kpi small{font-size:8px}}
 @media(prefers-reduced-motion:reduce){.pp-landing *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+
+/* Prime Physio footer — PTset-inspired multi-column structure */
+.pp-footer{margin-top:auto;background:linear-gradient(145deg,#062A55 0%,#083B76 58%,#0B4C96 100%);color:#D9E6F5}
+.pp-footer-main{display:grid;grid-template-columns:1.45fr 1fr 1fr 1.2fr;gap:clamp(24px,4vw,52px);padding-block:clamp(42px,6vw,68px)}
+.pp-footer-brand{max-width:370px}
+.pp-footer-logo{display:inline-flex;align-items:center;gap:11px;color:#fff;font-size:24px;font-weight:950;letter-spacing:-.5px}
+.pp-footer-logo:hover{color:#fff;text-decoration:none}
+.pp-footer-logo>span:last-child>span{color:#F7EE45}
+.pp-footer-logo-mark{display:grid;place-items:center;width:43px;height:43px;border-radius:13px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.18);color:#F7EE45}
+.pp-footer-logo-mark svg{width:25px;height:25px}
+.pp-footer-brand>p{max-width:360px;margin:18px 0 0;color:rgba(233,242,252,.78);font-size:13px;line-height:2.05}
+.pp-footer-trust,.pp-footer-specialty{display:flex;align-items:center;gap:9px;margin-top:18px;color:#F7EE45;font-size:12px;font-weight:750}
+.pp-footer-trust svg,.pp-footer-specialty svg{width:17px;height:17px;flex:none}
+.pp-footer-links h3,.pp-footer-contact h3{margin:5px 0 18px;color:#fff;font-size:14px;font-weight:900}
+.pp-footer-links ul{display:grid;gap:12px;margin:0;padding:0;list-style:none}
+.pp-footer-links a{color:rgba(233,242,252,.76);font-size:13px;line-height:1.7;transition:color .18s}
+.pp-footer-links a:hover{color:#F7EE45;text-decoration:none}
+.pp-footer-contact>p{max-width:260px;margin:0;color:rgba(233,242,252,.75);font-size:13px;line-height:1.9}
+.pp-footer-contact-link{display:inline-flex;align-items:center;gap:9px;margin-top:17px;color:#fff;font-size:13px;direction:ltr}
+.pp-footer-contact-link:hover{color:#F7EE45;text-decoration:none}
+.pp-footer-contact-link svg{width:17px;height:17px;color:#F7EE45}
+.pp-footer-specialty{margin-top:18px;color:rgba(233,242,252,.78)}
+.pp-footer-specialty svg{color:#F7EE45}
+.pp-footer-bottom{border-top:1px solid rgba(255,255,255,.14);background:rgba(2,20,43,.2)}
+.pp-footer-bottom-inner{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding-block:15px}
+.pp-footer-bottom p{margin:0;color:rgba(233,242,252,.68);font-size:11px;line-height:1.7}
+.pp-footer-made{display:none}
+.pp-footer-top{display:inline-flex;align-items:center;gap:7px;color:#F7EE45;font-size:12px;font-weight:800;white-space:nowrap}
+.pp-footer-top:hover{color:#fff;text-decoration:none}
+.pp-footer-top svg{width:16px;height:16px}
+@media(max-width:900px){.pp-footer-main{grid-template-columns:1.3fr 1fr 1fr}.pp-footer-contact{grid-column:2 / 4}.pp-footer-contact>p{max-width:420px}}
+@media(max-width:620px){.pp-footer-main{grid-template-columns:1fr 1fr;gap:30px 22px;padding-block:38px}.pp-footer-brand{grid-column:1 / -1;max-width:none}.pp-footer-brand>p{max-width:520px}.pp-footer-links h3,.pp-footer-contact h3{margin-bottom:13px;font-size:13px}.pp-footer-links ul{gap:10px}.pp-footer-contact{grid-column:1 / -1}.pp-footer-bottom-inner{min-height:0;flex-wrap:wrap;justify-content:space-between}.pp-footer-bottom-inner>p:first-child{width:100%}.pp-footer-made{display:block!important;max-width:70%}}
