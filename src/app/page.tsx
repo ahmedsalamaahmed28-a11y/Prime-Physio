@@ -36,7 +36,7 @@ export default async function LandingPage() {
     // environments intentionally do not contain the service-role key.
     console.warn("Landing CMS is unavailable; rendering default content.", error);
   }
-  return <div className="pp-landing min-h-screen flex flex-col">
+  return <div id="top" className="pp-landing min-h-screen flex flex-col">
     <Navbar />
     <main className="flex-grow">
       <Hero cmsContent={contentMap.hero} />
