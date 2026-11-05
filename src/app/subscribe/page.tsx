@@ -74,6 +74,10 @@ export default function SubscribePage() {
   };
 
   const handleSubscribe = async (planId: string) => {
+    if (planId !== "basic") {
+      window.location.href = "/plans";
+      return;
+    }
     if (!email) {
       setError(isRtl ? "يرجى تسجيل الدخول" : "Please log in");
       return;
