@@ -355,19 +355,58 @@ function PatientsContent() {
   };
 
   const executeDeletePatient = async () => {
-    if (!deletePatientId) return;
+    if (!deletePatientId || !clinicId) return;
 
     try {
-      // Delete associated invoices and appointments first so home/billing pages stay clean
-      await supabase.from("invoices").delete().eq("patient_id", deletePatientId).eq("clinic_id", clinicId);
-      await supabase.from("appointments").delete().eq("patient_id", deletePatientId).eq("clinic_id", clinicId);
+      // Patient rows cascade to clinical and financial history in the database.
+      // Refuse deletion while any dependent record exists; do not silently erase care history.
+      const dependentTables = [
+        "invoices",
+        "appointments",
+        "sessions",
+        "patient_evaluations",
+        "patient_programs",
+        "peer_reviews",
+      ] as const;
 
-      const { error } = await supabase.from("patients").delete().eq("id", deletePatientId).eq("clinic_id", clinicId);
+      const checks = await Promise.all(
+        dependentTables.map((table) =>
+          supabase
+            .from(table)
+            .select("id", { count: "exact", head: true })
+            .eq("clinic_id", clinicId)
+            .eq("patient_id", deletePatientId)
+        )
+      );
+
+      const failedCheck = checks.find((result) => result.error);
+      if (failedCheck?.error) throw failedCheck.error;
+
+      const linkedRecords = checks.reduce((total, result) => total + (result.count || 0), 0);
+      if (linkedRecords > 0) {
+        alert(
+          isRtl
+            ? "لا يمكن حذف هذا المريض لوجود سجلات مرتبطة به (جلسات أو تقييمات أو فواتير أو برامج علاجية). احتفظ بالملف لتظل تاريخه الطبي محفوظًا."
+            : "This patient cannot be deleted because linked clinical or financial records exist. Keep the patient file to preserve their medical history."
+        );
+        return;
+      }
+
+      const { error } = await supabase
+        .from("patients")
+        .delete()
+        .eq("id", deletePatientId)
+        .eq("clinic_id", clinicId);
+
       if (error) throw error;
       saveLocalPatients(patients.filter((p) => p.id !== deletePatientId));
     } catch (err: any) {
-      console.warn("Database delete failed, removing from local state:", err);
-      saveLocalPatients(patients.filter((p) => p.id !== deletePatientId));
+      console.error("Patient deletion failed:", err);
+      alert(
+        isRtl
+          ? "تعذر حذف ملف المريض. لم يتم تغيير البيانات: " + (err.message || err)
+          : "Patient deletion failed. No local data was removed: " + (err.message || err)
+      );
     } finally {
       setDeletePatientId(null);
     }
