@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomInt } from "crypto";
 import { getAdminClient } from "@/lib/supabase";
 import { sendVerificationCode } from "@/lib/email";
 
@@ -23,7 +24,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "البريد الإلكتروني مسجل بالفعل" }, { status: 400 });
     }
 
-    const code = Math.floor(1000 + Math.random() * 9000).toString();
+    const code = randomInt(100000, 1000000).toString();
     const expiresAt = Date.now() + 10 * 60 * 1000;
     const key = `verification_${cleanEmail.replace(/[^a-z0-9]/g, "_")}`;
 
@@ -34,11 +35,10 @@ export async function POST(req: NextRequest) {
 
     const sent = await sendVerificationCode(cleanEmail, code);
 
-    return NextResponse.json({
-      sent,
-      devCode: sent ? undefined : code,
-      smtpMissing: !sent,
-    });
+    if (!sent && process.env.NODE_ENV === "production") {
+      return NextResponse.json({ sent: false, error: "Unable to send verification email" }, { status: 503 });
+    }
+    return NextResponse.json({ sent, ...(process.env.NODE_ENV !== "production" && !sent ? { devCode: code } : {}) });
   } catch (err) {
     console.error("[SendVerification] Error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
