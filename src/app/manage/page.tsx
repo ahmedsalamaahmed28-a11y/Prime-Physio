@@ -92,7 +92,7 @@ function ManageContent() {
   };
 
   const handleForgotOtpChange = (idx: number, val: string) => {
-    if (val && !/^\\d$/.test(val)) return;
+    if (val && !/^\d$/.test(val)) return;
     const newOtp = [...forgotOtp];
     newOtp[idx] = val;
     setForgotOtp(newOtp);
@@ -130,8 +130,8 @@ function ManageContent() {
   const handleForgotResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setForgotError("");
-    if (forgotNewPassword.length < 10) {
-      setForgotError(isRtl ? "كلمة المرور يجب أن تكون 10 أحرف على الأقل" : "Password must be at least 10 characters");
+    if (forgotNewPassword.length < 12) {
+      setForgotError(isRtl ? "كلمة المرور يجب أن تكون 12 حرفًا على الأقل وتحتوي على حرف كبير وصغير ورقم ورمز" : "Password must be at least 12 characters with upper/lowercase, a number and a symbol");
       return;
     }
     if (forgotNewPassword !== forgotConfirmPassword) {
