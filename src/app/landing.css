@@ -69,3 +69,15 @@
 .pp-trusted-marquee:hover .pp-trusted-track{animation-play-state:paused;}
 @keyframes pp-trusted-scroll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @media(prefers-reduced-motion:reduce){.pp-trusted-track{animation:none;transform:none}.pp-trusted-marquee{overflow-x:auto}.pp-trusted-group[aria-hidden="true"]{display:none}}
+
+
+/* Trusted centers: preserve the exact main-branch palette and hover treatment. */
+.pp-capabilities{padding-block:48px;background:#f8fafc;border-block:1px solid rgba(226,232,240,.6);}
+.pp-capabilities-title{color:#94a3b8;}
+.pp-capabilities .pp-trusted-item{color:#94a3b8;opacity:.7;filter:grayscale(1);transition:color .3s,opacity .3s,filter .3s;}
+.pp-capabilities .pp-trusted-item:hover{color:#4f46e5;opacity:1;filter:grayscale(0);}
+.pp-capabilities .pp-trusted-item svg{width:32px;height:32px;color:currentColor;}
+.pp-capabilities .pp-trusted-item span{font-size:24px;font-weight:900;letter-spacing:-.025em;}
+.pp-trusted-group{gap:64px;}
+.pp-trusted-marquee:before{background:linear-gradient(to right,#f8fafc,transparent);}
+.pp-trusted-marquee:after{background:linear-gradient(to left,#f8fafc,transparent);}
