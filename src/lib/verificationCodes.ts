@@ -11,6 +11,13 @@ function getHashSecret() {
   return secret;
 }
 
+export function normalizeAuthEmail(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const email = value.trim().toLowerCase();
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return null;
+  return email;
+}
+
 export function generateVerificationCode() {
   return randomInt(100000, 1000000).toString();
 }
@@ -27,36 +34,33 @@ export async function issueVerificationCode(
   purpose: VerificationPurpose
 ) {
   const cleanEmail = email.toLowerCase().trim();
-  const { data: previous, error: previousError } = await admin
-    .from("auth_verification_codes")
-    .select("created_at")
-    .eq("email", cleanEmail)
-    .eq("purpose", purpose)
-    .maybeSingle();
-  if (previousError) throw previousError;
-  if (previous?.created_at && Date.now() - new Date(previous.created_at).getTime() < 60_000) {
-    throw new Error("OTP_RATE_LIMIT");
-  }
-
   const code = generateVerificationCode();
   const codeHash = hashVerificationCode(cleanEmail, purpose, code);
   const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString();
 
-  const { error } = await admin.from("auth_verification_codes").upsert(
-    {
-      email: cleanEmail,
-      purpose,
-      code_hash: codeHash,
-      expires_at: expiresAt,
-      attempts: 0,
-      consumed_at: null,
-      created_at: new Date().toISOString(),
-    },
-    { onConflict: "email,purpose" }
-  );
+  const { data, error } = await admin.rpc("store_auth_verification_code", {
+    p_email: cleanEmail,
+    p_purpose: purpose,
+    p_code_hash: codeHash,
+    p_expires_at: expiresAt,
+  });
 
   if (error) throw error;
+  if (data !== true) throw new Error("OTP_RATE_LIMIT");
   return code;
+}
+
+export async function clearVerificationCode(
+  admin: SupabaseClient,
+  email: string,
+  purpose: VerificationPurpose
+) {
+  const { error } = await admin
+    .from("auth_verification_codes")
+    .delete()
+    .eq("email", email.toLowerCase().trim())
+    .eq("purpose", purpose);
+  if (error) throw error;
 }
 
 export async function consumeVerificationCode(
@@ -65,6 +69,7 @@ export async function consumeVerificationCode(
   purpose: VerificationPurpose,
   code: string
 ) {
+  if (!/^\d{6}$/.test(code)) return false;
   const codeHash = hashVerificationCode(email, purpose, code);
   const { data, error } = await admin.rpc("consume_auth_verification_code", {
     p_email: email.toLowerCase().trim(),
@@ -82,6 +87,7 @@ export async function checkVerificationCode(
   purpose: VerificationPurpose,
   code: string
 ) {
+  if (!/^\d{6}$/.test(code)) return false;
   const codeHash = hashVerificationCode(email, purpose, code);
   const { data, error } = await admin.rpc("check_auth_verification_code", {
     p_email: email.toLowerCase().trim(),
