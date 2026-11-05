@@ -23,7 +23,7 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section className="py-24 bg-[#F8FAFC]">
+    <section id="how" className="py-24 bg-[#F8FAFC]">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-16">
           <h2 className="text-3xl font-black text-slate-900 sm:text-4xl">كيف يعمل Prime Physio؟</h2>
