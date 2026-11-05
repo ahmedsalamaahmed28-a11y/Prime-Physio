@@ -1,0 +1,48 @@
+name: Refresh dependency lockfile
+
+on:
+  push:
+    branches: [security/critical-hardening]
+    paths:
+      - package.json
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prime-physio-lockfile-refresh
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: security/critical-hardening
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Regenerate lockfile without lifecycle scripts
+        run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+
+      - name: Apply non-breaking security updates
+        run: npm audit fix --ignore-scripts --no-fund
+
+      - name: Commit updated lockfile
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          if git diff --cached --quiet; then
+            echo "Lockfile already current."
+            exit 0
+          fi
+          git commit -m "chore: refresh dependency lockfile with security fixes"
+          git push origin security/critical-hardening
