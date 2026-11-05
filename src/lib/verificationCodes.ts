@@ -116,3 +116,19 @@ export async function allowOtpSendFromIp(
   return !error && data === true;
 }
 
+export async function allowPaymentOrderFromIp(
+  admin: SupabaseClient,
+  clientIp: string
+): Promise<boolean> {
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret || secret.length < 32) return false;
+  const normalizedIp = (clientIp || "unknown").trim().slice(0, 128);
+  const ipHash = createHmac("sha256", secret)
+    .update(`paymob-order:${normalizedIp}`)
+    .digest("hex");
+  const { data, error } = await admin.rpc("check_auth_login_attempt", {
+    p_email: "paymob-order-create@prime-physio.internal",
+    p_ip_hash: ipHash,
+  });
+  return !error && data === true;
+}
