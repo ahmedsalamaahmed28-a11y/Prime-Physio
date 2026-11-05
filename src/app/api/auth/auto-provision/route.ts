@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     // Existing staff membership is authoritative; do not create a second clinic.
     const { data: existingStaff, error: staffLookupError } = await admin
       .from("staff")
-      .select("clinic_id")
+      .select("clinic_id, role")
       .eq("email", sessionEmail)
       .limit(1)
       .maybeSingle();
@@ -36,7 +36,13 @@ export async function POST(req: NextRequest) {
     }
 
     if (existingStaff?.clinic_id) {
+      if (!["admin", "clinic_admin", "مدير العيادة", "مدير العياده"].includes(String(existingStaff.role || "").trim().toLowerCase())) {
+        return NextResponse.json({ error: "This account already belongs to a clinic and cannot be auto-provisioned as an administrator" }, { status: 403 });
+      }
       return NextResponse.json({ clinicId: existingStaff.clinic_id, clinicName });
+    }
+    if (existingStaff && !["admin", "clinic_admin", "مدير العيادة", "مدير العياده"].includes(String(existingStaff.role || "").trim().toLowerCase())) {
+      return NextResponse.json({ error: "Only an administrator account can complete clinic onboarding" }, { status: 403 });
     }
 
     const { data: existingClinic, error: clinicLookupError } = await admin
