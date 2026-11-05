@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { SessionProvider, signOut, useSession, getSession } from "next-auth/react";
 import { supabase } from "@/lib/supabase";
@@ -182,6 +182,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   const [isEnriching, setIsEnriching] = useState(false);
   const pathname = usePathname();
   const { data: session, status } = useSession();
+  const nextAuthEmailRef = useRef<string | null>(null);
 
   // Never restore an authenticated user from localStorage. Only verified server sessions
   // (NextAuth) or a live Supabase Auth session may establish identity.
@@ -238,6 +239,10 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
+      const sessionEmail = (session.user.email || "").toLowerCase();
+      nextAuthEmailRef.current = sessionEmail;
+      let active = true;
+
       const loadRoleState = async () => {
         const currentUser = session.user!;
         const email = currentUser.email || "";
@@ -250,7 +255,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           const res = await fetch("/api/auth/supabase-session");
           if (res.ok) {
             const { session: supaSession } = await res.json();
-            if (supaSession) {
+            if (supaSession && active) {
               await supabase.auth.setSession({
                 access_token: supaSession.access_token,
                 refresh_token: supaSession.refresh_token,
@@ -283,6 +288,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
         setIsEnriching(true);
         const enriched = await enrichUserWithClinic(newUser);
+        if (!active) return;
         setIsEnriching(false);
         setUser((prev) => {
           if (prev?.email === enriched.email && prev?.clinicId !== undefined) return prev;
@@ -298,6 +304,15 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       };
 
       loadRoleState();
+      return () => { active = false; };
+    } else if (status === "unauthenticated" && nextAuthEmailRef.current) {
+      const expiredEmail = nextAuthEmailRef.current;
+      nextAuthEmailRef.current = null;
+      setIsEnriching(false);
+      setUser((prev) => prev?.email?.toLowerCase() === expiredEmail ? null : prev);
+      setAppValue("current_user", null).catch(() => {});
+      // Revoke the long-lived Supabase shadow session when its NextAuth owner expires.
+      supabase.auth.signOut().catch((error) => console.error("Failed to revoke expired shadow session:", error));
     }
   }, [session, status]);
 
