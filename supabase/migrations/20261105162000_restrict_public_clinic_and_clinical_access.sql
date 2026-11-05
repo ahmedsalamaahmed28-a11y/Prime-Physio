@@ -148,7 +148,6 @@ REVOKE ALL ON TABLE
   public.staff,
   public.subscriptions,
   public.auth_accounts,
-  public.app_key_values,
   public.verification_codes
 FROM PUBLIC, anon;
 
@@ -162,8 +161,8 @@ GRANT SELECT ON TABLE public.treatment_templates TO anon;
 REVOKE TRUNCATE, REFERENCES, TRIGGER ON ALL TABLES IN SCHEMA public FROM PUBLIC, anon, authenticated;
 
 -- Authentication secrets and OTP records are service-role only.
-REVOKE ALL ON TABLE public.auth_accounts, public.app_key_values, public.verification_codes FROM PUBLIC, anon, authenticated;
-GRANT ALL ON TABLE public.auth_accounts, public.app_key_values, public.verification_codes TO service_role;
+REVOKE ALL ON TABLE public.auth_accounts, public.verification_codes FROM PUBLIC, anon, authenticated;
+GRANT ALL ON TABLE public.auth_accounts, public.verification_codes TO service_role;
 
 -- Service-role policies stay restricted to service_role; this removes an accidental public alias.
 DROP POLICY IF EXISTS service_role_all ON public.app_key_values;
