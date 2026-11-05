@@ -50,6 +50,11 @@ export default function Navbar() {
     return () => document.body.classList.remove("pp-menu-open");
   }, [mobileMenuOpen]);
 
+  useEffect(() => {
+    document.documentElement.lang = language === "ar" ? "ar" : "en";
+    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+  }, [language]);
+
   const closeMenu = () => setMobileMenuOpen(false);
 
   return (
