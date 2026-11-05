@@ -25,7 +25,11 @@ async function persistSubscription(orderId: string, transactionId: string, email
       .eq("key", `paymob_order_${orderId}`)
       .maybeSingle();
 
-    const info = mapping?.value || { planId: "basic", planName: "Prime Physio", price: 0, email: email || "", clinicId: null };
+    if (!mapping?.value || typeof mapping.value !== "object") {
+      console.warn("[Paymob] No matching checkout record for order:", orderId);
+      return null;
+    }
+    const info = mapping.value;
     const cleanEmail = (info.email || email || "unknown@primephysio.com").toLowerCase().trim();
 
     // Use clinicId from mapping (set at create-order time)
@@ -79,7 +83,7 @@ async function persistSubscription(orderId: string, transactionId: string, email
 
 function verifyHmac(data: Record<string, string>, receivedHmac: string): boolean {
   const secret = process.env.PAYMOB_HMAC_SECRET;
-  if (!secret) return true; // skip verification if not configured yet
+  if (!secret || !receivedHmac || !/^[a-f0-9]{128}$/i.test(receivedHmac)) return false;
 
   // Paymob HMAC concatenation order (alphabetical by key)
   const keys = [
@@ -97,7 +101,9 @@ function verifyHmac(data: Record<string, string>, receivedHmac: string): boolean
     .update(message)
     .digest("hex");
 
-  return calculated === receivedHmac;
+  const calculatedBuffer = Buffer.from(calculated, "hex");
+  const receivedBuffer = Buffer.from(receivedHmac, "hex");
+  return calculatedBuffer.length === receivedBuffer.length && crypto.timingSafeEqual(calculatedBuffer, receivedBuffer);
 }
 
 // ── GET: User redirect after payment ────────────────────────────────────────
