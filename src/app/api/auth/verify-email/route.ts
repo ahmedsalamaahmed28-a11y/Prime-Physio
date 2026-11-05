@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
     if (accountLookupError) throw accountLookupError;
     if (existingAccount) {
-      return NextResponse.json({ error: "تعذر إنشاء الحساب بهذه البيانات" }, { status: 409 });
+      return NextResponse.json({ error: "تعذر إنشاء الحساب أو رمز التحقق غير صالح" }, { status: 400 });
     }
 
     // Do not turn an existing clinic employee into an administrator during signup.
