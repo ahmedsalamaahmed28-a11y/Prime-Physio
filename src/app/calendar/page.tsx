@@ -498,21 +498,6 @@ export default function CalendarPage() {
             return (ch === "x" ? r : (r & 0x3) | 0x8).toString(16);
           });
 
-      const { error: appointmentError } = await supabase.from("appointments").insert({
-        id: newId,
-        clinic_id: clinicId,
-        patient_id: ev.patientId,
-        patient_name: ev.patientName,
-        doctor_name: ev.doctor,
-        appointment_type: ev.visitType,
-        status: ev.status,
-        start_time: ev.start.toISOString(),
-        end_time: ev.end.toISOString()
-      });
-
-      if (appointmentError) throw appointmentError;
-
-      const invoiceDesc = isRtl ? `جلسة: ${ev.visitType}` : `Session: ${ev.visitType}`;
       let defaultPrice = "100";
       const { data: settings, error: settingsError } = await supabase
         .from("clinic_settings")
@@ -525,37 +510,31 @@ export default function CalendarPage() {
         defaultPrice = String(settings.default_session_price);
       }
 
+      const invoiceDesc = isRtl ? `جلسة: ${ev.visitType}` : `Session: ${ev.visitType}`;
       const invoiceAmt = isRtl ? `${defaultPrice} ج.م` : `${defaultPrice} EGP`;
-      const { error: invoiceError } = await supabase.from("invoices").insert({
-        id: `INV-${newId}`,
-        clinic_id: clinicId,
-        patient_id: ev.patientId,
-        patient_name: ev.patientName,
-        description: invoiceDesc,
-        amount: invoiceAmt,
-        status: isRtl ? "انتظار" : "Pending",
-        payment_method: "—",
-        date: ev.start.toISOString().split("T")[0]
+      const { error } = await supabase.rpc("create_appointment_with_invoice", {
+        p_appointment_id: newId,
+        p_patient_id: ev.patientId,
+        p_patient_name: ev.patientName,
+        p_doctor_name: ev.doctor,
+        p_appointment_type: ev.visitType,
+        p_status: ev.status,
+        p_start_time: ev.start.toISOString(),
+        p_end_time: ev.end.toISOString(),
+        p_invoice_id: `INV-${newId}`,
+        p_invoice_description: invoiceDesc,
+        p_invoice_amount: invoiceAmt,
+        p_invoice_status: isRtl ? "انتظار" : "Pending",
+        p_payment_method: "—",
+        p_invoice_date: ev.start.toISOString().split("T")[0],
       });
 
-      if (invoiceError) {
-        // Keep appointment + invoice creation consistent if invoice creation fails.
-        const { error: rollbackError } = await supabase
-          .from("appointments")
-          .delete()
-          .eq("id", newId)
-          .eq("clinic_id", clinicId);
-        if (rollbackError) {
-          console.error("Appointment rollback failed after invoice error:", rollbackError);
-        }
-        throw invoiceError;
-      }
-
+      if (error) throw error;
       ev.id = newId;
       syncEventsState([...events, ev]);
       setSelectedDate(null);
     } catch (err: any) {
-      console.error("Failed to save appointment and invoice:", err);
+      console.error("Failed to atomically save appointment and invoice:", err);
       alert(isRtl
         ? "لم يتم حفظ الموعد والفاتورة. لم تتم إضافة الموعد إلى التقويم: " + (err.message || err)
         : "The appointment and invoice were not saved. The calendar was not updated: " + (err.message || err));
@@ -616,76 +595,24 @@ export default function CalendarPage() {
     const completedEvent = events.find((event) => event.id === id);
     if (!completedEvent || completedEvent.status === "منتهي") return;
 
-    let previousSessionsUsed: number | null = null;
-    let patientId: string | null = null;
-    let patientCountUpdated = false;
-
     try {
-      if (!completedEvent.patientId) {
-        throw new Error("The appointment is not linked to a patient.");
-      }
-
-      patientId = completedEvent.patientId;
-      const { data: patient, error: patientLoadError } = await supabase
-        .from("patients")
-        .select("id, sessionsUsed")
-        .eq("id", patientId)
-        .eq("clinic_id", clinicId)
-        .maybeSingle();
-
-      if (patientLoadError) throw patientLoadError;
-      if (!patient) throw new Error("The linked patient record could not be found.");
-
-      previousSessionsUsed = patient.sessionsUsed == null ? null : Number(patient.sessionsUsed);
-      const nextSessionsUsed = (previousSessionsUsed ?? 0) + 1;
-      let patientUpdate = supabase
-        .from("patients")
-        .update({ sessionsUsed: nextSessionsUsed, status: "نشط" })
-        .eq("id", patientId)
-        .eq("clinic_id", clinicId);
-
-      patientUpdate = previousSessionsUsed === null
-        ? patientUpdate.is("sessionsUsed", null)
-        : patientUpdate.eq("sessionsUsed", previousSessionsUsed);
-
-      const { data: updatedPatient, error: patientUpdateError } = await patientUpdate
-        .select("id")
-        .maybeSingle();
-
-      if (patientUpdateError) throw patientUpdateError;
-      if (!updatedPatient) {
-        throw new Error("The session count changed concurrently. Refresh the patient record and try again.");
-      }
-      patientCountUpdated = true;
-
-      const { data: updatedAppointment, error: appointmentError } = await supabase
-        .from("appointments")
-        .update({ status: "منتهي" })
-        .eq("id", id)
-        .eq("clinic_id", clinicId)
-        .select("id")
-        .maybeSingle();
-
-      if (appointmentError) throw appointmentError;
-      if (!updatedAppointment) throw new Error("The appointment could not be marked as completed.");
+      const { data, error } = await supabase.rpc("complete_appointment_and_consume_session", {
+        p_appointment_id: id,
+        p_diagnosis: completedEvent.visitType || null,
+        p_vas_score: null,
+        p_notes: completedEvent.notes || null,
+      });
+      if (error) throw error;
 
       syncEventsState(events.map((event) => event.id === id ? { ...event, status: "منتهي" } : event));
-    } catch (err: any) {
-      // Compensate if the patient count was changed but appointment completion failed.
-      if (patientCountUpdated && patientId) {
-        const { error: rollbackError } = await supabase
-          .from("patients")
-          .update({ sessionsUsed: previousSessionsUsed })
-          .eq("id", patientId)
-          .eq("clinic_id", clinicId)
-          .eq("sessionsUsed", (previousSessionsUsed ?? 0) + 1);
-        if (rollbackError) console.error("Session count rollback failed:", rollbackError);
+      if (data?.already_completed) {
+        console.info("Appointment already had a linked session; no additional session was consumed.");
       }
-
-      console.error("Failed to complete appointment:", err);
+    } catch (err: any) {
+      console.error("Atomic appointment completion failed:", err);
       alert(isRtl
-        ? "لم يتم اعتماد انتهاء الجلسة أو تحديث العداد: " + (err.message || err)
-        : "The session was not completed and the counter was not updated: " + (err.message || err));
+        ? "لم يتم اعتماد انتهاء الجلسة أو استهلاكها: " + (err.message || err)
+        : "The appointment was not completed and no session was consumed: " + (err.message || err));
     }
   };
 
