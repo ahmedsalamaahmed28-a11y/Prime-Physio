@@ -88,6 +88,8 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     const t = Date.now();
     const queryParams = preferredClinicId ? `?preferred_clinic_id=${preferredClinicId}&t=${t}` : `?t=${t}`;
     const res = await fetch(`/api/auth/enrich${queryParams}`);
+    // A failed server lookup is not proof that the user has no clinic.
+    if (res.status === 403 || res.status >= 500) return user;
     if (res.ok) {
       const data = await res.json();
       if (data.clinicId || data.roleKey === "platform_admin") {
@@ -109,10 +111,11 @@ async function enrichUserWithClinic(user: User): Promise<User> {
 
   try {
     // Check if platform super admin
-    const { data: pa } = await supabase
+    const { data: pa, error: platformAdminError } = await supabase
       .from("platform_admins")
       .select("email")
       .eq("email", user.email).limit(1).maybeSingle();
+    if (platformAdminError) return user;
     user.isPlatformAdmin = !!pa;
 
     if (pa) {
@@ -124,10 +127,11 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     }
 
     // Look up clinic_id + role from staff (source of truth for roleKey)
-    const { data: staff } = await supabase
+    const { data: staff, error: staffError } = await supabase
       .from("staff")
       .select("clinic_id, role")
       .eq("email", user.email).limit(1).maybeSingle();
+    if (staffError) return user;
 
     if (staff) {
       user.roleKey = mapStaffRoleToRoleKey(staff.role);
@@ -142,7 +146,8 @@ async function enrichUserWithClinic(user: User): Promise<User> {
       return user;
     }
   } catch {
-    // Supabase queries failed (likely RLS for non-Supabase users) — proceed
+    // A failed lookup must remain unresolved; never convert it into a missing-clinic state.
+    return user;
   }
 
   // If we reach here, no staff record was found.
