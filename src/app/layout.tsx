@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import DashboardLayout from "@/components/DashboardLayout";
 
@@ -20,17 +21,17 @@ import { AuthProvider } from "@/lib/auth";
 import { LanguageProvider } from "@/lib/LanguageContext";
 import { PWAProvider } from "@/components/PWAProvider";
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Per-request headers are required for nonce-aware App Router rendering.
+  // This opts the application shell into dynamic rendering instead of static HTML.
+  await headers();
+
   return (
-    <html
-      lang="ar"
-      dir="rtl"
-      className="h-full antialiased"
-    >
+    <html lang="ar" dir="rtl" className="h-full antialiased">
       <body className="min-h-full flex flex-col bg-slate-50/50 font-sans">
         <LanguageProvider>
           <PWAProvider>
