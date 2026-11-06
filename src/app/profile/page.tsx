@@ -574,7 +574,7 @@ export default function ProfileSettingsPage() {
             <div className="bg-slate-50/50 rounded-2xl p-6 border border-slate-200/50 space-y-6">
               <div className="flex items-center gap-2 pb-3 border-b">
                 <CreditCard className="w-5 h-5 text-[#4F46BA]" />
-                <h3 className="text-base font-extrabold text-slate-800">البيانات البنكية — Bank Details</h3>
+                <h3 className="text-base font-extrabold text-slate-800">{isRtl ? "البيانات البنكية" : "Bank Details"}</h3>
               </div>
               
               <form onSubmit={handleBankSave} className="space-y-6">
