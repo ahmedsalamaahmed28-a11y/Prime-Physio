@@ -419,7 +419,7 @@ function EventDetailsDialog({
 
   return (
     <Dialog open={!!event} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" dir="rtl">
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" dir={isRtl ? "rtl" : "ltr"}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg font-heading">
             <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: VISIT_COLORS[event.visitType] }} />
@@ -466,23 +466,23 @@ function EventDetailsDialog({
             <div className="space-y-3 pt-1">
               <Separator />
               <div className="space-y-1.5">
-                <Label>المعالج</Label>
+                <Label>{isRtl ? "المعالج" : "Therapist"}</Label>
                 <SelectMenu items={doctorsList.map((d) => ({ value: d.name, label: d.name }))}
                   value={form.doctor ?? event.doctor}
                   onValueChange={(val) => setForm(f => ({ ...f, doctor: val }))}
-                  placeholder="اختر معالج..." searchPlaceholder="بحث..." nothingFound="لا يوجد نتائج" />
+                  placeholder={isRtl ? "اختر معالج..." : "Select therapist..."} searchPlaceholder={isRtl ? "بحث..." : "Search..."} nothingFound={isRtl ? "لا يوجد نتائج" : "No results"} />
               </div>
               <div className="space-y-1.5">
-                <Label>نوع الزيارة</Label>
+                <Label>{isRtl ? "نوع الزيارة" : "Visit Type"}</Label>
                 <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   value={form.visitType ?? event.visitType}
                   onChange={(e) => setForm(f => ({ ...f, visitType: e.target.value as VisitType }))}>
-                  {VISIT_TYPES.map((t) => <option key={t}>{t}</option>)}
+                  {VISIT_TYPES.map((t) => <option key={t}>{tVisitType(t)}</option>)}
                 </select>
               </div>
               <div className="space-y-1.5">
-                <Label>ملاحظات</Label>
-                <Input dir="rtl" value={form.notes ?? ""} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} />
+                <Label>{isRtl ? "ملاحظات" : "Notes"}</Label>
+                <Input dir={isRtl ? "rtl" : "ltr"} value={form.notes ?? ""} onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))} />
               </div>
             </div>
           ) : completing ? (
