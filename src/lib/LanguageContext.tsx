@@ -231,6 +231,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
+    if (typeof document === "undefined") return;
+    const direction = language === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = language;
+    document.documentElement.dir = direction;
+    document.body.dir = direction;
+  }, [language]);
+
+  useEffect(() => {
     const updateTitle = () => {
       if (typeof document !== "undefined") {
         document.title = language === "ar" 
