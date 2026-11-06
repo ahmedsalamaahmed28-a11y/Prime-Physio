@@ -15,14 +15,14 @@ export default function GlobalNotFound() {
           <div className="w-full max-w-2xl mx-auto px-4">
             <div className="bg-white shadow overflow-hidden sm:rounded-lg pb-8">
               <div className="border-t border-gray-200 text-center pt-8">
-                <h1 className="text-9xl font-bold text-purple-400">404</h1>
-                <h1 className="text-6xl font-medium py-8">عذراً! الصفحة غير موجودة</h1>
-                <p className="text-2xl pb-8 px-12 font-medium">
+                <h1 className="text-[5.75rem] sm:text-[14rem] font-bold text-purple-400">404</h1>
+                <h1 className="text-[1.75rem] sm:text-6xl font-medium py-4 sm:py-8">عذراً! الصفحة غير موجودة</h1>
+                <p className="text-base sm:text-2xl leading-5 sm:leading-normal pb-4 sm:pb-8 px-4 sm:px-12 font-medium">
                   عذراً، الصفحة التي تبحث عنها غير موجودة. ربما تم نقلها أو حذفها.
                 </p>
                 <Link
                   href="/"
-                  className="inline-block bg-gradient-to-l from-purple-400 to-blue-500 hover:from-pink-500 hover:to-orange-500 text-white font-semibold px-6 py-3 rounded-md ml-3 transition-all duration-300"
+                  className="inline-block bg-gradient-to-l from-purple-400 to-blue-500 hover:from-pink-500 hover:to-orange-500 text-white font-semibold px-5 sm:px-6 py-3 rounded-md ml-2 sm:ml-3 transition-all duration-300"
                 >
                   الصفحة الرئيسية
                 </Link>
@@ -36,18 +36,7 @@ export default function GlobalNotFound() {
             </div>
           </div>
         </div>
-        <style>{`
-          .text-9xl { font-size: 14rem; }
-          @media (max-width: 645px) {
-            .text-9xl { font-size: 5.75rem; }
-            .text-6xl { font-size: 1.75rem; }
-            .text-2xl { font-size: 1rem; line-height: 1.2rem; }
-            .py-8 { padding-top: 1rem; padding-bottom: 1rem; }
-            .px-6 { padding-left: 1.2rem; padding-right: 1.2rem; }
-            .ml-3 { margin-left: 0.5rem; }
-            .px-12 { padding-left: 1rem; padding-right: 1rem; }
-          }
-        `}</style>
+
       </body>
     </html>
   );
