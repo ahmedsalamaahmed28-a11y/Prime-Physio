@@ -58,8 +58,12 @@ jobs:
             echo "::error::unsafe-inline must not be present in the CSP."
             exit 1
           fi
-          if grep -RInE 'style[[:space:]]*=|<style([[:space:]>])' src/app src/components --include='*.tsx' --include='*.jsx'; then
+          if grep -RInE 'style[[:space:]]*=|<style([[:space:]>])' src --include='*.tsx' --include='*.jsx' --include='*.ts' --include='*.js'; then
             echo "::error::Inline style attributes/elements must be migrated to CSS."
+            exit 1
+          fi
+          if grep -RInE 'from ["'\''"](framer-motion|motion/react)["'\''"]|<motion\\.' src --include='*.tsx' --include='*.jsx' --include='*.ts' --include='*.js'; then
+            echo "::error::Motion libraries can emit inline styles and are not allowed under style-src-attr 'none'."
             exit 1
           fi
 
