@@ -24,7 +24,7 @@ import PatientJourney from "@/components/landing/PatientJourney";
 
 type Props = { contentMap: Record<string, any> };
 
-function EnglishLanding({ contentMap }: Props) {
+function EnglishLanding() {
   const features = [
     ["Patient records", "Keep patient profiles, clinical notes and treatment history organized in one place."],
     ["Appointments & sessions", "Plan schedules, follow visits and keep your team aligned throughout the day."],
@@ -80,7 +80,7 @@ function EnglishLanding({ contentMap }: Props) {
 
 export default function LandingContent({ contentMap }: Props) {
   const { language } = useLanguage();
-  if (language === "en") return <EnglishLanding contentMap={contentMap} />;
+  if (language === "en") return <EnglishLanding />;
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans selection:bg-[#4F46E5] selection:text-white">
       <Navbar />
