@@ -8,14 +8,14 @@ interface GradientCheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInput
 }
 
 const GradientCheckbox = React.forwardRef<HTMLInputElement, GradientCheckboxProps>(
-  ({ className, size = 24, id, style, ...props }, ref) => {
+  ({ className, size = 24, id, style: _style, ...props }, ref) => {
     const generatedId = React.useId()
     const checkboxId = id || generatedId
 
     return (
       <div
         className={cn("checkbox-wrapper", className)}
-        style={{ "--cb-size": `${size}px`, ...style } as React.CSSProperties}
+        data-size={size}
       >
         <input ref={ref} id={checkboxId} type="checkbox" {...props} />
         <label htmlFor={checkboxId}>
