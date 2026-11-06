@@ -434,3 +434,14 @@ details.ob2More[open]>summary h2::after{content:"–"}
     animation: none;
   }
 }
+
+
+/* CSP-safe orbital animations; no runtime inline styles. */
+@keyframes csp-orbit-clockwise { to { transform: rotate(360deg); } }
+@keyframes csp-orbit-counterclockwise { to { transform: rotate(-360deg); } }
+.integration-orbit--inner { animation: csp-orbit-clockwise 40s linear infinite; }
+.integration-orbit--outer { animation: csp-orbit-counterclockwise 60s linear infinite; }
+.faq-answer { animation: csp-safe-reveal 220ms ease both; }
+@media (prefers-reduced-motion: reduce) {
+  .integration-orbit--inner, .integration-orbit--outer { animation: none; }
+}
