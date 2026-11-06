@@ -52,6 +52,7 @@ export default function UsersPermissionsPage() {
       "البريد الإلكتروني": "Email Address",
       "المجموعة / الدور الوظيفي": "Group / Job Role",
       "استشاري علاج طبيعي": "PT Consultant",
+      "موظف استقبال": "Receptionist",
       "أخصائي علاج طبيعي": "Physical Therapist",
       "ممارس علاج طبيعي": "PT Practitioner",
       "وصف الصلاحيات": "Permission Description",
