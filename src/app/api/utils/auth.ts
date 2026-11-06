@@ -33,7 +33,7 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
   try {
     const session = await getServerSession(authOptions);
     if (session?.user?.email) {
-      return { email: session.user.email, userId: undefined }; // NextAuth might not expose sub easily in session, but email is enough
+      return { email: session.user.email.trim().toLowerCase(), userId: undefined };
     }
   } catch (err) {
     console.error("[auth] NextAuth session error:", err);
@@ -43,25 +43,25 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
   try {
     const cookies = req.cookies.getAll();
     const tokenCookies = cookies.filter(c => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
-    
-    // Group cookies by their base name (e.g. "sb-[id]-auth-token")
     const groupedCookies: Record<string, typeof cookies> = {};
-    for (const c of tokenCookies) {
-      const baseName = c.name.replace(/\.\d+$/, "");
+
+    for (const cookie of tokenCookies) {
+      const baseName = cookie.name.replace(/\.\d+$/, "");
       if (!groupedCookies[baseName]) groupedCookies[baseName] = [];
-      groupedCookies[baseName].push(c);
+      groupedCookies[baseName].push(cookie);
     }
-    
-    // Try parsing each group
+
     for (const baseName in groupedCookies) {
       const group = groupedCookies[baseName].sort((a, b) => a.name.localeCompare(b.name));
       let tokenValue = group.map(c => c.value).join("");
-      
+
       try {
         if (tokenValue.startsWith("base64-")) {
-          tokenValue = Buffer.from(tokenValue.replace("base64-", ""), "base64").toString("utf-8");
+          tokenValue = Buffer.from(tokenValue.slice("base64-".length), "base64").toString("utf-8");
         }
         const parsed = JSON.parse(tokenValue);
+        if (typeof parsed?.access_token !== "string") continue;
+
         const { data: { user }, error } = await getAdminClient().auth.getUser(parsed.access_token);
         if (
           !error &&
@@ -69,10 +69,10 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
           (user.email_confirmed_at || user.confirmed_at) &&
           user.app_metadata?.auth_source !== "nextauth-shadow"
         ) {
-          return { email: user.email, userId: user.id };
+          return { email: user.email.trim().toLowerCase(), userId: user.id };
         }
-      } catch (e) {
-        // Ignore JSON parse errors for this specific group and try the next one
+      } catch {
+        // Ignore malformed cookie groups and continue checking other supported sessions.
       }
     }
   } catch (err) {
@@ -82,14 +82,17 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
   // 3. Try Authorization header (programmatic access)
   const authHeader = req.headers.get("authorization");
   if (authHeader?.startsWith("Bearer ")) {
-    const { data: { user }, error } = await getAdminClient().auth.getUser(authHeader.slice(7));
-    if (
-      !error &&
-      user?.email &&
-      (user.email_confirmed_at || user.confirmed_at) &&
-      user.app_metadata?.auth_source !== "nextauth-shadow"
-    ) {
-      return { email: user.email, userId: user.id };
+    const token = authHeader.slice(7).trim();
+    if (token) {
+      const { data: { user }, error } = await getAdminClient().auth.getUser(token);
+      if (
+        !error &&
+        user?.email &&
+        (user.email_confirmed_at || user.confirmed_at) &&
+        user.app_metadata?.auth_source !== "nextauth-shadow"
+      ) {
+        return { email: user.email.trim().toLowerCase(), userId: user.id };
+      }
     }
   }
 
@@ -102,37 +105,47 @@ export async function requireRole(
 ): Promise<AuthUser & { roleKey: string; clinicId?: string }> {
   const authed = await requireAuth(req);
   const admin = getAdminClient();
+  const email = authed.email.trim().toLowerCase();
 
-  // If checking for platform_admin, verify in platform_admins table
   if (allowedRoles.includes("platform_admin")) {
-    const { data: platformAdmin } = await admin
+    const { data: platformAdmin, error: platformAdminError } = await admin
       .from("platform_admins")
-      .select("*")
-      .eq("email", authed.email)
+      .select("email")
+      .eq("email", email)
       .limit(1)
       .maybeSingle();
+
+    if (platformAdminError) {
+      console.error("[auth] Platform-admin lookup failed:", platformAdminError);
+      throw new Error("Unable to verify account permissions");
+    }
 
     if (platformAdmin) {
       return { ...authed, roleKey: "platform_admin" };
     }
   }
 
-  const { data: staff } = await admin
+  const { data: staff, error: staffError } = await admin
     .from("staff")
-    .select("role, clinic_id")
-    .eq("email", authed.email)
+    .select("role, clinic_id, status")
+    .eq("email", email)
     .limit(1)
     .maybeSingle();
 
-  if (!staff) {
+  // Fail closed: a database error must never be treated as a missing/valid membership.
+  if (staffError) {
+    console.error("[auth] Staff-role lookup failed:", staffError);
+    throw new Error("Unable to verify account permissions");
+  }
+
+  if (!staff || ["محذوف", "deleted"].includes(String(staff.status || "").trim().toLowerCase())) {
     if (allowedRoles.includes("platform_admin")) {
-        throw new Error("Unauthorized — you are not a platform admin");
+      throw new Error("Unauthorized — you are not a platform admin");
     }
-    throw new Error("لم يتم العثور على حساب الموظف");
+    throw new Error("لم يتم العثور على حساب موظف نشط");
   }
 
   const roleKey = mapStaffRoleToRoleKey(staff.role);
-
   if (roleKey === "unknown" || !allowedRoles.includes(roleKey)) {
     throw new Error("غير مصرح — صلاحية غير كافية");
   }
