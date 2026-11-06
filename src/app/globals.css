@@ -417,3 +417,5 @@ details.ob2More[open]>summary h2::after{content:"–"}
 .checkbox-wrapper[data-size="50"] { --cb-size: 50px; }
 .checkbox-wrapper[data-size="56"] { --cb-size: 56px; }
 .checkbox-wrapper[data-size="64"] { --cb-size: 64px; }
+
+.spin-3s { animation-duration: 3s; }
