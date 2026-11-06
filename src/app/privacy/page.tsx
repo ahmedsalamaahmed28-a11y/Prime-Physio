@@ -264,13 +264,6 @@ export default function PrivacyPage() {
           })}
         </div>
 
-        <div className="mt-8 text-center text-xs text-slate-500 leading-7">
-          {isRtl ? "باستمرارك في استخدام المنصة، يُرجى الاطلاع على هذه السياسة إلى جانب " : "Please review this policy together with our "}
-          <Link href="/terms" className="font-semibold text-[#4F46BA] hover:underline">
-            {isRtl ? "شروط الاستخدام" : "Terms of Use"}
-          </Link>
-          {isRtl ? "." : "."}
-        </div>
       </article>
     </PublicLayout>
   );
