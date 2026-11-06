@@ -50,6 +50,19 @@ jobs:
       - name: ESLint
         run: npm run lint
 
+      - name: Enforce nonce-only CSP styles
+        run: |
+          grep -q "style-src-attr 'none'" src/proxy.ts
+          grep -q "style-src-elem" src/proxy.ts
+          if grep -n "unsafe-inline" src/proxy.ts; then
+            echo "::error::unsafe-inline must not be present in the CSP."
+            exit 1
+          fi
+          if grep -RInE 'style[[:space:]]*=|<style([[:space:]>])' src/app src/components --include='*.tsx' --include='*.jsx'; then
+            echo "::error::Inline style attributes/elements must be migrated to CSS."
+            exit 1
+          fi
+
       - name: Production build
         run: npm run build
 
