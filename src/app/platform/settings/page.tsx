@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { Settings, Globe, Shield, Bell, Database, Save, Loader2 } from "lucide-react";
@@ -13,6 +14,8 @@ interface PlatformSettings {
 }
 
 export default function PlatformSettingsPage() {
+  const { language } = useLanguage();
+  const isRtl = language === "ar";
   const { user } = useAuth();
   const router = useRouter();
 
@@ -42,11 +45,11 @@ export default function PlatformSettingsPage() {
         const data = await res.json();
         setSettings(data.settings);
       } else {
-        setMessage({ text: "فشل في تحميل الإعدادات", type: "error" });
+        setMessage({ text: (isRtl ? "فشل في تحميل الإعدادات" : "Failed to load settings"), type: "error" });
       }
     } catch (err) {
       console.error(err);
-      setMessage({ text: "حدث خطأ غير متوقع", type: "error" });
+      setMessage({ text: (isRtl ? "حدث خطأ غير متوقع" : "An unexpected error occurred"), type: "error" });
     } finally {
       setLoading(false);
     }
@@ -63,14 +66,14 @@ export default function PlatformSettingsPage() {
       });
 
       if (res.ok) {
-        setMessage({ text: "تم حفظ الإعدادات بنجاح", type: "success" });
+        setMessage({ text: (isRtl ? "تم حفظ الإعدادات بنجاح" : "Settings saved successfully"), type: "success" });
       } else {
         const errorData = await res.json();
-        setMessage({ text: errorData.error || "فشل في الحفظ", type: "error" });
+        setMessage({ text: errorData.error || (isRtl ? "فشل في الحفظ" : "Failed to save"), type: "error" });
       }
     } catch (err) {
       console.error(err);
-      setMessage({ text: "حدث خطأ أثناء الحفظ", type: "error" });
+      setMessage({ text: (isRtl ? "حدث خطأ أثناء الحفظ" : "An error occurred while saving"), type: "error" });
     } finally {
       setSaving(false);
       setTimeout(() => setMessage(null), 3000);
@@ -80,11 +83,11 @@ export default function PlatformSettingsPage() {
   if (!user || user.roleKey !== "platform_admin") return null;
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-10" dir="rtl">
+    <div dir={isRtl ? "rtl" : "ltr"} className="space-y-6 max-w-4xl mx-auto pb-10">
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <Settings className="w-7 h-7 text-indigo-600" />
-          <h1 className="text-2xl font-bold text-slate-800">إعدادات النظام</h1>
+          <h1 className="text-2xl font-bold text-slate-800">{isRtl ? (isRtl ? "إعدادات النظام" : "System Settings") : "System Settings"}</h1>
         </div>
         <button 
           onClick={handleSave}
@@ -111,8 +114,8 @@ export default function PlatformSettingsPage() {
           </div>
           <div className="flex-1 w-full space-y-4">
             <div>
-              <h3 className="font-bold text-slate-800 text-lg mb-1">الإعدادات العامة</h3>
-              <p className="text-sm text-slate-500">تعديل اسم المنصة وبريد الدعم الفني.</p>
+              <h3 className="font-bold text-slate-800 text-lg mb-1">{isRtl ? (isRtl ? "الإعدادات العامة" : "General Settings") : "General Settings"}</h3>
+              <p className="text-sm text-slate-500">{isRtl ? (isRtl ? "تعديل اسم المنصة وبريد الدعم الفني." : "Edit the platform name and support email.") : "Edit the platform name and support email."}</p>
             </div>
             
             {loading ? (
@@ -122,7 +125,7 @@ export default function PlatformSettingsPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700">اسم المنصة</label>
+                  <label className="block text-sm font-medium text-slate-700">{isRtl ? (isRtl ? "اسم المنصة" : "Platform Name") : "Platform Name"}</label>
                   <input
                     type="text"
                     value={settings.platform_name}
@@ -131,7 +134,7 @@ export default function PlatformSettingsPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700">بريد الدعم الفني</label>
+                  <label className="block text-sm font-medium text-slate-700">{isRtl ? (isRtl ? "بريد الدعم الفني" : "Support Email") : "Support Email"}</label>
                   <input
                     type="email"
                     value={settings.support_email}
@@ -152,14 +155,14 @@ export default function PlatformSettingsPage() {
           </div>
           <div className="flex-1 w-full space-y-4">
             <div>
-              <h3 className="font-bold text-slate-800 text-lg mb-1">إعدادات التسجيل والاشتراكات</h3>
-              <p className="text-sm text-slate-500">التحكم في تسجيل العيادات الجديدة والفترات التجريبية.</p>
+              <h3 className="font-bold text-slate-800 text-lg mb-1">{isRtl ? (isRtl ? "إعدادات التسجيل والاشتراكات" : "Registration & Subscription Settings") : "Registration & Subscription Settings"}</h3>
+              <p className="text-sm text-slate-500">{isRtl ? (isRtl ? "التحكم في تسجيل العيادات الجديدة والفترات التجريبية." : "Control new clinic registrations and trial periods.") : "Control new clinic registrations and trial periods."}</p>
             </div>
             
             {!loading && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700">أيام الفترة التجريبية الافتراضية</label>
+                  <label className="block text-sm font-medium text-slate-700">{isRtl ? (isRtl ? "أيام الفترة التجريبية الافتراضية" : "Default Trial Period (Days)") : "Default Trial Period (Days)"}</label>
                   <input
                     type="number"
                     min="0"
@@ -170,7 +173,7 @@ export default function PlatformSettingsPage() {
                 </div>
                 <div className="space-y-1.5 flex items-center justify-between h-full pt-6">
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-slate-700">السماح بتسجيل عيادات جديدة</span>
+                    <span className="text-sm font-medium text-slate-700">{isRtl ? (isRtl ? "السماح بتسجيل عيادات جديدة" : "Allow New Clinic Signups") : "Allow New Clinic Signups"}</span>
                     <span className="text-xs text-slate-500">إتاحة إنشاء حسابات عبر صفحة Signup</span>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -196,7 +199,7 @@ export default function PlatformSettingsPage() {
             </div>
             <div>
               <h3 className="font-bold text-slate-800 text-lg mb-1">الإشعارات المركزية (System Broadcasts)</h3>
-              <p className="text-sm text-slate-500">إرسال إشعار عام يظهر لجميع المستخدمين في النظام.</p>
+              <p className="text-sm text-slate-500">{isRtl ? (isRtl ? "إرسال إشعار عام يظهر لجميع المستخدمين في النظام." : "Send a system-wide announcement to all users.") : "Send a system-wide announcement to all users."}</p>
             </div>
           </div>
           
@@ -217,35 +220,35 @@ export default function PlatformSettingsPage() {
                 });
                 
                 if (res.ok) {
-                  setMessage({ text: "تم إرسال الإشعار بنجاح", type: "success" });
+                  setMessage({ text: (isRtl ? "تم إرسال الإشعار بنجاح" : "Notification sent successfully"), type: "success" });
                   form.reset();
                 } else {
-                  setMessage({ text: "فشل في إرسال الإشعار", type: "error" });
+                  setMessage({ text: (isRtl ? "فشل في إرسال الإشعار" : "Failed to send notification"), type: "error" });
                 }
               } catch (err) {
-                setMessage({ text: "حدث خطأ غير متوقع", type: "error" });
+                setMessage({ text: (isRtl ? "حدث خطأ غير متوقع" : "An unexpected error occurred"), type: "error" });
               }
               setTimeout(() => setMessage(null), 3000);
             }} 
             className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-4"
           >
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-slate-700">عنوان الإشعار</label>
+              <label className="block text-sm font-medium text-slate-700">{isRtl ? (isRtl ? "عنوان الإشعار" : "Notification Title") : "Notification Title"}</label>
               <input
                 type="text"
                 name="title"
                 required
-                placeholder="مثال: تحديث جديد للنظام..."
+                placeholder=(isRtl ? "مثال: تحديث جديد للنظام..." : "Example: New system update...")
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-slate-700">محتوى الإشعار</label>
+              <label className="block text-sm font-medium text-slate-700">{isRtl ? (isRtl ? "محتوى الإشعار" : "Notification Message") : "Notification Message"}</label>
               <textarea
                 name="message"
                 required
                 rows={3}
-                placeholder="اكتب تفاصيل الإشعار هنا..."
+                placeholder=(isRtl ? "اكتب تفاصيل الإشعار هنا..." : "Enter notification details here...")
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"
               ></textarea>
             </div>
