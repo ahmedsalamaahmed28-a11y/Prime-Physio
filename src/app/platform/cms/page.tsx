@@ -161,7 +161,7 @@ export default function PlatformCMSPage() {
       <div className={`flex items-center justify-between mb-8 ${isRtl ? "" : "flex-row-reverse"}`}>
         <div className="flex items-center gap-3">
           <FileText className="w-7 h-7 text-indigo-600" />
-          <h1 className="text-2xl font-bold text-slate-800"{isRtl ? "إدارة محتوى المنصة (CMS)" : "Platform Content Management (CMS)"}</h1>
+          <h1 className="text-2xl font-bold text-slate-800">{isRtl ? "إدارة محتوى المنصة (CMS)" : "Platform Content Management (CMS)"}</h1>
         </div>
         <button 
           onClick={handleSave}
@@ -190,14 +190,14 @@ export default function PlatformCMSPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="bg-slate-50 border-b border-slate-100 p-4 flex items-center gap-3">
               <Settings className="w-5 h-5 text-slate-500" />
-              <h2 className="font-bold text-slate-800"{isRtl ? "هوية المنصة الداخلية (Platform Branding)" : "Platform Branding"}</h2>
+              <h2 className="font-bold text-slate-800">{isRtl ? "هوية المنصة الداخلية (Platform Branding)" : "Platform Branding"}</h2>
             </div>
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5 md:col-span-2">
-                <p className="text-sm text-slate-500 mb-2"{isRtl ? "تستخدم هذه الإعدادات لتخصيص لوحة التحكم الداخلية للمشتركين (مثل القائمة الجانبية)." : "These settings customize the subscribers' internal dashboard, such as the sidebar."}</p>
+                <p className="text-sm text-slate-500 mb-2">{isRtl ? "تستخدم هذه الإعدادات لتخصيص لوحة التحكم الداخلية للمشتركين (مثل القائمة الجانبية)." : "These settings customize the subscribers' internal dashboard, such as the sidebar."}</p>
               </div>
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-slate-700"{isRtl ? "اسم المنصة (Brand Name)" : "Platform Name (Brand Name)"}</label>
+                <label className="block text-sm font-medium text-slate-700">{isRtl ? "اسم المنصة (Brand Name)" : "Platform Name (Brand Name)"}</label>
                 <input
                   type="text"
                   value={brandingContent?.brandName || ""}
@@ -207,7 +207,7 @@ export default function PlatformCMSPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-slate-700"{isRtl ? "عنوان القائمة الجانبية (Sidebar Title)" : "Sidebar Title"}</label>
+                <label className="block text-sm font-medium text-slate-700">{isRtl ? "عنوان القائمة الجانبية (Sidebar Title)" : "Sidebar Title"}</label>
                 <input
                   type="text"
                   value={brandingContent?.sidebarTitle || ""}
@@ -223,13 +223,13 @@ export default function PlatformCMSPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="bg-slate-50 border-b border-slate-100 p-4 flex items-center gap-3">
               <FileText className="w-5 h-5 text-slate-500" />
-              <h2 className="font-bold text-slate-800"{isRtl ? "قسم البداية للصفحة الرئيسية (Hero Section)" : "Homepage Hero Section"}</h2>
+              <h2 className="font-bold text-slate-800">{isRtl ? "قسم البداية للصفحة الرئيسية (Hero Section)" : "Homepage Hero Section"}</h2>
             </div>
             
             {heroContent && (
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700"{isRtl ? "النص الترويجي (Badge)" : "Promotional Badge Text"}</label>
+                  <label className="block text-sm font-medium text-slate-700">{isRtl ? "النص الترويجي (Badge)" : "Promotional Badge Text"}</label>
                   <input
                     type="text"
                     value={heroContent.badgeText || ""}
@@ -239,7 +239,7 @@ export default function PlatformCMSPage() {
                 </div>
                 
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700"{isRtl ? "العنوان الرئيسي (الجزء الأول)" : "Main Heading (Part One)"}</label>
+                  <label className="block text-sm font-medium text-slate-700">{isRtl ? "العنوان الرئيسي (الجزء الأول)" : "Main Heading (Part One)"}</label>
                   <input
                     type="text"
                     value={heroContent.titlePart1 || ""}
@@ -249,7 +249,7 @@ export default function PlatformCMSPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700"{isRtl ? "العنوان الرئيسي (اللون المميز)" : "Main Heading (Highlighted Part)"}</label>
+                  <label className="block text-sm font-medium text-slate-700">{isRtl ? "العنوان الرئيسي (اللون المميز)" : "Main Heading (Highlighted Part)"}</label>
                   <input
                     type="text"
                     value={heroContent.titlePart2 || ""}
@@ -259,7 +259,7 @@ export default function PlatformCMSPage() {
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700"{isRtl ? "الوصف (Description)" : "Description"}</label>
+                  <label className="block text-sm font-medium text-slate-700">{isRtl ? "الوصف (Description)" : "Description"}</label>
                   <textarea
                     rows={3}
                     value={heroContent.description || ""}
@@ -276,7 +276,7 @@ export default function PlatformCMSPage() {
             <div className="bg-slate-50 border-b border-slate-100 p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <CreditCard className="w-5 h-5 text-slate-500" />
-                <h2 className="font-bold text-slate-800"{isRtl ? "الباقات والأسعار (Pricing Plans)" : "Pricing Plans"}</h2>
+                <h2 className="font-bold text-slate-800">{isRtl ? "الباقات والأسعار (Pricing Plans)" : "Pricing Plans"}</h2>
               </div>
               <button 
                 onClick={addPlan}
@@ -301,7 +301,7 @@ export default function PlatformCMSPage() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="space-y-1.5">
-                      <label className="block text-sm font-medium text-slate-700"{isRtl ? "اسم الباقة" : "Plan Name"}</label>
+                      <label className="block text-sm font-medium text-slate-700">{isRtl ? "اسم الباقة" : "Plan Name"}</label>
                       <input
                         type="text"
                         value={plan.name || ""}
@@ -310,7 +310,7 @@ export default function PlatformCMSPage() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="block text-sm font-medium text-slate-700"{isRtl ? "السعر (شهرياً - ج.م)" : "Price (Monthly - EGP)"}</label>
+                      <label className="block text-sm font-medium text-slate-700">{isRtl ? "السعر (شهرياً - ج.م)" : "Price (Monthly - EGP)"}</label>
                       <input
                         type="text"
                         value={plan.price || ""}
@@ -319,7 +319,7 @@ export default function PlatformCMSPage() {
                       />
                     </div>
                     <div className="space-y-1.5 md:col-span-2">
-                      <label className="block text-sm font-medium text-slate-700"{isRtl ? "وصف قصير" : "Short Description"}</label>
+                      <label className="block text-sm font-medium text-slate-700">{isRtl ? "وصف قصير" : "Short Description"}</label>
                       <input
                         type="text"
                         value={plan.description || ""}
@@ -344,7 +344,7 @@ export default function PlatformCMSPage() {
 
                   <div className="mt-6 border-t border-slate-200 pt-4">
                     <div className="flex items-center justify-between mb-3">
-                      <label className="block text-sm font-bold text-slate-800"{isRtl ? "المميزات (Features)" : "Features"}</label>
+                      <label className="block text-sm font-bold text-slate-800">{isRtl ? "المميزات (Features)" : "Features"}</label>
                       <button 
                         onClick={() => addFeature(planIdx)}
                         className="text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded-lg transition-colors flex items-center gap-1"
@@ -373,7 +373,7 @@ export default function PlatformCMSPage() {
                         </div>
                       ))}
                       {(!plan.features || plan.features.length === 0) && (
-                        <p className="text-sm text-slate-500 italic"{isRtl ? "لا توجد مميزات مضافة بعد." : "No features added yet."}</p>
+                        <p className="text-sm text-slate-500 italic">{isRtl ? "لا توجد مميزات مضافة بعد." : "No features added yet."}</p>
                       )}
                     </div>
                   </div>
@@ -394,7 +394,7 @@ export default function PlatformCMSPage() {
             <div className="bg-slate-50 border-b border-slate-100 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <MessageSquare className="w-5 h-5 text-slate-500" />
-                <h2 className="font-bold text-slate-800"{isRtl ? "تخصيص نصوص وأزرار النظام (UI Translations)" : "Customize System Text & Buttons (UI Translations)"}</h2>
+                <h2 className="font-bold text-slate-800">{isRtl ? "تخصيص نصوص وأزرار النظام (UI Translations)" : "Customize System Text & Buttons (UI Translations)"}</h2>
               </div>
               <div className="relative">
                 <Search className={`w-4 h-4 text-slate-400 absolute ${isRtl ? "right-3" : "left-3"} top-1/2 -translate-y-1/2`} />
@@ -421,7 +421,7 @@ export default function PlatformCMSPage() {
                     </div>
                     
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-700"{isRtl ? "النص العربي" : "Arabic Text"}</label>
+                      <label className="block text-xs font-bold text-slate-700">{isRtl ? "النص العربي" : "Arabic Text"}</label>
                       <input
                         type="text"
                         placeholder={defaultTranslations.ar[key]}
@@ -432,7 +432,7 @@ export default function PlatformCMSPage() {
                     </div>
                     
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-700"{isRtl ? "النص الإنجليزي (English)" : "English Text"}</label>
+                      <label className="block text-xs font-bold text-slate-700">{isRtl ? "النص الإنجليزي (English)" : "English Text"}</label>
                       <input
                         dir="ltr"
                         type="text"
