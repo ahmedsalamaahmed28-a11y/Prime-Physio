@@ -243,10 +243,10 @@ export default function BillingPage() {
 
     const doc = iframe.contentWindow?.document;
     if (doc) {
+      iframe.onload = () => window.setTimeout(() => iframe.contentWindow?.print(), 100);
       doc.open();
       doc.write(htmlContent);
       doc.close();
-      window.setTimeout(() => iframe.contentWindow?.print(), 400);
     }
   };
 
