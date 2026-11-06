@@ -46,8 +46,7 @@ function buildCsp(nonce: string): string {
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https:`,
     "connect-src 'self' https: wss:",
     "img-src 'self' data: blob: https:",
-    // React style attributes are still used throughout the UI. A nonce cannot
-    // authorize style attributes, so keep this directive compatible until CSS migration.
+    // Inline style attributes are blocked; only external stylesheets and nonce-bearing style elements are allowed.
     `style-src 'self' 'nonce-${nonce}' https:`,
     `style-src-elem 'self' 'nonce-${nonce}' https:`,
     "style-src-attr 'none'",
