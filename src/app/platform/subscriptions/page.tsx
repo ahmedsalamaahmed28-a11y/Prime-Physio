@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { CreditCard, Loader2, Calendar, ShieldAlert, CheckCircle, XCircle } from "lucide-react";
@@ -18,6 +19,8 @@ interface Subscription {
 }
 
 export default function PlatformSubscriptionsPage() {
+  const { language } = useLanguage();
+  const isRtl = language === "ar";
   const { user } = useAuth();
   const router = useRouter();
   const [subs, setSubs] = useState<Subscription[]>([]);
@@ -56,11 +59,11 @@ export default function PlatformSubscriptionsPage() {
   // Group by latest per clinic (optional, but good for subscriptions page to just show all history for now)
   
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-10">
+    <div dir={isRtl ? "rtl" : "ltr"} className="space-y-6 max-w-6xl mx-auto pb-10">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <CreditCard className="w-6 h-6 text-indigo-600" />
-          <h1 className="text-xl font-bold text-slate-800">إدارة الاشتراكات</h1>
+          <h1 className="text-xl font-bold text-slate-800">{isRtl ? (isRtl ? "إدارة الاشتراكات" : "Subscription Management") : "Subscription Management"}</h1>
           <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">إجمالي العمليات: {subs.length}</span>
         </div>
       </div>
@@ -70,18 +73,18 @@ export default function PlatformSubscriptionsPage() {
           <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
         </div>
       ) : subs.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 text-sm border rounded-2xl bg-white">لا توجد اشتراكات مسجلة بعد</div>
+        <div className="text-center py-20 text-slate-400 text-sm border rounded-2xl bg-white">{isRtl ? (isRtl ? "لا توجد اشتراكات مسجلة بعد" : "No subscriptions recorded yet") : "No subscriptions recorded yet"}</div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-right text-slate-600">
               <thead className="text-xs text-slate-500 bg-slate-50 uppercase border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">العيادة</th>
-                  <th className="px-6 py-4 font-semibold">الباقة</th>
-                  <th className="px-6 py-4 font-semibold">تاريخ التفعيل</th>
-                  <th className="px-6 py-4 font-semibold">تاريخ الانتهاء</th>
-                  <th className="px-6 py-4 font-semibold">الحالة</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "العيادة" : "Clinic") : "Clinic"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "الباقة" : "Plan") : "Plan"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "تاريخ التفعيل" : "Start Date") : "Start Date"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "تاريخ الانتهاء" : "End Date") : "End Date"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "الحالة" : "Status") : "Status"}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
