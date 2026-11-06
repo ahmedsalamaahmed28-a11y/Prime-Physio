@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { Building, Users, CreditCard, CheckCircle, XCircle, ShieldAlert, Loader2 } from "lucide-react";
@@ -17,6 +18,8 @@ interface Clinic {
 }
 
 export default function PlatformClinicsPage() {
+  const { language } = useLanguage();
+  const isRtl = language === "ar";
   const { user } = useAuth();
   const router = useRouter();
   const [clinics, setClinics] = useState<Clinic[]>([]);
@@ -70,10 +73,10 @@ export default function PlatformClinicsPage() {
   if (!user || user.roleKey !== "platform_admin") return null;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-10">
+    <div dir={isRtl ? "rtl" : "ltr"} className="space-y-6 max-w-6xl mx-auto pb-10">
       <div className="flex items-center gap-3 mb-6">
         <Building className="w-6 h-6 text-indigo-600" />
-        <h1 className="text-xl font-bold text-slate-800">إدارة العيادات</h1>
+        <h1 className="text-xl font-bold text-slate-800">{isRtl ? (isRtl ? "إدارة العيادات" : "Clinic Management") : "Clinic Management"}</h1>
         <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">الكل: {clinics.length}</span>
       </div>
 
@@ -82,7 +85,7 @@ export default function PlatformClinicsPage() {
           <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
         </div>
       ) : clinics.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 text-sm">لا توجد عيادات مسجلة بعد</div>
+        <div className="text-center py-20 text-slate-400 text-sm">{isRtl ? (isRtl ? "لا توجد عيادات مسجلة بعد" : "No clinics registered yet") : "No clinics registered yet"}</div>
       ) : (
         <div className="grid gap-4">
           {clinics.map((clinic) => (
@@ -121,7 +124,7 @@ export default function PlatformClinicsPage() {
                           : clinic.subscription.plan_name === "silver"
                           ? "Silver"
                           : "Gold"
-                        : "بدون اشتراك"}
+                        : (isRtl ? "بدون اشتراك" : "No subscription")}
                     </span>
                     <span className={`flex items-center gap-1 px-2 py-1 rounded-md bg-slate-50 ${clinic.subscription?.status === "active" ? "text-emerald-600" : "text-slate-400"}`}>
                       {clinic.subscription?.status === "active" ? (
@@ -129,7 +132,7 @@ export default function PlatformClinicsPage() {
                       ) : (
                         <XCircle className="w-3.5 h-3.5" />
                       )}
-                      {clinic.subscription?.status === "active" ? "نشط" : "غير نشط"}
+                      {clinic.subscription?.status === "active" ? (isRtl ? "نشط" : "Active") : (isRtl ? "غير نشط" : "Inactive")}
                     </span>
                   </div>
                 </div>
@@ -145,9 +148,9 @@ export default function PlatformClinicsPage() {
                   {toggling === clinic.id ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   ) : clinic.is_active ? (
-                    "إيقاف"
+                    (isRtl ? "إيقاف" : "Suspend")
                   ) : (
-                    "تفعيل"
+                    (isRtl ? "تفعيل" : "Activate")
                   )}
                 </button>
               </div>
