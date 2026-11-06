@@ -34,7 +34,14 @@ export default function ForgotPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [devCode, setDevCode] = useState("");
-  const otpRefs = Array.from({ length: 6 }, () => useRef<HTMLInputElement>(null));
+  const otpRefs = [
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+    useRef<HTMLInputElement>(null),
+  ];
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
