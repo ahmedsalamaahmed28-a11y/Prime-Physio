@@ -53,6 +53,14 @@ export default function UsersPermissionsPage() {
       "المجموعة / الدور الوظيفي": "Group / Job Role",
       "استشاري علاج طبيعي": "PT Consultant",
       "موظف استقبال": "Receptionist",
+      "مدير العيادة": "Clinic Manager",
+      "مدير العياده": "Clinic Manager",
+      "مدير النظام": "System Administrator",
+      "تعديل السجلات الطبية وحجز جلسات علاجية": "Edit medical records and book therapy sessions",
+      "كامل الصلاحيات المالية والإدارية للعيادة": "Full clinic financial and administrative permissions",
+      "صلاحيات طبية كاملة وإصدار خطط علاجية": "Full clinical permissions and treatment plan creation",
+      "عرض وتحديث سجلات المرضى وتوثيق الجلسات": "View and update patient records and document sessions",
+      "حجز مواعيد واستلام فواتير نقدية": "Book appointments and receive cash payments",
       "أخصائي علاج طبيعي": "Physical Therapist",
       "ممارس علاج طبيعي": "PT Practitioner",
       "وصف الصلاحيات": "Permission Description",
@@ -422,9 +430,9 @@ export default function UsersPermissionsPage() {
               <Label htmlFor="permissions">{tr("وصف الصلاحيات")}</Label>
               <Input
                 id="permissions"
-                value={formData.permissions}
+                value={tr(formData.permissions)}
                 onChange={(e) => setFormData(prev => ({ ...prev, permissions: e.target.value }))}
-                placeholder="وصف مخصص للصلاحيات الممنوحة"
+                placeholder={isRtl ? "وصف مخصص للصلاحيات الممنوحة" : "Describe the assigned permissions"}
               />
             </div>
             <div className="space-y-1 text-right">
@@ -494,7 +502,7 @@ export default function UsersPermissionsPage() {
               <Label htmlFor="edit-permissions">{tr("وصف الصلاحيات")}</Label>
               <Input
                 id="edit-permissions"
-                value={editFormData.permissions}
+                value={tr(editFormData.permissions)}
                 onChange={(e) => setEditFormData(prev => ({ ...prev, permissions: e.target.value }))}
               />
             </div>
