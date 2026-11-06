@@ -3,10 +3,13 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import { useLanguage } from "@/lib/LanguageContext";
 import { defaultTranslations } from "@/lib/LanguageContext";
 import { FileText, Save, Loader2, CreditCard, Plus, Trash2, Settings, MessageSquare, Search } from "lucide-react";
 
 export default function PlatformCMSPage() {
+  const { language } = useLanguage();
+  const isRtl = language === "ar";
   const { user } = useAuth();
   const router = useRouter();
 
@@ -50,11 +53,11 @@ export default function PlatformCMSPage() {
           setTranslationsContent(data.content.translations);
         }
       } else {
-        setMessage({ text: "فشل في تحميل المحتوى", type: "error" });
+        setMessage({ text: (isRtl ? "فشل في تحميل المحتوى" : "Failed to load content"), type: "error" });
       }
     } catch (err) {
       console.error(err);
-      setMessage({ text: "حدث خطأ غير متوقع", type: "error" });
+      setMessage({ text: (isRtl ? "حدث خطأ غير متوقع" : "An unexpected error occurred"), type: "error" });
     } finally {
       setLoading(false);
     }
@@ -78,14 +81,14 @@ export default function PlatformCMSPage() {
       });
 
       if (res.ok) {
-        setMessage({ text: "تم حفظ التعديلات بنجاح", type: "success" });
+        setMessage({ text: (isRtl ? "تم حفظ التعديلات بنجاح" : "Changes saved successfully"), type: "success" });
       } else {
         const errorData = await res.json();
-        setMessage({ text: errorData.error || "فشل في الحفظ", type: "error" });
+        setMessage({ text: errorData.error || (isRtl ? "فشل في الحفظ" : "Failed to save"), type: "error" });
       }
     } catch (err) {
       console.error(err);
-      setMessage({ text: "حدث خطأ أثناء الحفظ", type: "error" });
+      setMessage({ text: (isRtl ? "حدث خطأ أثناء الحفظ" : "An error occurred while saving"), type: "error" });
     } finally {
       setSaving(false);
       setTimeout(() => setMessage(null), 3000);
@@ -120,8 +123,8 @@ export default function PlatformCMSPage() {
 
   const addPlan = () => {
     setPricingPlans([...pricingPlans, {
-      name: "باقة جديدة",
-      description: "وصف الباقة",
+      name: (isRtl ? "باقة جديدة" : "New Plan"),
+      description: (isRtl ? "وصف الباقة" : "Plan description"),
       price: "0",
       isPopular: false,
       features: []
@@ -154,11 +157,11 @@ export default function PlatformCMSPage() {
   if (!user || user.roleKey !== "platform_admin") return null;
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto pb-10" dir="rtl">
-      <div className="flex items-center justify-between mb-8">
+    <div dir={isRtl ? "rtl" : "ltr"} className="space-y-6 max-w-5xl mx-auto pb-10">
+      <div className={`flex items-center justify-between mb-8 ${isRtl ? "" : "flex-row-reverse"}`}>
         <div className="flex items-center gap-3">
           <FileText className="w-7 h-7 text-indigo-600" />
-          <h1 className="text-2xl font-bold text-slate-800">إدارة محتوى المنصة (CMS)</h1>
+          <h1 className="text-2xl font-bold text-slate-800"{isRtl ? (isRtl ? "إدارة محتوى المنصة (CMS)" : "Platform Content Management (CMS)") : "Platform Content Management (CMS)"}</h1>
         </div>
         <button 
           onClick={handleSave}
@@ -187,14 +190,14 @@ export default function PlatformCMSPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="bg-slate-50 border-b border-slate-100 p-4 flex items-center gap-3">
               <Settings className="w-5 h-5 text-slate-500" />
-              <h2 className="font-bold text-slate-800">هوية المنصة الداخلية (Platform Branding)</h2>
+              <h2 className="font-bold text-slate-800"{isRtl ? (isRtl ? "هوية المنصة الداخلية (Platform Branding)" : "Platform Branding") : "Platform Branding"}</h2>
             </div>
             <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-1.5 md:col-span-2">
-                <p className="text-sm text-slate-500 mb-2">تستخدم هذه الإعدادات لتخصيص لوحة التحكم الداخلية للمشتركين (مثل القائمة الجانبية).</p>
+                <p className="text-sm text-slate-500 mb-2"{isRtl ? (isRtl ? "تستخدم هذه الإعدادات لتخصيص لوحة التحكم الداخلية للمشتركين (مثل القائمة الجانبية)." : "These settings customize the subscribers' internal dashboard, such as the sidebar.") : "These settings customize the subscribers' internal dashboard, such as the sidebar."}</p>
               </div>
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-slate-700">اسم المنصة (Brand Name)</label>
+                <label className="block text-sm font-medium text-slate-700"{isRtl ? (isRtl ? "اسم المنصة (Brand Name)" : "Platform Name (Brand Name)") : "Platform Name (Brand Name)"}</label>
                 <input
                   type="text"
                   value={brandingContent?.brandName || ""}
@@ -204,7 +207,7 @@ export default function PlatformCMSPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-slate-700">عنوان القائمة الجانبية (Sidebar Title)</label>
+                <label className="block text-sm font-medium text-slate-700"{isRtl ? (isRtl ? "عنوان القائمة الجانبية (Sidebar Title)" : "Sidebar Title") : "Sidebar Title"}</label>
                 <input
                   type="text"
                   value={brandingContent?.sidebarTitle || ""}
@@ -220,13 +223,13 @@ export default function PlatformCMSPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div className="bg-slate-50 border-b border-slate-100 p-4 flex items-center gap-3">
               <FileText className="w-5 h-5 text-slate-500" />
-              <h2 className="font-bold text-slate-800">قسم البداية للصفحة الرئيسية (Hero Section)</h2>
+              <h2 className="font-bold text-slate-800"{isRtl ? (isRtl ? "قسم البداية للصفحة الرئيسية (Hero Section)" : "Homepage Hero Section") : "Homepage Hero Section"}</h2>
             </div>
             
             {heroContent && (
               <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700">النص الترويجي (Badge)</label>
+                  <label className="block text-sm font-medium text-slate-700"{isRtl ? (isRtl ? "النص الترويجي (Badge)" : "Promotional Badge Text") : "Promotional Badge Text"}</label>
                   <input
                     type="text"
                     value={heroContent.badgeText || ""}
@@ -236,7 +239,7 @@ export default function PlatformCMSPage() {
                 </div>
                 
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700">العنوان الرئيسي (الجزء الأول)</label>
+                  <label className="block text-sm font-medium text-slate-700"{isRtl ? (isRtl ? "العنوان الرئيسي (الجزء الأول)" : "Main Heading (Part One)") : "Main Heading (Part One)"}</label>
                   <input
                     type="text"
                     value={heroContent.titlePart1 || ""}
@@ -246,7 +249,7 @@ export default function PlatformCMSPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700">العنوان الرئيسي (اللون المميز)</label>
+                  <label className="block text-sm font-medium text-slate-700"{isRtl ? (isRtl ? "العنوان الرئيسي (اللون المميز)" : "Main Heading (Highlighted Part)") : "Main Heading (Highlighted Part)"}</label>
                   <input
                     type="text"
                     value={heroContent.titlePart2 || ""}
@@ -256,7 +259,7 @@ export default function PlatformCMSPage() {
                 </div>
 
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700">الوصف (Description)</label>
+                  <label className="block text-sm font-medium text-slate-700"{isRtl ? (isRtl ? "الوصف (Description)" : "Description") : "Description"}</label>
                   <textarea
                     rows={3}
                     value={heroContent.description || ""}
@@ -273,7 +276,7 @@ export default function PlatformCMSPage() {
             <div className="bg-slate-50 border-b border-slate-100 p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <CreditCard className="w-5 h-5 text-slate-500" />
-                <h2 className="font-bold text-slate-800">الباقات والأسعار (Pricing Plans)</h2>
+                <h2 className="font-bold text-slate-800"{isRtl ? (isRtl ? "الباقات والأسعار (Pricing Plans)" : "Pricing Plans") : "Pricing Plans"}</h2>
               </div>
               <button 
                 onClick={addPlan}
@@ -289,7 +292,7 @@ export default function PlatformCMSPage() {
                   <button 
                     onClick={() => removePlan(planIdx)}
                     className="absolute top-4 left-4 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title="حذف الباقة"
+                    title=(isRtl ? "حذف الباقة" : "Remove Plan")
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -298,7 +301,7 @@ export default function PlatformCMSPage() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="space-y-1.5">
-                      <label className="block text-sm font-medium text-slate-700">اسم الباقة</label>
+                      <label className="block text-sm font-medium text-slate-700"{isRtl ? (isRtl ? "اسم الباقة" : "Plan Name") : "Plan Name"}</label>
                       <input
                         type="text"
                         value={plan.name || ""}
@@ -307,7 +310,7 @@ export default function PlatformCMSPage() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="block text-sm font-medium text-slate-700">السعر (شهرياً - ج.م)</label>
+                      <label className="block text-sm font-medium text-slate-700"{isRtl ? (isRtl ? "السعر (شهرياً - ج.م)" : "Price (Monthly - EGP)") : "Price (Monthly - EGP)"}</label>
                       <input
                         type="text"
                         value={plan.price || ""}
@@ -316,7 +319,7 @@ export default function PlatformCMSPage() {
                       />
                     </div>
                     <div className="space-y-1.5 md:col-span-2">
-                      <label className="block text-sm font-medium text-slate-700">وصف قصير</label>
+                      <label className="block text-sm font-medium text-slate-700"{isRtl ? (isRtl ? "وصف قصير" : "Short Description") : "Short Description"}</label>
                       <input
                         type="text"
                         value={plan.description || ""}
@@ -341,7 +344,7 @@ export default function PlatformCMSPage() {
 
                   <div className="mt-6 border-t border-slate-200 pt-4">
                     <div className="flex items-center justify-between mb-3">
-                      <label className="block text-sm font-bold text-slate-800">المميزات (Features)</label>
+                      <label className="block text-sm font-bold text-slate-800"{isRtl ? (isRtl ? "المميزات (Features)" : "Features") : "Features"}</label>
                       <button 
                         onClick={() => addFeature(planIdx)}
                         className="text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2 py-1 rounded-lg transition-colors flex items-center gap-1"
@@ -357,20 +360,20 @@ export default function PlatformCMSPage() {
                             type="text"
                             value={feature}
                             onChange={(e) => updateFeature(planIdx, featureIdx, e.target.value)}
-                            placeholder="اكتب الميزة هنا..."
+                            placeholder=(isRtl ? "اكتب الميزة هنا..." : "Enter a feature...")
                             className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                           />
                           <button 
                             onClick={() => removeFeature(planIdx, featureIdx)}
                             className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="حذف الميزة"
+                            title=(isRtl ? "حذف الميزة" : "Remove Feature")
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       ))}
                       {(!plan.features || plan.features.length === 0) && (
-                        <p className="text-sm text-slate-500 italic">لا توجد مميزات مضافة بعد.</p>
+                        <p className="text-sm text-slate-500 italic"{isRtl ? (isRtl ? "لا توجد مميزات مضافة بعد." : "No features added yet.") : "No features added yet."}</p>
                       )}
                     </div>
                   </div>
@@ -391,16 +394,16 @@ export default function PlatformCMSPage() {
             <div className="bg-slate-50 border-b border-slate-100 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <MessageSquare className="w-5 h-5 text-slate-500" />
-                <h2 className="font-bold text-slate-800">تخصيص نصوص وأزرار النظام (UI Translations)</h2>
+                <h2 className="font-bold text-slate-800"{isRtl ? (isRtl ? "تخصيص نصوص وأزرار النظام (UI Translations)" : "Customize System Text & Buttons (UI Translations)") : "Customize System Text & Buttons (UI Translations)"}</h2>
               </div>
               <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                <Search className={`w-4 h-4 text-slate-400 absolute ${isRtl ? "right-3" : "left-3"} top-1/2 -translate-y-1/2`} />
                 <input
                   type="text"
-                  placeholder="ابحث عن نص للتعجيل..."
+                  placeholder=(isRtl ? "ابحث عن نص للتعجيل..." : "Search for a text...")
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-4 pr-9 py-1.5 border border-slate-200 rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+                  dir={isRtl ? "rtl" : "ltr"} className={`py-1.5 border border-slate-200 rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${isRtl ? "pl-4 pr-9" : "pr-4 pl-9"}`}
                 />
               </div>
             </div>
@@ -418,7 +421,7 @@ export default function PlatformCMSPage() {
                     </div>
                     
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-700">النص العربي</label>
+                      <label className="block text-xs font-bold text-slate-700"{isRtl ? (isRtl ? "النص العربي" : "Arabic Text") : "Arabic Text"}</label>
                       <input
                         type="text"
                         placeholder={defaultTranslations.ar[key]}
@@ -429,7 +432,7 @@ export default function PlatformCMSPage() {
                     </div>
                     
                     <div className="space-y-1.5">
-                      <label className="block text-xs font-bold text-slate-700">النص الإنجليزي (English)</label>
+                      <label className="block text-xs font-bold text-slate-700"{isRtl ? (isRtl ? "النص الإنجليزي (English)" : "English Text") : "English Text"}</label>
                       <input
                         dir="ltr"
                         type="text"
