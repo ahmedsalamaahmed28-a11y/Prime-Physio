@@ -11,12 +11,11 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => null);
     const email = normalizeAuthEmail(body?.email);
     const code = typeof body?.code === "string" ? body.code.trim() : "";
-    const clinicName = typeof body?.clinicName === "string" ? body.clinicName.trim() : "";
     const phone = typeof body?.phone === "string" ? body.phone.trim() : "";
     const password = typeof body?.password === "string" ? body.password : "";
     const name = typeof body?.name === "string" ? body.name.trim().slice(0, 120) : "";
 
-    if (!email || !/^\d{6}$/.test(code) || !clinicName || clinicName.length > 160 || !phone || phone.length > 32 || password.length < 12 || password.length > 128) {
+    if (!email || !/^\d{6}$/.test(code) || phone.length > 32 || password.length < 12 || password.length > 128 || !name) {
       return NextResponse.json({ error: "يرجى مراجعة جميع الحقول المطلوبة" }, { status: 400 });
     }
 
@@ -87,6 +86,7 @@ export async function POST(req: NextRequest) {
       name: accountName,
       role: "admin",
       status: "نشط",
+      phone: phone || null,
       clinic_id: null,
     });
 

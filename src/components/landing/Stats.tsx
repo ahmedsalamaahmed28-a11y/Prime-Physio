@@ -1,37 +1,55 @@
 "use client";
 
 import { motion } from "framer-motion";
+import {
+  Building,
+  CalendarDays,
+  Stethoscope,
+  Activity,
+  Mail,
+} from "lucide-react";
 
 const stats = [
-  { id: 1, name: "مركز", value: "+100" },
-  { id: 2, name: "جلسة", value: "+25K" },
-  { id: 3, name: "طبيب", value: "+150" },
-  { id: 4, name: "رضا العملاء", value: "98%" },
-  { id: 5, name: "دعم فني", value: "24/7" },
+  { id: "centers", label: "مركز", value: "+100", icon: Building },
+  { id: "sessions", label: "جلسة", value: "+25K", icon: CalendarDays },
+  { id: "doctors", label: "طبيب", value: "+150", icon: Stethoscope },
+  { id: "satisfaction", label: "رضا العملاء", value: "98%", icon: Activity },
+  { id: "support", label: "دعم فني", value: "24/7", icon: Mail },
 ];
 
 export default function Stats() {
   return (
-    <div className="bg-white py-24 sm:py-32">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <dl className="grid grid-cols-2 gap-x-8 gap-y-16 text-center lg:grid-cols-5">
-          {stats.map((stat, index) => (
+    <section className="pp-stats" aria-label="إحصائيات Prime Physio">
+      <div className="pp-wrap pp-stats-grid">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
             <motion.div
               key={stat.id}
-              initial={{ opacity: 0, y: 20 }}
+              className="pp-stat-item"
+              initial={{ opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="mx-auto flex max-w-xs flex-col gap-y-2 group"
+              whileHover={{ y: -7, scale: 1.035 }}
+              viewport={{ once: true, amount: 0.35 }}
+              transition={{
+                duration: 0.35,
+                delay: index * 0.07,
+                type: "spring",
+                stiffness: 260,
+                damping: 18,
+              }}
             >
-              <dt className="text-base leading-7 text-slate-500 font-semibold">{stat.name}</dt>
-              <dd className="order-first text-4xl sm:text-5xl font-black tracking-tight text-slate-900 group-hover:text-[#4F46E5] transition-colors duration-300">
-                {stat.value}
-              </dd>
+              <span className="pp-stat-icon">
+                <Icon aria-hidden="true" />
+              </span>
+              <div>
+                <b>{stat.value}</b>
+                <span>{stat.label}</span>
+              </div>
             </motion.div>
-          ))}
-        </dl>
+          );
+        })}
       </div>
-    </div>
+    </section>
   );
 }

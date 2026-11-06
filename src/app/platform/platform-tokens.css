@@ -1,0 +1,43 @@
+/* PTset platform token bridge — Prime Physio palette.
+   Scoped to the platform shell so public pages and clinic screens stay unchanged. */
+.pc-shell {
+  --brand: #0B4C96;
+  --brand-700: #083B76;
+  --brand-900: #062A55;
+  --brand-50: #EEF4FB;
+  --brand-100: #DCE8F7;
+  --accent: #F7EE45;
+  --ink: #0F1B2D;
+  --ink-2: #2A3A52;
+  --muted: #5B6B82;
+  --line: #E2E8F0;
+  --line-2: #EDF1F6;
+  --bg-soft: #F5F8FC;
+  --ok: #15803D;
+  --bad: #B91C1C;
+  --warn: #B45309;
+  --shadow: 0 12px 30px -14px rgba(6,42,85,.24), 0 4px 12px -6px rgba(15,27,45,.10);
+  --shadow-sm: 0 2px 8px rgba(15,27,45,.07);
+  --r-lg: 16px;
+  --r-xl: 22px;
+  color: var(--ink);
+  font-family: var(--font-cairo), "Cairo", system-ui, Tahoma, Arial, sans-serif;
+}
+.pc-shell,
+.pc-shell * { box-sizing: border-box; }
+.pc-shell :where(a) { text-underline-offset: 3px; }
+.pc-shell :where(button, input, select, textarea) { font: inherit; }
+.pc-shell :where(button, a, summary, input, select, textarea):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--brand) 38%, transparent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pc-shell *,
+  .pc-shell *::before,
+  .pc-shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

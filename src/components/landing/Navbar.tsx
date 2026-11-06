@@ -1,218 +1,118 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Activity, Menu, X, LayoutDashboard } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Activity, Menu, X, LayoutDashboard, Globe } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
+
+const navLinks = [
+  { name: "الرئيسية", href: "#top", id: "top" },
+  { name: "المميزات", href: "#features", id: "features" },
+  { name: "كيف يعمل", href: "#how", id: "how" },
+  { name: "الأسعار", href: "#pricing", id: "pricing" },
+  { name: "الأسئلة الشائعة", href: "#faq", id: "faq" },
+  { name: "الدعم", href: "#contact", id: "contact" },
+];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState("");
+  const [activeSection, setActiveSection] = useState("top");
   const { user } = useAuth();
   const { language, toggleLanguage } = useLanguage();
-  const isRtl = language === "ar";
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-      
-      const sections = ["why-us", "features", "pricing", "faq"];
-      let current = "";
-
-      for (const section of sections) {
-        const element = document.getElementById(section);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          // Adjust threshold based on header height
-          if (rect.top <= 150) {
-            current = section;
-          }
-        }
+      setScrolled(window.scrollY > 8);
+      const marker = window.scrollY + 150;
+      let active = "top";
+      for (const item of navLinks) {
+        const section = document.getElementById(item.id);
+        if (section && section.offsetTop <= marker) active = item.id;
       }
-      
-      // If we're near top, activate home
-      if (window.scrollY < 100) {
-        current = "";
-      }
-      
-      setActiveSection(current);
+      setActiveSection(active);
     };
-
-    window.addEventListener("scroll", handleScroll);
-    handleScroll(); // Check on mount
-    return () => window.removeEventListener("scroll", handleScroll);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMobileMenuOpen(false);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    document.addEventListener("keydown", handleKeyDown);
+    handleScroll();
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
-  const navLinks = [
-    { name: isRtl ? "الرئيسية" : "Home", href: "#", id: "" },
-    { name: isRtl ? "لماذا نحن" : "Why Us", href: "#why-us", id: "why-us" },
-    { name: isRtl ? "المميزات" : "Features", href: "#features", id: "features" },
-    { name: isRtl ? "الأسعار" : "Pricing", href: "#pricing", id: "pricing" },
-    { name: isRtl ? "الأسئلة الشائعة" : "FAQ", href: "#faq", id: "faq" },
-  ];
+  useEffect(() => {
+    document.body.classList.toggle("pp-menu-open", mobileMenuOpen);
+    return () => document.body.classList.remove("pp-menu-open");
+  }, [mobileMenuOpen]);
+
+  useEffect(() => {
+    document.documentElement.lang = language === "ar" ? "ar" : "en";
+    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+  }, [language]);
+
+  const closeMenu = () => setMobileMenuOpen(false);
 
   return (
-    <header
-      className={`sticky top-0 z-50 w-full transition-all duration-300 border-b ${
-        scrolled
-          ? "bg-white/80 backdrop-blur-md border-slate-200/60 shadow-sm"
-          : "bg-transparent border-transparent"
-      }`}
-    >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8" aria-label="Global" dir={isRtl ? "rtl" : "ltr"}>
-        <div className="flex lg:flex-1">
-          <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-2 group">
-            <div className="bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] p-2 rounded-xl text-white group-hover:scale-105 transition-transform shadow-lg shadow-indigo-500/20">
-              <Activity className="h-6 w-6" />
-            </div>
-            <span className="font-bold text-2xl text-slate-900 tracking-tight">
-              Prime<span className="text-[#4F46E5]">Physio</span>
-            </span>
-          </Link>
-        </div>
+    <header id="top" className={`pp-header ${scrolled ? "is-scrolled" : ""}`}>
+      <div className="pp-wrap pp-header-inner">
+        <Link href="/" className="pp-brand" aria-label="Prime Physio">
+          <span className="pp-brand-mark"><Activity aria-hidden="true" /></span>
+          <span>Prime<span className="pp-brand-accent">Physio</span></span>
+        </Link>
 
-        {/* Mobile menu button */}
-        <div className="flex lg:hidden">
-          <button
-            type="button"
-            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-slate-700"
-            onClick={() => setMobileMenuOpen(true)}
-          >
-            <span className="sr-only">Open main menu</span>
-            <Menu className="h-6 w-6" aria-hidden="true" />
-          </button>
-        </div>
+        <button
+          type="button"
+          className="pp-menu-toggle"
+          aria-label={mobileMenuOpen ? "إغلاق القائمة" : "فتح القائمة"}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="pp-main-nav"
+          onClick={() => setMobileMenuOpen((open) => !open)}
+        >
+          {mobileMenuOpen ? <X /> : <Menu />}
+        </button>
 
-        {/* Desktop navigation */}
-        <div className="hidden lg:flex lg:gap-x-8">
-          {navLinks.map((link) => (
+        <nav id="pp-main-nav" className={`pp-nav ${mobileMenuOpen ? "is-open" : ""}`} aria-label="التنقل الرئيسي">
+          {navLinks.map((item) => (
             <Link
-              key={link.name}
-              href={link.href}
-              className={`text-sm font-bold leading-6 transition-colors relative group py-2 px-1 ${
-                activeSection === link.id ? "text-[#4F46E5]" : "text-slate-600 hover:text-[#4F46E5]"
-              }`}
+              key={item.id}
+              href={item.href}
+              onClick={closeMenu}
+              aria-current={activeSection === item.id ? "location" : undefined}
+              className={activeSection === item.id ? "is-active" : ""}
             >
-              {link.name}
-              {activeSection === link.id && (
-                <motion.div
-                  layoutId="activeNavIndicator"
-                  className="absolute -bottom-1 right-0 w-full h-0.5 bg-[#4F46E5] rounded-full"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                />
-              )}
-              {activeSection !== link.id && (
-                <span className="absolute -bottom-1 right-0 w-0 h-0.5 bg-[#4F46E5] transition-all duration-300 group-hover:w-full rounded-full"></span>
-              )}
+              {item.name}
             </Link>
           ))}
-        </div>
 
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-4 items-center"><button type="button" onClick={toggleLanguage} className="text-sm font-bold text-slate-700 border border-slate-200 rounded-full px-4 py-2">{isRtl ? "English" : "العربية"}</button>
+          <span className="pp-nav-divider" aria-hidden="true" />
+
+          <button type="button" className="pp-language" onClick={() => { toggleLanguage(); closeMenu(); }}>
+            <Globe aria-hidden="true" />
+            {language === "ar" ? "English" : "العربية"}
+          </button>
+
           {user ? (
             <Link
               href={user?.roleKey === "platform_admin" ? "/platform" : "/home"}
-              className="rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-105 transition-all flex items-center gap-2"
+              className="pp-button pp-button-primary pp-nav-cta"
+              onClick={closeMenu}
             >
-              <LayoutDashboard className="w-4 h-4" />
-              {isRtl ? "لوحة التحكم" : "Dashboard"}
+              <LayoutDashboard aria-hidden="true" />
+              لوحة التحكم
             </Link>
           ) : (
             <>
-              <Link
-                href="/manage"
-                className="text-sm font-bold leading-6 text-slate-700 hover:text-[#4F46E5] transition-colors"
-              >
-                {isRtl ? "تسجيل الدخول" : "Log in"}
-              </Link>
-              <Link
-                href="/signup"
-                className="rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-105 transition-all"
-              >
-                {isRtl ? "ابدأ مجانًا" : "Start for free"}
-              </Link>
+              <Link href="/manage" className="pp-login-link" onClick={closeMenu}>دخول المالك</Link>
+              <Link href="/signup" className="pp-button pp-button-primary pp-nav-cta" onClick={closeMenu}>أنشئ مركزك</Link>
             </>
           )}
-        </div>
-      </nav>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="lg:hidden fixed inset-0 z-50 bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-slate-900/10"
-          >
-            <div className="flex items-center justify-between">
-              <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-2">
-                <div className="bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] p-2 rounded-xl text-white">
-                  <Activity className="h-5 w-5" />
-                </div>
-                <span className="font-bold text-xl text-slate-900">PrimePhysio</span>
-              </Link>
-              <button
-                type="button"
-                className="-m-2.5 rounded-md p-2.5 text-slate-700"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <span className="sr-only">Close menu</span>
-                <X className="h-6 w-6" aria-hidden="true" />
-              </button>
-            </div>
-            <div className="mt-6 flow-root">
-              <button type="button" onClick={() => { toggleLanguage(); setMobileMenuOpen(false); }} className="mb-4 w-full rounded-lg border border-slate-200 px-3 py-2 text-start text-sm font-bold text-slate-700">{isRtl ? "English" : "العربية"}</button>
-              <div className="-my-6 divide-y divide-slate-500/10">
-                <div className="space-y-2 py-6">
-                  {navLinks.map((link) => (
-                    <Link
-                      key={link.name}
-                      href={link.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-slate-900 hover:bg-slate-50 hover:text-[#4F46E5]"
-                    >
-                      {link.name}
-                    </Link>
-                  ))}
-                </div>
-                <div className="py-6 flex flex-col gap-3">
-                  {user ? (
-                    <Link
-                      href={user?.roleKey === "platform_admin" ? "/platform" : "/home"}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="-mx-3 flex items-center gap-2 rounded-lg px-3 py-2.5 text-base font-bold leading-7 text-white bg-gradient-to-r from-[#4F46E5] to-[#7C3AED]"
-                    >
-                      <LayoutDashboard className="w-5 h-5" />
-                      لوحة التحكم
-                    </Link>
-                  ) : (
-                    <>
-                      <Link
-                        href="/manage"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-bold leading-7 text-slate-900 hover:bg-slate-50"
-                      >
-                        تسجيل الدخول
-                      </Link>
-                      <Link
-                        href="/signup"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-bold leading-7 text-white bg-gradient-to-r from-[#4F46E5] to-[#7C3AED]"
-                      >
-                        ابدأ مجانًا
-                      </Link>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </nav>
+      </div>
     </header>
   );
 }
