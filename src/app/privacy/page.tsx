@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ShieldCheck, LockKeyhole, Database, UserRound, Cookie, FileText } from "lucide-react";
+import { ShieldCheck, Lock, Database, User, Settings, FileText } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import PublicLayout from "@/components/PublicLayout";
 
