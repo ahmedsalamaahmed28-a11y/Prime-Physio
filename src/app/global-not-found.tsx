@@ -1,13 +1,17 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "404 - الصفحة غير موجودة",
   description: "الصفحة التي تبحث عنها غير موجودة.",
 };
 
-export default function GlobalNotFound() {
+export default async function GlobalNotFound() {
+  // This route bypasses the root layout, so opt it into request-time rendering for CSP nonce support.
+  await headers();
+
   return (
     <html lang="ar" dir="rtl">
       <body>
