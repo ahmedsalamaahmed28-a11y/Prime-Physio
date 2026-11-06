@@ -32,11 +32,11 @@ export async function POST(req: NextRequest) {
     if (!existing) {
       const { data: staffUser, error: staffError } = await admin
         .from("staff")
-        .select("id")
+        .select("id, status")
         .eq("email", email)
         .maybeSingle();
       if (staffError) throw staffError;
-      if (!staffUser) {
+      if (!staffUser || staffUser.status === "محذوف" || staffUser.status === "deleted") {
         return NextResponse.json({ error: "رمز التحقق غير صحيح أو منتهي الصلاحية" }, { status: 400 });
       }
     }
@@ -71,10 +71,10 @@ export async function POST(req: NextRequest) {
     } else {
       const { data: staffUser, error: staffError } = await admin
         .from("staff")
-        .select("name, role")
+        .select("name, role, status")
         .eq("email", email)
         .maybeSingle();
-      if (staffError || !staffUser) throw staffError || new Error("Staff account not found");
+      if (staffError || !staffUser || staffUser.status === "محذوف" || staffUser.status === "deleted") throw staffError || new Error("Staff account not found");
 
       const { error } = await admin.from("auth_accounts").insert({
         email,
