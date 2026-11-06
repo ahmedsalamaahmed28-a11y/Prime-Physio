@@ -68,7 +68,7 @@ export async function PATCH(req: NextRequest) {
 
     const body = await req.json().catch(() => null);
     const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : "";
-    if (!email || email.length > 254 || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email) || body?.action !== "delete") {
+    if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || body?.action !== "delete") {
       return NextResponse.json({ error: "Invalid request payload" }, { status: 400 });
     }
 
