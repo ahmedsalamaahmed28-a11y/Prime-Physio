@@ -1,98 +1,134 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Calendar, ClipboardList, BarChart3, Users, Bell, Building, Sparkles } from "lucide-react";
+import {
+  CalendarDays,
+  ClipboardCheck,
+  CreditCard,
+  BarChart3,
+  ShieldCheck,
+  Sparkles,
+  Check,
+} from "lucide-react";
+
+const features = [
+  {
+    title: "الحجوزات والجداول",
+    description:
+      "جدول مرن بالسحب والإفلات لكل أخصائي وغرفة، مع الحجوزات المتكررة والجلسات الجماعية وإعادة الجدولة.",
+    details: ["عرض يومي وأسبوعي واضح", "سجل كامل لتغييرات المواعيد"],
+    icon: CalendarDays,
+    tone: "blue",
+  },
+  {
+    title: "ملفات الحالات والتقييمات",
+    description:
+      "ملف متكامل لكل حالة يشمل التشخيص والتاريخ المرضي والتقييمات والبرامج العلاجية وتوثيق مهام كل جلسة.",
+    details: ["متابعة تطور الحالة", "توثيق التقييمات والجلسات"],
+    icon: ClipboardCheck,
+    tone: "rose",
+  },
+  {
+    title: "المدفوعات والمستحقات",
+    description:
+      "إدارة الإيصالات والفواتير وقوائم الأسعار وأسعار التأمين والتعاقدات، مع متابعة واضحة للمستحقات المتأخرة.",
+    details: ["متابعة الدفعات والفواتير", "كشف بالمبالغ المستحقة"],
+    icon: CreditCard,
+    tone: "emerald",
+  },
+  {
+    title: "المرتبات والحضور بالـ QR",
+    description:
+      "تسجيل حضور الفريق بمسح QR، وربط التأخيرات والأذونات والإجازات بسجلات المرتبات والحوافز وكشوف الرواتب.",
+    details: ["تسجيل حضور سريع", "احتساب التأخيرات والإجازات"],
+    icon: ClipboardCheck,
+    tone: "amber",
+  },
+  {
+    title: "التقارير ولوحة المتابعة",
+    description:
+      "لوحة متابعة مباشرة وتقارير مالية وتقارير للجلسات والأخصائيين وتطور الحالات، جاهزة للطباعة والمشاركة.",
+    details: ["مؤشرات أداء واضحة", "تقارير قابلة للطباعة والمشاركة"],
+    icon: BarChart3,
+    tone: "violet",
+  },
+  {
+    title: "الأدوار والصلاحيات",
+    description:
+      "صلاحيات مرنة للمدير والمشرف والسكرتارية والأخصائي والحالة، بحيث يرى كل مستخدم المعلومات المسموح بها فقط.",
+    details: ["تحديد الصلاحيات حسب الدور", "تحكم الإدارة في الوصول"],
+    icon: ShieldCheck,
+    tone: "cyan",
+  },
+];
+
+const toneClasses: Record<string, { icon: string; glow: string }> = {
+  blue: { icon: "bg-blue-50 text-blue-600", glow: "group-hover:border-blue-200" },
+  rose: { icon: "bg-rose-50 text-rose-600", glow: "group-hover:border-rose-200" },
+  emerald: { icon: "bg-emerald-50 text-emerald-600", glow: "group-hover:border-emerald-200" },
+  amber: { icon: "bg-amber-50 text-amber-600", glow: "group-hover:border-amber-200" },
+  violet: { icon: "bg-violet-50 text-violet-600", glow: "group-hover:border-violet-200" },
+  cyan: { icon: "bg-cyan-50 text-cyan-700", glow: "group-hover:border-cyan-200" },
+};
 
 export default function FeaturesBento() {
-  const features = [
-    {
-      title: "جدولة ذكية (Smart Calendar)",
-      description: "إدارة جلسات المرضى وأوقات فراغ الأطباء بكل سهولة مع دعم الحجوزات المتكررة.",
-      icon: <Calendar className="w-6 h-6 text-indigo-500" />,
-      colSpan: "md:col-span-2 lg:col-span-2",
-      bg: "bg-white",
-    },
-    {
-      title: "الملف الطبي (EMR)",
-      description: "سجل طبي شامل يشمل Body Chart والمرفقات والبروتوكولات العلاجية.",
-      icon: <ClipboardList className="w-6 h-6 text-rose-500" />,
-      colSpan: "md:col-span-1 lg:col-span-1",
-      bg: "bg-white",
-    },
-    {
-      title: "تحليلات مالية",
-      description: "تقارير دقيقة للإيرادات، المصروفات، والفواتير بضغطة زر.",
-      icon: <BarChart3 className="w-6 h-6 text-emerald-500" />,
-      colSpan: "md:col-span-1 lg:col-span-1",
-      bg: "bg-white",
-    },
-    {
-      title: "المساعد الذكي (AI)",
-      description: "توليد خطط علاجية، تلخيص تاريخ المريض، واقتراح تمارين رياضية باستخدام الذكاء الاصطناعي.",
-      icon: <Sparkles className="w-6 h-6 text-amber-500" />,
-      colSpan: "md:col-span-2 lg:col-span-2",
-      bg: "bg-gradient-to-br from-indigo-900 to-purple-900 text-white",
-      darkText: false,
-    },
-    {
-      title: "صلاحيات الموظفين",
-      description: "تخصيص الصلاحيات للمدير، الطبيب، وموظف الاستقبال لضمان خصوصية البيانات.",
-      icon: <Users className="w-6 h-6 text-blue-500" />,
-      colSpan: "md:col-span-1 lg:col-span-1",
-      bg: "bg-white",
-    },
-    {
-      title: "إدارة فروع متعددة",
-      description: "أضف عدداً لا محدوداً من العيادات وأدرها جميعاً من حساب واحد مركزي.",
-      icon: <Building className="w-6 h-6 text-orange-500" />,
-      colSpan: "md:col-span-1 lg:col-span-1",
-      bg: "bg-white",
-    },
-    {
-      title: "تذكيرات آلية",
-      description: "إرسال رسائل تذكير للمرضى عبر واتساب والبريد الإلكتروني لتقليل نسبة التخلف عن المواعيد.",
-      icon: <Bell className="w-6 h-6 text-pink-500" />,
-      colSpan: "md:col-span-1 lg:col-span-1",
-      bg: "bg-white",
-    },
-  ];
-
   return (
-    <section id="features" className="py-24 bg-white relative">
-      <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.02]" />
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-700 text-sm font-bold mb-6">
-            <Sparkles className="w-4 h-4" />
-            المميزات الرئيسية
-          </div>
-          <h2 className="text-3xl font-black text-slate-900 sm:text-5xl mb-6">كل ما تحتاجه وأكثر لإدارة عيادتك</h2>
-          <p className="mt-4 text-xl text-slate-600 font-medium">
-            مجموعة متكاملة من الأدوات والمميزات المصممة خصيصاً لتلبية احتياجات أطباء ومراكز العلاج الطبيعي.
+    <section id="features" className="relative overflow-hidden bg-white py-20 sm:py-24" dir="rtl">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(79,70,229,0.055),transparent_30%),radial-gradient(circle_at_90%_80%,rgba(11,76,150,0.05),transparent_28%)]" />
+      <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+        <motion.div
+          className="mx-auto mb-14 max-w-3xl text-center"
+          initial={{ opacity: 0, y: 18 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.35 }}
+          transition={{ duration: 0.45 }}
+        >
+          <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-700">
+            <Sparkles className="h-4 w-4" aria-hidden="true" />
+            منظومة إدارة متكاملة
+          </span>
+          <h2 className="mb-5 text-3xl font-black leading-tight text-slate-900 sm:text-4xl lg:text-5xl">
+            كل تفاصيل مركزك… في مكان واحد
+          </h2>
+          <p className="text-base font-medium leading-8 text-slate-600 sm:text-lg">
+            أدوات مترابطة لتنظيم المواعيد والملفات الطبية والحسابات والفريق، مع تحكم واضح في البيانات والتقارير.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-6">
-          {features.map((feature, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
-              className={`${feature.colSpan} ${feature.bg} rounded-3xl p-8 border ${feature.darkText === false ? 'border-white/10' : 'border-slate-200'} shadow-sm hover:shadow-xl transition-shadow duration-300 group hover:-translate-y-1 transform`}
-            >
-              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-6 ${feature.darkText === false ? 'bg-white/10' : 'bg-slate-50'}`}>
-                {feature.icon}
-              </div>
-              <h3 className={`text-xl font-bold mb-3 ${feature.darkText === false ? 'text-white' : 'text-slate-900'}`}>
-                {feature.title}
-              </h3>
-              <p className={`font-medium leading-relaxed ${feature.darkText === false ? 'text-slate-300' : 'text-slate-500'}`}>
-                {feature.description}
-              </p>
-            </motion.div>
-          ))}
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
+            const tone = toneClasses[feature.tone];
+            return (
+              <motion.article
+                key={feature.title}
+                initial={{ opacity: 0, y: 22 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -6 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.4, delay: index * 0.06 }}
+                className={`group flex h-full flex-col rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/60 sm:p-8 ${tone.glow}`}
+              >
+                <div className={`mb-6 flex h-14 w-14 items-center justify-center rounded-2xl ${tone.icon}`}>
+                  <Icon className="h-7 w-7" strokeWidth={1.8} aria-hidden="true" />
+                </div>
+                <h3 className="mb-3 text-xl font-extrabold text-slate-900">{feature.title}</h3>
+                <p className="mb-6 flex-1 text-sm font-medium leading-8 text-slate-600 sm:text-base">
+                  {feature.description}
+                </p>
+                <ul className="space-y-3 border-t border-slate-100 pt-5">
+                  {feature.details.map((detail) => (
+                    <li key={detail} className="flex items-start gap-2.5 text-sm font-semibold text-slate-700">
+                      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                        <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden="true" />
+                      </span>
+                      {detail}
+                    </li>
+                  ))}
+                </ul>
+              </motion.article>
+            );
+          })}
         </div>
       </div>
     </section>
