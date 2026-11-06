@@ -16,8 +16,65 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export default function UsersPermissionsPage() {
+  const { language } = useLanguage();
+  const isRtl = language === "ar";
+  const tr = (value: string) => {
+    if (isRtl) return value;
+    const translations: Record<string, string> = {
+      "إدارة المستخدمين والصلاحيات": "User & Permissions Management",
+      "التحكم في حسابات الطاقم الطبي والإداري ومستويات الصلاحيات الخاصة بهم": "Manage medical and administrative staff accounts and their permission levels.",
+      "إضافة مستخدم جديد": "Add New User",
+      "مجموعات الصلاحيات الأساسية": "Default Permission Groups",
+      "مدير العيادة (Clinic Manager)": "Clinic Manager",
+      "صلاحيات مالية وإدارية كاملة لإدارة شؤون العيادة والتقارير والتوظيف.": "Full financial and administrative access to clinic operations, reports, and staffing.",
+      "استشاري علاج طبيعي (PT Consultant)": "Physical Therapy Consultant",
+      "تقييم الحالات المعقدة وإصدار البروتوكولات الطبية والخطط العلاجية.": "Assess complex cases and create medical protocols and treatment plans.",
+      "أخصائي علاج طبيعي (PT Specialist)": "Physical Therapist",
+      "تنفيذ الجلسات وتحديث قياسات المريض العضلية وبرامجه الغذائية والرياضية.": "Deliver sessions and update patient strength measurements, nutrition, and exercise programs.",
+      "ممارس علاج طبيعي (PT Practitioner)": "Physical Therapy Practitioner",
+      "متابعة تمرينات المريض وتوثيق تقدم الجلسات اليومية للمرضى.": "Monitor patient exercises and document daily session progress.",
+      "موظف استقبال (Receptionist)": "Receptionist",
+      "تسجيل المرضى وحجز المواعيد وإصدار الفواتير النقدية والتعامل مع التسويات.": "Register patients, book appointments, issue cash invoices, and handle reconciliations.",
+      "الحسابات النشطة": "Active Accounts",
+      "المستخدم": "User",
+      "الدور الوظيفي": "Role",
+      "نطاق الصلاحيات": "Permission Scope",
+      "الحالة": "Status",
+      "الإجراءات": "Actions",
+      "تعديل": "Edit",
+      "حذف": "Delete",
+      "إضافة مستخدم جديد": "Add New User",
+      "أدخل بيانات الموظف لتوفير صلاحيات الدخول المخصصة له على المنصة.": "Enter the employee details and assign their platform access permissions.",
+      "الاسم": "Name",
+      "أدخل الاسم الثنائي أو الثلاثي": "Enter the employee's full name",
+      "البريد الإلكتروني": "Email Address",
+      "المجموعة / الدور الوظيفي": "Group / Job Role",
+      "استشاري علاج طبيعي": "PT Consultant",
+      "أخصائي علاج طبيعي": "Physical Therapist",
+      "ممارس علاج طبيعي": "PT Practitioner",
+      "وصف الصلاحيات": "Permission Description",
+      "وصف مخصص للصلاحيات الممنوحة": "Describe the assigned permissions",
+      "نشط": "Active",
+      "غير نشط": "Inactive",
+      "إلغاء": "Cancel",
+      "إضافة": "Add",
+      "تعديل صلاحيات المستخدم": "Edit User Permissions",
+      "قم بتعديل بيانات المستخدم أو تغيير دوره ومستوى صلاحياته.": "Update the user's details, role, or permission level.",
+      "حفظ التعديلات": "Save Changes",
+      "تأكيد الحذف": "Confirm Deletion",
+      "هل أنت متأكد من حذف هذا المستخدم نهائياً؟ سيتم إلغاء صلاحيات الدخول الخاصة به.": "Are you sure you want to permanently delete this user? Their access permissions will be revoked.",
+      "نعم، احذف": "Yes, Delete",
+      "الرجاء إدخال الاسم والبريد الإلكتروني": "Please enter the name and email address",
+      "هذا البريد الإلكتروني مسجل بالفعل": "This email address is already registered",
+      "فشلت إضافة المستخدم": "Failed to add user",
+      "فشل تعديل المستخدم": "Failed to update user",
+      "فشل حذف المستخدم": "Failed to delete user"
+    };
+    return translations[value] || value;
+  };
   const [users, setUsers] = useState<any[]>([]);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -204,7 +261,7 @@ export default function UsersPermissionsPage() {
   };
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-6" dir={isRtl ? "rtl" : "ltr"}>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
@@ -213,7 +270,7 @@ export default function UsersPermissionsPage() {
             </div>
             إدارة المستخدمين والصلاحيات
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5">التحكم في حسابات الطاقم الطبي والإداري ومستويات الصلاحيات الخاصة بهم</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{tr("التحكم في حسابات الطاقم الطبي والإداري ومستويات الصلاحيات الخاصة بهم")}</p>
         </div>
         <Button onClick={() => setIsAddOpen(true)} className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] gap-2 self-start sm:self-auto rounded-xl font-bold px-6 shadow-md transition-all active:scale-95">
           <UserPlus className="w-4 h-4" />
@@ -238,9 +295,9 @@ export default function UsersPermissionsPage() {
               { role: "ممارس علاج طبيعي (PT Practitioner)", desc: "متابعة تمرينات المريض وتوثيق تقدم الجلسات اليومية للمرضى." },
               { role: "موظف استقبال (Receptionist)", desc: "تسجيل المرضى وحجز المواعيد وإصدار الفواتير النقدية والتعامل مع التسويات." },
             ].map((group) => (
-              <div key={group.role} className="space-y-1.5 p-3 rounded-lg border bg-muted/20">
+              <div key={tr(group.role)} className="space-y-1.5 p-3 rounded-lg border bg-muted/20">
                 <span className="font-bold text-slate-800">{group.role}</span>
-                <p className="text-xs text-muted-foreground leading-relaxed">{group.desc}</p>
+                <p className="text-xs text-muted-foreground leading-relaxed">{tr(group.desc)}</p>
               </div>
             ))}
           </CardContent>
@@ -259,11 +316,11 @@ export default function UsersPermissionsPage() {
               <table className="w-full text-right border-collapse">
                 <thead>
                   <tr className="bg-muted/40 border-b text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    <th className="py-3.5 px-6">المستخدم</th>
-                    <th className="py-3.5 px-6">الدور الوظيفي</th>
-                    <th className="py-3.5 px-6">نطاق الصلاحيات</th>
-                    <th className="py-3.5 px-6">الحالة</th>
-                    <th className="py-3.5 px-6 text-center">الإجراءات</th>
+                    <th className="py-3.5 px-6">{tr("المستخدم")}</th>
+                    <th className="py-3.5 px-6">{tr("الدور الوظيفي")}</th>
+                    <th className="py-3.5 px-6">{tr("نطاق الصلاحيات")}</th>
+                    <th className="py-3.5 px-6">{tr("الحالة")}</th>
+                    <th className="py-3.5 px-6 text-center">{tr("الإجراءات")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/60 text-sm text-slate-700">
@@ -275,14 +332,14 @@ export default function UsersPermissionsPage() {
                       </td>
                       <td className="py-4 px-6">
                         <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200">
-                          {user.role}
+                          {tr(user.role)}
                         </Badge>
                       </td>
                       <td className="py-4 px-6 text-slate-600 text-xs">{user.permissions}</td>
                       <td className="py-4 px-6">
                         <span className={`inline-flex items-center gap-1 font-medium text-xs ${user.status === "نشط" ? "text-emerald-600" : "text-slate-400"}`}>
                           <Check className="w-3.5 h-3.5" />
-                          {user.status}
+                          {tr(user.status)}
                         </span>
                       </td>
                       <td className="py-4 px-6 text-center">
@@ -318,16 +375,16 @@ export default function UsersPermissionsPage() {
 
       {/* ADD USER DIALOG */}
       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md" dir={isRtl ? "rtl" : "ltr"}>
           <DialogHeader className="text-right">
-            <DialogTitle>إضافة مستخدم جديد</DialogTitle>
+            <DialogTitle>{tr("إضافة مستخدم جديد")}</DialogTitle>
             <DialogDescription>
               أدخل بيانات الموظف لتوفير صلاحيات الدخول المخصصة له على المنصة.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddUser} className="space-y-4 py-4">
             <div className="space-y-1 text-right">
-              <Label htmlFor="name">الاسم</Label>
+              <Label htmlFor="name">{tr("الاسم")}</Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -337,7 +394,7 @@ export default function UsersPermissionsPage() {
               />
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="email">البريد الإلكتروني</Label>
+              <Label htmlFor="email">{tr("البريد الإلكتروني")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -348,21 +405,21 @@ export default function UsersPermissionsPage() {
               />
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="role">المجموعة / الدور الوظيفي</Label>
+              <Label htmlFor="role">{tr("المجموعة / الدور الوظيفي")}</Label>
               <select
                 id="role"
                 value={formData.role}
                 onChange={(e) => handleRoleChange(e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <option value="استشاري علاج طبيعي">استشاري علاج طبيعي</option>
-                <option value="أخصائي علاج طبيعي">أخصائي علاج طبيعي</option>
-                <option value="ممارس علاج طبيعي">ممارس علاج طبيعي</option>
-                <option value="موظف استقبال">موظف استقبال</option>
+                <option value="استشاري علاج طبيعي">{tr("استشاري علاج طبيعي")}</option>
+                <option value="أخصائي علاج طبيعي">{tr("أخصائي علاج طبيعي")}</option>
+                <option value="ممارس علاج طبيعي">{tr("ممارس علاج طبيعي")}</option>
+                <option value="موظف استقبال">{tr("موظف استقبال")}</option>
               </select>
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="permissions">وصف الصلاحيات</Label>
+              <Label htmlFor="permissions">{tr("وصف الصلاحيات")}</Label>
               <Input
                 id="permissions"
                 value={formData.permissions}
@@ -371,20 +428,20 @@ export default function UsersPermissionsPage() {
               />
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="status">الحالة</Label>
+              <Label htmlFor="status">{tr("الحالة")}</Label>
               <select
                 id="status"
                 value={formData.status}
                 onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value }))}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
               >
-                <option value="نشط">نشط</option>
-                <option value="غير نشط">غير نشط</option>
+                <option value="نشط">{tr("نشط")}</option>
+                <option value="غير نشط">{tr("غير نشط")}</option>
               </select>
             </div>
             <DialogFooter className="mt-6 flex gap-2 justify-end">
-              <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)} className="rounded-xl font-bold">إلغاء</Button>
-              <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] rounded-xl font-bold px-6">إضافة</Button>
+              <Button type="button" variant="outline" onClick={() => setIsAddOpen(false)} className="rounded-xl font-bold">{tr("إلغاء")}</Button>
+              <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] rounded-xl font-bold px-6">{tr("إضافة")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -392,16 +449,16 @@ export default function UsersPermissionsPage() {
 
       {/* EDIT USER DIALOG */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-md" dir="rtl">
+        <DialogContent className="max-w-md" dir={isRtl ? "rtl" : "ltr"}>
           <DialogHeader className="text-right">
-            <DialogTitle>تعديل صلاحيات المستخدم</DialogTitle>
+            <DialogTitle>{tr("تعديل صلاحيات المستخدم")}</DialogTitle>
             <DialogDescription>
               قم بتعديل بيانات المستخدم أو تغيير دوره ومستوى صلاحياته.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEditUser} className="space-y-4 py-4">
             <div className="space-y-1 text-right">
-              <Label htmlFor="edit-name">الاسم</Label>
+              <Label htmlFor="edit-name">{tr("الاسم")}</Label>
               <Input
                 id="edit-name"
                 value={editFormData.name}
@@ -410,7 +467,7 @@ export default function UsersPermissionsPage() {
               />
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="edit-email">البريد الإلكتروني</Label>
+              <Label htmlFor="edit-email">{tr("البريد الإلكتروني")}</Label>
               <Input
                 id="edit-email"
                 type="email"
@@ -420,21 +477,21 @@ export default function UsersPermissionsPage() {
               />
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="edit-role">المجموعة / الدور الوظيفي</Label>
+              <Label htmlFor="edit-role">{tr("المجموعة / الدور الوظيفي")}</Label>
               <select
                 id="edit-role"
                 value={editFormData.role}
                 onChange={(e) => handleRoleChange(e.target.value, true)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none"
               >
-                <option value="استشاري علاج طبيعي">استشاري علاج طبيعي</option>
-                <option value="أخصائي علاج طبيعي">أخصائي علاج طبيعي</option>
-                <option value="ممارس علاج طبيعي">ممارس علاج طبيعي</option>
-                <option value="موظف استقبال">موظف استقبال</option>
+                <option value="استشاري علاج طبيعي">{tr("استشاري علاج طبيعي")}</option>
+                <option value="أخصائي علاج طبيعي">{tr("أخصائي علاج طبيعي")}</option>
+                <option value="ممارس علاج طبيعي">{tr("ممارس علاج طبيعي")}</option>
+                <option value="موظف استقبال">{tr("موظف استقبال")}</option>
               </select>
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="edit-permissions">وصف الصلاحيات</Label>
+              <Label htmlFor="edit-permissions">{tr("وصف الصلاحيات")}</Label>
               <Input
                 id="edit-permissions"
                 value={editFormData.permissions}
@@ -442,20 +499,20 @@ export default function UsersPermissionsPage() {
               />
             </div>
             <div className="space-y-1 text-right">
-              <Label htmlFor="edit-status">الحالة</Label>
+              <Label htmlFor="edit-status">{tr("الحالة")}</Label>
               <select
                 id="edit-status"
                 value={editFormData.status}
                 onChange={(e) => setEditFormData(prev => ({ ...prev, status: e.target.value }))}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none"
               >
-                <option value="نشط">نشط</option>
-                <option value="غير نشط">غير نشط</option>
+                <option value="نشط">{tr("نشط")}</option>
+                <option value="غير نشط">{tr("غير نشط")}</option>
               </select>
             </div>
             <DialogFooter className="mt-6 flex gap-2 justify-end">
-              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="rounded-xl font-bold">إلغاء</Button>
-              <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] rounded-xl font-bold px-6">حفظ التعديلات</Button>
+              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)} className="rounded-xl font-bold">{tr("إلغاء")}</Button>
+              <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] rounded-xl font-bold px-6">{tr("حفظ التعديلات")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
