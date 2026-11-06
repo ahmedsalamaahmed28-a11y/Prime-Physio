@@ -545,7 +545,7 @@ export default function DashboardLayout({
                <button 
                  onClick={toggleNotifications}
                  className="relative p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
-                 title="الإشعارات"
+                 title={isRtl ? "الإشعارات" : "Notifications"}
                >
                  <Bell className="w-5 h-5" />
                  {notifications.length > 0 && (                   <span className="absolute top-1 right-1 min-w-4 h-4 px-0.5 rounded-full bg-rose-500 text-[9px] font-bold text-white flex items-center justify-center border border-white">                     {notifications.length}                   </span>                 )}
