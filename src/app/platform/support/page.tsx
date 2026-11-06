@@ -25,13 +25,13 @@ export default function PlatformSupportPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <Phone className="w-6 h-6 text-indigo-600" />
-          <h1 className="text-xl font-bold text-slate-800">{isRtl ? (isRtl ? "تذاكر الدعم الفني" : "Support Tickets") : "Support Tickets"}</h1>
+          <h1 className="text-xl font-bold text-slate-800">{isRtl ? "تذاكر الدعم الفني" : "Support Tickets"}</h1>
         </div>
         
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            النظام يعمل بكفاءة
+            {isRtl ? "النظام يعمل بكفاءة" : "System Operational"}
           </span>
         </div>
       </div>
@@ -42,7 +42,7 @@ export default function PlatformSupportPage() {
             <Clock className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold mb-1">{isRtl ? (isRtl ? "تذاكر مفتوحة" : "Open Tickets") : "Open Tickets"}</p>
+            <p className="text-xs text-slate-500 font-bold mb-1">{isRtl ? "تذاكر مفتوحة" : "Open Tickets"}</p>
             <p className="text-2xl font-black text-slate-800">0</p>
           </div>
         </div>
@@ -52,8 +52,8 @@ export default function PlatformSupportPage() {
             <MessageSquare className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold mb-1">{isRtl ? (isRtl ? "متوسط سرعة الرد" : "Average Response Time") : "Average Response Time"}</p>
-            <p className="text-2xl font-black text-slate-800">&lt; 5 د</p>
+            <p className="text-xs text-slate-500 font-bold mb-1">{isRtl ? "متوسط سرعة الرد" : "Average Response Time"}</p>
+            <p className="text-2xl font-black text-slate-800">&lt; 5 min</p>
           </div>
         </div>
 
@@ -62,7 +62,7 @@ export default function PlatformSupportPage() {
             <HelpCircle className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold mb-1">{isRtl ? (isRtl ? "تذاكر تم حلها (الشهر)" : "Tickets Resolved (This Month)") : "Tickets Resolved (This Month)"}</p>
+            <p className="text-xs text-slate-500 font-bold mb-1">{isRtl ? "تذاكر تم حلها (الشهر)" : "Tickets Resolved (This Month)"}</p>
             <p className="text-2xl font-black text-slate-800">0</p>
           </div>
         </div>
@@ -72,7 +72,7 @@ export default function PlatformSupportPage() {
         <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-4">
           <MessageSquare className="w-10 h-10 text-slate-300" />
         </div>
-        <h3 className="text-lg font-bold text-slate-700 mb-2">{isRtl ? (isRtl ? "صندوق الوارد فارغ" : "Inbox is Empty") : "Inbox is Empty"}</h3>
+        <h3 className="text-lg font-bold text-slate-700 mb-2">{isRtl ? "صندوق الوارد فارغ" : "Inbox is Empty"}</h3>
         <p className="text-slate-500 max-w-sm mb-6">
           لا توجد أي تذاكر دعم فني مفتوحة حالياً. سيتم عرض رسائل واستفسارات العيادات هنا فور تفعيل نظام التذاكر المدمج.
         </p>
