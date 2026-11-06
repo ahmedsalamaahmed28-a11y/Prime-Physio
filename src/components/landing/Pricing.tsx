@@ -94,7 +94,7 @@ export default function Pricing({ cmsContent }: { cmsContent?: any }) {
                 {!isAnnual && (
                   <motion.div
                     layoutId="pricing-toggle"
-                    className="absolute inset-0 -z-10 bg-gradient-to-r from-[#4F46E5] to-[#6366F1] rounded-full shadow-md"
+                    className="absolute inset-0 z-[-1] bg-gradient-to-r from-[#4F46E5] to-[#6366F1] rounded-full shadow-md"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
@@ -110,7 +110,7 @@ export default function Pricing({ cmsContent }: { cmsContent?: any }) {
                 {isAnnual && (
                   <motion.div
                     layoutId="pricing-toggle"
-                    className="absolute inset-0 -z-10 bg-gradient-to-r from-[#4F46E5] to-[#6366F1] rounded-full shadow-md"
+                    className="absolute inset-0 z-[-1] bg-gradient-to-r from-[#4F46E5] to-[#6366F1] rounded-full shadow-md"
                     transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                   />
                 )}
