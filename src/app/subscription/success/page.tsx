@@ -5,14 +5,17 @@ import Link from "next/link";
 import { CheckCircle2, Crown, ArrowLeft, Download } from "lucide-react";
 import { Suspense } from "react";
 import { Loader } from "@/components/Loader";
+import { useLanguage } from "@/lib/LanguageContext";
 
 function SuccessContent() {
+  const { language } = useLanguage();
+  const isRtl = language === "ar";
   const params = useSearchParams();
   const orderId = params ? params.get("order") : null;
   const txId    = params ? params.get("tx") : null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center p-4" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center p-4" dir={isRtl ? "rtl" : "ltr"}>
       <div className="w-full max-w-md text-center space-y-6">
 
         {/* Success Icon */}
@@ -29,34 +32,34 @@ function SuccessContent() {
 
         {/* Message */}
         <div className="space-y-2">
-          <h1 className="text-2xl font-extrabold text-slate-800">تم الدفع بنجاح! 🎉</h1>
+          <h1 className="text-2xl font-extrabold text-slate-800">{isRtl ? "تم الدفع بنجاح! 🎉" : "Payment Successful! 🎉"}</h1>
           <p className="text-slate-500 text-sm">
-            اشتراكك في Prime Physio تم تفعيله بنجاح. يمكنك الآن الاستمتاع بجميع مميزات خطتك.
+            {isRtl ? "اشتراكك في Prime Physio تم تفعيله بنجاح. يمكنك الآن الاستمتاع بجميع مميزات خطتك." : "Your Prime Physio subscription is now active. You can enjoy all the features included in your plan."}
           </p>
         </div>
 
         {/* Receipt Card */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm text-right space-y-3">
-          <h3 className="text-sm font-extrabold text-slate-700 border-b pb-2">تفاصيل الدفع</h3>
+          <h3 className="text-sm font-extrabold text-slate-700 border-b pb-2">{isRtl ? "تفاصيل الدفع" : "Payment Details"}</h3>
           <div className="space-y-2 text-xs text-slate-600">
             <div className="flex justify-between">
-              <span className="text-slate-400">رقم الطلب</span>
+              <span className="text-slate-400">{isRtl ? "رقم الطلب" : "Order Number"}</span>
               <span className="font-mono font-bold text-slate-700">#{orderId || "---"}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">رقم العملية</span>
+              <span className="text-slate-400">{isRtl ? "رقم العملية" : "Transaction ID"}</span>
               <span className="font-mono font-bold text-slate-700">#{txId || "---"}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">الحالة</span>
+              <span className="text-slate-400">{isRtl ? "الحالة" : "Status"}</span>
               <span className="font-bold text-emerald-600 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                مدفوع ✓
+                {isRtl ? "مدفوع ✓" : "Paid ✓"}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-slate-400">طريقة الدفع</span>
-              <span className="font-bold">Paymob — بطاقة بنكية</span>
+              <span className="text-slate-400">{isRtl ? "طريقة الدفع" : "Payment Method"}</span>
+              <span className="font-bold">{isRtl ? "Paymob — بطاقة بنكية" : "Paymob — Bank Card"}</span>
             </div>
           </div>
         </div>
