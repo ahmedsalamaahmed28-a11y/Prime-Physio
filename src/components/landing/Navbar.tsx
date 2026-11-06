@@ -47,11 +47,11 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: "الرئيسية", href: "#", id: "" },
-    { name: "لماذا نحن", href: "#why-us", id: "why-us" },
-    { name: "المميزات", href: "#features", id: "features" },
-    { name: "الأسعار", href: "#pricing", id: "pricing" },
-    { name: "الأسئلة الشائعة", href: "#faq", id: "faq" },
+    { name: isRtl ? "الرئيسية" : "Home", href: "#", id: "" },
+    { name: isRtl ? "لماذا نحن" : "Why Us", href: "#why-us", id: "why-us" },
+    { name: isRtl ? "المميزات" : "Features", href: "#features", id: "features" },
+    { name: isRtl ? "الأسعار" : "Pricing", href: "#pricing", id: "pricing" },
+    { name: isRtl ? "الأسئلة الشائعة" : "FAQ", href: "#faq", id: "faq" },
   ];
 
   return (
@@ -118,7 +118,7 @@ export default function Navbar() {
               className="rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-105 transition-all flex items-center gap-2"
             >
               <LayoutDashboard className="w-4 h-4" />
-              لوحة التحكم
+              {isRtl ? "لوحة التحكم" : "Dashboard"}
             </Link>
           ) : (
             <>
@@ -126,13 +126,13 @@ export default function Navbar() {
                 href="/manage"
                 className="text-sm font-bold leading-6 text-slate-700 hover:text-[#4F46E5] transition-colors"
               >
-                تسجيل الدخول
+                {isRtl ? "تسجيل الدخول" : "Log in"}
               </Link>
               <Link
                 href="/signup"
                 className="rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-105 transition-all"
               >
-                ابدأ مجانًا
+                {isRtl ? "ابدأ مجانًا" : "Start for free"}
               </Link>
             </>
           )}
