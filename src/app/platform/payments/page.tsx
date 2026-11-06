@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { DollarSign, Loader2, FileText, CheckCircle } from "lucide-react";
@@ -16,6 +17,8 @@ interface Payment {
 }
 
 export default function PlatformPaymentsPage() {
+  const { language } = useLanguage();
+  const isRtl = language === "ar";
   const { user } = useAuth();
   const router = useRouter();
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -48,15 +51,15 @@ export default function PlatformPaymentsPage() {
   if (!user || user.roleKey !== "platform_admin") return null;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-10">
+    <div dir={isRtl ? "rtl" : "ltr"} className="space-y-6 max-w-6xl mx-auto pb-10">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <DollarSign className="w-6 h-6 text-indigo-600" />
-          <h1 className="text-xl font-bold text-slate-800">سجل المدفوعات</h1>
+          <h1 className="text-xl font-bold text-slate-800">{isRtl ? (isRtl ? "سجل المدفوعات" : "Payment Records") : "Payment Records"}</h1>
         </div>
         
         <div className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-3">
-          <span className="text-sm opacity-80">إجمالي الإيرادات</span>
+          <span className="text-sm opacity-80">{isRtl ? (isRtl ? "إجمالي الإيرادات" : "Total Revenue") : "Total Revenue"}</span>
           <span className="font-bold text-lg">{totalRevenue.toLocaleString()} ج.م</span>
         </div>
       </div>
@@ -66,18 +69,18 @@ export default function PlatformPaymentsPage() {
           <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
         </div>
       ) : payments.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 text-sm border rounded-2xl bg-white">لا توجد حركات دفع مسجلة بعد</div>
+        <div className="text-center py-20 text-slate-400 text-sm border rounded-2xl bg-white">{isRtl ? (isRtl ? "لا توجد حركات دفع مسجلة بعد" : "No payment transactions recorded yet") : "No payment transactions recorded yet"}</div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-right text-slate-600">
               <thead className="text-xs text-slate-500 bg-slate-50 uppercase border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">تاريخ الدفع</th>
-                  <th className="px-6 py-4 font-semibold">العيادة</th>
-                  <th className="px-6 py-4 font-semibold">المبلغ</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "تاريخ الدفع" : "Payment Date") : "Payment Date"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "العيادة" : "Clinic") : "Clinic"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "المبلغ" : "Amount") : "Amount"}</th>
                   <th className="px-6 py-4 font-semibold">تفاصيل العملية (Paymob)</th>
-                  <th className="px-6 py-4 font-semibold">حالة الدفع</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "حالة الدفع" : "Payment Status") : "Payment Status"}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
