@@ -3,12 +3,12 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
-interface GradientCheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+interface GradientCheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'style'> {
   size?: number
 }
 
 const GradientCheckbox = React.forwardRef<HTMLInputElement, GradientCheckboxProps>(
-  ({ className, size = 24, id, style: _style, ...props }, ref) => {
+  ({ className, size = 24, id, ...props }, ref) => {
     const generatedId = React.useId()
     const checkboxId = id || generatedId
 
