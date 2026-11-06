@@ -86,6 +86,29 @@ export async function POST(req: NextRequest) {
       .single();
 
     if (subscriptionError || !subscription) {
+      if (subscriptionError?.code === "23505") {
+        const { data: racedSubscription, error: racedLookupError } = await admin
+          .from("subscriptions")
+          .select("id, plan_name, status")
+          .eq("clinic_id", clinicId)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (!racedLookupError && racedSubscription) {
+          if (racedSubscription.plan_name === "basic") {
+            return NextResponse.json({
+              success: true,
+              clinicId,
+              subscriptionId: racedSubscription.id,
+              alreadyActive: true,
+            }, { headers: { "Cache-Control": "no-store, private" } });
+          }
+          return NextResponse.json({ error: "An active subscription already exists" }, { status: 409 });
+        }
+      }
+
       console.error("[Subscribe] Free subscription creation failed:", subscriptionError);
       return NextResponse.json({ error: "Failed to create subscription" }, { status: 500 });
     }
