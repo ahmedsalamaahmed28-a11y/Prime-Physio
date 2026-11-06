@@ -238,7 +238,7 @@ export default function PlatformSettingsPage() {
                 type="text"
                 name="title"
                 required
-                placeholder=(isRtl ? "مثال: تحديث جديد للنظام..." : "Example: New system update...")
+                placeholder={isRtl ? "مثال: تحديث جديد للنظام..." : "Example: New system update..."}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
               />
             </div>
@@ -248,7 +248,7 @@ export default function PlatformSettingsPage() {
                 name="message"
                 required
                 rows={3}
-                placeholder=(isRtl ? "اكتب تفاصيل الإشعار هنا..." : "Enter notification details here...")
+                placeholder={isRtl ? "اكتب تفاصيل الإشعار هنا..." : "Enter notification details here..."}
                 className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 resize-none"
               ></textarea>
             </div>
