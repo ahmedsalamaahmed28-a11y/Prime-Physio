@@ -110,7 +110,7 @@ export default function AnalyticsPage() {
       <div className="flex justify-between space-y-3 flex-col md:flex-row md:space-x-4 md:space-y-0">
         {localizedStats.map((stat, i) => {
           return (
-            <div key={i} className="p-5 rounded-xl w-full" style={{ backgroundColor: "#4F46BA" }}>
+            <div key={i} className="p-5 rounded-xl w-full bg-[#4F46BA]">
               <p className="text-xs font-bold text-white opacity-50">{stat.title}</p>
               <p className="text-lg font-semibold text-white mt-1">{stat.value}</p>
             </div>
@@ -134,10 +134,7 @@ export default function AnalyticsPage() {
                 <span>{stats.backPackageCount} {isRtl ? "مبيعات" : "Sales"}</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div 
-                  className="bg-[#4F46BA] h-full rounded-full transition-all duration-500" 
-                  style={{ width: `${stats.totalPatients > 0 ? (stats.backPackageCount / stats.totalPatients) * 100 : 0}%` }}
-                />
+                <progress className="csp-progress csp-progress--indigo" value={stats.totalPatients > 0 ? (stats.backPackageCount / stats.totalPatients) * 100 : 0} max={100} aria-label="Back package distribution" />
               </div>
             </div>
 
@@ -147,10 +144,7 @@ export default function AnalyticsPage() {
                 <span>{stats.kneePackageCount} {isRtl ? "مبيعات" : "Sales"}</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div 
-                  className="bg-emerald-500 h-full rounded-full transition-all duration-500" 
-                  style={{ width: `${stats.totalPatients > 0 ? (stats.kneePackageCount / stats.totalPatients) * 100 : 0}%` }}
-                />
+                <progress className="csp-progress csp-progress--emerald" value={stats.totalPatients > 0 ? (stats.kneePackageCount / stats.totalPatients) * 100 : 0} max={100} aria-label="Knee package distribution" />
               </div>
             </div>
 
@@ -160,10 +154,7 @@ export default function AnalyticsPage() {
                 <span>{stats.singleSessionsCount} {isRtl ? "مبيعات" : "Sales"}</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div 
-                  className="bg-amber-500 h-full rounded-full transition-all duration-500" 
-                  style={{ width: `${stats.totalPatients > 0 ? (stats.singleSessionsCount / stats.totalPatients) * 100 : 0}%` }}
-                />
+                <progress className="csp-progress csp-progress--amber" value={stats.totalPatients > 0 ? (stats.singleSessionsCount / stats.totalPatients) * 100 : 0} max={100} aria-label="Single session distribution" />
               </div>
             </div>
           </CardContent>
@@ -180,17 +171,11 @@ export default function AnalyticsPage() {
           <CardContent className="pt-6">
             <div className="flex justify-around items-end h-48 px-4 border-b border-slate-100 pb-4">
               <div className="flex flex-col items-center gap-2 w-1/3 group">
-                <div 
-                  className="bg-[#4F46BA] rounded-t-xl w-14 group-hover:bg-[#4338ca] transition-all duration-500 shadow-md" 
-                  style={{ height: `${stats.netRevenue > 0 ? 140 : 10}px` }} 
-                />
+                <div className={`bg-[#4F46BA] rounded-t-xl w-14 group-hover:bg-[#4338ca] transition-all duration-500 shadow-md ${stats.netRevenue > 0 ? "h-[140px]" : "h-[10px]"}`} />
                 <span className="text-xs font-bold text-slate-700">{isRtl ? `إيرادات مدفوعة (${stats.netRevenue.toLocaleString()} ج.م)` : `Paid Revenue (${stats.netRevenue.toLocaleString()} EGP)`}</span>
               </div>
               <div className="flex flex-col items-center gap-2 w-1/3 group">
-                <div 
-                  className="bg-slate-200 rounded-t-xl w-14 group-hover:bg-slate-300 transition-all duration-500" 
-                  style={{ height: "40px" }} // Simulated remaining pending
-                />
+                <div className="bg-slate-200 rounded-t-xl w-14 h-[40px] group-hover:bg-slate-300 transition-all duration-500" />
                 <span className="text-xs font-bold text-slate-500">{isRtl ? "مستحقات معلقة (انتظار)" : "Pending Dues (Waiting)"}</span>
               </div>
             </div>
