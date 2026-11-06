@@ -38,7 +38,7 @@
     "motion": "^12.40.0",
     "next": "16.4.5",
     "next-auth": "4.24.15",
-    "nodemailer": "^7.0.13",
+    "nodemailer": "^10.3.1",
     "pg": "^8.21.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
@@ -52,7 +52,6 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^24",
-    "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.20.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -63,7 +62,10 @@
     "shadcn": "^4.11.0"
   },
   "overrides": {
-    "proxy-addr": "2.0.8"
+    "proxy-addr": "2.0.8",
+    "next-auth": {
+      "nodemailer": "$nodemailer"
+    }
   },
   "description": "Prime Physio clinic management application"
 }
