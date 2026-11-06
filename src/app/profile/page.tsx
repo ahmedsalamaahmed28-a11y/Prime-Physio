@@ -580,7 +580,7 @@ export default function ProfileSettingsPage() {
               <form onSubmit={handleBankSave} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                   <div className="space-y-1.5 text-right">
-                    <label className="text-xs font-bold text-slate-500">Account Holder Name *</label>
+                    <label className="text-xs font-bold text-slate-500">{isRtl ? "اسم صاحب الحساب *" : "Account Holder Name *"}</label>
                     <Input 
                       value={accountHolderName} 
                       onChange={(e) => setAccountHolderName(e.target.value)} 
@@ -590,7 +590,7 @@ export default function ProfileSettingsPage() {
                   </div>
                   
                   <div className="space-y-1.5 text-right">
-                    <label className="text-xs font-bold text-slate-500">Bank Name *</label>
+                    <label className="text-xs font-bold text-slate-500">{isRtl ? "اسم البنك *" : "Bank Name *"}</label>
                     <Input 
                       value={bankName} 
                       onChange={(e) => setBankName(e.target.value)} 
@@ -600,7 +600,7 @@ export default function ProfileSettingsPage() {
                   </div>
 
                   <div className="space-y-1.5 text-right">
-                    <label className="text-xs font-bold text-slate-500">IBAN *</label>
+                    <label className="text-xs font-bold text-slate-500">{isRtl ? "رقم IBAN *" : "IBAN *"}</label>
                     <Input 
                       value={iban} 
                       onChange={(e) => setIban(e.target.value)} 
@@ -735,7 +735,7 @@ export default function ProfileSettingsPage() {
                           <table className="w-full text-right border-collapse" dir="rtl">
                             <thead>
                               <tr className={`bg-slate-100/80 border-b text-xs font-bold text-slate-500 uppercase tracking-wider ${isRtl ? "" : "flex-row-reverse"}`}>
-                                <th className="py-3.5 px-6 text-right text-slate-600 font-bold">DAY</th>
+                                <th className="py-3.5 px-6 text-right text-slate-600 font-bold">{isRtl ? "اليوم" : "Day"}</th>
                                 <th className="py-3.5 px-4 text-center text-slate-600 font-bold w-20">{isRtl ? "فتح" : "Open"}</th>
                                 <th className="py-3.5 px-4 text-center text-slate-600 font-bold">{isRtl ? "من" : "From"}</th>
                                 <th className="py-3.5 px-4 text-center text-slate-600 font-bold">{isRtl ? "إلى" : "To"}</th>
