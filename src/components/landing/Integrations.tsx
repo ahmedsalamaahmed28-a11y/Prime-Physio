@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { MessageSquare, CreditCard, Calendar, Smartphone, ExternalLink as LinkIcon, RefreshCw } from "lucide-react";
 
 export default function Integrations() {
@@ -19,15 +18,11 @@ export default function Integrations() {
 
       <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
         <div className="text-center mb-20">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-indigo-300 font-bold mb-6"
+          <div data-csp-motion="reveal" className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-indigo-300 font-bold mb-6"
           >
             <LinkIcon className="w-4 h-4" />
             تكامل لا محدود
-          </motion.div>
+          </div>
           <h2 className="text-4xl font-black text-white sm:text-5xl mb-6">
             اربط عيادتك بالعالم
           </h2>
@@ -40,39 +35,29 @@ export default function Integrations() {
           
           {/* Orbital Rings */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <motion.div 
-              animate={{ rotate: 360 }}
-              transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-              className="w-[300px] h-[300px] rounded-full border border-indigo-500/30 border-dashed relative"
+            <div className="integration-orbit integration-orbit--inner w-[300px] h-[300px] rounded-full border border-indigo-500/30 border-dashed relative"
             >
               {apps.map((app, i) => (
                 <div key={i} className={`absolute ${app.position} bg-slate-800 p-4 rounded-2xl border border-slate-700 shadow-2xl flex items-center justify-center -rotate-0`}>
                    {app.icon}
                 </div>
               ))}
-            </motion.div>
+            </div>
           </div>
 
           <div className="absolute inset-0 flex items-center justify-center">
-            <motion.div 
-              animate={{ rotate: -360 }}
-              transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-              className="w-[450px] h-[450px] rounded-full border border-indigo-400/10 relative"
+            <div className="integration-orbit integration-orbit--outer w-[450px] h-[450px] rounded-full border border-indigo-400/10 relative"
             />
           </div>
 
           {/* Center Logo/Icon */}
-          <motion.div 
-            initial={{ scale: 0 }}
-            whileInView={{ scale: 1 }}
-            viewport={{ once: true }}
-            className="relative z-20 w-32 h-32 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 p-[2px] shadow-2xl shadow-indigo-500/50"
+          <div data-csp-motion="reveal" className="relative z-20 w-32 h-32 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 p-[2px] shadow-2xl shadow-indigo-500/50"
           >
             <div className="w-full h-full bg-slate-900 rounded-[22px] flex items-center justify-center flex-col gap-2">
               <RefreshCw className="w-10 h-10 text-indigo-400 animate-spin-slow spin-3s" />
               <span className="text-white font-bold text-sm">Prime Physio</span>
             </div>
-          </motion.div>
+          </div>
           
         </div>
       </div>
