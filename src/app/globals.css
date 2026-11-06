@@ -358,3 +358,62 @@ details.ob2More[open]>summary h2::after{content:"–"}
 /* "Didn't get the code?" help */
 .ob2HelpList{margin:10px 0 4px;padding-inline-start:20px;display:grid;gap:8px;font-size:14px;line-height:1.6}
 .ob2HelpList .lp-btn{margin-top:6px}
+
+
+/* CSP-safe progress indicators: all dynamic values use the native value attribute. */
+.csp-progress {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0.375rem;
+  border: 0;
+  border-radius: 9999px;
+  overflow: hidden;
+  background-color: #e2e8f0;
+  color: var(--csp-progress-color, #4F46BA);
+}
+.csp-progress::-webkit-progress-bar {
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+}
+.csp-progress::-webkit-progress-value {
+  background: var(--csp-progress-color, #4F46BA);
+  border-radius: 9999px;
+  transition: width 300ms ease;
+}
+.csp-progress::-moz-progress-bar {
+  background: var(--csp-progress-color, #4F46BA);
+  border-radius: 9999px;
+}
+.csp-progress--indigo { --csp-progress-color: #4F46BA; }
+.csp-progress--emerald { --csp-progress-color: #10b981; }
+.csp-progress--amber { --csp-progress-color: #f59e0b; }
+.csp-progress--rose { --csp-progress-color: #f43f5e; }
+.csp-progress--sky { --csp-progress-color: #0ea5e9; }
+.csp-progress--blue { --csp-progress-color: #2563eb; }
+.csp-progress--purple { --csp-progress-color: linear-gradient(90deg, #4F46BA, #7c3aed); }
+.subscription-glow {
+  background-image: radial-gradient(circle at center, #206ce8 0%, transparent 70%);
+  opacity: 0.6;
+  mix-blend-mode: multiply;
+}
+.print-frame {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border: 0;
+}
+
+/* The checkbox size is selected through a data attribute, never an inline style. */
+.checkbox-wrapper[data-size="16"] { --cb-size: 16px; }
+.checkbox-wrapper[data-size="20"] { --cb-size: 20px; }
+.checkbox-wrapper[data-size="24"] { --cb-size: 24px; }
+.checkbox-wrapper[data-size="28"] { --cb-size: 28px; }
+.checkbox-wrapper[data-size="32"] { --cb-size: 32px; }
+.checkbox-wrapper[data-size="36"] { --cb-size: 36px; }
+.checkbox-wrapper[data-size="40"] { --cb-size: 40px; }
+.checkbox-wrapper[data-size="48"] { --cb-size: 48px; }
+.checkbox-wrapper[data-size="50"] { --cb-size: 50px; }
+.checkbox-wrapper[data-size="56"] { --cb-size: 56px; }
+.checkbox-wrapper[data-size="64"] { --cb-size: 64px; }
