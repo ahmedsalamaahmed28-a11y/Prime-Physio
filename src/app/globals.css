@@ -419,3 +419,18 @@ details.ob2More[open]>summary h2::after{content:"–"}
 .checkbox-wrapper[data-size="64"] { --cb-size: 64px; }
 
 .spin-3s { animation-duration: 3s; }
+
+
+/* CSP-safe replacement for Framer Motion reveal effects. */
+@keyframes csp-safe-reveal {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+[data-csp-motion="reveal"] {
+  animation: csp-safe-reveal 550ms ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-csp-motion="reveal"] {
+    animation: none;
+  }
+}
