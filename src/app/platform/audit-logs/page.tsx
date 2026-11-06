@@ -66,8 +66,8 @@ export default function PlatformAuditLogsPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <History className="w-6 h-6 text-indigo-600" />
-          <h1 className="text-xl font-bold text-slate-800">سجل النشاط (Audit Logs)</h1>
-          <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">آخر {logs.length} عملية</span>
+          <h1 className="text-xl font-bold text-slate-800">{isRtl ? "سجل النشاط (Audit Logs)" : "Activity Log (Audit Logs)"}</h1>
+          <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{isRtl ? "آخر" : "Last"} {logs.length} {isRtl ? "عملية" : "actions"}</span>
         </div>
         
         <div className="relative w-64">
@@ -90,18 +90,18 @@ export default function PlatformAuditLogsPage() {
         ) : filteredLogs.length === 0 ? (
           <div className="flex flex-col justify-center items-center py-32 text-slate-500">
             <Filter className="w-12 h-12 mb-4 text-slate-300" />
-            <p>{isRtl ? (isRtl ? "لا توجد سجلات مطابقة للبحث" : "No matching logs found") : "No matching logs found"}</p>
+            <p>{isRtl ? "لا توجد سجلات مطابقة للبحث" : "No matching logs found"}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "التاريخ والوقت" : "Date & Time") : "Date & Time"}</th>
-                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "المستخدم" : "User") : "User"}</th>
-                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "العيادة" : "Clinic") : "Clinic"}</th>
-                  <th className="px-6 py-4 font-semibold">الحدث (Action)</th>
-                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "التفاصيل" : "Details") : "Details"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "التاريخ والوقت" : "Date & Time"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "المستخدم" : "User"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "العيادة" : "Clinic"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "الحدث (Action)" : "Event (Action)"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "التفاصيل" : "Details"}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
