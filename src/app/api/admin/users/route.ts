@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Failed to load clinics" }, { status: 500 });
     }
 
-    const clinicsMap = new Map(clinics?.map((clinic: { id: string; name: string }) => [clinic.id, clinic.name]));
+    const clinicsMap = new Map<string, string>((clinics || []).map((clinic) => [clinic.id, clinic.name] as const));
     const enrichedStaff = (staff || []).map((member) => ({
       ...member,
       clinicName: clinicsMap.get(member.clinic_id) || "عيادة غير معروفة",
