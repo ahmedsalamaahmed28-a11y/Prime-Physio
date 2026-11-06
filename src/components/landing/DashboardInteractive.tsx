@@ -119,7 +119,6 @@ export default function DashboardInteractive() {
 
                     {/* Content Area Viewport */}
                     <div className="flex-1 p-6 overflow-hidden relative">
-                      <AnimatePresence mode="wait">
                         <div data-csp-motion="reveal"
                           key={activeTab}
                           className="h-full w-full absolute inset-0 p-6"
@@ -245,7 +244,6 @@ export default function DashboardInteractive() {
                             </div>
                           )}
                         </div>
-                      </AnimatePresence>
                     </div>
                   </div>
                 </div>
