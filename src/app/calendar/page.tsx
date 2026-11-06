@@ -378,6 +378,21 @@ function EventDetailsDialog({
 
   if (!event) return null;
   const e = { ...event, ...form };
+  const tStatus = (status: string) => {
+    if (isRtl) return status;
+    const map: Record<string, string> = { "مؤكد": "Confirmed", "انتظار": "Pending", "منتهي": "Completed", "ملغي": "Cancelled" };
+    return map[status] || status;
+  };
+  const tVisitType = (type: VisitType) => {
+    if (isRtl) return type;
+    const map: Record<VisitType, string> = {
+      "جلسة علاج": "Therapy Session",
+      "كشف أول": "First Exam",
+      "متابعة": "Follow-up",
+      "تقييم": "Assessment",
+    };
+    return map[type] || type;
+  };
 
   const startEdit = () => {
     setForm({ doctor: event.doctor, visitType: event.visitType, notes: event.notes });
