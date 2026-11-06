@@ -17,22 +17,22 @@ import { useLanguage } from "@/lib/LanguageContext";
 
 const MENU_ITEMS = {
   profile: [
-    { icon: "solar:user-circle-line-duotone", label: "Your profile", action: "profile" },
-    { icon: "solar:settings-line-duotone", label: "Settings", action: "settings" },
-    { icon: "solar:bell-line-duotone", label: "Notifications", action: "notifications" }
+    { icon: "solar:user-circle-line-duotone", labelAr: "ملفك الشخصي", labelEn: "Your profile", action: "profile" },
+    { icon: "solar:settings-line-duotone", labelAr: "الإعدادات", labelEn: "Settings", action: "settings" },
+    { icon: "solar:bell-line-duotone", labelAr: "الإشعارات", labelEn: "Notifications", action: "notifications" }
   ],
   premium: [
     { 
       icon: "solar:star-bold", 
-      label: "Upgrade to Pro", 
+      labelAr: "الترقية إلى Pro", labelEn: "Upgrade to Pro", 
       action: "upgrade",
       iconClass: "text-amber-600",
       badge: { text: "20% off", className: "bg-amber-600 text-white text-[11px]" }
     },
   ],
   account: [
-    { icon: "solar:logout-2-bold-duotone", label: "Log out", action: "logout" },
-    { icon: "solar:trash-bin-minimalistic-line-duotone", label: "Delete Account", action: "delete_account" }
+    { icon: "solar:logout-2-bold-duotone", labelAr: "تسجيل الخروج", labelEn: "Log out", action: "logout" },
+    { icon: "solar:trash-bin-minimalistic-line-duotone", labelAr: "حذف الحساب", labelEn: "Delete Account", action: "delete_account" }
   ]
 };
 
@@ -57,7 +57,7 @@ export const UserDropdown = ({
     status: "online"
   },
   onAction = () => {},
-  promoDiscount = "20% off",
+  promoDiscount,
 }: UserDropdownProps) => {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -80,11 +80,11 @@ export const UserDropdown = ({
           icon={item.icon}
           className={`size-5 ${item.iconClass || "text-gray-500 dark:text-gray-400"}`}
         />
-        {item.label}
+        {language === "ar" ? item.labelAr : item.labelEn}
       </span>
       {item.badge && (
         <Badge className={item.badge.className}>
-          {promoDiscount || item.badge.text}
+          {promoDiscount || (language === "ar" ? "خصم 20%" : item.badge.text)}
         </Badge>
       )}
     </DropdownMenuItem>
@@ -99,7 +99,7 @@ export const UserDropdown = ({
         </Avatar>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent className="no-scrollbar w-[310px] rounded-2xl bg-gray-50 dark:bg-black/90 p-0" align="end">
+      <DropdownMenuContent dir={language === "ar" ? "rtl" : "ltr"} className="no-scrollbar w-[310px] rounded-2xl bg-gray-50 dark:bg-black/90 p-0" align="end">
         <section className="bg-white dark:bg-gray-100/10 backdrop-blur-lg rounded-2xl p-1 shadow border border-gray-200 dark:border-gray-700/20">
           <div className="flex items-center p-2">
             <div className="flex-1 flex items-center gap-2">
@@ -113,7 +113,7 @@ export const UserDropdown = ({
               </div>
             </div>
             <Badge className="text-green-600 bg-green-100 border-green-300 dark:text-green-400 dark:bg-green-900/30 dark:border-green-500/50 border-[0.5px] text-[11px] rounded-sm capitalize">
-              {user.status}
+              {language === "ar" && user.status === "online" ? "متصل" : user.status}
             </Badge>
           </div>
 
