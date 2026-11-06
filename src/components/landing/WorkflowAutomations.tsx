@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { ArrowLeft, UserPlus, Bell, FileText, CreditCard, Sparkles } from "lucide-react";
 
 export default function WorkflowAutomations() {
@@ -27,11 +26,7 @@ export default function WorkflowAutomations() {
         <div className="flex flex-col lg:flex-row items-center justify-center gap-4 lg:gap-8 max-w-5xl mx-auto">
           {steps.map((step, i) => (
             <div key={i} className="flex flex-col lg:flex-row items-center gap-4 lg:gap-8 w-full lg:w-auto">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.15 }}
+              <div data-csp-motion="reveal"
                 className={`flex flex-col items-center justify-center w-40 h-32 rounded-3xl ${step.bg} ${step.border} border shadow-lg relative`}
               >
                 <div className="absolute -inset-0.5 bg-gradient-to-br from-white/50 to-transparent rounded-3xl opacity-50 pointer-events-none" />
@@ -39,19 +34,15 @@ export default function WorkflowAutomations() {
                   {step.icon}
                 </div>
                 <span className="text-xs font-bold text-slate-800 text-center px-2">{step.label}</span>
-              </motion.div>
+              </div>
 
               {/* Connector Arrow */}
               {i < steps.length - 1 && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.3, delay: (i * 0.15) + 0.1 }}
+                <div data-csp-motion="reveal"
                   className="hidden lg:flex"
                 >
                   <ArrowLeft className="w-6 h-6 text-slate-600" />
-                </motion.div>
+                </div>
               )}
               {/* Vertical connector for mobile */}
               {i < steps.length - 1 && (
