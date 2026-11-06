@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { TrendingUp, Clock, Calendar, Users } from "lucide-react";
 
 export default function CaseStudy() {
@@ -36,60 +35,41 @@ export default function CaseStudy() {
             </div>
 
             <div className="lg:w-1/2 grid sm:grid-cols-2 gap-4 w-full">
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
+              <div data-csp-motion="reveal" className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
               >
                 <Clock className="w-8 h-8 text-amber-300 mb-4" />
                 <div className="text-4xl font-black mb-2 flex items-baseline gap-1">
                   30% <span className="text-lg text-amber-300">وفر</span>
                 </div>
                 <p className="font-medium text-indigo-100">وفرنا 30% من وقت الاستقبال</p>
-              </motion.div>
+              </div>
 
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.1 }}
-                className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
+              <div data-csp-motion="reveal" className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
               >
                 <Calendar className="w-8 h-8 text-emerald-300 mb-4" />
                 <div className="text-4xl font-black mb-2 flex items-baseline gap-1">
                   40% <span className="text-lg text-emerald-300">↑</span>
                 </div>
                 <p className="font-medium text-indigo-100">زادت الحجوزات 40%</p>
-              </motion.div>
+              </div>
 
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.2 }}
-                className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
+              <div data-csp-motion="reveal" className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
               >
                 <Users className="w-8 h-8 text-blue-300 mb-4" />
                 <div className="text-4xl font-black mb-2 flex items-baseline gap-1">
                   2x <span className="text-lg text-blue-300">↑</span>
                 </div>
                 <p className="font-medium text-indigo-100">معدل احتفاظ بالمرضى</p>
-              </motion.div>
+              </div>
 
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.3 }}
-                className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
+              <div data-csp-motion="reveal" className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20"
               >
                 <TrendingUp className="w-8 h-8 text-rose-300 mb-4" />
                 <div className="text-4xl font-black mb-2 flex items-baseline gap-1">
                   60% <span className="text-lg text-rose-300">↑</span>
                 </div>
                 <p className="font-medium text-indigo-100">نمو في الإيرادات الشهرية</p>
-              </motion.div>
+              </div>
             </div>
 
           </div>
