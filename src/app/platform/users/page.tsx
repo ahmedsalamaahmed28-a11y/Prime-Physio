@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { Users, Loader2, Trash2 } from "lucide-react";
@@ -15,6 +16,8 @@ interface User {
 }
 
 export default function PlatformUsersPage() {
+  const { language } = useLanguage();
+  const isRtl = language === "ar";
   const { user } = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
@@ -42,7 +45,7 @@ export default function PlatformUsersPage() {
   };
 
   const deleteUser = async (email: string) => {
-    if (!confirm("هل أنت متأكد من حذف هذا المستخدم؟")) return;
+    if (!confirm((isRtl ? "هل أنت متأكد من حذف هذا المستخدم؟" : "Are you sure you want to delete this user?"))) return;
     setDeleting(email);
     try {
       const res = await fetch("/api/admin/users", {
@@ -60,10 +63,10 @@ export default function PlatformUsersPage() {
   if (!user || user.roleKey !== "platform_admin") return null;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-10">
+    <div dir={isRtl ? "rtl" : "ltr"} className="space-y-6 max-w-6xl mx-auto pb-10">
       <div className="flex items-center gap-3 mb-6">
         <Users className="w-6 h-6 text-indigo-600" />
-        <h1 className="text-xl font-bold text-slate-800">إدارة المستخدمين</h1>
+        <h1 className="text-xl font-bold text-slate-800">{isRtl ? (isRtl ? "إدارة المستخدمين" : "User Management") : "User Management"}</h1>
         <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">الكل: {users.length}</span>
       </div>
 
@@ -72,19 +75,19 @@ export default function PlatformUsersPage() {
           <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
         </div>
       ) : users.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 text-sm">لا يوجد مستخدمين مسجلين بعد</div>
+        <div className="text-center py-20 text-slate-400 text-sm">{isRtl ? (isRtl ? "لا يوجد مستخدمين مسجلين بعد" : "No users registered yet") : "No users registered yet"}</div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-right text-slate-600">
               <thead className="text-xs text-slate-500 bg-slate-50 uppercase border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">الاسم</th>
-                  <th className="px-6 py-4 font-semibold">البريد الإلكتروني</th>
-                  <th className="px-6 py-4 font-semibold">الدور</th>
-                  <th className="px-6 py-4 font-semibold">العيادة</th>
-                  <th className="px-6 py-4 font-semibold">تاريخ التسجيل</th>
-                  <th className="px-6 py-4 font-semibold text-center">إجراءات</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "الاسم" : "Name") : "Name"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "البريد الإلكتروني" : "Email") : "Email"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "الدور" : "Role") : "Role"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "العيادة" : "Clinic") : "Clinic"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "تاريخ التسجيل" : "Registration Date") : "Registration Date"}</th>
+                  <th className="px-6 py-4 font-semibold text-center">{isRtl ? (isRtl ? "إجراءات" : "Actions") : "Actions"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -104,7 +107,7 @@ export default function PlatformUsersPage() {
                         onClick={() => deleteUser(u.email)}
                         disabled={deleting === u.email}
                         className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors disabled:opacity-50"
-                        title="حذف المستخدم"
+                        title=(isRtl ? "حذف المستخدم" : "Delete User")
                       >
                         {deleting === u.email ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
