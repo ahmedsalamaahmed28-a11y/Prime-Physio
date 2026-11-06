@@ -292,7 +292,7 @@ export default function PlatformCMSPage() {
                   <button 
                     onClick={() => removePlan(planIdx)}
                     className="absolute top-4 left-4 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                    title=(isRtl ? "حذف الباقة" : "Remove Plan")
+                    title={isRtl ? "حذف الباقة" : "Remove Plan"}
                   >
                     <Trash2 className="w-5 h-5" />
                   </button>
@@ -360,13 +360,13 @@ export default function PlatformCMSPage() {
                             type="text"
                             value={feature}
                             onChange={(e) => updateFeature(planIdx, featureIdx, e.target.value)}
-                            placeholder=(isRtl ? "اكتب الميزة هنا..." : "Enter a feature...")
+                            placeholder={isRtl ? "اكتب الميزة هنا..." : "Enter a feature..."}
                             className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
                           />
                           <button 
                             onClick={() => removeFeature(planIdx, featureIdx)}
                             className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title=(isRtl ? "حذف الميزة" : "Remove Feature")
+                            title={isRtl ? "حذف الميزة" : "Remove Feature"}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -400,7 +400,7 @@ export default function PlatformCMSPage() {
                 <Search className={`w-4 h-4 text-slate-400 absolute ${isRtl ? "right-3" : "left-3"} top-1/2 -translate-y-1/2`} />
                 <input
                   type="text"
-                  placeholder=(isRtl ? "ابحث عن نص للتعجيل..." : "Search for a text...")
+                  placeholder={isRtl ? "ابحث عن نص للتعجيل..." : "Search for a text..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   dir={isRtl ? "rtl" : "ltr"} className={`py-1.5 border border-slate-200 rounded-lg text-sm w-full sm:w-64 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 ${isRtl ? "pl-4 pr-9" : "pr-4 pl-9"}`}
