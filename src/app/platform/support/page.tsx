@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useEffect } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { Phone, MessageSquare, Clock, HelpCircle } from "lucide-react";
 
 export default function PlatformSupportPage() {
+  const { language } = useLanguage();
+  const isRtl = language === "ar";
   const { user } = useAuth();
   const router = useRouter();
 
@@ -18,11 +21,11 @@ export default function PlatformSupportPage() {
   if (!user || user.roleKey !== "platform_admin") return null;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-10">
+    <div dir={isRtl ? "rtl" : "ltr"} className="space-y-6 max-w-6xl mx-auto pb-10">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <Phone className="w-6 h-6 text-indigo-600" />
-          <h1 className="text-xl font-bold text-slate-800">تذاكر الدعم الفني</h1>
+          <h1 className="text-xl font-bold text-slate-800">{isRtl ? (isRtl ? "تذاكر الدعم الفني" : "Support Tickets") : "Support Tickets"}</h1>
         </div>
         
         <div className="flex items-center gap-2">
@@ -39,7 +42,7 @@ export default function PlatformSupportPage() {
             <Clock className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold mb-1">تذاكر مفتوحة</p>
+            <p className="text-xs text-slate-500 font-bold mb-1">{isRtl ? (isRtl ? "تذاكر مفتوحة" : "Open Tickets") : "Open Tickets"}</p>
             <p className="text-2xl font-black text-slate-800">0</p>
           </div>
         </div>
@@ -49,7 +52,7 @@ export default function PlatformSupportPage() {
             <MessageSquare className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold mb-1">متوسط سرعة الرد</p>
+            <p className="text-xs text-slate-500 font-bold mb-1">{isRtl ? (isRtl ? "متوسط سرعة الرد" : "Average Response Time") : "Average Response Time"}</p>
             <p className="text-2xl font-black text-slate-800">&lt; 5 د</p>
           </div>
         </div>
@@ -59,7 +62,7 @@ export default function PlatformSupportPage() {
             <HelpCircle className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-slate-500 font-bold mb-1">تذاكر تم حلها (الشهر)</p>
+            <p className="text-xs text-slate-500 font-bold mb-1">{isRtl ? (isRtl ? "تذاكر تم حلها (الشهر)" : "Tickets Resolved (This Month)") : "Tickets Resolved (This Month)"}</p>
             <p className="text-2xl font-black text-slate-800">0</p>
           </div>
         </div>
@@ -69,7 +72,7 @@ export default function PlatformSupportPage() {
         <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mb-4">
           <MessageSquare className="w-10 h-10 text-slate-300" />
         </div>
-        <h3 className="text-lg font-bold text-slate-700 mb-2">صندوق الوارد فارغ</h3>
+        <h3 className="text-lg font-bold text-slate-700 mb-2">{isRtl ? (isRtl ? "صندوق الوارد فارغ" : "Inbox is Empty") : "Inbox is Empty"}</h3>
         <p className="text-slate-500 max-w-sm mb-6">
           لا توجد أي تذاكر دعم فني مفتوحة حالياً. سيتم عرض رسائل واستفسارات العيادات هنا فور تفعيل نظام التذاكر المدمج.
         </p>
