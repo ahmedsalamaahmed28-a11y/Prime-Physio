@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Users, Clock, DollarSign, Activity } from "lucide-react";
 
 export default function ROICalculator() {
@@ -103,11 +102,7 @@ export default function ROICalculator() {
               <h3 className="text-xl font-bold text-white/90 mb-8">التوفير المقدر شهرياً</h3>
               
               <div className="space-y-6">
-                <motion.div 
-                  key={hoursSaved}
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="bg-white/10 rounded-2xl p-6 border border-white/20 backdrop-blur-sm"
+                <div key={hoursSaved} data-csp-motion="reveal" className="bg-white/10 rounded-2xl p-6 border border-white/20 backdrop-blur-sm"
                 >
                   <div className="flex items-center gap-4 mb-2">
                     <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -118,14 +113,9 @@ export default function ROICalculator() {
                   <div className="text-4xl font-black tracking-tight mt-2">
                     {hoursSaved} <span className="text-xl font-medium text-white/70">ساعة عمل</span>
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div 
-                  key={moneySaved}
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ delay: 0.1 }}
-                  className="bg-white/10 rounded-2xl p-6 border border-white/20 backdrop-blur-sm"
+                <div key={moneySaved} data-csp-motion="reveal" className="bg-white/10 rounded-2xl p-6 border border-white/20 backdrop-blur-sm"
                 >
                   <div className="flex items-center gap-4 mb-2">
                     <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
@@ -136,7 +126,7 @@ export default function ROICalculator() {
                   <div className="text-4xl font-black tracking-tight mt-2">
                     {moneySaved.toLocaleString()} <span className="text-xl font-medium text-white/70">ج.م / ريال</span>
                   </div>
-                </motion.div>
+                </div>
                 
                 <p className="text-sm text-white/60 text-center mt-6">
                   * هذا الحساب تقريبي ويعتمد على تقليل الأعمال الإدارية اليدوية وتوفير وقت الطاقم الطبي.
