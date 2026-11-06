@@ -99,7 +99,8 @@ export const UserDropdown = ({
         </Avatar>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent dir={language === "ar" ? "rtl" : "ltr"} className="no-scrollbar w-[310px] rounded-2xl bg-gray-50 dark:bg-black/90 p-0" align="end">
+      <DropdownMenuContent className="no-scrollbar w-[310px] rounded-2xl bg-gray-50 dark:bg-black/90 p-0" align="end">
+        <div dir={language === "ar" ? "rtl" : "ltr"}>
         <section className="bg-white dark:bg-gray-100/10 backdrop-blur-lg rounded-2xl p-1 shadow border border-gray-200 dark:border-gray-700/20">
           <div className="flex items-center p-2">
             <div className="flex-1 flex items-center gap-2">
@@ -132,6 +133,7 @@ export const UserDropdown = ({
             {MENU_ITEMS.account.map(renderMenuItem)}
           </DropdownMenuGroup>
         </section>
+        </div>
       </DropdownMenuContent>
       
       {/* Delete Account Confirmation Dialog */}
