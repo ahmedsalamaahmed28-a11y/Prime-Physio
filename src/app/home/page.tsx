@@ -147,7 +147,7 @@ export default function HomePage() {
             { label: isRtl ? "المكتملة" : "COMPLETED", value: `${completedSessions}`, color: "#4F46BA" },
             { label: isRtl ? "الدخل" : "INCOME", value: `${todayIncome.toLocaleString()} ${isRtl ? "ج.م" : "EGP"}`, color: "#4F46BA" },
           ].map((s) => (
-            <div key={s.label} className="p-5 rounded-xl w-full" style={{ backgroundColor: s.color }}>
+            <div key={s.label} className="p-5 rounded-xl w-full bg-[#4F46BA]">
               <p className="text-xs font-bold text-white opacity-50">{s.label}</p>
               <p className="text-lg font-semibold text-white mt-1">{s.value}</p>
             </div>
@@ -173,7 +173,7 @@ export default function HomePage() {
               <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-[#4D4A81]">{totalSessions > 0 ? Math.round((completedSessions / totalSessions) * 100) : 0}%</span>
             </div>
           </div>
-          <div className="w-full py-4 px-8 rounded-xl shadow-sm flex items-center justify-between border border-gray-100" style={{ backgroundColor: "#51459E" }}>
+          <div className="w-full py-4 px-8 rounded-xl shadow-sm flex items-center justify-between border border-gray-100 bg-[#51459E]">
             <div>
               <p className="text-lg text-white font-bold mb-2">{isRtl ? "المستهدف الشهري" : "Monthly Target"}</p>
               <p className="text-white/80 font-semibold text-sm">
