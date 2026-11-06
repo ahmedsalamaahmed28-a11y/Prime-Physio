@@ -55,12 +55,12 @@ export default function PlatformPaymentsPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <DollarSign className="w-6 h-6 text-indigo-600" />
-          <h1 className="text-xl font-bold text-slate-800">{isRtl ? (isRtl ? "سجل المدفوعات" : "Payment Records") : "Payment Records"}</h1>
+          <h1 className="text-xl font-bold text-slate-800">{isRtl ? "سجل المدفوعات" : "Payment Records"}</h1>
         </div>
         
         <div className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl shadow-sm flex items-center gap-3">
-          <span className="text-sm opacity-80">{isRtl ? (isRtl ? "إجمالي الإيرادات" : "Total Revenue") : "Total Revenue"}</span>
-          <span className="font-bold text-lg">{totalRevenue.toLocaleString()} ج.م</span>
+          <span className="text-sm opacity-80">{isRtl ? "إجمالي الإيرادات" : "Total Revenue"}</span>
+          <span className="font-bold text-lg">{totalRevenue.toLocaleString()} {isRtl ? "ج.م" : "EGP"}</span>
         </div>
       </div>
 
@@ -69,18 +69,18 @@ export default function PlatformPaymentsPage() {
           <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
         </div>
       ) : payments.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 text-sm border rounded-2xl bg-white">{isRtl ? (isRtl ? "لا توجد حركات دفع مسجلة بعد" : "No payment transactions recorded yet") : "No payment transactions recorded yet"}</div>
+        <div className="text-center py-20 text-slate-400 text-sm border rounded-2xl bg-white">{isRtl ? "لا توجد حركات دفع مسجلة بعد" : "No payment transactions recorded yet"}</div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-right text-slate-600">
               <thead className="text-xs text-slate-500 bg-slate-50 uppercase border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "تاريخ الدفع" : "Payment Date") : "Payment Date"}</th>
-                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "العيادة" : "Clinic") : "Clinic"}</th>
-                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "المبلغ" : "Amount") : "Amount"}</th>
-                  <th className="px-6 py-4 font-semibold">تفاصيل العملية (Paymob)</th>
-                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "حالة الدفع" : "Payment Status") : "Payment Status"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "تاريخ الدفع" : "Payment Date"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "العيادة" : "Clinic"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "المبلغ" : "Amount"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "تفاصيل العملية (Paymob)" : "Transaction Details (Paymob)"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "حالة الدفع" : "Payment Status"}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -99,8 +99,8 @@ export default function PlatformPaymentsPage() {
                     </td>
                     <td className="px-6 py-4 text-xs font-mono text-slate-500">
                       <div className="flex flex-col gap-1">
-                        <span className="flex items-center gap-1"><FileText className="w-3 h-3"/> الطلب: {p.order_id || 'N/A'}</span>
-                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3"/> الحركة: {p.transaction_id || 'N/A'}</span>
+                        <span className="flex items-center gap-1"><FileText className="w-3 h-3"/> {isRtl ? "الطلب:" : "Order:"} {p.order_id || "N/A"}</span>
+                        <span className="flex items-center gap-1"><DollarSign className="w-3 h-3"/> {isRtl ? "الحركة:" : "Transaction:"} {p.transaction_id || "N/A"}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
