@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { format } from "date-fns";
-import { ar } from "date-fns/locale";
+import { ar, enUS } from "date-fns/locale";
 
 import {
   Dialog,
@@ -171,6 +171,12 @@ function NewAppointmentDialog({
     return () => { cancelled = true; };
   }, [open, clinicId, patientId]);
 
+  const tStatus = (status: string) => {
+    if (isRtl) return status;
+    const map: Record<string, string> = { "مؤكد": "Confirmed", "انتظار": "Pending", "منتهي": "Completed", "ملغي": "Cancelled" };
+    return map[status] || status;
+  };
+
   const tVisitType = (type: VisitType) => {
     if (isRtl) return type;
     const map: Record<VisitType, string> = {
@@ -218,7 +224,7 @@ function NewAppointmentDialog({
             <span>{isRtl ? "حجز موعد جديد" : "Book New Appointment"}</span>
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            {selectedDate && format(selectedDate, "EEEE d MMMM yyyy", { locale: ar })}
+            {selectedDate && format(selectedDate, "EEEE d MMMM yyyy", { locale: isRtl ? ar : enUS })}
           </DialogDescription>
         </DialogHeader>
 
@@ -428,15 +434,15 @@ function EventDetailsDialog({
 
         <div className="space-y-3 py-1">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">الحالة</span>
-            <Badge variant="outline" className={STATUS_STYLES[event.status] + " font-bold shadow-sm"}>{event.status}</Badge>
+            <span className="text-sm text-muted-foreground">{isRtl ? "الحالة" : "Status"}</span>
+            <Badge variant="outline" className={STATUS_STYLES[event.status] + " font-bold shadow-sm"}>{tStatus(event.status)}</Badge>
           </div>
           <Separator />
 
           <div className="grid grid-cols-2 gap-2">
             {[
-              { label: "رقم الملف", value: event.patientId, icon: "📁" },
-              { label: "الوقت", value: format(event.start, "HH:mm") + " — " + format(event.end, "HH:mm"), icon: "🕒" },
+              { label: isRtl ? "رقم الملف" : "File Number", value: event.patientId, icon: "📁" },
+              { label: isRtl ? "الوقت" : "Time", value: format(event.start, "HH:mm") + " — " + format(event.end, "HH:mm"), icon: "🕒" },
             ].map(({ label, value, icon }) => (
               <div key={label} className="bg-muted/40 rounded-lg p-3 space-y-0.5">
                 <p className="text-xs text-muted-foreground/70">{label}</p>
@@ -550,7 +556,7 @@ function EventDetailsDialog({
           <div className="flex gap-2 w-full">
             {editing ? (
               <>
-                <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setEditing(false)}>تراجع</Button>
+                <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setEditing(false)}>{isRtl ? "تراجع" : "Undo"}</Button>
                 <Button className="flex-1 rounded-xl bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white" onClick={saveEdit}>{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
               </>
             ) : !completing ? (
