@@ -66,8 +66,8 @@ export default function PlatformUsersPage() {
     <div dir={isRtl ? "rtl" : "ltr"} className="space-y-6 max-w-6xl mx-auto pb-10">
       <div className="flex items-center gap-3 mb-6">
         <Users className="w-6 h-6 text-indigo-600" />
-        <h1 className="text-xl font-bold text-slate-800">{isRtl ? (isRtl ? "إدارة المستخدمين" : "User Management") : "User Management"}</h1>
-        <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">الكل: {users.length}</span>
+        <h1 className="text-xl font-bold text-slate-800">{isRtl ? "إدارة المستخدمين" : "User Management"}</h1>
+        <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{isRtl ? "الكل" : "Total"}: {users.length}</span>
       </div>
 
       {loading ? (
@@ -75,19 +75,19 @@ export default function PlatformUsersPage() {
           <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
         </div>
       ) : users.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 text-sm">{isRtl ? (isRtl ? "لا يوجد مستخدمين مسجلين بعد" : "No users registered yet") : "No users registered yet"}</div>
+        <div className="text-center py-20 text-slate-400 text-sm">{isRtl ? "لا يوجد مستخدمين مسجلين بعد" : "No users registered yet"}</div>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-right text-slate-600">
               <thead className="text-xs text-slate-500 bg-slate-50 uppercase border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "الاسم" : "Name") : "Name"}</th>
-                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "البريد الإلكتروني" : "Email") : "Email"}</th>
-                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "الدور" : "Role") : "Role"}</th>
-                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "العيادة" : "Clinic") : "Clinic"}</th>
-                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "تاريخ التسجيل" : "Registration Date") : "Registration Date"}</th>
-                  <th className="px-6 py-4 font-semibold text-center">{isRtl ? (isRtl ? "إجراءات" : "Actions") : "Actions"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "الاسم" : "Name"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "البريد الإلكتروني" : "Email"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "الدور" : "Role"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "العيادة" : "Clinic"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? "تاريخ التسجيل" : "Registration Date"}</th>
+                  <th className="px-6 py-4 font-semibold text-center">{isRtl ? "إجراءات" : "Actions"}</th>
                 </tr>
               </thead>
               <tbody>
