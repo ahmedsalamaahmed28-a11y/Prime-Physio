@@ -76,8 +76,8 @@ export default function PlatformClinicsPage() {
     <div dir={isRtl ? "rtl" : "ltr"} className="space-y-6 max-w-6xl mx-auto pb-10">
       <div className="flex items-center gap-3 mb-6">
         <Building className="w-6 h-6 text-indigo-600" />
-        <h1 className="text-xl font-bold text-slate-800">{isRtl ? (isRtl ? "إدارة العيادات" : "Clinic Management") : "Clinic Management"}</h1>
-        <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">الكل: {clinics.length}</span>
+        <h1 className="text-xl font-bold text-slate-800">{isRtl ? "إدارة العيادات" : "Clinic Management"}</h1>
+        <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">{isRtl ? "الكل" : "Total"}: {clinics.length}</span>
       </div>
 
       {loading ? (
@@ -85,7 +85,7 @@ export default function PlatformClinicsPage() {
           <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
         </div>
       ) : clinics.length === 0 ? (
-        <div className="text-center py-20 text-slate-400 text-sm">{isRtl ? (isRtl ? "لا توجد عيادات مسجلة بعد" : "No clinics registered yet") : "No clinics registered yet"}</div>
+        <div className="text-center py-20 text-slate-400 text-sm">{isRtl ? "لا توجد عيادات مسجلة بعد" : "No clinics registered yet"}</div>
       ) : (
         <div className="grid gap-4">
           {clinics.map((clinic) => (
@@ -102,19 +102,19 @@ export default function PlatformClinicsPage() {
                     <h3 className="font-bold text-slate-800">{clinic.name}</h3>
                     {!clinic.is_active && (
                       <span className="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-bold">
-                        موقوفة
+                        {isRtl ? "موقوفة" : "Suspended"}
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-4 text-xs text-slate-500">
                     <span>{clinic.email}</span>
                     <span>{clinic.phone}</span>
-                    <span>{new Date(clinic.created_at).toLocaleDateString("ar-EG")}</span>
+                    <span>{new Date(clinic.created_at).toLocaleDateString(isRtl ? "ar-EG" : "en-US")}</span>
                   </div>
                   <div className="flex items-center gap-3 text-xs mt-3">
                     <span className="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-md">
                       <Users className="w-3.5 h-3.5 text-slate-400" />
-                      {clinic.patientCount} مريض
+                      {clinic.patientCount} {isRtl ? "مريض" : "patients"}
                     </span>
                     <span className={`flex items-center gap-1 px-2 py-1 rounded-md ${getPlanBadge(clinic.subscription?.plan_name)}`}>
                       <CreditCard className="w-3 h-3" />
