@@ -327,7 +327,7 @@ export default function ProfileSettingsPage() {
       {/* ─── Orange Alert Banner ────────────────────────────────────────── */}
       <div className={`bg-[#FFA000] text-white px-5 py-1.5 rounded-xl flex items-center justify-between shadow-sm -mt-2 sm:-mt-4 mb-6 ${isRtl ? "flex-row-reverse" : ""}`} dir="ltr">
         <p className="text-xs sm:text-sm font-medium flex-1 text-center tracking-wide">
-          .Your account is under review. We will notify you once verification is complete ⌛
+          {isRtl ? "حسابك قيد المراجعة. سنُخطرك فور اكتمال التحقق ⌛" : "Your account is under review. We will notify you once verification is complete ⌛"}
         </p>
         <button className="bg-white text-[#FFA000] px-3 py-0.5 rounded-lg font-bold text-xs hover:bg-slate-50 transition-colors shadow-xs shrink-0 flex items-center gap-1 font-sans cursor-pointer">
           View Status ⬆
