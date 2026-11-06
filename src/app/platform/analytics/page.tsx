@@ -53,9 +53,9 @@ export default function PlatformAnalyticsPage() {
               <Activity className="w-5 h-5" />
             </div>
           </div>
-          <p className="text-3xl font-bold text-slate-800">4.8 hrs / day</p>
+          <p className="text-3xl font-bold text-slate-800">{isRtl ? "4.8 س / يوم" : "4.8 hrs / day"}</p>
           <div className="mt-2 flex items-center gap-2 text-xs text-emerald-600 font-semibold">
-            <span>+1.1 hrs</span>
+            <span>{isRtl ? "+1.1 س" : "+1.1 hrs"}</span>
             <span className="text-slate-400 font-normal">{isRtl ? "مقارنة بالشهر الماضي" : "Compared with last month"}</span>
           </div>
         </div>
