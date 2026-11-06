@@ -352,9 +352,8 @@ export default function DashboardLayout({
             alt={branchName || "Prime Physio"} 
             className="h-12 object-contain mb-1" 
             onError={(e) => {
-              e.currentTarget.style.display = 'none';
-              const fallback = document.getElementById('brand-fallback');
-              if (fallback) fallback.style.display = 'block';
+              e.currentTarget.classList.add("hidden");
+              e.currentTarget.nextElementSibling?.classList.remove("hidden");
             }}
           />
           <div id="brand-fallback" className="hidden text-center">
@@ -645,9 +644,8 @@ export default function DashboardLayout({
                     alt="Prime Physio" 
                     className="h-14 object-contain mb-1.5" 
                     onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      const fallback = document.getElementById('mobile-brand-fallback');
-                      if (fallback) fallback.style.display = 'block';
+                      e.currentTarget.classList.add("hidden");
+                      e.currentTarget.nextElementSibling?.classList.remove("hidden");
                     }}
                   />
                   <div id="mobile-brand-fallback" className="hidden text-center">
