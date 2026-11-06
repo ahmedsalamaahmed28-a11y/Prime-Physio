@@ -764,10 +764,7 @@ function PatientsContent() {
                               <span className="text-xs font-medium text-slate-800">{pkgText}</span>
                               <div className={`flex items-center gap-2 ${isRtl ? "" : "flex-row-reverse"}`}>
                                 <div className="w-24 bg-slate-200 rounded-full h-1.5 overflow-hidden">
-                                  <div 
-                                    className="bg-blue-600 h-1.5 rounded-full" 
-                                    style={{ width: `${(p.sessionsUsed / p.sessionsTotal) * 100}%` }}
-                                  />
+                                  <progress className="csp-progress csp-progress--blue csp-progress--sm" value={(p.sessionsUsed / p.sessionsTotal) * 100} max={100} aria-label="Patient package usage" />
                                 </div>
                                 <span className="text-[10px] text-muted-foreground font-mono">({p.sessionsUsed}/{p.sessionsTotal})</span>
                               </div>
