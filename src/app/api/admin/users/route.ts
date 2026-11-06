@@ -20,7 +20,8 @@ export async function GET(req: NextRequest) {
 
     const { data: staff, error: staffError } = await admin
       .from("staff")
-      .select("id, name, email, role, clinic_id, created_at")
+      .select("id, name, email, role, clinic_id, created_at, status")
+      .neq("status", "محذوف")
       .order("created_at", { ascending: false });
 
     if (staffError) {
@@ -85,15 +86,15 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: status === 403 ? "Protected account cannot be deleted" : "Failed to delete account" }, { status });
     }
 
-    const staffDeleted = Number(deletion?.staff_deleted || 0);
+    const staffDisabled = Number(deletion?.staff_disabled || 0);
     const authAccountDeleted = Number(deletion?.auth_account_deleted || 0);
-    if (staffDeleted === 0 && authAccountDeleted === 0) {
+    if (staffDisabled === 0 && authAccountDeleted === 0) {
       return NextResponse.json({ error: "User account not found" }, { status: 404 });
     }
 
     return NextResponse.json({
       success: true,
-      deleted: { staff: staffDeleted, credentials: authAccountDeleted },
+      deleted: { staffAccessDisabled: staffDisabled, credentials: authAccountDeleted },
     });
   } catch (err: any) {
     const status = err.message === "Unauthorized" ? 401 : err.message === "Forbidden" ? 403 : 500;
