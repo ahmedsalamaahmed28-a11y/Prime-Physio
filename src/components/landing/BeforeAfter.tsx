@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import { CheckCircle2, XCircle, AlertCircle, Calendar, LayoutDashboard } from "lucide-react";
-import { motion } from "framer-motion";
-
 export default function BeforeAfter() {
   const [isAfter, setIsAfter] = useState(false);
 
@@ -11,24 +9,16 @@ export default function BeforeAfter() {
     <section className="py-24 bg-slate-50 overflow-hidden relative">
       {/* Simple Aurora/Gradient Background for Before/After */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <motion.div 
-          animate={{ x: [0, 30, 0, -30, 0], y: [0, -20, 0, 20, 0] }}
-          transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+        <div data-csp-motion="reveal"
           className="absolute -top-40 right-0 w-[400px] h-[400px] bg-red-400/10 blur-[100px] rounded-full mix-blend-multiply" 
         />
-        <motion.div 
-          animate={{ x: [0, -30, 0, 30, 0], y: [0, 20, 0, -20, 0] }}
-          transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
+        <div data-csp-motion="reveal"
           className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-400/10 blur-[120px] rounded-full mix-blend-multiply" 
         />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <motion.div 
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
+        <div data-csp-motion="reveal"
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tight mb-6 font-arabic">
@@ -37,13 +27,9 @@ export default function BeforeAfter() {
           <p className="text-lg text-slate-600 font-arabic">
             تحول من الفوضى الورقية وإهدار الوقت إلى نظام إلكتروني متكامل يدير عيادتك بكفاءة وسهولة.
           </p>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+        <div data-csp-motion="reveal"
           className="flex justify-center mb-10"
         >
           <div className="bg-slate-100 p-1.5 rounded-full inline-flex relative overflow-hidden shadow-inner flex-row-reverse" dir="rtl">
@@ -69,13 +55,9 @@ export default function BeforeAfter() {
               مع PrimePhysio
             </button>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div 
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, delay: 0.3 }}
+        <div data-csp-motion="reveal"
           className="relative max-w-5xl mx-auto rounded-3xl overflow-hidden shadow-2xl border border-slate-200/50 bg-white aspect-auto md:aspect-video flex flex-col md:flex-row" 
           dir="rtl"
         >
@@ -154,7 +136,7 @@ export default function BeforeAfter() {
              </div>
           </div>
           
-        </motion.div>
+        </div>
       </div>
     </section>
   );
