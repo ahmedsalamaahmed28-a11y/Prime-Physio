@@ -107,7 +107,7 @@ export default function PlatformAuditLogsPage() {
               <tbody className="divide-y divide-slate-100">
                 {filteredLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 text-slate-500 whitespace-nowrap" dir="ltr" style={{ textAlign: 'right' }}>
+                    <td className="px-6 py-4 text-slate-500 whitespace-nowrap text-right" dir="ltr">
                       {new Date(log.created_at).toLocaleString("ar-EG")}
                     </td>
                     <td className="px-6 py-4">
