@@ -60,6 +60,24 @@ export default function PlatformUsersPage() {
     setDeleting(null);
   };
 
+  const translateRole = (role: string) => {
+    if (isRtl) return role;
+    const roles: Record<string, string> = {
+      "مدير العيادة": "Clinic Manager",
+      "مدير العياده": "Clinic Manager",
+      "مدير النظام": "System Administrator",
+      "استشاري علاج طبيعي": "PT Consultant",
+      "أخصائي علاج طبيعي": "Physical Therapist",
+      "ممارس علاج طبيعي": "PT Practitioner",
+      "موظف استقبال": "Receptionist",
+      "platform_admin": "Platform Administrator",
+      "admin": "Clinic Administrator",
+      "doctor": "Doctor",
+      "receptionist": "Receptionist",
+    };
+    return roles[role] || role;
+  };
+
   if (!user || user.roleKey !== "platform_admin") return null;
 
   return (
@@ -101,13 +119,13 @@ export default function PlatformUsersPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 font-medium">{u.clinicName}</td>
-                    <td className="px-6 py-4">{new Date(u.created_at).toLocaleDateString("ar-EG")}</td>
+                    <td className="px-6 py-4">{new Date(u.created_at).toLocaleDateString(isRtl ? "ar-EG" : "en-US")}</td>
                     <td className="px-6 py-4 text-center">
                       <button
                         onClick={() => deleteUser(u.email)}
                         disabled={deleting === u.email}
                         className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors disabled:opacity-50"
-                        title=(isRtl ? "حذف المستخدم" : "Delete User")
+                        title={isRtl ? "حذف المستخدم" : "Delete User"}
                       >
                         {deleting === u.email ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
