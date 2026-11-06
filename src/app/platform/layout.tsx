@@ -116,14 +116,17 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
       </aside>
 
       {/* ─── MOBILE HEADER & SIDEBAR ─────────────────────────── */}
-      <div className="md:hidden flex items-center justify-between bg-[#4F46BA] text-white p-4 sticky top-0 z-20 shadow-sm">
+      <div className="md:hidden flex items-center justify-between bg-[#4F46BA] text-white p-4 sticky top-0 z-20 shadow-sm" dir={isRtl ? "rtl" : "ltr"}>
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-6 h-6 text-indigo-400" />
           <span className="font-bold">PrimeOS</span>
         </div>
+        <div className="flex items-center gap-2">
+        <button onClick={toggleLanguage} className="text-xs font-semibold border border-white/20 rounded-lg px-2 py-1.5">{isRtl ? "EN" : "عربي"}</button>
         <button onClick={toggleSidebar} className="p-2 -mr-2 text-slate-300">
           <Menu className="w-6 h-6" />
         </button>
+        </div>
       </div>
 
       {isOpen && (
@@ -171,11 +174,12 @@ export default function PlatformLayout({ children }: { children: React.ReactNode
       {/* ─── MAIN CONTENT ────────────────────────────────────── */}
       <main className={`flex-1 w-full ${isRtl ? "md:pr-[220px]" : "md:pl-[220px]"} min-h-screen flex flex-col`}>
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-10 hidden md:flex shadow-sm">
+        <header dir={isRtl ? "rtl" : "ltr"} className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 sticky top-0 z-10 hidden md:flex shadow-sm">
           <div className="text-sm font-medium text-slate-500">
             {isRtl ? "لوحة تحكم المنصة" : "Platform Administration"}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
+             <button onClick={toggleLanguage} className="text-xs font-semibold border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50">{isRtl ? "EN" : "عربي"}</button>
              <UserDropdown user={{
                name: user?.name || "مدير المنصة",
                username: user?.email || "",
