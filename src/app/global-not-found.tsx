@@ -32,7 +32,7 @@ export default async function GlobalNotFound() {
                 </Link>
                 <Link
                   href="/contact"
-                  className="inline-block bg-gradient-to-l from-red-400 to-red-500 hover:from-red-500 hover:to-red-500 text-white font-semibold px-6 py-3 rounded-md transition-all duration-300"
+                  className="inline-block bg-gradient-to-l from-red-400 to-red-500 hover:from-red-500 hover:to-red-500 text-white font-semibold px-5 sm:px-6 py-3 rounded-md transition-all duration-300"
                 >
                   تواصل معنا
                 </Link>
