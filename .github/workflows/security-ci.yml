@@ -2,7 +2,7 @@ name: Security and application checks
 
 on:
   push:
-    branches: [main, security/critical-hardening]
+    branches: [main, security/critical-hardening, security-audit/phase-3]
   pull_request:
     branches: [main]
   workflow_dispatch:
