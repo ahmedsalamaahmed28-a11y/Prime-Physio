@@ -29,7 +29,7 @@ export default function ResetPasswordPage() {
   const isRtl = language === "ar";
 
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -37,15 +37,16 @@ export default function ResetPasswordPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
-  const otpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+  const otpRefs = Array.from({ length: 6 }, () => useRef<HTMLInputElement>(null));
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const emailParam = params.get("email") || "";
-    const codeParam = params.get("code") || "";
+    const codeParam = window.sessionStorage.getItem("prime_physio_password_reset_code") || "";
+    window.sessionStorage.removeItem("prime_physio_password_reset_code");
     if (emailParam) setEmail(emailParam);
-    if (codeParam.length === 4) {
-      setOtp(codeParam.split("").slice(0, 4));
+    if (codeParam.length === 6) {
+      setOtp(codeParam.split("").slice(0, 6));
     }
   }, []);
 
@@ -54,7 +55,7 @@ export default function ResetPasswordPage() {
     const newOtp = [...otp];
     newOtp[idx] = val;
     setOtp(newOtp);
-    if (val && idx < 3) otpRefs[idx + 1].current?.focus();
+    if (val && idx < 5) otpRefs[idx + 1].current?.focus();
   };
 
   const handleOtpKeyDown = (idx: number, e: React.KeyboardEvent) => {
@@ -72,13 +73,13 @@ export default function ResetPasswordPage() {
     }
 
     const code = otp.join("");
-    if (code.length !== 4) {
+    if (code.length !== 6) {
       setError(isRtl ? "رمز التحقق غير صالح" : "Invalid verification code");
       return;
     }
 
-    if (newPassword.length < 6) {
-      setError(isRtl ? "كلمة المرور يجب أن تكون 6 أحرف على الأقل" : "Password must be at least 6 characters");
+    if (newPassword.length < 12 || newPassword.length > 128 || !/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
+      setError(isRtl ? "كلمة المرور يجب أن تكون من 12 إلى 128 حرفًا وتحتوي على حرف كبير وصغير ورقم ورمز." : "Password must be 12–128 characters and include uppercase, lowercase, a number, and a symbol.");
       return;
     }
 

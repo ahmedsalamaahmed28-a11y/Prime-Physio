@@ -30,11 +30,11 @@ export default function ForgotPasswordPage() {
 
   const [email, setEmail] = useState("");
   const [step, setStep] = useState<"email" | "otp">("email");
-  const [otp, setOtp] = useState(["", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [devCode, setDevCode] = useState("");
-  const otpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+  const otpRefs = Array.from({ length: 6 }, () => useRef<HTMLInputElement>(null));
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
       if (!res.ok) throw new Error(data.error || (isRtl ? "فشل إرسال رمز التحقق" : "Failed to send code"));
       if (data.devCode) {
         setDevCode(data.devCode);
-        setOtp(data.devCode.split("").slice(0, 4));
+        setOtp(data.devCode.split("").slice(0, 6));
       }
       setStep("otp");
       setTimeout(() => otpRefs[0].current?.focus(), 100);
@@ -72,7 +72,7 @@ export default function ForgotPasswordPage() {
     const newOtp = [...otp];
     newOtp[idx] = val;
     setOtp(newOtp);
-    if (val && idx < 3) otpRefs[idx + 1].current?.focus();
+    if (val && idx < 5) otpRefs[idx + 1].current?.focus();
   };
 
   const handleOtpKeyDown = (idx: number, e: React.KeyboardEvent) => {
@@ -81,11 +81,12 @@ export default function ForgotPasswordPage() {
 
   const handleVerify = () => {
     const code = otp.join("");
-    if (code.length !== 4) {
+    if (code.length !== 6) {
       setError(isRtl ? "يرجى إدخال رمز التحقق كاملاً" : "Please enter the full code");
       return;
     }
-    window.location.href = `/reset-password?email=${encodeURIComponent(email.trim().toLowerCase())}&code=${code}`;
+    window.sessionStorage.setItem("prime_physio_password_reset_code", code);
+    window.location.href = `/reset-password?email=${encodeURIComponent(email.trim().toLowerCase())}`;
   };
 
   return (
@@ -197,7 +198,7 @@ export default function ForgotPasswordPage() {
 
               <button
                 onClick={handleVerify}
-                disabled={otp.join("").length !== 4}
+                disabled={otp.join("").length !== 6}
                 className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white font-medium h-10 rounded-lg transition-all duration-200 flex items-center justify-center text-sm disabled:opacity-50"
               >
                 {isRtl ? "تأكيد" : "Confirm"}
