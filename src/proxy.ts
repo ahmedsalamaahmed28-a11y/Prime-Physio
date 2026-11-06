@@ -13,13 +13,13 @@ function isPublicPath(pathname: string): boolean {
   if (AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) return true;
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return true;
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/admin/")) return true;
-  
+
   // Allow branded login pages (/[slug])
   const pathPart = pathname.replace("/", "");
   if (/^[a-z0-9-]+$/.test(pathPart) && !KNOWN_PROTECTED_PAGES.has(pathPart)) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -34,11 +34,51 @@ function hasAuthCookie(request: NextRequest): boolean {
   return false;
 }
 
+function createNonce(): string {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return btoa(String.fromCharCode(...bytes));
+}
+
+function buildCsp(nonce: string): string {
+  return [
+    "default-src 'self' https: data: blob:",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https:`,
+    "connect-src 'self' https: wss:",
+    "img-src 'self' data: blob: https:",
+    // React style attributes are still used throughout the UI. A nonce cannot
+    // authorize style attributes, so keep this directive compatible until CSS migration.
+    "style-src 'self' 'unsafe-inline' https:",
+    "font-src 'self' data: https:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "frame-ancestors 'self'",
+    "form-action 'self' https:",
+    "upgrade-insecure-requests",
+  ].join("; ");
+}
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const nonce = createNonce();
+  const cspHeader = buildCsp(nonce);
+
+  // Next.js extracts this request CSP during rendering and adds the nonce
+  // to framework/bootstrap scripts generated for this HTML response.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", cspHeader);
+
+  const continueRequest = () => {
+    const response = NextResponse.next({
+      request: { headers: requestHeaders },
+    });
+    response.headers.set("Content-Security-Policy", cspHeader);
+    return response;
+  };
 
   if (isPublicPath(pathname)) {
-    return NextResponse.next();
+    return continueRequest();
   }
 
   if (!hasAuthCookie(request)) {
@@ -46,10 +86,12 @@ export function proxy(request: NextRequest) {
     if (pathname !== "/") {
       loginUrl.searchParams.set("redirect", pathname);
     }
-    return NextResponse.redirect(loginUrl);
+    const response = NextResponse.redirect(loginUrl);
+    response.headers.set("Content-Security-Policy", cspHeader);
+    return response;
   }
 
-  return NextResponse.next();
+  return continueRequest();
 }
 
 export const config = {
