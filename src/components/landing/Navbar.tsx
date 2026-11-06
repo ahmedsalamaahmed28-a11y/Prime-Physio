@@ -5,12 +5,15 @@ import Link from "next/link";
 import { Activity, Menu, X, LayoutDashboard } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/auth";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("");
   const { user } = useAuth();
+  const { language, toggleLanguage } = useLanguage();
+  const isRtl = language === "ar";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,7 +62,7 @@ export default function Navbar() {
           : "bg-transparent border-transparent"
       }`}
     >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8" aria-label="Global">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between p-4 lg:px-8" aria-label="Global" dir={isRtl ? "rtl" : "ltr"}>
         <div className="flex lg:flex-1">
           <Link href="/" className="-m-1.5 p-1.5 flex items-center gap-2 group">
             <div className="bg-gradient-to-br from-[#4F46E5] to-[#7C3AED] p-2 rounded-xl text-white group-hover:scale-105 transition-transform shadow-lg shadow-indigo-500/20">
@@ -108,7 +111,7 @@ export default function Navbar() {
           ))}
         </div>
 
-        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-4 items-center">
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end lg:gap-4 items-center"><button type="button" onClick={toggleLanguage} className="text-sm font-bold text-slate-700 border border-slate-200 rounded-full px-4 py-2">{isRtl ? "English" : "العربية"}</button>
           {user ? (
             <Link
               href={user?.roleKey === "platform_admin" ? "/platform" : "/home"}
