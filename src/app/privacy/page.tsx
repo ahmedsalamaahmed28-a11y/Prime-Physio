@@ -56,7 +56,7 @@ const sections = [
     ]
   },
   {
-    icon: UserRound,
+    icon: User,
     titleAr: "3. مسؤولية العيادة عن بيانات المرضى",
     titleEn: "3. Clinic Responsibility for Patient Data",
     introAr: "عند استخدام العيادة للمنصة لإدخال بيانات المرضى، تظل العيادة أو الجهة التي تقرر كيفية استخدام هذه البيانات مسؤولة عن تحديد الغرض والأساس القانوني لجمعها واستخدامها، وعن الحصول على الموافقات أو الأذونات اللازمة وإبلاغ المرضى بحقوقهم. وتعمل Prime Physio، بحسب طبيعة الخدمة والتعليمات المتفق عليها، كمقدم خدمة يعالج هذه البيانات نيابة عن العيادة.",
@@ -75,7 +75,7 @@ const sections = [
     ]
   },
   {
-    icon: LockKeyhole,
+    icon: Lock,
     titleAr: "4. مشاركة المعلومات والإفصاح عنها",
     titleEn: "4. Sharing and Disclosure",
     introAr: "لا نبيع المعلومات الشخصية ولا نؤجرها. وقد تتم مشاركتها في الحدود الضرورية في الحالات التالية:",
@@ -111,9 +111,9 @@ const sections = [
     ]
   },
   {
-    icon: Cookie,
+    icon: Settings,
     titleAr: "6. ملفات تعريف الارتباط والتقنيات المشابهة",
-    titleEn: "6. Cookies and Similar Technologies",
+    titleEn: "6. Settingss and Similar Technologies",
     introAr: "قد تستخدم المنصة ملفات تعريف الارتباط أو تقنيات مشابهة لتشغيل الوظائف الأساسية، وتذكر تفضيلات اللغة أو الجلسة، وتحسين الأداء والأمان. ويمكنك التحكم في ملفات تعريف الارتباط من إعدادات المتصفح، مع العلم أن تعطيل بعض الملفات الضرورية قد يؤثر في عمل أجزاء من المنصة.",
     introEn: "The platform may use cookies or similar technologies to enable core functionality, remember language or session preferences, and improve performance and security. You can control cookies through your browser settings, but disabling essential cookies may affect parts of the platform.",
     itemsAr: [],
@@ -139,7 +139,7 @@ const sections = [
     ]
   },
   {
-    icon: UserRound,
+    icon: User,
     titleAr: "8. حقوق أصحاب البيانات",
     titleEn: "8. Data Subject Rights",
     introAr: "وفقًا للقانون المصري لحماية البيانات الشخصية رقم 151 لسنة 2020 واللوائح والقرارات ذات الصلة، وبحسب صفة مقدم الطلب والأساس القانوني للمعالجة، قد تشمل الحقوق طلب:",
@@ -198,7 +198,7 @@ const sections = [
     itemsEn: []
   },
   {
-    icon: UserRound,
+    icon: User,
     titleAr: "13. التواصل وطلبات الخصوصية",
     titleEn: "13. Contact and Privacy Requests",
     introAr: "للاستفسارات أو طلبات الوصول أو التصحيح أو الحذف أو الاعتراض المتعلقة ببيانات حسابك، تواصل معنا من خلال صفحة الدعم في Prime Physio. أما طلبات بيانات المرضى التي أدخلتها العيادة، فيُرجى توجيهها أولًا إلى مسؤول العيادة؛ وقد ننسق مع العيادة للمساعدة في تنفيذ الطلب وفق القانون.",
