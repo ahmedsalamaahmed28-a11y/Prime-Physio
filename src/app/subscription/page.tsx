@@ -373,16 +373,7 @@ export default function SubscriptionPage() {
 
   return (
     <div className="px-4 pt-20 min-h-screen mx-auto relative bg-neutral-100" ref={pricingRef} dir={isRtl ? "rtl" : "ltr"}>
-      <div
-        className="absolute top-0 left-[10%] right-[10%] w-[80%] h-full z-0 pointer-events-none"
-        style={{
-          backgroundImage: `
-        radial-gradient(circle at center, #206ce8 0%, transparent 70%)
-      `,
-          opacity: 0.6,
-          mixBlendMode: "multiply",
-        }}
-      />
+      <div className="subscription-glow absolute top-0 left-[10%] right-[10%] w-[80%] h-full z-0 pointer-events-none" />
 
       <div className="text-center mb-6 max-w-3xl mx-auto relative z-10">
         <motion.h2
@@ -566,9 +557,9 @@ export default function SubscriptionPage() {
             </div>
             <div className="bg-slate-100 rounded-full h-2.5 overflow-hidden">
               {planLimits.patients === -1 ? (
-                <div className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] h-full rounded-full" style={{ width: "100%" }} />
+                <progress className="csp-progress csp-progress--purple" value={100} max={100} aria-label="Unlimited patient plan usage" />
               ) : (
-                <div className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] h-full rounded-full" style={{ width: `${Math.min(100, (patientCount / planLimits.patients) * 100)}%` }} />
+                <progress className="csp-progress csp-progress--purple" value={Math.min(100, (patientCount / planLimits.patients) * 100)} max={100} aria-label="Patient plan usage" />
               )}
             </div>
             <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>
@@ -593,9 +584,9 @@ export default function SubscriptionPage() {
             </div>
             <div className="bg-slate-100 rounded-full h-2.5 overflow-hidden">
               {planLimits.sessions === -1 ? (
-                <div className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] h-full rounded-full" style={{ width: "100%" }} />
+                <progress className="csp-progress csp-progress--purple" value={100} max={100} aria-label="Unlimited session plan usage" />
               ) : (
-                <div className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] h-full rounded-full" style={{ width: `${Math.min(100, (sessionCount / planLimits.sessions) * 100)}%` }} />
+                <progress className="csp-progress csp-progress--purple" value={Math.min(100, (sessionCount / planLimits.sessions) * 100)} max={100} aria-label="Session plan usage" />
               )}
             </div>
             <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>
