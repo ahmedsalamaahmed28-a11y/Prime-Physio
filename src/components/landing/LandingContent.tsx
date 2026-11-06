@@ -12,7 +12,6 @@ import Stats from "@/components/landing/Stats";
 import Integrations from "@/components/landing/Integrations";
 import WorkflowAutomations from "@/components/landing/WorkflowAutomations";
 import Security from "@/components/landing/Security";
-import HowItWorks from "@/components/landing/HowItWorks";
 import TestimonialsCarousel from "@/components/landing/TestimonialsCarousel";
 import CaseStudy from "@/components/landing/CaseStudy";
 import Pricing from "@/components/landing/Pricing";
