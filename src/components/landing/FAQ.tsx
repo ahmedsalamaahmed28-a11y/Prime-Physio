@@ -55,7 +55,6 @@ export default function FAQ() {
                 {openIndex === index && (
                   <div data-csp-motion="reveal" className="px-6 pb-6 pt-0 text-slate-600 font-medium leading-relaxed border-t border-slate-100 mt-2 pt-4">
                       {faq.answer}
-                    </div>
                   </div>
                 )}
               
