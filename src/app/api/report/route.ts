@@ -106,7 +106,7 @@ async function generateReport(prompt: string): Promise<string> {
   }
 
   if (geminiApiKey) {
-    const models = ["gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-1.5-flash"];
+    const models = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.5-flash"];
     for (const model of models) {
       try {
         const report = await callGemini(model, prompt);
@@ -123,6 +123,13 @@ async function generateReport(prompt: string): Promise<string> {
 export async function POST(req: NextRequest) {
   try {
     const user = await requireRole(req, ["admin", "doctor"]);
+    if (process.env.ENABLE_EXTERNAL_AI_REPORTS !== "true") {
+      return NextResponse.json({ error: "External AI report generation is disabled until the clinic's patient-consent workflow is enabled." }, {
+        status: 503,
+        headers: { "Cache-Control": "no-store, private" },
+      });
+    }
+
     if (!user.clinicId) {
       return NextResponse.json({ error: "Clinic access is required" }, {
         status: 403,
