@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
 import { Loader2, History, Search, Filter } from "lucide-react";
 
@@ -26,6 +27,8 @@ function formatAuditDetails(details: unknown): string {
 }
 
 export default function PlatformAuditLogsPage() {
+  const { language } = useLanguage();
+  const isRtl = language === "ar";
   const { user } = useAuth();
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +62,7 @@ export default function PlatformAuditLogsPage() {
   );
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-10">
+    <div dir={isRtl ? "rtl" : "ltr"} className="space-y-6 max-w-6xl mx-auto pb-10">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <History className="w-6 h-6 text-indigo-600" />
@@ -71,7 +74,7 @@ export default function PlatformAuditLogsPage() {
           <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="بحث في السجلات..."
+            placeholder=(isRtl ? "بحث في السجلات..." : "Search logs...")
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-3 pr-9 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
@@ -87,18 +90,18 @@ export default function PlatformAuditLogsPage() {
         ) : filteredLogs.length === 0 ? (
           <div className="flex flex-col justify-center items-center py-32 text-slate-500">
             <Filter className="w-12 h-12 mb-4 text-slate-300" />
-            <p>لا توجد سجلات مطابقة للبحث</p>
+            <p>{isRtl ? (isRtl ? "لا توجد سجلات مطابقة للبحث" : "No matching logs found") : "No matching logs found"}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="bg-slate-50 text-slate-600 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4 font-semibold">التاريخ والوقت</th>
-                  <th className="px-6 py-4 font-semibold">المستخدم</th>
-                  <th className="px-6 py-4 font-semibold">العيادة</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "التاريخ والوقت" : "Date & Time") : "Date & Time"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "المستخدم" : "User") : "User"}</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "العيادة" : "Clinic") : "Clinic"}</th>
                   <th className="px-6 py-4 font-semibold">الحدث (Action)</th>
-                  <th className="px-6 py-4 font-semibold">التفاصيل</th>
+                  <th className="px-6 py-4 font-semibold">{isRtl ? (isRtl ? "التفاصيل" : "Details") : "Details"}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
