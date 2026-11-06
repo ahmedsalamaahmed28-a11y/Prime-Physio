@@ -46,7 +46,6 @@ export default function UsersPermissionsPage() {
       "الإجراءات": "Actions",
       "تعديل": "Edit",
       "حذف": "Delete",
-      "إضافة مستخدم جديد": "Add New User",
       "أدخل بيانات الموظف لتوفير صلاحيات الدخول المخصصة له على المنصة.": "Enter the employee details and assign their platform access permissions.",
       "الاسم": "Name",
       "أدخل الاسم الثنائي أو الثلاثي": "Enter the employee's full name",
