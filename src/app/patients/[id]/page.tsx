@@ -1603,7 +1603,7 @@ function PackagesTab({ patient, onUpdatePatient }: { patient: any, onUpdatePatie
               <span className="font-medium">{pkg.usedSessions} / {pkg.totalSessions} {isRtl ? "جلسة" : "sessions"}</span>
             </div>
             <div className="h-3 bg-muted rounded-full overflow-hidden">
-              <div className={`h-full rounded-full transition-all ${isFinished ? 'bg-rose-500' : 'bg-emerald-500'}`} style={{ width: `${pct}%` }} />
+              <progress className={`csp-progress ${isFinished ? "csp-progress--rose" : "csp-progress--emerald"}`} value={pct} max={100} aria-label="Package sessions usage" />
             </div>
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>{pct}% {isRtl ? "مُستخدم" : "used"}</span>
