@@ -136,7 +136,7 @@ export const UserDropdown = ({
       
       {/* Delete Account Confirmation Dialog */}
       {showDeleteConfirmation && (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div dir={language === "ar" ? "rtl" : "ltr"} className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-white rounded-2xl p-6 max-w-md mx-4 shadow-2xl">
           <h3 className="text-lg font-bold mb-2">
             {language === "ar" ? "تأكيد حذف الحساب" : "Confirm Account Deletion"}
