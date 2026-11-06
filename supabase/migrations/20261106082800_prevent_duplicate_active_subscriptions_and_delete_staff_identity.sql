@@ -76,8 +76,167 @@ DECLARE
   v_new_id uuid;
 BEGIN
   v_email := lower(btrim(coalesce(p_user_email, '')));
-  IF p_order_id !~ '^[0-9]+$'
-     OR p_transaction_id !~ '^[0-9]+$'
+  IF p_order_id IS NULL OR p_order_id !~ '^[0-9]+
+     OR length(v_email) > 254
+     OR v_email !~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'
+     OR p_plan_name NOT IN ('silver', 'gold')
+     OR p_plan_price IS NULL OR p_plan_price <= 0
+     OR p_start_date IS NULL OR p_end_date IS NULL OR p_end_date <= p_start_date THEN
+    RAISE EXCEPTION 'invalid_subscription_payload' USING ERRCODE = '22023';
+  END IF;
+
+  SELECT s.id, s.clinic_id, s.transaction_id
+    INTO v_existing
+    FROM public.subscriptions s
+   WHERE s.order_id = p_order_id
+   LIMIT 1
+   FOR UPDATE;
+
+  IF FOUND THEN
+    IF v_existing.transaction_id <> p_transaction_id THEN
+      RAISE EXCEPTION 'order_already_used' USING ERRCODE = '23505';
+    END IF;
+    RETURN jsonb_build_object(
+      'subscription_id', v_existing.id,
+      'clinic_id', v_existing.clinic_id,
+      'duplicate', true
+    );
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM public.subscriptions s
+    WHERE s.transaction_id = p_transaction_id
+  ) THEN
+    RAISE EXCEPTION 'transaction_already_used' USING ERRCODE = '23505';
+  END IF;
+
+  IF p_clinic_id IS NOT NULL THEN
+    SELECT c.admin_email INTO v_clinic_admin_email
+    FROM public.clinics c
+    WHERE c.id = p_clinic_id
+    FOR UPDATE;
+
+    IF NOT FOUND OR lower(btrim(coalesce(v_clinic_admin_email, ''))) <> v_email THEN
+      RAISE EXCEPTION 'clinic_ownership_mismatch' USING ERRCODE = '42501';
+    END IF;
+  ELSE
+    PERFORM pg_advisory_xact_lock(hashtextextended('subscription:' || v_email, 0));
+  END IF;
+
+  UPDATE public.subscriptions s
+     SET status = 'canceled',
+         updated_at = now()
+   WHERE s.status = 'active'
+     AND (
+       (p_clinic_id IS NOT NULL AND s.clinic_id = p_clinic_id)
+       OR (s.clinic_id IS NULL AND lower(s.user_email) = v_email)
+     );
+
+  INSERT INTO public.subscriptions (
+    user_email, clinic_id, plan_name, plan_price, status,
+    order_id, transaction_id, start_date, end_date
+  ) VALUES (
+    v_email, p_clinic_id, p_plan_name, p_plan_price, 'active',
+    p_order_id, p_transaction_id, p_start_date, p_end_date
+  )
+  RETURNING id INTO v_new_id;
+
+  RETURN jsonb_build_object(
+    'subscription_id', v_new_id,
+    'clinic_id', p_clinic_id,
+    'duplicate', false
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.activate_paid_subscription(
+  text, text, text, uuid, text, numeric, timestamptz, timestamptz
+) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.activate_paid_subscription(
+  text, text, text, uuid, text, numeric, timestamptz, timestamptz
+) TO service_role;
+
+     OR p_transaction_id IS NULL OR p_transaction_id !~ '^[0-9]+
+     OR length(v_email) > 254
+     OR v_email !~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'
+     OR p_plan_name NOT IN ('silver', 'gold')
+     OR p_plan_price IS NULL OR p_plan_price <= 0
+     OR p_start_date IS NULL OR p_end_date IS NULL OR p_end_date <= p_start_date THEN
+    RAISE EXCEPTION 'invalid_subscription_payload' USING ERRCODE = '22023';
+  END IF;
+
+  SELECT s.id, s.clinic_id, s.transaction_id
+    INTO v_existing
+    FROM public.subscriptions s
+   WHERE s.order_id = p_order_id
+   LIMIT 1
+   FOR UPDATE;
+
+  IF FOUND THEN
+    IF v_existing.transaction_id <> p_transaction_id THEN
+      RAISE EXCEPTION 'order_already_used' USING ERRCODE = '23505';
+    END IF;
+    RETURN jsonb_build_object(
+      'subscription_id', v_existing.id,
+      'clinic_id', v_existing.clinic_id,
+      'duplicate', true
+    );
+  END IF;
+
+  IF EXISTS (
+    SELECT 1 FROM public.subscriptions s
+    WHERE s.transaction_id = p_transaction_id
+  ) THEN
+    RAISE EXCEPTION 'transaction_already_used' USING ERRCODE = '23505';
+  END IF;
+
+  IF p_clinic_id IS NOT NULL THEN
+    SELECT c.admin_email INTO v_clinic_admin_email
+    FROM public.clinics c
+    WHERE c.id = p_clinic_id
+    FOR UPDATE;
+
+    IF NOT FOUND OR lower(btrim(coalesce(v_clinic_admin_email, ''))) <> v_email THEN
+      RAISE EXCEPTION 'clinic_ownership_mismatch' USING ERRCODE = '42501';
+    END IF;
+  ELSE
+    PERFORM pg_advisory_xact_lock(hashtextextended('subscription:' || v_email, 0));
+  END IF;
+
+  UPDATE public.subscriptions s
+     SET status = 'canceled',
+         updated_at = now()
+   WHERE s.status = 'active'
+     AND (
+       (p_clinic_id IS NOT NULL AND s.clinic_id = p_clinic_id)
+       OR (s.clinic_id IS NULL AND lower(s.user_email) = v_email)
+     );
+
+  INSERT INTO public.subscriptions (
+    user_email, clinic_id, plan_name, plan_price, status,
+    order_id, transaction_id, start_date, end_date
+  ) VALUES (
+    v_email, p_clinic_id, p_plan_name, p_plan_price, 'active',
+    p_order_id, p_transaction_id, p_start_date, p_end_date
+  )
+  RETURNING id INTO v_new_id;
+
+  RETURN jsonb_build_object(
+    'subscription_id', v_new_id,
+    'clinic_id', p_clinic_id,
+    'duplicate', false
+  );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION public.activate_paid_subscription(
+  text, text, text, uuid, text, numeric, timestamptz, timestamptz
+) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.activate_paid_subscription(
+  text, text, text, uuid, text, numeric, timestamptz, timestamptz
+) TO service_role;
+
+     OR p_plan_name IS NULL
      OR length(v_email) > 254
      OR v_email !~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'
      OR p_plan_name NOT IN ('silver', 'gold')
