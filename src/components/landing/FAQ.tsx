@@ -41,8 +41,7 @@ export default function FAQ() {
 
         <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div data-csp-motion="reveal" className="border border-slate-200 rounded-2xl overflow-hidden bg-white"
-            >
+            <div key={index} data-csp-motion="reveal" className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
               <button
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
                 className="flex items-center justify-between w-full p-6 text-right focus:outline-none"
