@@ -26,11 +26,11 @@ interface CustomMonthCalendarProps {
   selectable: boolean;
 }
 
-const VISIT_COLORS: Record<string, string> = {
-  "جلسة علاج": "#119094",
-  "كشف أول": "#7c3aed",
-  "متابعة": "#0891b2",
-  "تقييم": "#d97706",
+const VISIT_COLOR_CLASSES: Record<string, string> = {
+  "جلسة علاج": "bg-[#119094]",
+  "كشف أول": "bg-violet-600",
+  "متابعة": "bg-cyan-600",
+  "تقييم": "bg-amber-600",
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -153,16 +153,12 @@ export default function CustomMonthCalendar({
                 </div>
                 <div className="space-y-0.5">
                   {dayEvents.slice(0, 3).map((ev) => {
-                    const bgColor = ev.status === "ملغي" ? "#94a3b8" : VISIT_COLORS[ev.visitType] || "#119094";
+                    const eventColorClass = ev.status === "ملغي" ? "bg-slate-400 opacity-60" : (VISIT_COLOR_CLASSES[ev.visitType] || "bg-[#119094]");
                     return (
                       <div
                         key={ev.id}
                         onClick={(e) => { e.stopPropagation(); onSelectEvent(ev); }}
-                        className="text-xs text-white rounded px-1.5 py-0.5 truncate leading-tight shadow-sm hover:shadow-md transition-shadow font-medium"
-                        style={{
-                          backgroundColor: bgColor,
-                          opacity: ev.status === "ملغي" ? 0.6 : 1,
-                        }}
+                        className={`text-xs text-white rounded px-1.5 py-0.5 truncate leading-tight shadow-sm hover:shadow-md transition-shadow font-medium ${eventColorClass}`}
                       >
                         {ev.title}
                       </div>
