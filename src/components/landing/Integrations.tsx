@@ -69,7 +69,7 @@ export default function Integrations() {
             className="relative z-20 w-32 h-32 rounded-3xl bg-gradient-to-br from-indigo-500 to-purple-600 p-[2px] shadow-2xl shadow-indigo-500/50"
           >
             <div className="w-full h-full bg-slate-900 rounded-[22px] flex items-center justify-center flex-col gap-2">
-              <RefreshCw className="w-10 h-10 text-indigo-400 animate-spin-slow duration-[3000ms]" />
+              <RefreshCw className="w-10 h-10 text-indigo-400 animate-spin-slow spin-3s" />
               <span className="text-white font-bold text-sm">Prime Physio</span>
             </div>
           </motion.div>
