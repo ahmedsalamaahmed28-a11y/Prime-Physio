@@ -255,7 +255,7 @@ export default function FeaturesDetail() {
                 transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
                 className="w-full lg:w-1/2"
               >
-                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-slate-200/50 border-4 border-slate-800 bg-slate-800 group" style={{ height: "380px" }}>
+                <div className="h-[380px] rounded-2xl overflow-hidden shadow-2xl shadow-slate-200/50 border-4 border-slate-800 bg-slate-800 group">
                   <div className="h-6 bg-slate-800 flex items-center px-3 gap-1.5 shrink-0 w-full">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
                     <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
