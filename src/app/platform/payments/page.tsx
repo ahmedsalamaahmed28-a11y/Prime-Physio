@@ -86,7 +86,7 @@ export default function PlatformPaymentsPage() {
               <tbody className="divide-y divide-slate-100">
                 {payments.map((p) => (
                   <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-700" dir="ltr" style={{ textAlign: "right" }}>
+                    <td className="px-6 py-4 font-medium text-slate-700 text-right" dir="ltr">
                       {new Date(p.created_at).toLocaleString("ar-EG")}
                     </td>
                     <td className="px-6 py-4 font-bold text-slate-800">
