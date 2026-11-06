@@ -87,7 +87,7 @@ export default function PlatformSettingsPage() {
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <Settings className="w-7 h-7 text-indigo-600" />
-          <h1 className="text-2xl font-bold text-slate-800">{isRtl ? (isRtl ? "إعدادات النظام" : "System Settings") : "System Settings"}</h1>
+          <h1 className="text-2xl font-bold text-slate-800">{isRtl ? "إعدادات النظام" : "System Settings"}</h1>
         </div>
         <button 
           onClick={handleSave}
@@ -114,8 +114,8 @@ export default function PlatformSettingsPage() {
           </div>
           <div className="flex-1 w-full space-y-4">
             <div>
-              <h3 className="font-bold text-slate-800 text-lg mb-1">{isRtl ? (isRtl ? "الإعدادات العامة" : "General Settings") : "General Settings"}</h3>
-              <p className="text-sm text-slate-500">{isRtl ? (isRtl ? "تعديل اسم المنصة وبريد الدعم الفني." : "Edit the platform name and support email.") : "Edit the platform name and support email."}</p>
+              <h3 className="font-bold text-slate-800 text-lg mb-1">{isRtl ? "الإعدادات العامة" : "General Settings"}</h3>
+              <p className="text-sm text-slate-500">{isRtl ? "تعديل اسم المنصة وبريد الدعم الفني." : "Edit the platform name and support email."}</p>
             </div>
             
             {loading ? (
@@ -125,7 +125,7 @@ export default function PlatformSettingsPage() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700">{isRtl ? (isRtl ? "اسم المنصة" : "Platform Name") : "Platform Name"}</label>
+                  <label className="block text-sm font-medium text-slate-700">{isRtl ? "اسم المنصة" : "Platform Name"}</label>
                   <input
                     type="text"
                     value={settings.platform_name}
@@ -134,7 +134,7 @@ export default function PlatformSettingsPage() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700">{isRtl ? (isRtl ? "بريد الدعم الفني" : "Support Email") : "Support Email"}</label>
+                  <label className="block text-sm font-medium text-slate-700">{isRtl ? "بريد الدعم الفني" : "Support Email"}</label>
                   <input
                     type="email"
                     value={settings.support_email}
@@ -155,14 +155,14 @@ export default function PlatformSettingsPage() {
           </div>
           <div className="flex-1 w-full space-y-4">
             <div>
-              <h3 className="font-bold text-slate-800 text-lg mb-1">{isRtl ? (isRtl ? "إعدادات التسجيل والاشتراكات" : "Registration & Subscription Settings") : "Registration & Subscription Settings"}</h3>
-              <p className="text-sm text-slate-500">{isRtl ? (isRtl ? "التحكم في تسجيل العيادات الجديدة والفترات التجريبية." : "Control new clinic registrations and trial periods.") : "Control new clinic registrations and trial periods."}</p>
+              <h3 className="font-bold text-slate-800 text-lg mb-1">{isRtl ? "إعدادات التسجيل والاشتراكات" : "Registration & Subscription Settings"}</h3>
+              <p className="text-sm text-slate-500">{isRtl ? "التحكم في تسجيل العيادات الجديدة والفترات التجريبية." : "Control new clinic registrations and trial periods."}</p>
             </div>
             
             {!loading && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <div className="space-y-1.5">
-                  <label className="block text-sm font-medium text-slate-700">{isRtl ? (isRtl ? "أيام الفترة التجريبية الافتراضية" : "Default Trial Period (Days)") : "Default Trial Period (Days)"}</label>
+                  <label className="block text-sm font-medium text-slate-700">{isRtl ? "أيام الفترة التجريبية الافتراضية" : "Default Trial Period (Days)"}</label>
                   <input
                     type="number"
                     min="0"
@@ -173,8 +173,8 @@ export default function PlatformSettingsPage() {
                 </div>
                 <div className="space-y-1.5 flex items-center justify-between h-full pt-6">
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-slate-700">{isRtl ? (isRtl ? "السماح بتسجيل عيادات جديدة" : "Allow New Clinic Signups") : "Allow New Clinic Signups"}</span>
-                    <span className="text-xs text-slate-500">إتاحة إنشاء حسابات عبر صفحة Signup</span>
+                    <span className="text-sm font-medium text-slate-700">{isRtl ? "السماح بتسجيل عيادات جديدة" : "Allow New Clinic Signups"}</span>
+                    <span className="text-xs text-slate-500">{isRtl ? "إتاحة إنشاء حسابات عبر صفحة" : "Allow account creation via"} Signup</span>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input 
@@ -198,8 +198,8 @@ export default function PlatformSettingsPage() {
               <Bell className="w-6 h-6 text-amber-600" />
             </div>
             <div>
-              <h3 className="font-bold text-slate-800 text-lg mb-1">الإشعارات المركزية (System Broadcasts)</h3>
-              <p className="text-sm text-slate-500">{isRtl ? (isRtl ? "إرسال إشعار عام يظهر لجميع المستخدمين في النظام." : "Send a system-wide announcement to all users.") : "Send a system-wide announcement to all users."}</p>
+              <h3 className="font-bold text-slate-800 text-lg mb-1">{isRtl ? "الإشعارات المركزية (System Broadcasts)" : "Global Notifications (System Broadcasts)"}</h3>
+              <p className="text-sm text-slate-500">{isRtl ? "إرسال إشعار عام يظهر لجميع المستخدمين في النظام." : "Send a system-wide announcement to all users."}</p>
             </div>
           </div>
           
@@ -233,7 +233,7 @@ export default function PlatformSettingsPage() {
             className="w-full bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-4"
           >
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-slate-700">{isRtl ? (isRtl ? "عنوان الإشعار" : "Notification Title") : "Notification Title"}</label>
+              <label className="block text-sm font-medium text-slate-700">{isRtl ? "عنوان الإشعار" : "Notification Title"}</label>
               <input
                 type="text"
                 name="title"
@@ -243,7 +243,7 @@ export default function PlatformSettingsPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-slate-700">{isRtl ? (isRtl ? "محتوى الإشعار" : "Notification Message") : "Notification Message"}</label>
+              <label className="block text-sm font-medium text-slate-700">{isRtl ? "محتوى الإشعار" : "Notification Message"}</label>
               <textarea
                 name="message"
                 required
