@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." });
     }
 
-    return NextResponse.json({ success: true, sent: true }, { headers: { "Cache-Control": "no-store, private" } });
+    return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error) {
     if (error instanceof Error && error.message === "OTP_RATE_LIMIT") {
       return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." });
