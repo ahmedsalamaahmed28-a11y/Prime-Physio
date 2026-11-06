@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
 
     const { data: staff, error } = await admin
       .from("staff")
-      .select("clinic_id, role")
+      .select("clinic_id, role, status")
       .eq("email", session.user.email.toLowerCase().trim())
       .limit(1)
       .maybeSingle();
@@ -77,7 +77,7 @@ export async function GET(req: NextRequest) {
     }
 
     // A confirmed missing membership or clinic is an onboarding state; a query error is not.
-    if (!staff?.clinic_id) {
+    if (!staff?.clinic_id || staff.status === "محذوف" || staff.status === "deleted") {
       return NextResponse.json({ clinicId: null, role: null }, { headers: { "Cache-Control": "no-store, private" } });
     }
 

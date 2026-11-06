@@ -163,30 +163,21 @@ async function persistSubscription(obj: any): Promise<{ clinicId: string | null;
   const endDate = new Date();
   endDate.setMonth(endDate.getMonth() + months);
 
-  const { error: insertError } = await admin.from("subscriptions").insert({
-    user_email: email,
-    clinic_id: info.clinicId || null,
-    plan_name: planId,
-    plan_price: Number(info.price),
-    status: "active",
-    order_id: orderId,
-    transaction_id: transactionId,
-    start_date: new Date().toISOString(),
-    end_date: endDate.toISOString(),
+  const startDate = new Date();
+  const { data: activation, error: activationError } = await admin.rpc("activate_paid_subscription", {
+    p_order_id: orderId,
+    p_transaction_id: transactionId,
+    p_user_email: email,
+    p_clinic_id: info.clinicId || null,
+    p_plan_name: planId,
+    p_plan_price: Number(info.price),
+    p_start_date: startDate.toISOString(),
+    p_end_date: endDate.toISOString(),
   });
 
-  if (insertError) {
-    if (insertError.code === "23505") {
-      const { data: raced } = await admin
-        .from("subscriptions")
-        .select("clinic_id, transaction_id")
-        .eq("order_id", orderId)
-        .maybeSingle();
-      if (raced && String(raced.transaction_id) === transactionId) {
-        return { clinicId: raced.clinic_id, duplicate: true };
-      }
-    }
-    throw insertError;
+  if (activationError) throw activationError;
+  if (!activation || typeof activation !== "object") {
+    throw new Error("Subscription activation returned an invalid result");
   }
 
   const { error: cleanupError } = await admin
@@ -195,7 +186,10 @@ async function persistSubscription(obj: any): Promise<{ clinicId: string | null;
     .eq("key", `paymob_order_${orderId}`);
   if (cleanupError) console.error("[Paymob] Could not remove processed order mapping:", cleanupError);
 
-  return { clinicId: info.clinicId || null, duplicate: false };
+  return {
+    clinicId: typeof activation.clinic_id === "string" ? activation.clinic_id : info.clinicId || null,
+    duplicate: activation.duplicate === true,
+  };
 }
 
 // GET is only a browser redirect. A signed redirect is not used to activate a subscription;

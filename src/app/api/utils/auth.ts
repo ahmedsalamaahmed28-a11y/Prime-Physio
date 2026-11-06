@@ -119,12 +119,12 @@ export async function requireRole(
 
   const { data: staff } = await admin
     .from("staff")
-    .select("role, clinic_id")
+    .select("role, clinic_id, status")
     .eq("email", authed.email)
     .limit(1)
     .maybeSingle();
 
-  if (!staff) {
+  if (!staff || staff.status === "محذوف" || staff.status === "deleted") {
     if (allowedRoles.includes("platform_admin")) {
         throw new Error("Unauthorized — you are not a platform admin");
     }

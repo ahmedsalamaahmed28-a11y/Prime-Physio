@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     // 1. Check if user is already in staff
     const { data: existingStaff, error: staffLookupError } = await admin
       .from("staff")
-      .select("clinic_id, role")
+      .select("clinic_id, role, status")
       .eq("email", email)
       .limit(1)
       .maybeSingle();
@@ -40,6 +40,10 @@ export async function POST(req: NextRequest) {
     if (staffLookupError) {
       console.error("[AutoProvision] Staff lookup failed:", staffLookupError);
       return NextResponse.json({ error: "Unable to verify account" }, { status: 500 });
+    }
+
+    if (existingStaff?.status === "محذوف" || existingStaff?.status === "deleted") {
+      return NextResponse.json({ error: "This account has been removed from the clinic" }, { status: 403 });
     }
 
     if (existingStaff?.clinic_id) {

@@ -2,7 +2,7 @@ name: Security and application checks
 
 on:
   push:
-    branches: [main, security/critical-hardening]
+    branches: [main, security/critical-hardening, security-audit/phase-3]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -39,10 +39,10 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps --no-audit --no-fund
 
-      - name: Audit production dependencies
+      - name: Audit all dependencies
         id: dependency_audit
         continue-on-error: true
-        run: npm audit --omit=dev --audit-level=high
+        run: npm audit --audit-level=high
 
       - name: TypeScript
         run: npx tsc --noEmit

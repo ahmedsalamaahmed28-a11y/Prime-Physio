@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     const { data: staffUser, error: staffError } = await admin
       .from("staff")
-      .select("id")
+      .select("id, status")
       .eq("email", cleanEmail)
       .maybeSingle();
 
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(genericResponse);
     }
 
-    const eligible = (existingAuth?.verified === true) || (!existingAuth && !!staffUser);
+    const eligible = (existingAuth?.verified === true) || (!existingAuth && !!staffUser && staffUser.status !== "محذوف" && staffUser.status !== "deleted");
     if (!eligible) return NextResponse.json(genericResponse);
 
     try {

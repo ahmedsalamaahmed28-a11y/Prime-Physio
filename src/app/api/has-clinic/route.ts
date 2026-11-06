@@ -15,12 +15,12 @@ export async function GET(req: NextRequest) {
 
     const { data: staff, error } = await getAdminClient()
       .from("staff")
-      .select("clinic_id")
+      .select("clinic_id, status")
       .eq("email", user.email.toLowerCase().trim())
       .limit(1)
       .maybeSingle();
     if (error) return NextResponse.json({ error: "Unable to verify clinic membership" }, { status: 500 });
-    return NextResponse.json({ hasClinic: Boolean(staff?.clinic_id) }, {
+    return NextResponse.json({ hasClinic: Boolean(staff?.clinic_id && staff.status !== "محذوف" && staff.status !== "deleted") }, {
       headers: { "Cache-Control": "no-store, private" },
     });
   } catch (error) {

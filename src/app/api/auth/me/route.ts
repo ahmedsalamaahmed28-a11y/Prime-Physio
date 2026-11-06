@@ -18,12 +18,12 @@ export async function GET(req: NextRequest) {
     // Get staff info
     const { data: staff } = await admin
       .from("staff")
-      .select("clinic_id, role, name")
+      .select("clinic_id, role, name, status")
       .eq("email", email)
       .limit(1)
       .maybeSingle();
 
-    if (!staff?.clinic_id) {
+    if (!staff?.clinic_id || staff.status === "محذوف" || staff.status === "deleted") {
       return NextResponse.json({
         user: { email, name: staff?.name || "" },
         subscription: null,
