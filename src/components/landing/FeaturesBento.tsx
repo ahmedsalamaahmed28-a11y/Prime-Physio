@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import {
   CalendarDays,
   ClipboardCheck,
@@ -76,12 +75,8 @@ export default function FeaturesBento() {
     <section id="features" className="relative overflow-hidden bg-white py-20 sm:py-24" dir="rtl">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_10%,rgba(79,70,229,0.055),transparent_30%),radial-gradient(circle_at_90%_80%,rgba(11,76,150,0.05),transparent_28%)]" />
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
-        <motion.div
+        <div data-csp-motion="reveal"
           className="mx-auto mb-14 max-w-3xl text-center"
-          initial={{ opacity: 0, y: 18 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.35 }}
-          transition={{ duration: 0.45 }}
         >
           <span className="mb-5 inline-flex items-center gap-2 rounded-full border border-indigo-100 bg-indigo-50 px-4 py-2 text-sm font-bold text-indigo-700">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
@@ -93,20 +88,15 @@ export default function FeaturesBento() {
           <p className="text-base font-medium leading-8 text-slate-600 sm:text-lg">
             أدوات مترابطة لتنظيم المواعيد والملفات الطبية والحسابات والفريق، مع تحكم واضح في البيانات والتقارير.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
           {features.map((feature, index) => {
             const Icon = feature.icon;
             const tone = toneClasses[feature.tone];
             return (
-              <motion.article
+              <article data-csp-motion="reveal"
                 key={feature.title}
-                initial={{ opacity: 0, y: 22 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                whileHover={{ y: -6 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ duration: 0.4, delay: index * 0.06 }}
                 className={`group flex h-full flex-col rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/60 sm:p-8 ${tone.glow}`}
               >
                 <div className={`mb-6 flex h-14 w-14 items-center justify-center rounded-2xl ${tone.icon}`}>
@@ -126,7 +116,7 @@ export default function FeaturesBento() {
                     </li>
                   ))}
                 </ul>
-              </motion.article>
+              </article>
             );
           })}
         </div>
