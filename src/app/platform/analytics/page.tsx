@@ -64,7 +64,7 @@ export default function PlatformAnalyticsPage() {
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group hover:border-blue-300 transition-colors">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-slate-500 font-semibold text-sm">Visitor Conversion Rate (Conversion)</h3>
+            <h3 className="text-slate-500 font-semibold text-sm">{isRtl ? "معدل تحويل الزوار" : "Visitor Conversion Rate"}</h3>
             <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
               <Activity className="w-5 h-5" />
             </div>
