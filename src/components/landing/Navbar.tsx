@@ -165,6 +165,7 @@ export default function Navbar() {
               </button>
             </div>
             <div className="mt-6 flow-root">
+              <button type="button" onClick={() => { toggleLanguage(); setMobileMenuOpen(false); }} className="mb-4 w-full rounded-lg border border-slate-200 px-3 py-2 text-start text-sm font-bold text-slate-700">{isRtl ? "English" : "العربية"}</button>
               <div className="-my-6 divide-y divide-slate-500/10">
                 <div className="space-y-2 py-6">
                   {navLinks.map((link) => (
