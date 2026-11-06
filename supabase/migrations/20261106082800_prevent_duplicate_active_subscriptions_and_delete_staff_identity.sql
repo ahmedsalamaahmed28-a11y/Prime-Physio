@@ -76,9 +76,11 @@ DECLARE
   v_new_id uuid;
 BEGIN
   v_email := lower(btrim(coalesce(p_user_email, '')));
-  IF p_order_id IS NULL OR p_order_id !~ '^[0-9]+
+  IF p_order_id IS NULL OR p_order_id = '' OR p_order_id ~ '[^0-9]'
+     OR p_transaction_id IS NULL OR p_transaction_id = '' OR p_transaction_id ~ '[^0-9]'
+     OR p_plan_name IS NULL OR p_plan_name NOT IN ('silver', 'gold')
+     OR length(v_email) > 254
      OR v_email !~ '^[^[:space:]@]+@[^[:space:]@]+\.[^[:space:]@]+$'
-     OR p_plan_name NOT IN ('silver', 'gold')
      OR p_plan_price IS NULL OR p_plan_price <= 0
      OR p_start_date IS NULL OR p_end_date IS NULL OR p_end_date <= p_start_date THEN
     RAISE EXCEPTION 'invalid_subscription_payload' USING ERRCODE = '22023';
