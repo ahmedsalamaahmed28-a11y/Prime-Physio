@@ -53,7 +53,7 @@ export default function PlatformSupportPage() {
           </div>
           <div>
             <p className="text-xs text-slate-500 font-bold mb-1">{isRtl ? "متوسط سرعة الرد" : "Average Response Time"}</p>
-            <p className="text-2xl font-black text-slate-800">&lt; 5 min</p>
+            <p className="text-2xl font-black text-slate-800">&lt; 5 {isRtl ? "دقائق" : "min"}</p>
           </div>
         </div>
 
