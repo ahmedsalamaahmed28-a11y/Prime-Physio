@@ -130,7 +130,7 @@ export default function PlatformAuditLogsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-slate-600 max-w-md truncate">
-                      {formatAuditDetails(log.details)}
+                      {log.details == null ? (isRtl ? "محجوبة لحماية خصوصية المرضى" : "Redacted to protect patient privacy") : formatAuditDetails(log.details)}
                     </td>
                   </tr>
                 ))}
