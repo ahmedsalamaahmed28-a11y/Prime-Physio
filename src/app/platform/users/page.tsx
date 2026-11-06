@@ -112,7 +112,7 @@ export default function PlatformUsersPage() {
                 {users.map((u) => (
                   <tr key={u.id} className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 font-medium text-slate-800">{u.name}</td>
-                    <td className="px-6 py-4" dir="ltr" style={{ textAlign: "right" }}>{u.email}</td>
+                    <td className="px-6 py-4 text-right" dir="ltr">{u.email}</td>
                     <td className="px-6 py-4">
                       <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-xs font-medium">
                         {u.role}
