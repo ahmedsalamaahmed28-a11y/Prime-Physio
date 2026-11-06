@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Users, BarChart3, FileText, Home, Search, Bell, Settings, CreditCard } from "lucide-react";
 
 export default function DashboardInteractive() {
@@ -121,12 +120,8 @@ export default function DashboardInteractive() {
                     {/* Content Area Viewport */}
                     <div className="flex-1 p-6 overflow-hidden relative">
                       <AnimatePresence mode="wait">
-                        <motion.div
+                        <div data-csp-motion="reveal"
                           key={activeTab}
-                          initial={{ opacity: 0, y: 15 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -15 }}
-                          transition={{ duration: 0.25, ease: "easeOut" }}
                           className="h-full w-full absolute inset-0 p-6"
                         >
                           {/* 1. Home Tab Mockup */}
@@ -249,7 +244,7 @@ export default function DashboardInteractive() {
                               </div>
                             </div>
                           )}
-                        </motion.div>
+                        </div>
                       </AnimatePresence>
                     </div>
                   </div>
