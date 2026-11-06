@@ -42,7 +42,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unable to verify account" }, { status: 500 });
     }
 
-    if (existingStaff?.status === "محذوف" || existingStaff?.status === "deleted") {\n      return NextResponse.json({ error: "This account has been removed from the clinic" }, { status: 403 });\n    }\n\n    if (existingStaff?.clinic_id) {
+    if (existingStaff?.status === "محذوف" || existingStaff?.status === "deleted") {
+      return NextResponse.json({ error: "This account has been removed from the clinic" }, { status: 403 });
+    }
+
+    if (existingStaff?.clinic_id) {
       return NextResponse.json(
         { clinicId: existingStaff.clinic_id, clinicName },
         { headers: { "Cache-Control": "no-store, private" } }
