@@ -798,14 +798,17 @@ export default function CalendarPage() {
     if (!completedEvent || completedEvent.status === "منتهي") return false;
 
     try {
-      const response = await fetch("/api/calendar", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "complete", appointmentId: id, outcome }),
+      const { data, error } = await supabase.rpc("complete_appointment_and_record_progress", {
+        p_appointment_id: id,
+        p_pain_before: outcome.painBefore,
+        p_pain_after: outcome.painAfter,
+        p_rom_status: outcome.romStatus || null,
+        p_strength_status: outcome.strengthStatus || null,
+        p_recovery_score: outcome.recoveryScore,
+        p_completed_exercises: outcome.completedExercises.map((name) => ({ name })),
+        p_notes: outcome.notes || null,
       });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "تعذر إنهاء الجلسة وتسجيل التقدم");
-      const data = result.data;
+      if (error) throw error;
 
       syncEventsState(events.map((event) => event.id === id ? { ...event, status: "منتهي" } : event));
       if (data?.already_completed) {
