@@ -44,18 +44,18 @@ const SIDEBAR_ITEMS = [
 export default function PlatformLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isLoading, logout } = useAuth();
+  const { user, isLoading, isEnriching, logout } = useAuth();
   const { language, toggleLanguage } = useLanguage();
   const isRtl = language === "ar";
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && user && user.roleKey !== "platform_admin") {
+    if (!isLoading && !isEnriching && user && user.roleKey !== "platform_admin") {
       router.replace("/home");
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, isEnriching, router]);
 
-  if (isLoading || !user) {
+  if (isLoading || isEnriching || !user) {
     return <LoadingSpinner />;
   }
 
