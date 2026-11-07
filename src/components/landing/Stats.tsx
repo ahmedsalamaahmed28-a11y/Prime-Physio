@@ -20,8 +20,8 @@ const stats = [
 
 function AnimatedStatValue({ value }: { value: string }) {
   const elementRef = useRef<HTMLSpanElement>(null);
+  const startedRef = useRef(false);
   const [count, setCount] = useState(0);
-  const [started, setStarted] = useState(false);
 
   const match = value.match(/^([^0-9]*)([0-9,]+)(.*)$/);
   const prefix = match?.[1] ?? "";
@@ -30,22 +30,25 @@ function AnimatedStatValue({ value }: { value: string }) {
 
   useEffect(() => {
     const element = elementRef.current;
-    if (!element || started) return;
+    if (!element || startedRef.current) return;
+
+    let animationFrame = 0;
 
     const startCounting = () => {
-      setStarted(true);
-      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reducedMotion) {
+      if (startedRef.current) return;
+      startedRef.current = true;
+
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         setCount(target);
         return;
       }
 
       const duration = 1100;
-      let animationFrame = 0;
       let startTime = 0;
 
       const animate = (timestamp: number) => {
         if (!startTime) startTime = timestamp;
+
         const progress = Math.min((timestamp - startTime) / duration, 1);
         const easedProgress = 1 - Math.pow(1 - progress, 3);
         setCount(Math.round(target * easedProgress));
@@ -58,31 +61,33 @@ function AnimatedStatValue({ value }: { value: string }) {
       };
 
       animationFrame = window.requestAnimationFrame(animate);
-      return () => window.cancelAnimationFrame(animationFrame);
     };
 
     if (typeof IntersectionObserver === "undefined") {
-      const cleanup = startCounting();
-      return typeof cleanup === "function" ? cleanup : undefined;
+      startCounting();
+    } else {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            startCounting();
+            observer.disconnect();
+          }
+        },
+        { threshold: 0.1 }
+      );
+
+      observer.observe(element);
+
+      return () => {
+        observer.disconnect();
+        if (animationFrame) window.cancelAnimationFrame(animationFrame);
+      };
     }
 
-    let cleanupAnimation: (() => void) | undefined;
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          cleanupAnimation = startCounting();
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.35 }
-    );
-
-    observer.observe(element);
     return () => {
-      observer.disconnect();
-      cleanupAnimation?.();
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
     };
-  }, [started, target]);
+  }, [target]);
 
   return (
     <span ref={elementRef} aria-label={value} className="tabular-nums">
