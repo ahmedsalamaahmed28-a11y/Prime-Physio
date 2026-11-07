@@ -110,6 +110,18 @@ const copy: Record<string, string> = {
   "فاتورة كشف - مريض محمد علي":"Consultation invoice – Mohamed Ali","باقة 6 جلسات - مريضة سارة":"6-session package – Sarah","شراء مستلزمات طبية":"Medical supplies purchase","جلسة ليزر - مريض كريم":"Laser session – Karim",
   "جدول المواعيد":"Appointment schedule","أسبوع":"Week","شهر":"Month","محمود خالد":"Mahmoud Khaled","غرفة 1 - د. أحمد":"Room 1 – Dr. Ahmed","سعاد حسن":"Souad Hassan","طارق عبد السلام":"Tarek Abdelsalam","منى سيد":"Mona Sayed",
   "مركزك":"your clinic","المركز":"clinic","الحساب":"account","جلسات":"sessions","المواعيد":"appointments","المرضى (duplicate)":"patients",
+  "قصص نجاح عملائنا":"Customer success stories",
+  "انضم إلى مئات المراكز التي ضاعفت كفاءتها وأرباحها باستخدام منصتنا":"Join clinics that have improved their efficiency and performance with our platform",
+  "صاحب مركز Elite Physio":"Owner, Elite Physio Clinic","مديرة عيادة":"Clinic manager","دكتور علاج طبيعي":"Physiotherapist","مدير فروع":"Branch manager",
+  "بصراحة من يوم ما اشتغلنا ببرايم فيزيو واللخبطة في المواعيد اختفت خالص، والعيادة بقت ماشية زي الساعة. أريح سيستم اتعاملت معاه!":"Since we started using Prime Physio, appointment chaos has disappeared and the clinic runs like clockwork. It’s the easiest system I’ve ever used!",
+  "البرنامج خفيف ومخدش مني يومين عشان أتعود عليه. ورسايل الواتس آب اللي بتتبعت للمرضى ريحتني من وجع الدماغ بتاع تأكيد المواعيد كل يوم.":"The software is easy to learn. WhatsApp reminders have saved me the daily hassle of confirming appointments with patients.",
+  "أكتر حاجة عجباني هي الـ Body Chart، بطلع ملف العيان وأسجل كل حاجة في الجلسة في ثواني. وفر عليا وقت ومجهود كبير جداً بصراحة.":"My favorite feature is the Body Chart. I can open a patient record and document the session in seconds. It saves me a lot of time and effort.",
+  "عشان ماسك كذا فرع، كان موضوع التقارير ده كابوس. دلوقتي بفتح الموبايل وأنا في البيت أجيب كل الحسابات وجرد الفروع في تكّة واحدة.":"Managing reports across several branches used to be a nightmare. Now I can check all accounts and branch inventories from my phone in one go.",
+  "تسجيل الجلسة في 30 ثانية":"Document a session in 30 seconds","تحكم كامل في 5 فروع":"Full control of 5 branches",
+  "كيف ضاعف مركز Elite Physio أرباحه في 3 أشهر؟":"How did Elite Physio double its profits in three months?",
+  "قبل برايم فيزيو، كانت الإدارة الورقية والجدولة اليدوية بتضيع وقتنا كله. دلوقتي النظام الديجيتال وفر علينا مجهود ضخم، وقدرنا نركز أكتر على جودة الجلسات واستيعاب عدد أكبر من المرضى يومياً.":"Before Prime Physio, paperwork and manual scheduling took up all our time. The digital system has saved us significant effort, allowing us to focus on session quality and serve more patients each day.",
+  "وفر":"saved","وفرنا 30% من وقت الاستقبال":"Saved 30% of reception time","المدير الطبي لمركز Elite Physio":"Medical Director, Elite Physio",
+  "أخصائي":"Therapist","د. أحمد سلامة":"Dr. Ahmed Salama","د. أحمد كمال":"Dr. Ahmed Kamal","سارة محمد":"Sarah Mohamed","د. عمر حسين":"Dr. Omar Hussein","م. خالد يوسف":"Eng. Khaled Youssef",
   "منذ":"Since","التشخيص الحالي":"Current diagnosis","تاريخ الجلسات":"Session history","جلسة جديدة +":"New session +","هذا الشهر":"This month","إجمالي الإيرادات":"Total revenue","إجمالي المصروفات":"Total expenses","أحدث الفواتير":"Latest invoices","مدفوع":"Paid","مصروف":"Expense","متبقي":"Remaining","غرفة":"Room","كشف جديد":"New assessment",
 };
 
