@@ -289,25 +289,19 @@ function PatientsContent() {
       const response = await fetch("/api/patients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newPatient),
+        body: JSON.stringify({
+          ...newPatient,
+          invoice: newInvoice,
+          appointment: newAppointment,
+        }),
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok) {
         throw new Error(result.error || "تعذر حفظ بيانات المريض");
       }
       
-      // AUTOMATIC INVOICE CREATION
-      try {
-        await supabase.from("invoices").insert([newInvoice]);
-      } catch (invErr) {
-        console.warn("Failed to automatically generate invoice for new patient:", invErr);
-      }
-
-      // AUTOMATIC APPOINTMENT CREATION
-      try {
-        await supabase.from("appointments").insert([newAppointment]);
-      } catch (aptErr) {
-        console.warn("Failed to automatically create appointment for new patient:", aptErr);
+      if (Array.isArray(result.warnings) && result.warnings.length > 0) {
+        alert(result.warnings.join("\n"));
       }
 
       saveLocalPatients([...patients, newPatient].sort((a, b) => a.id.localeCompare(b.id)));
