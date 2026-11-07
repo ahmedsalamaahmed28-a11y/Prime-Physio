@@ -153,3 +153,11 @@
   border-bottom-color:rgba(226,232,240,.6);
   box-shadow:0 2px 12px -8px rgba(15,27,45,.2);
 }
+
+
+/* Trusted-clinics marquee: use a direction-aware half-track loop so the
+   duplicated logo sequence repeats seamlessly in both Arabic and English. */
+.pp-trusted-strip-track[dir="ltr"]{direction:ltr;animation:pp-trusted-strip-loop-ltr 42s linear infinite;}
+.pp-trusted-strip-track[dir="rtl"]{direction:rtl;animation:pp-trusted-strip-loop-rtl 42s linear infinite;}
+@keyframes pp-trusted-strip-loop-ltr{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes pp-trusted-strip-loop-rtl{from{transform:translateX(0)}to{transform:translateX(50%)}}
