@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import { defaultTranslations } from "@/lib/LanguageContext";
@@ -11,7 +10,6 @@ export default function PlatformCMSPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { user } = useAuth();
-  const router = useRouter();
 
   const [content, setContent] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
@@ -29,9 +27,9 @@ export default function PlatformCMSPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    if (user && user.roleKey !== "platform_admin") {
-      router.replace("/");
-    } else if (user) {
+    // The parent platform layout owns access control. Do not redirect here while
+    // the auth context is still enriching the verified platform-admin role.
+    if (user?.roleKey === "platform_admin") {
       fetchContent();
     }
   }, [user]);
