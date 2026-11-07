@@ -709,28 +709,30 @@ export default function CalendarPage() {
 
       const invoiceDesc = isRtl ? `جلسة: ${ev.visitType}` : `Session: ${ev.visitType}`;
       const invoiceAmt = isRtl ? `${defaultPrice} ج.م` : `${defaultPrice} EGP`;
-      const { error } = await supabase.rpc("create_appointment_with_care_plan", {
-        p_appointment_id: newId,
-        p_patient_id: ev.patientId,
-        p_patient_name: ev.patientName,
-        p_doctor_name: ev.doctor,
-        p_appointment_type: ev.visitType,
-        p_status: ev.status,
-        p_start_time: ev.start.toISOString(),
-        p_end_time: ev.end.toISOString(),
-        p_invoice_id: `INV-${newId}`,
-        p_invoice_description: invoiceDesc,
-        p_invoice_amount: invoiceAmt,
-        p_invoice_status: isRtl ? "انتظار" : "Pending",
-        p_payment_method: "—",
-        p_invoice_date: ev.start.toISOString().split("T")[0],
-        p_treatment_plan_id: ev.treatmentPlanId || null,
-        p_session_intervention: ev.sessionIntervention || null,
-        p_session_objectives: ev.sessionObjectives || null,
-        p_target_exercises: (ev.targetExercises || []).map((name) => ({ name })),
+      const response = await fetch("/api/calendar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          appointmentId: newId,
+          patientId: ev.patientId,
+          doctor: ev.doctor,
+          visitType: ev.visitType,
+          status: ev.status,
+          startTime: ev.start.toISOString(),
+          endTime: ev.end.toISOString(),
+          invoiceId: `INV-${newId}`,
+          invoiceDescription: invoiceDesc,
+          invoiceAmount: invoiceAmt,
+          invoiceStatus: isRtl ? "انتظار" : "Pending",
+          invoiceDate: ev.start.toISOString().split("T")[0],
+          treatmentPlanId: ev.treatmentPlanId || null,
+          sessionIntervention: ev.sessionIntervention || null,
+          sessionObjectives: ev.sessionObjectives || null,
+          targetExercises: (ev.targetExercises || []).map((name) => ({ name })),
+        }),
       });
-
-      if (error) throw error;
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "تعذر حفظ الموعد والفاتورة");
       ev.id = newId;
       syncEventsState([...events, ev]);
       setSelectedDate(null);
@@ -745,22 +747,21 @@ export default function CalendarPage() {
   const handleUpdate = async (updated: CalendarEvent) => {
     if (!clinicId) return;
     try {
-      const { data, error } = await supabase
-        .from("appointments")
-        .update({
-          doctor_name: updated.doctor,
-          appointment_type: updated.visitType,
+      const response = await fetch("/api/calendar", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update",
+          appointmentId: updated.id,
+          doctor: updated.doctor,
+          visitType: updated.visitType,
           status: updated.status,
-          start_time: updated.start.toISOString(),
-          end_time: updated.end.toISOString()
-        })
-        .eq("id", updated.id)
-        .eq("clinic_id", clinicId)
-        .select("id")
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error("Appointment was not found or you do not have permission to update it.");
+          startTime: updated.start.toISOString(),
+          endTime: updated.end.toISOString(),
+        }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "تعذر تحديث الموعد");
 
       syncEventsState(events.map((e) => e.id === updated.id ? updated : e));
       setSelectedEvent(null);
@@ -773,16 +774,13 @@ export default function CalendarPage() {
   const handleCancel = async (id: string) => {
     if (!clinicId) return;
     try {
-      const { data, error } = await supabase
-        .from("appointments")
-        .update({ status: "ملغي" })
-        .eq("id", id)
-        .eq("clinic_id", clinicId)
-        .select("id")
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!data) throw new Error("Appointment was not found or you do not have permission to cancel it.");
+      const response = await fetch("/api/calendar", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel", appointmentId: id }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "تعذر إلغاء الموعد");
 
       syncEventsState(events.map((e) => e.id === id ? { ...e, status: "ملغي" } : e));
     } catch (err: any) {
@@ -797,17 +795,14 @@ export default function CalendarPage() {
     if (!completedEvent || completedEvent.status === "منتهي") return false;
 
     try {
-      const { data, error } = await supabase.rpc("complete_appointment_and_record_progress", {
-        p_appointment_id: id,
-        p_pain_before: outcome.painBefore,
-        p_pain_after: outcome.painAfter,
-        p_rom_status: outcome.romStatus || null,
-        p_strength_status: outcome.strengthStatus || null,
-        p_recovery_score: outcome.recoveryScore,
-        p_completed_exercises: outcome.completedExercises.map((name) => ({ name })),
-        p_notes: outcome.notes || null,
+      const response = await fetch("/api/calendar", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "complete", appointmentId: id, outcome }),
       });
-      if (error) throw error;
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "تعذر إنهاء الجلسة وتسجيل التقدم");
+      const data = result.data;
 
       syncEventsState(events.map((event) => event.id === id ? { ...event, status: "منتهي" } : event));
       if (data?.already_completed) {
