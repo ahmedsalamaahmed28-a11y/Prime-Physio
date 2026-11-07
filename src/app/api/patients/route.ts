@@ -130,7 +130,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ success: true, patientId: data.id }, { status: 201 });
+    const warnings: string[] = [];
+    if (body.invoice && typeof body.invoice === "object") {
+      const invoice = {
+        id: body.invoice.id,
+        clinic_id: staff.clinic_id,
+        patient_id: data.id,
+        patient_name: patient.nameAr,
+        description: body.invoice.description,
+        amount: body.invoice.amount,
+        status: body.invoice.status || "انتظار",
+        payment_method: body.invoice.payment_method || "—",
+        date: body.invoice.date || new Date().toISOString().slice(0, 10),
+      };
+      const { error: invoiceError } = await admin.from("invoices").insert(invoice);
+      if (invoiceError) {
+        console.error("[Patients API] Initial invoice insert failed:", invoiceError);
+        warnings.push("تم إنشاء ملف المريض، لكن تعذر إنشاء الفاتورة الأولية: " + invoiceError.message);
+      }
+    }
+
+    if (body.appointment && typeof body.appointment === "object") {
+      const appointment = {
+        id: body.appointment.id,
+        clinic_id: staff.clinic_id,
+        patient_id: data.id,
+        patient_name: patient.nameAr,
+        doctor_name: body.appointment.doctor_name || null,
+        appointment_type: body.appointment.appointment_type || null,
+        status: body.appointment.status || "مؤكد",
+        start_time: body.appointment.start_time,
+        end_time: body.appointment.end_time,
+      };
+      const { error: appointmentError } = await admin.from("appointments").insert(appointment);
+      if (appointmentError) {
+        console.error("[Patients API] Initial appointment insert failed:", appointmentError);
+        warnings.push("تم إنشاء ملف المريض، لكن تعذر إنشاء الموعد الأول: " + appointmentError.message);
+      }
+    }
+
+    return NextResponse.json({ success: true, patientId: data.id, warnings }, { status: 201 });
   } catch (error) {
     console.error("[Patients API] Unexpected error:", error);
     return NextResponse.json({ error: "حدث خطأ غير متوقع أثناء حفظ المريض" }, { status: 500 });
