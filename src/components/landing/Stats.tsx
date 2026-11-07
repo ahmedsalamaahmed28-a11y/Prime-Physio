@@ -24,29 +24,36 @@ function AnimatedStatValue({ value }: { value: string }) {
   const digits = match?.[2] ?? "0";
   const suffix = match?.[3] ?? "";
   const [phase, setPhase] = useState<"blank" | "reset" | "rolling" | "settled">("blank");
+  const [showDigits, setShowDigits] = useState(false);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setPhase("settled");
+      setShowDigits(true);
       return;
     }
 
-    // Keep the digit windows hidden while positioned at zero; reveal them
-    // only once the rolling transition starts so no leading zeros are shown.
+    // Start the wheels moving while invisible, then reveal them mid-roll.
     setPhase("reset");
+    setShowDigits(false);
+
     let firstFrame = 0;
     let secondFrame = 0;
+    let revealTimer: ReturnType<typeof setTimeout> | undefined;
+
     firstFrame = window.requestAnimationFrame(() => {
-      secondFrame = window.requestAnimationFrame(() => setPhase("rolling"));
+      secondFrame = window.requestAnimationFrame(() => {
+        setPhase("rolling");
+        revealTimer = setTimeout(() => setShowDigits(true), 180);
+      });
     });
 
     return () => {
       window.cancelAnimationFrame(firstFrame);
       window.cancelAnimationFrame(secondFrame);
+      if (revealTimer) clearTimeout(revealTimer);
     };
   }, []);
-
-  const showDigits = phase === "rolling" || phase === "settled";
 
   return (
     <span aria-label={value} className="pp-stat-number tabular-nums">
