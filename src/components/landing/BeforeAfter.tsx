@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
 import { CheckCircle2, XCircle, AlertCircle, Calendar, LayoutDashboard } from "lucide-react";
 export default function BeforeAfter() {
   const [isAfter, setIsAfter] = useState(false);
+  const { language } = useLanguage();
 
   return (
     <section className="py-24 bg-slate-50 overflow-hidden relative">
@@ -32,10 +34,10 @@ export default function BeforeAfter() {
         <div data-csp-motion="reveal"
           className="flex justify-center mb-10"
         >
-          <div className="bg-slate-100 p-1.5 rounded-full inline-flex relative overflow-hidden shadow-inner flex-row" dir="ltr">
+          <div className="bg-slate-100 p-1.5 rounded-full inline-flex relative overflow-hidden shadow-inner" dir={language === "en" ? "ltr" : "rtl"}>
             <div
               className={`absolute top-1.5 bottom-1.5 rounded-full bg-white shadow-sm transition-all duration-500 ease-in-out ${
-                isAfter ? "right-1.5 w-[calc(50%-6px)]" : "left-1.5 w-[calc(50%-6px)]"
+                isAfter ? (language === "en" ? "right-1.5 w-[calc(50%-6px)]" : "left-1.5 w-[calc(50%-6px)]") : (language === "en" ? "left-1.5 w-[calc(50%-6px)]" : "right-1.5 w-[calc(50%-6px)]")
               }`}
             />
             <button
