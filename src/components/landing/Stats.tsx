@@ -26,13 +26,9 @@ function AnimatedStatValue({ value }: { value: string }) {
   const [phase, setPhase] = useState<"settled" | "reset" | "rolling">("settled");
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setPhase("rolling");
-      return;
-    }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    // Begin from the first wheel position, then roll three full turns to the
-    // requested digit. Two frames ensure the browser paints the reset position.
+    // Start immediately when the landing page mounts, without waiting for scroll/reveal.
     setPhase("reset");
     let firstFrame = 0;
     let secondFrame = 0;
@@ -49,7 +45,7 @@ function AnimatedStatValue({ value }: { value: string }) {
   return (
     <span aria-label={value} className="pp-stat-number tabular-nums">
       <span aria-hidden="true">{prefix}</span>
-      <span className="pp-stat-odometer" aria-hidden="true">
+      <span className="pp-stat-odometer" aria-hidden="true" dir="ltr">
         {Array.from(digits).map((character, index) => {
           if (!/[0-9]/.test(character)) {
             return <span className="pp-stat-separator" key={`separator-${index}`}>{character}</span>;
@@ -62,7 +58,7 @@ function AnimatedStatValue({ value }: { value: string }) {
                 className={`pp-stat-digit-strip${phase === "rolling" ? " is-rolling" : ""}`}
                 style={{ "--roll-y": `${phase === "settled" ? -rollTo : phase === "reset" ? 0 : -rollTo}em` } as React.CSSProperties}
               >
-                { "0123456789".repeat(4).split("").map((digit, digitIndex) => (
+                {"0123456789".repeat(4).split("").map((digit, digitIndex) => (
                   <span className="pp-stat-digit" key={digitIndex}>{digit}</span>
                 ))}
               </span>
@@ -89,11 +85,7 @@ export default function Stats() {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div
-              key={stat.id}
-              data-csp-motion="reveal"
-              className="pp-stat-item"
-            >
+            <div key={stat.id} className="pp-stat-item">
               <span className="pp-stat-icon">
                 <Icon aria-hidden="true" />
               </span>
