@@ -83,7 +83,7 @@ const copy: Record<string, string> = {
 };
 
 function translateText(value: string, language: "ar" | "en") {
-  if (language === "ar") return value;
+  if (language === "ar") {\n    const reverse = new Map(Object.entries(copy).map(([ar, en]) => [en, ar]));\n    const trimmedValue = value.trim();\n    const original = reverse.get(trimmedValue);\n    if (original) return value.replace(trimmedValue, original);\n    let restored = value;\n    for (const [en, ar] of reverse.entries()) {\n      if (restored.includes(en)) restored = restored.split(en).join(ar);\n    }\n    return restored;\n  }
   const trimmed = value.trim();
   if (!trimmed) return value;
   const exact = copy[trimmed];
