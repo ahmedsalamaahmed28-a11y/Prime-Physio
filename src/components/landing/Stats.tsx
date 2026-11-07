@@ -38,7 +38,7 @@ function AnimatedStatValue({ value }: { value: string }) {
     // remains a safe fallback if JavaScript does not hydrate this component.
     setCount(0);
 
-    const duration = 1200;
+    const duration = 1800;
     let animationFrame = 0;
     let startTime: number | null = null;
 
@@ -46,7 +46,7 @@ function AnimatedStatValue({ value }: { value: string }) {
       if (startTime === null) startTime = timestamp;
 
       const progress = Math.min((timestamp - startTime) / duration, 1);
-      const easedProgress = 1 - Math.pow(1 - progress, 4);
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
       const nextValue = Math.round(target * easedProgress);
 
       setCount(progress === 1 ? target : nextValue);
