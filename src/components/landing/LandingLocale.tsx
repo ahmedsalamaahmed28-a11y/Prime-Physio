@@ -118,9 +118,9 @@ const copy: Record<string, string> = {
   "أكتر حاجة عجباني هي الـ Body Chart، بطلع ملف العيان وأسجل كل حاجة في الجلسة في ثواني. وفر عليا وقت ومجهود كبير جداً بصراحة.":"My favorite feature is the Body Chart. I can open a patient record and document the session in seconds. It saves me a lot of time and effort.",
   "عشان ماسك كذا فرع، كان موضوع التقارير ده كابوس. دلوقتي بفتح الموبايل وأنا في البيت أجيب كل الحسابات وجرد الفروع في تكّة واحدة.":"Managing reports across several branches used to be a nightmare. Now I can check all accounts and branch inventories from my phone in one go.",
   "تسجيل الجلسة في 30 ثانية":"Document a session in 30 seconds","تحكم كامل في 5 فروع":"Full control of 5 branches",
-  "كيف ضاعف مركز Elite Physio أرباحه في 3 أشهر؟":"How did Elite Physio double its profits in three months?",
+  "كيف ضاعف مركز Elite Physio أرباحه في 3 أشهر؟ (duplicate)":"How did Elite Physio double its profits in three months?",
   "قبل برايم فيزيو، كانت الإدارة الورقية والجدولة اليدوية بتضيع وقتنا كله. دلوقتي النظام الديجيتال وفر علينا مجهود ضخم، وقدرنا نركز أكتر على جودة الجلسات واستيعاب عدد أكبر من المرضى يومياً.":"Before Prime Physio, paperwork and manual scheduling took up all our time. The digital system has saved us significant effort, allowing us to focus on session quality and serve more patients each day.",
-  "وفر":"saved","وفرنا 30% من وقت الاستقبال":"Saved 30% of reception time","المدير الطبي لمركز Elite Physio":"Medical Director, Elite Physio",
+  "وفر":"saved","وفرنا 30% من وقت الاستقبال (duplicate)":"Saved 30% of reception time","المدير الطبي لمركز Elite Physio":"Medical Director, Elite Physio",
   "أخصائي":"Therapist","د. أحمد سلامة":"Dr. Ahmed Salama","د. أحمد كمال":"Dr. Ahmed Kamal","سارة محمد":"Sarah Mohamed","د. عمر حسين":"Dr. Omar Hussein","م. خالد يوسف":"Eng. Khaled Youssef",
   "منذ":"Since","التشخيص الحالي":"Current diagnosis","تاريخ الجلسات":"Session history","جلسة جديدة +":"New session +","هذا الشهر":"This month","إجمالي الإيرادات":"Total revenue","إجمالي المصروفات":"Total expenses","أحدث الفواتير":"Latest invoices","مدفوع":"Paid","مصروف":"Expense","متبقي":"Remaining","غرفة":"Room","كشف جديد":"New assessment",
 };
