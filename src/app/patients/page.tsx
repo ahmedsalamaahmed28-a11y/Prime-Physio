@@ -178,18 +178,8 @@ function PatientsContent() {
 
     let newId = "";
     const prefix = clinicId ? clinicId.substring(0, 4).toUpperCase() : "PT";
-    try {
-      const { data: existing } = await supabase
-        .from("patients")
-        .select("id")
-        .eq("clinic_id", clinicId);
-      const count = existing ? existing.length : 0;
-      const nextNumber = count + 1;
-      newId = `${prefix}-${String(nextNumber).padStart(4, '0')}`;
-    } catch (err) {
-      const nextNumber = patients.length + 1;
-      newId = `${prefix}-${String(nextNumber).padStart(4, '0')}`;
-    }
+    const nextNumber = patients.length + 1;
+    newId = `${prefix}-${String(nextNumber).padStart(4, '0')}`;
 
     const newPatient = {
       id: newId,
@@ -341,51 +331,11 @@ function PatientsContent() {
     if (!deletePatientId || !clinicId) return;
 
     try {
-      // Patient rows cascade to clinical and financial history in the database.
-      // Refuse deletion while any dependent record exists; do not silently erase care history.
-      const dependentTables = [
-        "invoices",
-        "appointments",
-        "sessions",
-        "patient_evaluations",
-        "assessments",
-        "treatment_plans",
-        "progress_tracking",
-        "discharges",
-        "patient_programs",
-        "peer_reviews",
-      ] as const;
-
-      const checks = await Promise.all(
-        dependentTables.map((table) =>
-          supabase
-            .from(table)
-            .select("id", { count: "exact", head: true })
-            .eq("clinic_id", clinicId)
-            .eq("patient_id", deletePatientId)
-        )
-      );
-
-      const failedCheck = checks.find((result) => result.error);
-      if (failedCheck?.error) throw failedCheck.error;
-
-      const linkedRecords = checks.reduce((total, result) => total + (result.count || 0), 0);
-      if (linkedRecords > 0) {
-        alert(
-          isRtl
-            ? "لا يمكن حذف هذا المريض لوجود سجلات مرتبطة به (جلسات أو تقييمات أو فواتير أو برامج علاجية). احتفظ بالملف لتظل تاريخه الطبي محفوظًا."
-            : "This patient cannot be deleted because linked clinical or financial records exist. Keep the patient file to preserve their medical history."
-        );
-        return;
-      }
-
-      const { error } = await supabase
-        .from("patients")
-        .delete()
-        .eq("id", deletePatientId)
-        .eq("clinic_id", clinicId);
-
-      if (error) throw error;
+      const response = await fetch(`/api/patients/${encodeURIComponent(deletePatientId)}`, {
+        method: "DELETE",
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "تعذر حذف ملف المريض");
       saveLocalPatients(patients.filter((p) => p.id !== deletePatientId));
     } catch (err: any) {
       console.error("Patient deletion failed:", err);
