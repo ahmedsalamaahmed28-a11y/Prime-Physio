@@ -161,3 +161,14 @@
 .pp-trusted-strip-track[dir="rtl"]{direction:rtl;animation:pp-trusted-strip-loop-rtl 42s linear infinite;}
 @keyframes pp-trusted-strip-loop-ltr{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @keyframes pp-trusted-strip-loop-rtl{from{transform:translateX(0)}to{transform:translateX(50%)}}
+
+
+/* Odometer alignment: keep each digit wheel isolated and consistently sized in RTL/LTR. */
+.pp-stat-number{display:inline-flex;align-items:baseline;direction:inherit;white-space:nowrap;}
+.pp-stat-odometer{display:inline-flex;flex-direction:row;direction:ltr;unicode-bidi:isolate;align-items:flex-end;vertical-align:bottom;flex:none;}
+.pp-stat-digit-window{display:block;position:relative;width:.62em;height:1.08em;overflow:hidden;flex:none;line-height:1.08em;vertical-align:bottom;}
+.pp-stat-digit-strip{display:flex;flex-direction:column;align-items:stretch;width:100%;line-height:1.08em;transform:translate3d(0,var(--roll-y,0em),0);will-change:transform;}
+.pp-stat-digit-strip.is-rolling{transition:transform 2.4s cubic-bezier(.12,.82,.18,1);}
+.pp-stat-digit{display:block;flex:none;width:100%;height:1.08em;line-height:1.08em;text-align:center;font-variant-numeric:tabular-nums;}
+.pp-stat-separator{display:block;flex:none;height:1.08em;line-height:1.08em;text-align:center;}
+@media(prefers-reduced-motion:reduce){.pp-stat-digit-strip.is-rolling{transition:none;}}
