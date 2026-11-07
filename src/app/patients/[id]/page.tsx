@@ -2871,7 +2871,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
     if (isSavingProfile) return;
     setIsSavingProfile(true);
     try {
-      const response = await fetch(`/api/patients/${encodeURIComponent(patient.id)}/`, {
+      const response = await fetch(`/api/patients/${encodeURIComponent(patient.id)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(editForm),
