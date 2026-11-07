@@ -52,11 +52,15 @@ function AnimatedStatValue({ value }: { value: string }) {
           }
 
           const rollTo = 30 + Number(character);
+          // Each wheel row is 1.08em tall, so the destination offset must use
+          // the same row height. Using only the digit index caused wrong digits
+          // (for example, 98% settling visually as 65%).
+          const targetOffset = rollTo * 1.08;
           return (
             <span className="pp-stat-digit-window" key={`digit-${index}`}>
               <span
                 className={`pp-stat-digit-strip${phase === "rolling" ? " is-rolling" : ""}`}
-                style={{ "--roll-y": `${phase === "settled" ? -rollTo : phase === "reset" ? 0 : -rollTo}em` } as React.CSSProperties}
+                style={{ "--roll-y": `${phase === "settled" ? -targetOffset : phase === "reset" ? 0 : -targetOffset}em` } as React.CSSProperties}
               >
                 {"0123456789".repeat(4).split("").map((digit, digitIndex) => (
                   <span className="pp-stat-digit" key={digitIndex}>{digit}</span>
