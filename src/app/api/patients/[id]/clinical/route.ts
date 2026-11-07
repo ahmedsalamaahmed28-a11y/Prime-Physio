@@ -124,7 +124,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         typeof state.checkedCriteria === "object" &&
         !Array.isArray(state.checkedCriteria) &&
         Object.entries(state.checkedCriteria).every(([key, value]) =>
-          /^\\d+$/.test(key) && typeof value === "boolean"
+          /^\d+$/.test(key) && typeof value === "boolean"
         )
       );
       if (state !== null && !isLegacyProtocolState && !isPhaseBasedProtocolState) {
