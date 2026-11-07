@@ -125,3 +125,41 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     return NextResponse.json({ error: "حدث خطأ غير متوقع أثناء حفظ البيانات" }, { status: 500 });
   }
 }
+
+
+export async function DELETE(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const auth = await getAuthorizedClinic();
+  if ("error" in auth) return auth.error;
+  const { id } = await context.params;
+
+  try {
+    const dependentTables = [
+      "invoices", "appointments", "sessions", "patient_evaluations",
+      "assessments", "treatment_plans", "progress_tracking",
+      "discharges", "patient_programs", "peer_reviews",
+    ] as const;
+
+    const checks = await Promise.all(dependentTables.map((table) =>
+      auth.admin.from(table).select("id", { count: "exact", head: true })
+        .eq("clinic_id", auth.clinicId).eq("patient_id", id)
+    ));
+    const failed = checks.find((result) => result.error);
+    if (failed?.error) throw failed.error;
+    const linkedRecords = checks.reduce((total, result) => total + (result.count || 0), 0);
+    if (linkedRecords > 0) {
+      return NextResponse.json({
+        error: "لا يمكن حذف المريض لوجود سجلات جلسات أو تقييمات أو فواتير أو برامج علاجية مرتبطة به",
+        linkedRecords,
+      }, { status: 409 });
+    }
+
+    const { data, error } = await auth.admin.from("patients").delete()
+      .eq("id", id).eq("clinic_id", auth.clinicId).select("id").maybeSingle();
+    if (error) throw error;
+    if (!data) return NextResponse.json({ error: "المريض غير موجود في العيادة الحالية" }, { status: 404 });
+    return NextResponse.json({ success: true });
+  } catch (error: any) {
+    console.error("[Patient API] Delete failed:", error);
+    return NextResponse.json({ error: error?.message || "تعذر حذف ملف المريض" }, { status: 500 });
+  }
+}
