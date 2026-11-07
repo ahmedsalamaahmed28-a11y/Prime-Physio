@@ -6,6 +6,25 @@ import { useLanguage } from "@/lib/LanguageContext";
 // Centralized copy for the public landing page. Keys are the original Arabic
 // phrases so existing Arabic content and CMS-managed copy remain unchanged.
 const copy: Record<string, string> = {
+  "نظام إدارة متكامل لمراكز العلاج الطبيعي":"An integrated management system for physiotherapy clinics",
+  "منظومة إدارة متكاملة":"An integrated clinic management system",
+  "كل تفاصيل مركزك… في مكان واحد":"Everything your clinic needs, all in one place",
+  "أدوات مترابطة لتنظيم المواعيد والملفات الطبية والحسابات والفريق، مع تحكم واضح في البيانات والتقارير.":"Connected tools for appointments, medical records, finances, and staff—with clear control over your data and reports.",
+  "العيادة قديماً":"The old way",
+  "مع PrimePhysio":"With Prime Physio",
+  "الفرق بين الماضي والمستقبل":"The old way vs. a better future",
+  "تحول من الفوضى الورقية وإهدار الوقت إلى نظام إلكتروني متكامل يدير عيادتك بكفاءة وسهولة.":"Move from paperwork and wasted time to an integrated digital system that manages your clinic efficiently.",
+  "أنشئ حساب مركزك الآن":"Create your clinic account now",
+  "أنشئ حساب مركزك":"Create your clinic account",
+  "أنشئ مركزك الآن":"Create your clinic now",
+  "ج.م":"EGP",
+  "ملفات ورقية مبعثرة":"Scattered paper records",
+  "صعوبة في الوصول لتاريخ المريض وتفاصيل الجلسات.":"Patient histories and session details are difficult to find.",
+  "حجوزات مزدوجة":"Double bookings",
+  "أخطاء في المواعيد ونسيان إرسال تذكيرات للمرضى.":"Scheduling errors and forgotten patient reminders.",
+  "صعوبة متابعة الحسابات":"Difficult financial tracking",
+  "تشتت في حسابات الدخل اليومي وجلسات المرضى.":"Scattered daily income and patient session records.",
+
   "موثوق من قبل أفضل المراكز":"Trusted by leading clinics",
   "الرئيسية":"Home","المرضى":"Patients","الحسابات":"Billing","التقارير":"Analytics","الإعدادات":"Settings","متصل":"Online","بحث عن مريض...":"Search for a patient...","أخصائي":"Therapist",
   "اكتشف لوحة التحكم التفاعلية":"Explore the interactive dashboard","شاهد كيف تبدو واجهة Prime Physio من الداخل بنفس التصميم الحقيقي للمنصة.":"See the real Prime Physio interface in action.",
