@@ -26,13 +26,15 @@ export async function GET() {
   const auth = await authorize();
   if ("response" in auth) return auth.response;
   try {
-    const [patients, appointments] = await Promise.all([
+    const [patients, appointments, doctors] = await Promise.all([
       auth.admin.from("patients").select("id,nameAr").eq("clinic_id", auth.clinicId).order("id", { ascending: true }),
       auth.admin.from("appointments").select("*, treatment_plan:treatment_plans!appointments_treatment_plan_patient_clinic_fkey(id,goals)").eq("clinic_id", auth.clinicId),
+      auth.admin.from("staff").select("name,email,role").eq("clinic_id", auth.clinicId),
     ]);
     if (patients.error) throw patients.error;
     if (appointments.error) throw appointments.error;
-    return NextResponse.json({ patients: patients.data || [], appointments: appointments.data || [] }, { headers: { "Cache-Control": "no-store" } });
+    if (doctors.error) throw doctors.error;
+    return NextResponse.json({ patients: patients.data || [], appointments: appointments.data || [], doctors: doctors.data || [] }, { headers: { "Cache-Control": "no-store" } });
   } catch (error: any) {
     console.error("[Calendar API] Load failed:", error);
     return NextResponse.json({ error: "تعذر تحميل بيانات المواعيد والمرضى", detail: error?.message }, { status: 500 });
