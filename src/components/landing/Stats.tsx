@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Building,
   CalendarDays,
@@ -19,8 +19,6 @@ const stats = [
 ];
 
 function AnimatedStatValue({ value }: { value: string }) {
-  const elementRef = useRef<HTMLSpanElement>(null);
-  const startedRef = useRef(false);
   const [count, setCount] = useState(0);
 
   const match = value.match(/^([^0-9]*)([0-9,]+)(.*)$/);
@@ -29,68 +27,37 @@ function AnimatedStatValue({ value }: { value: string }) {
   const suffix = match?.[3] ?? "";
 
   useEffect(() => {
-    const element = elementRef.current;
-    if (!element || startedRef.current) return;
-
-    let animationFrame = 0;
-
-    const startCounting = () => {
-      if (startedRef.current) return;
-      startedRef.current = true;
-
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-        setCount(target);
-        return;
-      }
-
-      const duration = 1100;
-      let startTime = 0;
-
-      const animate = (timestamp: number) => {
-        if (!startTime) startTime = timestamp;
-
-        const progress = Math.min((timestamp - startTime) / duration, 1);
-        const easedProgress = 1 - Math.pow(1 - progress, 3);
-        setCount(Math.round(target * easedProgress));
-
-        if (progress < 1) {
-          animationFrame = window.requestAnimationFrame(animate);
-        } else {
-          setCount(target);
-        }
-      };
-
-      animationFrame = window.requestAnimationFrame(animate);
-    };
-
-    if (typeof IntersectionObserver === "undefined") {
-      startCounting();
-    } else {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            startCounting();
-            observer.disconnect();
-          }
-        },
-        { threshold: 0.1 }
-      );
-
-      observer.observe(element);
-
-      return () => {
-        observer.disconnect();
-        if (animationFrame) window.cancelAnimationFrame(animationFrame);
-      };
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setCount(target);
+      return;
     }
 
-    return () => {
-      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+    const duration = 1200;
+    let animationFrame = 0;
+    let startTime: number | null = null;
+
+    const animate = (timestamp: number) => {
+      if (startTime === null) startTime = timestamp;
+
+      const progress = Math.min((timestamp - startTime) / duration, 1);
+      // Fast rolling at first, then a smooth slowdown before the final value.
+      const easedProgress = 1 - Math.pow(1 - progress, 4);
+      const nextValue = Math.round(target * easedProgress);
+
+      setCount(progress === 1 ? target : nextValue);
+
+      if (progress < 1) {
+        animationFrame = window.requestAnimationFrame(animate);
+      }
     };
+
+    animationFrame = window.requestAnimationFrame(animate);
+
+    return () => window.cancelAnimationFrame(animationFrame);
   }, [target]);
 
   return (
-    <span ref={elementRef} aria-label={value} className="tabular-nums">
+    <span aria-label={value} className="tabular-nums">
       {prefix}{count.toLocaleString("en-US")}{suffix}
     </span>
   );
