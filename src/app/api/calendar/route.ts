@@ -54,28 +54,50 @@ export async function POST(request: NextRequest) {
     if (patientError) throw patientError;
     if (!patient) return NextResponse.json({ error: "المريض غير موجود في العيادة الحالية" }, { status: 404 });
 
-    const { data, error } = await auth.admin.rpc("create_appointment_with_care_plan", {
-      p_appointment_id: body.appointmentId,
-      p_patient_id: patient.id,
-      p_patient_name: patient.nameAr,
-      p_doctor_name: body.doctor || null,
-      p_appointment_type: body.visitType,
-      p_status: body.status || "مؤكد",
-      p_start_time: body.startTime,
-      p_end_time: body.endTime,
-      p_invoice_id: body.invoiceId,
-      p_invoice_description: body.invoiceDescription,
-      p_invoice_amount: body.invoiceAmount,
-      p_invoice_status: body.invoiceStatus || "انتظار",
-      p_payment_method: "—",
-      p_invoice_date: body.invoiceDate,
-      p_treatment_plan_id: body.treatmentPlanId || null,
-      p_session_intervention: body.sessionIntervention || null,
-      p_session_objectives: body.sessionObjectives || null,
-      p_target_exercises: body.targetExercises || [],
+    if (!body.appointmentId || !body.startTime || !body.endTime || !body.invoiceId) {
+      return NextResponse.json({ error: "بيانات الموعد أو الفاتورة غير مكتملة" }, { status: 400 });
+    }
+    if (body.treatmentPlanId) {
+      const { data: plan, error: planError } = await auth.admin.from("treatment_plans")
+        .select("id").eq("id", body.treatmentPlanId).eq("patient_id", patient.id)
+        .eq("clinic_id", auth.clinicId).eq("status", "active").maybeSingle();
+      if (planError) throw planError;
+      if (!plan) return NextResponse.json({ error: "الخطة العلاجية غير نشطة أو لا تخص هذا المريض" }, { status: 400 });
+    }
+
+    const { error: invoiceError } = await auth.admin.from("invoices").insert({
+      id: body.invoiceId,
+      clinic_id: auth.clinicId,
+      patient_id: patient.id,
+      patient_name: patient.nameAr,
+      description: body.invoiceDescription,
+      amount: body.invoiceAmount,
+      status: body.invoiceStatus || "انتظار",
+      payment_method: "—",
+      date: body.invoiceDate,
     });
-    if (error) throw error;
-    return NextResponse.json({ success: true, data });
+    if (invoiceError) throw invoiceError;
+
+    const { error: appointmentError } = await auth.admin.from("appointments").insert({
+      id: body.appointmentId,
+      clinic_id: auth.clinicId,
+      patient_id: patient.id,
+      patient_name: patient.nameAr,
+      doctor_name: body.doctor || null,
+      appointment_type: body.visitType,
+      status: body.status || "مؤكد",
+      start_time: body.startTime,
+      end_time: body.endTime,
+      treatment_plan_id: body.treatmentPlanId || null,
+      session_intervention: body.sessionIntervention || null,
+      session_objectives: body.sessionObjectives || null,
+      target_exercises: body.targetExercises || [],
+    });
+    if (appointmentError) {
+      await auth.admin.from("invoices").delete().eq("id", body.invoiceId).eq("clinic_id", auth.clinicId);
+      throw appointmentError;
+    }
+    return NextResponse.json({ success: true });
   } catch (error: any) {
     console.error("[Calendar API] Appointment creation failed:", error);
     return NextResponse.json({ error: error?.message || "تعذر حفظ الموعد والفاتورة" }, { status: 500 });
