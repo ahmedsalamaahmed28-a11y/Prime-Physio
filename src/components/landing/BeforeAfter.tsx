@@ -32,7 +32,7 @@ export default function BeforeAfter() {
         <div data-csp-motion="reveal"
           className="flex justify-center mb-10"
         >
-          <div className="bg-slate-100 p-1.5 rounded-full inline-flex relative overflow-hidden shadow-inner flex-row-reverse" dir="rtl">
+          <div className="bg-slate-100 p-1.5 rounded-full inline-flex relative overflow-hidden shadow-inner flex-row" dir="ltr">
             <div
               className={`absolute top-1.5 bottom-1.5 rounded-full bg-white shadow-sm transition-all duration-500 ease-in-out ${
                 isAfter ? "right-1.5 w-[calc(50%-6px)]" : "left-1.5 w-[calc(50%-6px)]"
@@ -40,7 +40,8 @@ export default function BeforeAfter() {
             />
             <button
               onClick={() => setIsAfter(false)}
-              className={`relative z-10 px-8 py-3 rounded-full font-bold font-arabic text-sm sm:text-base transition-colors duration-300 w-40 text-center ${
+              aria-pressed={!isAfter}
+              className={`relative z-10 px-8 py-3 rounded-full font-bold text-sm sm:text-base transition-colors duration-300 w-40 text-center ${
                 !isAfter ? "text-slate-900" : "text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -48,6 +49,7 @@ export default function BeforeAfter() {
             </button>
             <button
               onClick={() => setIsAfter(true)}
+              aria-pressed={isAfter}
               className={`relative z-10 px-8 py-3 rounded-full font-bold font-arabic text-sm sm:text-base transition-colors duration-300 w-40 text-center ${
                 isAfter ? "text-indigo-600" : "text-slate-500 hover:text-slate-700"
               }`}
