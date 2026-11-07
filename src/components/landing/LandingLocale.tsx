@@ -114,15 +114,23 @@ const copy: Record<string, string> = {
 };
 
 function translateText(value: string, language: "ar" | "en") {
-  if (language === "ar") {\n    const reverse = new Map(Object.entries(copy).map(([ar, en]) => [en, ar]));\n    const trimmedValue = value.trim();\n    const original = reverse.get(trimmedValue);\n    if (original) return value.replace(trimmedValue, original);\n    let restored = value;\n    for (const [en, ar] of reverse.entries()) {\n      if (en.length >= 6 && restored.includes(en)) restored = restored.split(en).join(ar);\n    }\n    return restored;\n  }
+  const reverse = new Map(Object.entries(copy).map(([ar, en]) => [en, ar]));
   const trimmed = value.trim();
   if (!trimmed) return value;
+  if (language === "ar") {
+    const original = reverse.get(trimmed);
+    if (original) return value.replace(trimmed, original);
+    let restored = value;
+    for (const [en, ar] of reverse.entries()) {
+      if (en.length >= 6 && restored.includes(en)) restored = restored.split(en).join(ar);
+    }
+    return restored;
+  }
   const exact = copy[trimmed];
   if (exact) return value.replace(trimmed, exact);
-  // Translate known phrases inside text nodes while preserving surrounding markup.
   let result = value;
   for (const [ar, en] of Object.entries(copy).sort((a, b) => b[0].length - a[0].length)) {
-    if (result.includes(ar)) result = result.split(ar).join(en);
+    if (ar.length >= 6 && result.includes(ar)) result = result.split(ar).join(en);
   }
   return result;
 }
