@@ -19,18 +19,24 @@ const stats = [
 ];
 
 function AnimatedStatValue({ value }: { value: string }) {
-  const [count, setCount] = useState(0);
-
   const match = value.match(/^([^0-9]*)([0-9,]+)(.*)$/);
   const prefix = match?.[1] ?? "";
   const target = match ? Number(match[2].replace(/,/g, "")) : 0;
   const suffix = match?.[3] ?? "";
+
+  // Render the final value in server HTML so the counters never remain at zero
+  // if client-side hydration is delayed or unavailable.
+  const [count, setCount] = useState(target);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setCount(target);
       return;
     }
+
+    // Start the animation only after hydration. The server-rendered value above
+    // remains a safe fallback if JavaScript does not hydrate this component.
+    setCount(0);
 
     const duration = 1200;
     let animationFrame = 0;
@@ -40,7 +46,6 @@ function AnimatedStatValue({ value }: { value: string }) {
       if (startTime === null) startTime = timestamp;
 
       const progress = Math.min((timestamp - startTime) / duration, 1);
-      // Fast rolling at first, then a smooth slowdown before the final value.
       const easedProgress = 1 - Math.pow(1 - progress, 4);
       const nextValue = Math.round(target * easedProgress);
 
