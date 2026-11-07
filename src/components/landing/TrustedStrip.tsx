@@ -1,8 +1,12 @@
 "use client";
 
+import { useLanguage } from "@/lib/LanguageContext";
 import { Activity, Star, Zap, Building, Users, BarChart3, CheckCircle2, ShieldCheck, LayoutDashboard } from "lucide-react";
 
 export default function TrustedStrip() {
+  const { language } = useLanguage();
+  const isEnglish = language === "en";
+  const direction = isEnglish ? "ltr" : "rtl";
   const logos = [
     { icon: Activity, name: "Elite Physio" },
     { icon: Star, name: "Motion Clinic" },
@@ -30,15 +34,15 @@ export default function TrustedStrip() {
   );
 
   return (
-    <div className="w-full bg-slate-50 border-y border-slate-200/60 py-12 overflow-hidden" dir="rtl">
+    <div className="w-full bg-slate-50 border-y border-slate-200/60 py-12 overflow-hidden" dir={direction}>
       <div className="max-w-7xl mx-auto px-6 mb-8">
         <p className="text-center text-sm font-bold text-slate-400 uppercase tracking-wider font-arabic">
-          موثوق من قبل أفضل المراكز
+          {isEnglish ? "Trusted by Leading Clinics" : "موثوق من قبل أفضل المراكز"}
         </p>
       </div>
 
-      <div className="pp-trusted-strip-viewport">
-        <div className="pp-trusted-strip-track">
+      <div className="pp-trusted-strip-viewport" dir={direction}>
+        <div className="pp-trusted-strip-track" dir={direction}>
           {renderLogos()}
           {renderLogos(true)}
         </div>
