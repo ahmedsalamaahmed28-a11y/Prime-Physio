@@ -1921,24 +1921,22 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
 
     let cancelled = false;
     const loadProtocolState = async () => {
-      const { data, error } = await supabase
-        .from("patient_programs")
-        .select("id, exercises")
-        .eq("clinic_id", clinicId)
-        .eq("patient_id", patient.id)
-        .eq("title", PROTOCOL_PROGRAM_TITLE)
-        .maybeSingle();
-
-      if (cancelled) return;
-      if (error) {
-        console.warn("Could not load the saved clinical protocol:", error.message || error);
-        return;
-      }
-      if (data?.exercises) {
-        setLocalProtocolState(data.exercises as ProtocolState);
-        try {
-          localStorage.setItem(`patient_active_protocol_${patient.id}`, JSON.stringify(data.exercises));
-        } catch {}
+      try {
+        const response = await fetch(`/api/patients/${encodeURIComponent(patient.id)}/clinical`, {
+          method: "GET",
+          cache: "no-store",
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not load protocol");
+        if (cancelled) return;
+        if (result.protocolState) {
+          setLocalProtocolState(result.protocolState as ProtocolState);
+          try {
+            localStorage.setItem(`patient_active_protocol_${patient.id}`, JSON.stringify(result.protocolState));
+          } catch {}
+        }
+      } catch (error) {
+        console.warn("Could not load the saved clinical protocol:", error);
       }
     };
 
@@ -1951,45 +1949,13 @@ function RehabProtocolPlannerTab({ patient }: { patient: Patient }) {
       throw new Error("Missing clinic or patient context; protocol was not saved.");
     }
 
-    const { data: existing, error: lookupError } = await supabase
-      .from("patient_programs")
-      .select("id")
-      .eq("clinic_id", clinicId)
-      .eq("patient_id", patient.id)
-      .eq("title", PROTOCOL_PROGRAM_TITLE)
-      .maybeSingle();
-
-    if (lookupError) throw lookupError;
-
-    if (state) {
-      if (existing?.id) {
-        const { error } = await supabase
-          .from("patient_programs")
-          .update({ exercises: state })
-          .eq("clinic_id", clinicId)
-          .eq("patient_id", patient.id)
-          .eq("id", existing.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("patient_programs")
-          .insert({
-            clinic_id: clinicId,
-            patient_id: patient.id,
-            title: PROTOCOL_PROGRAM_TITLE,
-            exercises: state,
-          });
-        if (error) throw error;
-      }
-    } else if (existing?.id) {
-      const { error } = await supabase
-        .from("patient_programs")
-        .delete()
-        .eq("clinic_id", clinicId)
-        .eq("patient_id", patient.id)
-        .eq("id", existing.id);
-      if (error) throw error;
-    }
+    const response = await fetch(`/api/patients/${encodeURIComponent(patient.id)}/clinical`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "protocol_state", state }),
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Could not save protocol");
 
     setLocalProtocolState(state);
     try {
@@ -2643,36 +2609,13 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
   const handleSaveProtocolState = async (state: any) => {
     if (!clinicId || !patient.id || !protocolStateLoaded) return;
     try {
-      const { data: existing, error: lookupError } = await supabase
-        .from("patient_programs")
-        .select("id")
-        .eq("clinic_id", clinicId)
-        .eq("patient_id", patient.id)
-        .eq("title", protocolProgramTitle)
-        .maybeSingle();
-
-      if (lookupError) throw lookupError;
-
-      if (existing?.id) {
-        const { error } = await supabase
-          .from("patient_programs")
-          .update({ exercises: state })
-          .eq("clinic_id", clinicId)
-          .eq("patient_id", patient.id)
-          .eq("id", existing.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from("patient_programs")
-          .insert({
-            clinic_id: clinicId,
-            patient_id: patient.id,
-            title: protocolProgramTitle,
-            exercises: state,
-          });
-        if (error) throw error;
-      }
-
+      const response = await fetch(`/api/patients/${encodeURIComponent(patient.id)}/clinical`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "protocol_state", state }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Could not save protocol");
       setPatient((prev) => ({ ...prev, active_protocol: state as any }));
     } catch (error: any) {
       console.error("Failed to save clinical protocol:", error);
@@ -2739,21 +2682,22 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
 
     let active = true;
     const loadSavedProtocol = async () => {
-      const { data, error } = await supabase
-        .from("patient_programs")
-        .select("exercises")
-        .eq("clinic_id", clinicId)
-        .eq("patient_id", patient.id)
-        .eq("title", protocolProgramTitle)
-        .maybeSingle();
-
-      if (!active) return;
-      if (error) {
+      try {
+        const response = await fetch(`/api/patients/${encodeURIComponent(patient.id)}/clinical`, {
+          method: "GET",
+          cache: "no-store",
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Could not load protocol");
+        if (!active) return;
+        if (result.protocolState) {
+          setPatient((prev) => ({ ...prev, active_protocol: result.protocolState as any }));
+        }
+      } catch (error) {
         console.error("Failed to load clinical protocol:", error);
-      } else if (data?.exercises) {
-        setPatient((prev) => ({ ...prev, active_protocol: data.exercises as any }));
+      } finally {
+        if (active) setProtocolStateLoaded(true);
       }
-      setProtocolStateLoaded(true);
     };
 
     loadSavedProtocol();
