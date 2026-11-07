@@ -6,6 +6,57 @@ import { useLanguage } from "@/lib/LanguageContext";
 // Centralized copy for the public landing page. Keys are the original Arabic
 // phrases so existing Arabic content and CMS-managed copy remain unchanged.
 const copy: Record<string, string> = {
+  "موثوق من قبل أفضل المراكز":"Trusted by leading clinics",
+  "الرئيسية":"Home","المرضى":"Patients","الحسابات":"Billing","التقارير":"Analytics","الإعدادات":"Settings","متصل":"Online","بحث عن مريض...":"Search for a patient...","أخصائي":"Therapist",
+  "اكتشف لوحة التحكم التفاعلية":"Explore the interactive dashboard","شاهد كيف تبدو واجهة Prime Physio من الداخل بنفس التصميم الحقيقي للمنصة.":"See the real Prime Physio interface in action.",
+  "الفرق بين الماضي والمستقبل":"From the old way to a better future","تحول من الفوضى الورقية وإهدار الوقت إلى نظام إلكتروني متكامل يدير عيادتك بكفاءة وسهولة.":"Move from paperwork and wasted time to an integrated digital system that runs your clinic efficiently.",
+  "العيادة قديماً":"The old way","مع PrimePhysio":"With Prime Physio","ملفات ورقية مبعثرة":"Scattered paper records","صعوبة في الوصول لتاريخ المريض وتفاصيل الجلسات.":"Patient histories and session details are difficult to find.",
+  "حجوزات مزدوجة":"Double bookings","أخطاء في المواعيد ونسيان إرسال تذكيرات للمرضى.":"Scheduling errors and forgotten patient reminders.","صعوبة متابعة الحسابات":"Difficult financial tracking","تشتت في حسابات الدخل اليومي وجلسات المرضى.":"Scattered daily income and patient session records.",
+  "ملف إلكتروني متكامل (EMR)":"Complete electronic medical record (EMR)","وصول فوري لبيانات المريض، خطة العلاج، والملاحظات بضغطة زر.":"Instant access to patient details, treatment plans, and notes.",
+  "تنظيم ذكي للمواعيد":"Smart appointment management","جدول مواعيد دقيق مع رسائل تذكير تلقائية عبر الواتساب.":"Accurate scheduling with automatic WhatsApp reminders.",
+  "تقارير وحسابات دقيقة":"Accurate reports and finances","لوحة تحكم توضح أرباح العيادة، عدد الجلسات، ومدفوعات المرضى.":"A dashboard showing clinic revenue, session counts, and patient payments.",
+  "منظومة إدارة متكاملة":"An integrated management system","كل تفاصيل مركزك… في مكان واحد":"Your entire clinic. One platform.","أدوات مترابطة لتنظيم المواعيد والملفات الطبية والحسابات والفريق، مع تحكم واضح في البيانات والتقارير.":"Connected tools for scheduling, medical records, finances, and staff—with clear control over data and reports.",
+  "مركز":"Clinics","جلسة":"Sessions","طبيب":"Therapists","رضا العملاء":"Customer satisfaction","دعم فني":"Support",
+  "لماذا Prime Physio أفضل من Excel؟":"Why Prime Physio instead of Excel?","تخلص من قيود جداول Excel وانتقل إلى نظام ذكي مصمم خصيصاً لمراكز العلاج الطبيعي.":"Move beyond spreadsheets with a smart system designed specifically for physiotherapy clinics.","جداول Excel":"Excel spreadsheets",
+  "بطيء ويستغرق وقتاً طويلاً":"Slow and time-consuming","إدخال بيانات يدوي ومكرر":"Repetitive manual data entry","معرض للأخطاء البشرية":"Prone to human error","خطر فقدان البيانات وتلف الملفات":"Risk of lost data and damaged files","لا توجد تكاملات أو تنبيهات آلية":"No integrations or automated alerts",
+  "سريع وآلي بالكامل":"Fast and automated","إدارة سحابية آمنة وموثوقة":"Secure, reliable cloud management","دقة متناهية وبدون أخطاء":"Greater accuracy with fewer errors","نسخ احتياطي تلقائي للبيانات":"Automatic data backups","متكامل مع أدوات العيادة الحديثة":"Integrated with modern clinic tools",
+  "الحجوزات والجداول":"Appointments & scheduling","جدول مرن بالسحب والإفلات لكل أخصائي وغرفة، مع الحجوزات المتكررة والجلسات الجماعية وإعادة الجدولة.":"A flexible drag-and-drop schedule for every therapist and room, with recurring bookings, group sessions, and rescheduling.","عرض يومي وأسبوعي واضح":"Clear daily and weekly views","سجل كامل لتغييرات المواعيد":"A complete appointment change history",
+  "ملفات الحالات والتقييمات":"Patient records & assessments","ملف متكامل لكل حالة يشمل التشخيص والتاريخ المرضي والتقييمات والبرامج العلاجية وتوثيق مهام كل جلسة.":"A complete record for every patient, including diagnosis, medical history, assessments, treatment programs, and session notes.","متابعة تطور الحالة":"Track patient progress","توثيق التقييمات والجلسات":"Document assessments and sessions",
+  "المدفوعات والمستحقات":"Payments & balances","إدارة الإيصالات والفواتير وقوائم الأسعار وأسعار التأمين والتعاقدات، مع متابعة واضحة للمستحقات المتأخرة.":"Manage receipts, invoices, price lists, insurance rates, and contracts, with clear tracking of outstanding balances.","متابعة الدفعات والفواتير":"Track payments and invoices","كشف بالمبالغ المستحقة":"Outstanding balance reports",
+  "المرتبات والحضور بالـ QR":"Payroll & QR attendance","تسجيل حضور الفريق بمسح QR، وربط التأخيرات والأذونات والإجازات بسجلات المرتبات والحوافز وكشوف الرواتب.":"Record staff attendance with QR scans and link lateness, permissions, and leave to payroll, incentives, and payslips.","تسجيل حضور سريع":"Fast attendance check-in","احتساب التأخيرات والإجازات":"Track lateness and leave",
+  "التقارير ولوحة المتابعة":"Reports & dashboard","لوحة متابعة مباشرة وتقارير مالية وتقارير للجلسات والأخصائيين وتطور الحالات، جاهزة للطباعة والمشاركة.":"A live dashboard with financial, session, therapist, and patient progress reports, ready to print and share.","مؤشرات أداء واضحة":"Clear performance indicators","تقارير قابلة للطباعة والمشاركة":"Reports ready to print and share",
+  "الأدوار والصلاحيات":"Roles & permissions","صلاحيات مرنة للمدير والمشرف والسكرتارية والأخصائي والحالة، بحيث يرى كل مستخدم المعلومات المسموح بها فقط.":"Flexible permissions for owners, supervisors, receptionists, therapists, and patients, so everyone sees only what they are authorized to access.","تحديد الصلاحيات حسب الدور":"Role-based access","تحكم الإدارة في الوصول":"Administrative access control",
+  "ابدأ الآن":"Get started","من إنشاء حساب المركز إلى استقبال أول حجز — ابدأ بسهولة مع Prime Physio.":"From creating your clinic account to receiving your first booking—get started with Prime Physio.",
+  "قصص نجاح عملائنا":"Customer success stories","انضم إلى مئات المراكز التي ضاعفت كفاءتها وأرباحها باستخدام منصتنا":"Join clinics that have improved their efficiency and performance with our platform",
+  "تكامل لا محدود":"Seamless integrations","اربط عيادتك بالعالم":"Connect your clinic","تزامن فوري ومباشر مع أهم التطبيقات لتسهيل الحجوزات والمدفوعات والتواصل مع مرضاك.":"Connect with essential apps to simplify appointments, payments, and patient communication.",
+  "اجعل مركزك يعمل تلقائيًا":"Let your clinic run smarter","دع النظام يقوم بالمهام الروتينية لتركز أنت على صحة مرضاك ونمو عيادتك.":"Automate routine tasks so you can focus on patient care and growing your clinic.",
+  "حجز مريض جديد":"New patient booking","تذكير تلقائي عبر واتساب":"Automatic WhatsApp reminder","إصدار فاتورة إلكترونية":"Generate an electronic invoice","دفع آمن":"Secure payment","متابعة ذكية (AI)":"Smart follow-up (AI)",
+  "حجز الموعد":"Appointment booking","يقوم المريض بحجز موعد عبر الإنترنت أو من خلال الاستقبال ويتم تسجيله في جدول المواعيد الذكي.":"Patients book online or at reception, and the appointment is added to the smart schedule.",
+  "تذكير تلقائي":"Automatic reminder","يتلقى المريض رسالة تذكير تلقائية عبر الواتساب قبل موعد الجلسة لتقليل نسبة التخلف عن المواعيد.":"Patients receive an automatic WhatsApp reminder before their session to help reduce missed appointments.",
+  "تسجيل الدخول":"Check-in","عند وصول المريض، يقوم موظف الاستقبال بتسجيل حضوره بضغطة زر وتحديث حالته للطبيب.":"When a patient arrives, reception checks them in and updates their status for the therapist.",
+  "الجلسة و EMR":"Session & EMR","يقوم الطبيب بمعاينة الملف الطبي (EMR)، تسجيل الملاحظات، كتابة الوصفة، وتحديث خطة العلاج.":"The therapist reviews the EMR, records notes, writes prescriptions, and updates the treatment plan.",
+  "الدفع والفوترة":"Payment & invoicing","دفع سلس عبر طرق متعددة (نقدي، بطاقة) مع إصدار فاتورة إلكترونية وتسجيلها في تقارير العيادة.":"Convenient cash and card payments, with electronic invoices recorded in clinic reports.",
+  "المتابعة والتقييم":"Follow-up & evaluation","متابعة تقدم حالة المريض عبر رسائل تلقائية وقياس مدى رضاه عن الخدمة المقدمة.":"Track patient progress with automated messages and measure satisfaction with the service.",
+  "رحلة مريض":"The patient journey","استثنائية":"made exceptional","صممنا PrimePhysio ليتتبع كل خطوة يخطوها المريض في عيادتك، مما يضمن تجربة سلسة واحترافية.":"Prime Physio follows every step of the patient journey in your clinic, helping deliver a smooth, professional experience.",
+  "الخصوصية والأمان":"Privacy & security","بيانات مركزك تبقى لمركزك":"Your clinic data stays yours","نستخدم ضوابط وصول وعزل على مستوى البيانات لحماية معلومات كل مركز، مع اتصال مشفّر وسجل لمراجعة الأنشطة.":"We use data-level access controls and isolation to protect each clinic’s information, with encrypted connections and activity logs.",
+  "عزل بيانات كل مركز":"Clinic data isolation","تُخزَّن بيانات المراكز في قاعدة Supabase مشتركة، مع ربط سجلات المركز بمعرّفه وتطبيق سياسات Row Level Security (RLS) لتقييد الوصول إلى بياناته.":"Clinic data is stored in a shared Supabase database. Records are linked to each clinic and protected by Row Level Security (RLS) policies.",
+  "صلاحيات حسب الدور":"Role-based permissions","تُطبَّق صلاحيات الوصول وفق حساب المستخدم ودوره داخل المركز، بحيث لا يحصل كل مستخدم إلا على الصلاحيات الممنوحة له.":"Access permissions are based on each user’s account and role, limiting access to the permissions granted to them.",
+  "سجل تدقيق للتغييرات":"Change audit log","يوفر النظام سجل تدقيق لتوثيق الإجراءات المرتبطة بالمستخدم والمركز، بما يساعد على مراجعة الأنشطة وتتبعها.":"The system maintains an audit log of user and clinic actions to support activity reviews and traceability.",
+  "اتصال آمن عبر HTTPS":"Secure HTTPS connection","يُقدَّم الموقع عبر اتصال HTTPS مشفّر لحماية البيانات أثناء انتقالها بين المتصفح والخدمة.":"The website uses encrypted HTTPS to protect data in transit between the browser and the service.",
+  "قصة نجاح عميل":"Customer success story","المدير الطبي لمركز Elite Physio":"Medical Director, Elite Physio","وفر":"saved","معدل احتفاظ بالمرضى":"Patient retention rate","نمو في الإيرادات الشهرية":"Monthly revenue growth",
+  "احسب عائد الاستثمار (ROI)":"Calculate your return on investment (ROI)","اكتشف كم من الوقت والمال يمكنك توفيره شهرياً عند استخدام Prime Physio بدلاً من الطرق التقليدية.":"Estimate how much time and money you could save each month with Prime Physio.",
+  "تفاصيل عيادتك":"Your clinic details","عدد المرضى شهرياً":"Patients per month","مريض":"patients","عدد الأطباء":"Number of therapists","أطباء":"therapists","التوفير المقدر شهرياً":"Estimated monthly savings","الوقت الموفر":"Time saved","ساعة عمل":"working hours","التكلفة الموفرة (تقريبياً)":"Estimated cost savings","ج.م / ريال":"EGP / SAR",
+  "* هذا الحساب تقريبي ويعتمد على تقليل الأعمال الإدارية اليدوية وتوفير وقت الطاقم الطبي.":"* This is an estimate based on reducing manual administrative work and saving staff time.",
+  "كل ما تحتاج معرفته عن Prime Physio":"Everything you need to know about Prime Physio",
+  "استكشف Prime Physio":"Explore Prime Physio","كيف يعمل النظام؟":"How it works","الباقات والأسعار":"Plans & pricing","للمراكز والعيادات":"For clinics and centers",
+  "إنشاء حساب جديد":"Create an account","تواصل مع فريقنا":"Contact our team","يسعدنا تواصلك":"We’d love to hear from you","هل لديك سؤال أو تحتاج إلى مساعدة؟ فريقنا هنا لمساعدتك.":"Have a question or need help? Our team is here for you.",
+  "منصتك الذكية لإدارة مراكز وعيادات العلاج الطبيعي؛ نظّم المرضى والجلسات":"Your smart platform for managing physiotherapy clinics. Organize patients, sessions","والفريق والحسابات من مكان واحد، وامنح مركزك تجربة إدارة أكثر سهولة واحترافية.":"staff, and finances in one place with a smoother, more professional workflow.",
+  "إدارة منظمة وبيانات محمية":"Organized management and protected data","مصمم لمجتمع العلاج الطبيعي":"Built for the physiotherapy community","جميع الحقوق محفوظة.":"All rights reserved.","حلول تقنية ترتقي بإدارة العلاج الطبيعي":"Technology that elevates physiotherapy management","العودة للأعلى":"Back to top",
+  "Prime Physio - الصفحة الرئيسية":"Prime Physio - Home page",
+  "أحمد محمد عبد الله":"Ahmed Mohamed Abdallah","رقم الملف: #1042":"File No.: #1042","التشخيص الحالي":"Current diagnosis","انزلاق غضروفي قطني (L4-L5) مع ألم عرق النسا.":"Lumbar disc herniation (L4-L5) with sciatica.","مخطط الجسم (Body Chart)":"Body chart","تاريخ الجلسات":"Session history","جلسة جديدة +":"New session +","جلسة علاج طبيعي - ليزر وموجات فوق صوتية":"Physiotherapy session – laser and ultrasound","منذ":"Since","بواسطة د. أحمد":"by Dr. Ahmed","التقارير المالية":"Financial reports","هذا الشهر":"This month","إجمالي الإيرادات":"Total revenue","إجمالي المصروفات":"Total expenses","+15% عن الشهر الماضي":"+15% vs. last month","+5% عن الشهر الماضي":"+5% vs. last month","أحدث الفواتير":"Latest invoices","فاتورة كشف - مريض محمد علي":"Consultation invoice – Mohamed Ali","باقة 6 جلسات - مريضة سارة":"6-session package – Sarah","شراء مستلزمات طبية":"Medical supplies purchase","جلسة ليزر - مريض كريم":"Laser session – Karim","مدفوع":"Paid","مصروف":"Expense","متبقي":"Remaining","جدول المواعيد":"Appointment schedule","اليوم":"Today","أسبوع":"Week","شهر":"Month","محمود خالد":"Mahmoud Khaled","غرفة 1 - د. أحمد":"Room 1 – Dr. Ahmed","سعاد حسن":"Souad Hassan","طارق عبد السلام":"Tarek Abdelsalam","منى سيد":"Mona Sayed","كشف جديد":"New assessment",
+  "الرئيسية":"Home","المرضى":"Patients","الحسابات":"Billing","التقارير":"Analytics","الإعدادات":"Settings","متصل":"Online","بحث عن مريض...":"Search for a patient...",
+  "لوحة متابعة المركز":"Clinic overview","مرحباً بك في Prime Physio":"Welcome to Prime Physio","ملفات المرضى":"Patient records","إدارة منظمة":"Organized management","متابعة سهلة":"Easy follow-up","الجلسات والمواعيد":"Sessions & appointments","جدول واضح":"Clear schedule","تنظيم يومك":"Organize your day","الحسابات":"Billing","متابعة مالية":"Financial tracking","تقارير دقيقة":"Accurate reports","جدول الجلسات":"Session schedule","اليوم":"Today","متابعة حالة":"Follow-up visit","مكتملة":"Completed","جلسة علاج طبيعي":"Physiotherapy session","جارية":"In progress","تقييم أولي":"Initial assessment","قادمة":"Upcoming","إدارة المركز":"Clinic management","الملفات الطبية":"Medical records","فريق العمل":"Team","التنبيهات":"Notifications","كل التفاصيل في مكان واحد":"Everything in one place","إدارة أكثر وضوحاً لمركزك":"A clearer way to manage your clinic","وقتك أكثر تنظيماً":"Make better use of your time",
+
   "الرئيسية":"Home","المميزات":"Features","كيف يعمل":"How it works","الأسعار":"Pricing","الأسئلة الشائعة":"FAQ","الدعم":"Support",
   "إغلاق القائمة":"Close menu","فتح القائمة":"Open menu","التنقل الرئيسي":"Main navigation","لوحة التحكم":"Dashboard","دخول المالك":"Owner login","أنشئ مركزك":"Create your clinic",
   "منصة متكاملة لإدارة مراكز العلاج الطبيعي":"An all-in-one platform for physical therapy clinics","إدارة مركزك الطبي":"Manage your clinic","بكل سهولة واحترافية":"with ease and confidence",
@@ -130,11 +181,14 @@ function translateText(value: string, language: "ar" | "en") {
   const trimmed = value.trim();
   if (!trimmed) return value;
   if (language === "ar") {
-    const original = reverse.get(trimmed);
-    if (original) return value.replace(trimmed, original);
+    const exact = reverse.get(trimmed);
+    if (exact) return value.replace(trimmed, exact);
     let restored = value;
     for (const [en, ar] of reverse.entries()) {
-      if (en.length >= 6 && restored.includes(en)) restored = restored.split(en).join(ar);
+      if (en.length >= 3) {
+        const escaped = en.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        restored = restored.replace(new RegExp("(?<![\\u0600-\\u06FF])" + escaped + "(?![\\u0600-\\u06FF])", "g"), ar);
+      }
     }
     return restored;
   }
@@ -142,7 +196,10 @@ function translateText(value: string, language: "ar" | "en") {
   if (exact) return value.replace(trimmed, exact);
   let result = value;
   for (const [ar, en] of Object.entries(copy).sort((a, b) => b[0].length - a[0].length)) {
-    if (ar.length >= 6 && result.includes(ar)) result = result.split(ar).join(en);
+    if (ar.length >= 3) {
+      const escaped = ar.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      result = result.replace(new RegExp("(?<![\\u0600-\\u06FF])" + escaped + "(?![\\u0600-\\u06FF])", "g"), en);
+    }
   }
   return result;
 }
