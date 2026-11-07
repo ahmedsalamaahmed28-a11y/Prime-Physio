@@ -289,8 +289,17 @@ function PatientsContent() {
     }
 
     try {
-      const { error } = await supabase.from("patients").insert([newPatient]);
-      if (error) throw error;
+      // Patient creation is handled server-side using the authenticated NextAuth
+      // identity and a service-role client after verifying active clinic membership.
+      const response = await fetch("/api/patients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newPatient),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error || "تعذر حفظ بيانات المريض");
+      }
       
       // AUTOMATIC INVOICE CREATION
       try {
@@ -324,29 +333,14 @@ function PatientsContent() {
         visitType: "كشف أول",
       });
     } catch (dbError: any) {
-      console.warn("Database insert failed, queuing for offline sync:", dbError);
-      if (typeof window !== 'undefined') {
-        alert(isRtl ? `فشل الحفظ في قاعدة البيانات: ${dbError.message || dbError}` : `Database save failed: ${dbError.message || dbError}`);
+      console.error("Patient creation failed:", dbError);
+      // Do not queue authorization/database failures as offline writes. Doing so
+      // can create duplicate or phantom patient records when the queue retries.
+      if (typeof window !== "undefined") {
+        alert(isRtl
+          ? `فشل الحفظ في قاعدة البيانات: ${dbError.message || dbError}. لم يتم حفظ المريض؛ يمكنك المحاولة مرة أخرى.`
+          : `Database save failed: ${dbError.message || dbError}. The patient was not saved; please try again.`);
       }
-      
-      // Save locally & queue for sync
-      queueOfflineActions();
-      setIsOpen(false);
-      setFormData({
-        nameAr: "",
-        phone: "",
-        gender: "ذكر",
-        age: "",
-        address: "",
-        activePackage: "جلسات فردية",
-        sessionsTotal: 0,
-        occupation: "",
-        emergencyContact: "",
-        emergencyPhone: "",
-        doctor: "",
-        sessionPrice: defaultClinicPrice,
-        visitType: "كشف أول",
-      });
     }
   };
 
