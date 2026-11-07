@@ -28,13 +28,13 @@ const copy: Record<string, string> = {
   "موثوق من قبل أفضل المراكز":"Trusted by leading clinics",
   "الرئيسية":"Home","المرضى":"Patients","الحسابات":"Billing","التقارير":"Analytics","الإعدادات":"Settings","متصل":"Online","بحث عن مريض...":"Search for a patient...","أخصائي":"Therapist",
   "اكتشف لوحة التحكم التفاعلية":"Explore the interactive dashboard","شاهد كيف تبدو واجهة Prime Physio من الداخل بنفس التصميم الحقيقي للمنصة.":"See the real Prime Physio interface in action.",
-  "الفرق بين الماضي والمستقبل":"From the old way to a better future","تحول من الفوضى الورقية وإهدار الوقت إلى نظام إلكتروني متكامل يدير عيادتك بكفاءة وسهولة.":"Move from paperwork and wasted time to an integrated digital system that runs your clinic efficiently.",
-  "العيادة قديماً":"The old way","مع PrimePhysio":"With Prime Physio","ملفات ورقية مبعثرة":"Scattered paper records","صعوبة في الوصول لتاريخ المريض وتفاصيل الجلسات.":"Patient histories and session details are difficult to find.",
-  "حجوزات مزدوجة":"Double bookings","أخطاء في المواعيد ونسيان إرسال تذكيرات للمرضى.":"Scheduling errors and forgotten patient reminders.","صعوبة متابعة الحسابات":"Difficult financial tracking","تشتت في حسابات الدخل اليومي وجلسات المرضى.":"Scattered daily income and patient session records.",
+  
+  
+  
   "ملف إلكتروني متكامل (EMR)":"Complete electronic medical record (EMR)","وصول فوري لبيانات المريض، خطة العلاج، والملاحظات بضغطة زر.":"Instant access to patient details, treatment plans, and notes.",
   "تنظيم ذكي للمواعيد":"Smart appointment management","جدول مواعيد دقيق مع رسائل تذكير تلقائية عبر الواتساب.":"Accurate scheduling with automatic WhatsApp reminders.",
   "تقارير وحسابات دقيقة":"Accurate reports and finances","لوحة تحكم توضح أرباح العيادة، عدد الجلسات، ومدفوعات المرضى.":"A dashboard showing clinic revenue, session counts, and patient payments.",
-  "منظومة إدارة متكاملة":"An integrated management system","كل تفاصيل مركزك… في مكان واحد":"Your entire clinic. One platform.","أدوات مترابطة لتنظيم المواعيد والملفات الطبية والحسابات والفريق، مع تحكم واضح في البيانات والتقارير.":"Connected tools for scheduling, medical records, finances, and staff—with clear control over data and reports.",
+  
   "مركز":"Clinics","جلسة":"Sessions","طبيب":"Therapists","رضا العملاء":"Customer satisfaction","دعم فني":"Support",
   "لماذا Prime Physio أفضل من Excel؟":"Why Prime Physio instead of Excel?","تخلص من قيود جداول Excel وانتقل إلى نظام ذكي مصمم خصيصاً لمراكز العلاج الطبيعي.":"Move beyond spreadsheets with a smart system designed specifically for physiotherapy clinics.","جداول Excel":"Excel spreadsheets",
   "بطيء ويستغرق وقتاً طويلاً":"Slow and time-consuming","إدخال بيانات يدوي ومكرر":"Repetitive manual data entry","معرض للأخطاء البشرية":"Prone to human error","خطر فقدان البيانات وتلف الملفات":"Risk of lost data and damaged files","لا توجد تكاملات أو تنبيهات آلية":"No integrations or automated alerts",
@@ -145,7 +145,7 @@ const copy: Record<string, string> = {
   "تواصل معنا":"Contact us","هل تحتاج إلى مساعدة؟ فريقنا هنا لمساعدتك.":"Need help? Our team is here for you.",
   "العودة إلى أعلى الصفحة":"Back to top",
   "ابدأ بتنظيم مركزك مع Prime Physio":"Start organizing your clinic with Prime Physio","اجمع إدارة المرضى والجلسات والفريق والحسابات في مكان واحد.":"Bring patient, session, team, and financial management together in one place.",
-  "أنشئ مركزك الآن":"Create your clinic","جاهز للعمل في ثلاث خطوات":"Ready in three simple steps",
+  "جاهز للعمل في ثلاث خطوات":"Ready in three simple steps",
   "أنشئ حسابك":"Create your account","سجّل كمالك مركز علاج طبيعي، وأكمل تفعيل حسابك من خلال رسالة التأكيد التي تصلك على بريدك الإلكتروني.":"Sign up as a clinic owner and activate your account using the confirmation email.",
   "جهّز مركزك":"Set up your clinic","اختر رابطًا مميزًا لمركزك، وأضف الخدمات والأسعار وبيانات فريق العمل حتى يصبح مركزك جاهزًا لاستقبال الحجوزات.":"Choose a unique clinic link, then add services, prices, and team details to get ready for bookings.",
   "ابدأ الحجز":"Start booking","شارك رابط مركزك مع المرضى وفريق العمل، وابدأ في تنظيم المواعيد ومتابعة الحجوزات من مكان واحد.":"Share your clinic link with patients and staff, then manage appointments and bookings from one place.",
