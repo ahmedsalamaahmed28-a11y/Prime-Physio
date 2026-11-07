@@ -2687,13 +2687,14 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
     if (!clinicId) return;
     async function fetchPatient() {
       try {
-        const { data, error } = await supabase
-          .from("patients")
-          .select("*")
-          .eq('clinic_id', clinicId)
-          .eq("id", resolvedParams.id)
-          .single();
-        if (!error && data) {
+        const response = await fetch(`/api/patients/${encodeURIComponent(resolvedParams.id)}`, {
+          method: "GET",
+          cache: "no-store",
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "تعذر تحميل بيانات المريض");
+        const data = result.patient;
+        if (data) {
           // Map DB fields (which may differ) back to the Patient interface
           setPatient((prev) => ({
             ...prev,
@@ -2840,22 +2841,50 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
     setMedicalEditPainRegions(matched);
   };
 
-  const handleMedicalEditSubmit = (e: React.FormEvent) => {
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isSavingMedicalFile, setIsSavingMedicalFile] = useState(false);
+
+  const handleMedicalEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPatient({
-      ...patient,
-      ...medicalEditForm,
-    });
-    setIsMedicalEditOpen(false);
+    if (isSavingMedicalFile) return;
+    setIsSavingMedicalFile(true);
+    try {
+      const response = await fetch(`/api/patients/${encodeURIComponent(patient.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ medicalFields: medicalEditForm }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "تعذر حفظ الملف الطبي");
+      const savedMedical = (result.patient?.medical_history || {}) as Record<string, string>;
+      setPatient((prev) => ({ ...prev, ...medicalEditForm, ...savedMedical }));
+      setIsMedicalEditOpen(false);
+    } catch (error: any) {
+      alert(error.message || (isRtl ? "تعذر حفظ الملف الطبي" : "Could not save medical file"));
+    } finally {
+      setIsSavingMedicalFile(false);
+    }
   };
 
-  const handleEditSubmit = (e: React.FormEvent) => {
+  const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setPatient({
-      ...patient,
-      ...editForm,
-    });
-    setIsEditOpen(false);
+    if (isSavingProfile) return;
+    setIsSavingProfile(true);
+    try {
+      const response = await fetch(`/api/patients/${encodeURIComponent(patient.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editForm),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "تعذر حفظ بيانات المريض");
+      setPatient((prev) => ({ ...prev, ...editForm }));
+      setIsEditOpen(false);
+    } catch (error: any) {
+      alert(error.message || (isRtl ? "تعذر حفظ بيانات المريض" : "Could not save patient profile"));
+    } finally {
+      setIsSavingProfile(false);
+    }
   };
 
   return (    <div className="min-h-screen bg-background" dir={isRtl ? "rtl" : "ltr"}>
@@ -2989,7 +3018,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
              </div>
              <DialogFooter className={`pt-3 border-t mt-4 flex gap-2 ${isRtl ? "justify-end" : "justify-start flex-row-reverse"}`}>
                <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>{isRtl ? "إلغاء" : "Cancel"}</Button>
-               <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]">{isRtl ? "حفظ التعديلات" : "Save Changes"}</Button>
+               <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]">{isSavingProfile ? (isRtl ? "جارٍ الحفظ..." : "Saving...") : (isRtl ? "حفظ التعديلات" : "Save Changes")}</Button>
              </DialogFooter>
           </form>
         </DialogContent>
@@ -3118,7 +3147,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
             </div>
             <DialogFooter className={`pt-3 border-t mt-4 flex gap-2 ${isRtl ? "justify-end" : "justify-start flex-row-reverse"}`}>
               <Button type="button" variant="outline" onClick={() => setIsMedicalEditOpen(false)}>{isRtl ? "إلغاء" : "Cancel"}</Button>
-              <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]">{isRtl ? "حفظ الملف الطبي" : "Save Medical File"}</Button>
+              <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]">{isSavingMedicalFile ? (isRtl ? "جارٍ الحفظ..." : "Saving...") : (isRtl ? "حفظ الملف الطبي" : "Save Medical File")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>

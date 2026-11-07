@@ -9,6 +9,13 @@ export const revalidate = 0;
 const PATIENT_FIELDS = [
   "id",
   "nameAr",
+  "nameEn",
+  "email",
+  "nationalId",
+  "bloodType",
+  "allergies",
+  "dvt",
+  "referral",
   "phone",
   "gender",
   "age",

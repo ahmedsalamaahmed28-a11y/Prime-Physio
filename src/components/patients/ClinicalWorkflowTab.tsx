@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,21 +36,24 @@ export function ClinicalWorkflowTab({ patientId, clinicId, isRtl }: Props) {
     if (!clinicId || !patientId) return;
     setLoading(true);
     setError("");
-    const [evaluations, plans, programs, tracking] = await Promise.all([
-      supabase.from("patient_evaluations").select("id,evaluation_date,evaluation_type,vas_score,notes").eq("clinic_id", clinicId).eq("patient_id", patientId).order("evaluation_date", { ascending: false }),
-      supabase.from("treatment_plans").select("id,goals,session_plan,frequency,duration,home_program,status,created_at").eq("clinic_id", clinicId).eq("patient_id", patientId).order("created_at", { ascending: false }),
-      supabase.from("patient_programs").select("id,title,exercises,created_at").eq("clinic_id", clinicId).eq("patient_id", patientId).neq("title", "__prime_physio_active_protocol_state__").order("created_at", { ascending: false }),
-      supabase.from("progress_tracking").select("id,pain_before,pain_level,rom_status,strength_status,recovery_score,completed_exercises,appointment_id,session_id,notes,created_at,session:sessions!progress_tracking_session_id_fkey(intervention,session_objectives,target_exercises)").eq("clinic_id", clinicId).eq("patient_id", patientId).order("created_at", { ascending: false }),
-    ]);
-    const failed = [evaluations, plans, programs, tracking].find((result) => result.error);
-    if (failed?.error) setError(failed.error.message);
-    setHistory({
-      evaluations: evaluations.data || [],
-      plans: plans.data || [],
-      programs: programs.data || [],
-      progress: tracking.data || [],
-    });
-    setLoading(false);
+    try {
+      const response = await fetch(`/api/patients/${encodeURIComponent(patientId)}/clinical`, {
+        method: "GET",
+        cache: "no-store",
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "تعذر تحميل السجل العلاجي");
+      setHistory({
+        evaluations: result.evaluations || [],
+        plans: result.plans || [],
+        programs: result.programs || [],
+        progress: result.progress || [],
+      });
+    } catch (err: any) {
+      setError(err.message || String(err));
+    } finally {
+      setLoading(false);
+    }
   }, [clinicId, patientId]);
 
   useEffect(() => { loadHistory(); }, [loadHistory]);
@@ -64,26 +66,17 @@ export function ClinicalWorkflowTab({ patientId, clinicId, isRtl }: Props) {
       const vas = Number(evaluation.vas);
       if (!Number.isInteger(vas) || vas < 0 || vas > 10) throw new Error(isRtl ? "درجة الألم يجب أن تكون من 0 إلى 10." : "VAS must be between 0 and 10.");
       const exercises = plan.exercises.split("\n").map((line) => line.trim()).filter(Boolean).map((name) => ({ name }));
-      const { data, error: rpcError } = await supabase.rpc("create_patient_care_plan", {
-        p_patient_id: patientId,
-        p_evaluation_type: evaluation.type,
-        p_vas_score: vas,
-        p_symptoms: evaluation.symptoms || null,
-        p_rom_data: { notes: evaluation.rom },
-        p_mmt_data: { notes: evaluation.strength },
-        p_special_tests: evaluation.specialTests.split("\n").map((line) => line.trim()).filter(Boolean),
-        p_potential_diagnoses: evaluation.potentialDiagnoses || null,
-        p_red_flags: evaluation.redFlags || null,
-        p_clinical_summary: evaluation.summary || null,
-        p_goals: plan.goals,
-        p_session_plan: plan.sessionPlan,
-        p_frequency: plan.frequency || null,
-        p_duration: plan.duration || null,
-        p_home_program: plan.homeProgram || null,
-        p_program_title: plan.programTitle,
-        p_exercises: exercises,
+      const response = await fetch(`/api/patients/${encodeURIComponent(patientId)}/clinical`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "care_plan",
+          evaluation,
+          plan: { ...plan, exercises },
+        }),
       });
-      if (rpcError) throw rpcError;
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "تعذر حفظ التقييم والخطة العلاجية");
       setNotice(isRtl ? "تم حفظ التقييم والخطة والبرنامج المنزلي معًا." : "Evaluation, treatment plan and home program saved together.");
       await loadHistory();
     } catch (err: any) {
@@ -100,11 +93,13 @@ export function ClinicalWorkflowTab({ patientId, clinicId, isRtl }: Props) {
       const recovery = Number(progress.recovery);
       if (!Number.isInteger(pain) || pain < 0 || pain > 10) throw new Error(isRtl ? "الألم يجب أن يكون من 0 إلى 10." : "Pain must be between 0 and 10.");
       if (!Number.isInteger(recovery) || recovery < 0 || recovery > 100) throw new Error(isRtl ? "التعافي يجب أن يكون من 0 إلى 100." : "Recovery must be between 0 and 100.");
-      const { error: rpcError } = await supabase.rpc("record_patient_progress", {
-        p_patient_id: patientId, p_pain_level: pain, p_rom_status: progress.rom || null,
-        p_strength_status: progress.strength || null, p_recovery_score: recovery, p_notes: progress.notes || null,
+      const response = await fetch(`/api/patients/${encodeURIComponent(patientId)}/clinical`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "progress", progress: { ...progress, pain, recovery } }),
       });
-      if (rpcError) throw rpcError;
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "تعذر تسجيل التقدم العلاجي");
       setNotice(isRtl ? "تم تسجيل قياس التقدم." : "Progress measurement recorded.");
       setProgress({ pain: "0", rom: "", strength: "", recovery: "0", notes: "" });
       await loadHistory();
