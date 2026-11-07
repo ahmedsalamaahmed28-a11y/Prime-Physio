@@ -21,49 +21,56 @@ const stats = [
 function AnimatedStatValue({ value }: { value: string }) {
   const match = value.match(/^([^0-9]*)([0-9,]+)(.*)$/);
   const prefix = match?.[1] ?? "";
-  const target = match ? Number(match[2].replace(/,/g, "")) : 0;
+  const digits = match?.[2] ?? "0";
   const suffix = match?.[3] ?? "";
-
-  // Render the final value in server HTML so the counters never remain at zero
-  // if client-side hydration is delayed or unavailable.
-  const [count, setCount] = useState(target);
+  const [phase, setPhase] = useState<"settled" | "reset" | "rolling">("settled");
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setCount(target);
+      setPhase("rolling");
       return;
     }
 
-    // Start the animation only after hydration. The server-rendered value above
-    // remains a safe fallback if JavaScript does not hydrate this component.
-    setCount(0);
+    // Begin from the first wheel position, then roll three full turns to the
+    // requested digit. Two frames ensure the browser paints the reset position.
+    setPhase("reset");
+    let firstFrame = 0;
+    let secondFrame = 0;
+    firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => setPhase("rolling"));
+    });
 
-    const duration = 2200;
-    let animationFrame = 0;
-    let startTime: number | null = null;
-
-    const animate = (timestamp: number) => {
-      if (startTime === null) startTime = timestamp;
-
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      const easedProgress = 1 - Math.pow(1 - progress, 3);
-      const nextValue = Math.round(target * easedProgress);
-
-      setCount(progress === 1 ? target : nextValue);
-
-      if (progress < 1) {
-        animationFrame = window.requestAnimationFrame(animate);
-      }
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
     };
-
-    animationFrame = window.requestAnimationFrame(animate);
-
-    return () => window.cancelAnimationFrame(animationFrame);
-  }, [target]);
+  }, []);
 
   return (
     <span aria-label={value} className="pp-stat-number tabular-nums">
-      {prefix}{count.toLocaleString("en-US")}{suffix}
+      <span aria-hidden="true">{prefix}</span>
+      <span className="pp-stat-odometer" aria-hidden="true">
+        {Array.from(digits).map((character, index) => {
+          if (!/[0-9]/.test(character)) {
+            return <span className="pp-stat-separator" key={`separator-${index}`}>{character}</span>;
+          }
+
+          const rollTo = 30 + Number(character);
+          return (
+            <span className="pp-stat-digit-window" key={`digit-${index}`}>
+              <span
+                className={`pp-stat-digit-strip${phase === "rolling" ? " is-rolling" : ""}`}
+                style={{ "--roll-y": `${phase === "settled" ? -rollTo : phase === "reset" ? 0 : -rollTo}em` } as React.CSSProperties}
+              >
+                { "0123456789".repeat(4).split("").map((digit, digitIndex) => (
+                  <span className="pp-stat-digit" key={digitIndex}>{digit}</span>
+                ))}
+              </span>
+            </span>
+          );
+        })}
+      </span>
+      <span aria-hidden="true">{suffix}</span>
     </span>
   );
 }
