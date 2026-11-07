@@ -37,10 +37,14 @@ export async function POST(request: NextRequest) {
     }
 
     const admin = getAdminClient();
-    const { data: staff, error: staffError } = await admin
+    let staffQuery = admin
       .from("staff")
       .select("clinic_id,status")
-      .eq("email", email)
+      .eq("email", email);
+    if (typeof body.clinic_id === "string" && body.clinic_id) {
+      staffQuery = staffQuery.eq("clinic_id", body.clinic_id);
+    }
+    const { data: staff, error: staffError } = await staffQuery
       .limit(1)
       .maybeSingle();
 
