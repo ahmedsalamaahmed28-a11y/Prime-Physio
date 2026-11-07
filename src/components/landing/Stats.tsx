@@ -23,7 +23,7 @@ function AnimatedStatValue({ value }: { value: string }) {
   const prefix = match?.[1] ?? "";
   const digits = match?.[2] ?? "0";
   const suffix = match?.[3] ?? "";
-  const [phase, setPhase] = useState<"blank" | "settled" | "rolling">("blank");
+  const [phase, setPhase] = useState<"blank" | "reset" | "rolling" | "settled">("blank");
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -31,8 +31,9 @@ function AnimatedStatValue({ value }: { value: string }) {
       return;
     }
 
-    // Keep the statistic visually empty until the rolling animation begins.
-    // It starts on mount, without waiting for scroll/reveal.
+    // Keep the digit windows hidden while positioned at zero; reveal them
+    // only once the rolling transition starts so no leading zeros are shown.
+    setPhase("reset");
     let firstFrame = 0;
     let secondFrame = 0;
     firstFrame = window.requestAnimationFrame(() => {
@@ -45,27 +46,29 @@ function AnimatedStatValue({ value }: { value: string }) {
     };
   }, []);
 
+  const showDigits = phase === "rolling" || phase === "settled";
+
   return (
-    <span
-      aria-label={value}
-      className="pp-stat-number tabular-nums"
-      style={{ visibility: phase === "blank" ? "hidden" : "visible" }}
-    >
+    <span aria-label={value} className="pp-stat-number tabular-nums">
       <span aria-hidden="true">{prefix}</span>
-      <span className="pp-stat-odometer" aria-hidden="true" dir="ltr">
+      <span
+        className="pp-stat-odometer"
+        aria-hidden="true"
+        dir="ltr"
+        style={{ visibility: showDigits ? "visible" : "hidden" }}
+      >
         {Array.from(digits).map((character, index) => {
           if (!/[0-9]/.test(character)) {
             return <span className="pp-stat-separator" key={`separator-${index}`}>{character}</span>;
           }
 
           const rollTo = 30 + Number(character);
-          // Match the offset to the exact height of each digit row.
           const targetOffset = rollTo * 1.08;
           return (
             <span className="pp-stat-digit-window" key={`digit-${index}`}>
               <span
                 className={`pp-stat-digit-strip${phase === "rolling" ? " is-rolling" : ""}`}
-                style={{ "--roll-y": `${phase === "settled" ? -targetOffset : phase === "blank" ? 0 : -targetOffset}em` } as React.CSSProperties}
+                style={{ "--roll-y": `${phase === "settled" ? -targetOffset : phase === "reset" ? 0 : -targetOffset}em` } as React.CSSProperties}
               >
                 {"0123456789".repeat(4).split("").map((digit, digitIndex) => (
                   <span className="pp-stat-digit" key={digitIndex}>{digit}</span>
