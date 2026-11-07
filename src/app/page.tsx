@@ -21,6 +21,7 @@ import FAQ from "@/components/landing/FAQ";
 import Footer from "@/components/landing/Footer";
 import BeforeAfter from "@/components/landing/BeforeAfter";
 import PatientJourney from "@/components/landing/PatientJourney";
+import LandingLocale from "@/components/landing/LandingLocale";
 export const revalidate = 0;
 export default async function LandingPage() {
   const contentMap: Record<string, any> = {};
@@ -38,6 +39,7 @@ export default async function LandingPage() {
     console.warn("Landing CMS is unavailable; rendering default content.", error);
   }
   return <div id="top" className="pp-landing min-h-screen flex flex-col">
+    <LandingLocale />
     <Navbar />
     <main className="flex-grow">
       <Hero cmsContent={contentMap.hero} />
