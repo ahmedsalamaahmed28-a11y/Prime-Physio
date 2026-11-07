@@ -30,6 +30,36 @@ const PATIENT_FIELDS = [
   "doctor",
 ] as const;
 
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    const email = session?.user?.email?.toLowerCase().trim();
+    if (!email) return NextResponse.json({ error: "يجب تسجيل الدخول أولاً" }, { status: 401 });
+
+    const admin = getAdminClient();
+    const { data: staff, error: staffError } = await admin
+      .from("staff").select("clinic_id,status").eq("email", email).limit(1).maybeSingle();
+    if (staffError) {
+      console.error("[Patients API] Staff lookup failed:", staffError);
+      return NextResponse.json({ error: "تعذر التحقق من صلاحية الحساب" }, { status: 503 });
+    }
+    if (!staff?.clinic_id || staff.status === "محذوف") {
+      return NextResponse.json({ error: "لا توجد صلاحية نشطة لهذه العيادة" }, { status: 403 });
+    }
+
+    const { data, error } = await admin
+      .from("patients").select("*").eq("clinic_id", staff.clinic_id).order("id", { ascending: true });
+    if (error) {
+      console.error("[Patients API] List query failed:", error);
+      return NextResponse.json({ error: "تعذر تحميل قائمة المرضى" }, { status: 500 });
+    }
+    return NextResponse.json({ patients: data || [] }, { headers: { "Cache-Control": "no-store" } });
+  } catch (error) {
+    console.error("[Patients API] List failed:", error);
+    return NextResponse.json({ error: "حدث خطأ أثناء تحميل قائمة المرضى" }, { status: 500 });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
