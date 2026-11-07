@@ -101,10 +101,34 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     if (body.action === "protocol_state") {
       const protocolTitle = "__prime_physio_active_protocol_state__";
       const state = body.state;
-      if (state !== null && (!state || typeof state !== "object" || Array.isArray(state) ||
-          typeof state.protocolId !== "string" || !Number.isInteger(state.currentPhase) ||
-          !Array.isArray(state.completedCriteria))) {
-        return NextResponse.json({ error: "بيانات البروتوكول غير صالحة" }, { status: 400 });
+      const isLegacyProtocolState = Boolean(
+        state &&
+        typeof state === "object" &&
+        !Array.isArray(state) &&
+        typeof state.protocolId === "string" &&
+        state.protocolId.trim() &&
+        Number.isInteger(state.currentPhase) &&
+        state.currentPhase >= 1 &&
+        Array.isArray(state.completedCriteria) &&
+        state.completedCriteria.every((item: unknown) => typeof item === "string")
+      );
+      const isPhaseBasedProtocolState = Boolean(
+        state &&
+        typeof state === "object" &&
+        !Array.isArray(state) &&
+        typeof state.protocolId === "string" &&
+        state.protocolId.trim() &&
+        Number.isInteger(state.currentPhaseIndex) &&
+        state.currentPhaseIndex >= 0 &&
+        state.checkedCriteria &&
+        typeof state.checkedCriteria === "object" &&
+        !Array.isArray(state.checkedCriteria) &&
+        Object.entries(state.checkedCriteria).every(([key, value]) =>
+          /^\\d+$/.test(key) && typeof value === "boolean"
+        )
+      );
+      if (state !== null && !isLegacyProtocolState && !isPhaseBasedProtocolState) {
+        return NextResponse.json({ error: "بيانات البروتوكول غير صالحة أو لا تطابق تنسيق البروتوكول" }, { status: 400 });
       }
 
       const { data: existing, error: lookupError } = await auth.admin
