@@ -81,18 +81,13 @@ function PatientsContent() {
     async function loadPatients() {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from("patients")
-          .select("*")
-          .eq("clinic_id", clinicId)
-          .order("id", { ascending: true });
-        
-        if (error) throw error;
-
-        saveLocalPatients(data || []);
+        const response = await fetch("/api/patients", { method: "GET", cache: "no-store" });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "تعذر تحميل قائمة المرضى");
+        saveLocalPatients(result.patients || []);
       } catch (err: any) {
-        console.warn("Database load failed:", err);
-        saveLocalPatients([]);
+        console.error("Patient list could not be loaded:", err);
+        alert(isRtl ? "تعذر تحميل قائمة المرضى من قاعدة البيانات. لم يتم حذف أي مريض. حدّث الصفحة أو أعد المحاولة.\n" + (err.message || err) : "Could not load patients. No patient records were deleted. Please retry.\n" + (err.message || err));
       } finally {
         setIsLoading(false);
       }
