@@ -172,3 +172,59 @@
 .pp-stat-digit{display:block;flex:none;width:100%;height:1.08em;line-height:1.08em;text-align:center;font-variant-numeric:tabular-nums;}
 .pp-stat-separator{display:block;flex:none;height:1.08em;line-height:1.08em;text-align:center;}
 @media(prefers-reduced-motion:reduce){.pp-stat-digit-strip.is-rolling{transition:none;}}
+
+
+/* Final numeric-run correction: keep sign, digits and suffix in natural LTR order
+   even when the surrounding Arabic landing page is RTL. */
+.pp-stat-item b > .pp-stat-number{
+  display:inline-flex;
+  flex-direction:row;
+  direction:ltr !important;
+  unicode-bidi:isolate;
+  align-items:center;
+  justify-content:flex-start;
+  vertical-align:middle;
+  line-height:1.08;
+  white-space:nowrap;
+}
+.pp-stat-odometer{
+  display:inline-flex;
+  flex-direction:row;
+  direction:ltr !important;
+  unicode-bidi:isolate;
+  align-items:center;
+  justify-content:flex-start;
+  gap:0;
+}
+.pp-stat-digit-window{
+  display:block;
+  position:relative;
+  flex:0 0 .62em;
+  width:.62em;
+  height:1.08em;
+  overflow:hidden;
+  line-height:1.08em;
+}
+.pp-stat-digit-strip{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  width:100%;
+  line-height:1.08em;
+  transform:translate3d(0,var(--roll-y,0em),0);
+}
+.pp-stat-digit{
+  display:block;
+  flex:0 0 1.08em;
+  width:100%;
+  height:1.08em;
+  line-height:1.08em;
+  text-align:center;
+}
+.pp-stat-separator{
+  display:inline-block;
+  flex:0 0 auto;
+  direction:ltr;
+  unicode-bidi:isolate;
+  line-height:1.08em;
+}
