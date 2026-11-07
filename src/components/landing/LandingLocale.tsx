@@ -68,7 +68,7 @@ const copy: Record<string, string> = {
   "إدارة حتى 200 مريض":"Manage up to 200 patients","500 جلسة شهرياً":"500 sessions per month","50 حساب للأخصائيين":"50 therapist accounts","التقارير والتحليلات والتغذية العلاجية":"Reports, analytics, and clinical nutrition","دعم فني هاتفي":"Phone support",
   "عدد لا محدود من المرضى والجلسات":"Unlimited patients and sessions","حسابات غير محدودة للأخصائيين":"Unlimited therapist accounts","المكتبة العلاجية ورسائل التذكير":"Clinical library and reminders","إدارة فروع متعددة (حتى مركزين)":"Manage multiple branches (up to two clinics)","دعم VIP على مدار الساعة":"24/7 VIP support",
   "ابدأ مجانًا":"Start for free","ابدأ الإصدار الفضي":"Choose Silver","ابدأ الإصدار الذهبي":"Choose Gold","ابدأ الإصدار المميز":"Choose Premium","اشترك الآن":"Subscribe now",
-  "الأسئلة الشائعة":"Frequently asked questions","هل أحتاج إلى خبرة تقنية سابقة لاستخدام المنصة؟":"Do I need technical experience to use the platform?",
+  "الأسئلة الشائعة (duplicate)":"Frequently asked questions","هل أحتاج إلى خبرة تقنية سابقة لاستخدام المنصة؟":"Do I need technical experience to use the platform?",
   "لا أبداً. قمنا بتصميم Prime Physio ليكون بديهياً وسهل الاستخدام للجميع، بغض النظر عن خلفيتهم التقنية. واجهة المستخدم بسيطة ومباشرة، ونوفر مقاطع فيديو تعليمية قصيرة ودعم فني دائم.":"Not at all. Prime Physio is designed to be intuitive and easy to use, regardless of your technical background. The interface is straightforward, and we provide short tutorials and ongoing support.",
   "هل بيانات مرضاي آمنة؟":"Is my patients’ data secure?","كيف يمكنني إنشاء حساب للمركز؟":"How can I create a clinic account?","هل يمكنني إلغاء الاشتراك في أي وقت؟":"Can I cancel my subscription at any time?",
   "استكشف Prime Physio":"Explore Prime Physio","كيف يعمل النظام؟":"How it works","الباقات والأسعار":"Plans & pricing","للمراكز والعيادات":"For clinics and centers",
@@ -91,7 +91,7 @@ const copy: Record<string, string> = {
   "نعم، يوفر فريق الدعم الفني لدينا خدمة مجانية لنقل بياناتك القديمة (مثل قوائم المرضى من ملفات Excel) إلى نظامنا بسرعة وبدون أخطاء.":"Yes. Our support team offers a free service to transfer your existing data, such as patient lists from Excel, into the platform.",
   "منصتك الذكية لإدارة مراكز وعيادات العلاج الطبيعي؛ نظّم المرضى والجلسات والفريق والحسابات من مكان واحد، وامنح مركزك تجربة إدارة أكثر سهولة واحترافية.":"Your smart platform for managing physiotherapy clinics. Organize patients, sessions, staff, and finances in one place with a smoother, more professional workflow.",
   "إدارة منظمة وبيانات محمية":"Organized management and protected data","يسعدنا تواصلك":"We’d love to hear from you","هل لديك سؤال أو تحتاج إلى مساعدة؟ فريقنا هنا لمساعدتك.":"Have a question or need help? Our team is here for you.",
-  "تواصل مع فريقنا":"Contact our team","تسجيل الدخول":"Sign in","تفاصيل تصنع الفارق":"The details make the difference",
+  "تواصل مع فريقنا":"Contact our team","تسجيل الدخول (duplicate)":"Sign in","تفاصيل تصنع الفارق":"The details make the difference",
   "تعرف عن قرب على الأدوات التي ستغير طريقة إدارتك لعيادتك بالكامل.":"Discover the tools that can transform the way you manage your clinic.",
   "سجل طبي إلكتروني (EMR) متطور":"Advanced electronic medical records (EMR)",
   "صممنا السجل الطبي خصيصاً ليناسب عيادات العلاج الطبيعي. يمكنك إضافة تشخيصات دقيقة، صور الأشعة، قياسات المفاصل (ROM)، وتتبع تطور حالة المريض بكل سهولة. لم تعد بحاجة للورق بعد اليوم.":"Designed for physiotherapy clinics, the EMR lets you record diagnoses, imaging, joint range-of-motion measurements, and patient progress—all without paperwork.",
@@ -109,7 +109,7 @@ const copy: Record<string, string> = {
   "جلسة علاج طبيعي - ليزر وموجات فوق صوتية":"Physiotherapy session – laser and ultrasound","بواسطة د. أحمد":"by Dr. Ahmed","التقارير المالية":"Financial reports","+15% عن الشهر الماضي":"+15% vs. last month","+5% عن الشهر الماضي":"+5% vs. last month",
   "فاتورة كشف - مريض محمد علي":"Consultation invoice – Mohamed Ali","باقة 6 جلسات - مريضة سارة":"6-session package – Sarah","شراء مستلزمات طبية":"Medical supplies purchase","جلسة ليزر - مريض كريم":"Laser session – Karim",
   "جدول المواعيد":"Appointment schedule","أسبوع":"Week","شهر":"Month","محمود خالد":"Mahmoud Khaled","غرفة 1 - د. أحمد":"Room 1 – Dr. Ahmed","سعاد حسن":"Souad Hassan","طارق عبد السلام":"Tarek Abdelsalam","منى سيد":"Mona Sayed",
-  "مركزك":"your clinic","المركز":"clinic","الحساب":"account","جلسات":"sessions","المواعيد":"appointments","المرضى":"patients",
+  "مركزك":"your clinic","المركز":"clinic","الحساب":"account","جلسات":"sessions","المواعيد":"appointments","المرضى (duplicate)":"patients",
   "منذ":"Since","التشخيص الحالي":"Current diagnosis","تاريخ الجلسات":"Session history","جلسة جديدة +":"New session +","هذا الشهر":"This month","إجمالي الإيرادات":"Total revenue","إجمالي المصروفات":"Total expenses","أحدث الفواتير":"Latest invoices","مدفوع":"Paid","مصروف":"Expense","متبقي":"Remaining","غرفة":"Room","كشف جديد":"New assessment",
 };
 
