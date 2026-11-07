@@ -38,7 +38,7 @@ function AnimatedStatValue({ value }: { value: string }) {
     // remains a safe fallback if JavaScript does not hydrate this component.
     setCount(0);
 
-    const duration = 1800;
+    const duration = 2200;
     let animationFrame = 0;
     let startTime: number | null = null;
 
@@ -62,7 +62,7 @@ function AnimatedStatValue({ value }: { value: string }) {
   }, [target]);
 
   return (
-    <span aria-label={value} className="tabular-nums">
+    <span aria-label={value} className="pp-stat-number tabular-nums">
       {prefix}{count.toLocaleString("en-US")}{suffix}
     </span>
   );
