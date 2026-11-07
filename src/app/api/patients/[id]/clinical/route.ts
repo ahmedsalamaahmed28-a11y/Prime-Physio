@@ -50,14 +50,15 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
       return NextResponse.json({ error: "المريض غير موجود في العيادة الحالية" }, { status: 404 });
     }
 
-    const [evaluations, plans, programs, progress] = await Promise.all([
+    const [evaluations, plans, programs, progress, protocol] = await Promise.all([
       auth.admin.from("patient_evaluations").select("id,evaluation_date,evaluation_type,vas_score,notes").eq("clinic_id", auth.clinicId).eq("patient_id", id).order("evaluation_date", { ascending: false }),
       auth.admin.from("treatment_plans").select("id,goals,session_plan,frequency,duration,home_program,status,created_at").eq("clinic_id", auth.clinicId).eq("patient_id", id).order("created_at", { ascending: false }),
       auth.admin.from("patient_programs").select("id,title,exercises,created_at").eq("clinic_id", auth.clinicId).eq("patient_id", id).neq("title", "__prime_physio_active_protocol_state__").order("created_at", { ascending: false }),
       auth.admin.from("progress_tracking").select("id,pain_before,pain_level,rom_status,strength_status,recovery_score,completed_exercises,appointment_id,session_id,notes,created_at,session:sessions!progress_tracking_session_id_fkey(intervention,session_objectives,target_exercises)").eq("clinic_id", auth.clinicId).eq("patient_id", id).order("created_at", { ascending: false }),
+      auth.admin.from("patient_programs").select("exercises").eq("clinic_id", auth.clinicId).eq("patient_id", id).eq("title", "__prime_physio_active_protocol_state__").maybeSingle(),
     ]);
 
-    const failed = [evaluations, plans, programs, progress].find((result) => result.error);
+    const failed = [evaluations, plans, programs, progress, protocol].find((result) => result.error);
     if (failed?.error) {
       console.error("[Patient Clinical API] History load failed:", failed.error);
       return NextResponse.json({ error: "تعذر تحميل السجل العلاجي" }, { status: 500 });
@@ -68,6 +69,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
       plans: plans.data || [],
       programs: programs.data || [],
       progress: progress.data || [],
+      protocolState: protocol.data?.exercises || null,
     });
   } catch (error) {
     console.error("[Patient Clinical API] Unexpected history error:", error);
@@ -94,6 +96,47 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     }
     if (!(await verifyPatient(auth.admin, id, auth.clinicId))) {
       return NextResponse.json({ error: "المريض غير موجود في العيادة الحالية" }, { status: 404 });
+    }
+
+    if (body.action === "protocol_state") {
+      const protocolTitle = "__prime_physio_active_protocol_state__";
+      const state = body.state;
+      if (state !== null && (!state || typeof state !== "object" || Array.isArray(state) ||
+          typeof state.protocolId !== "string" || !Number.isInteger(state.currentPhase) ||
+          !Array.isArray(state.completedCriteria))) {
+        return NextResponse.json({ error: "بيانات البروتوكول غير صالحة" }, { status: 400 });
+      }
+
+      const { data: existing, error: lookupError } = await auth.admin
+        .from("patient_programs")
+        .select("id")
+        .eq("clinic_id", auth.clinicId)
+        .eq("patient_id", id)
+        .eq("title", protocolTitle)
+        .maybeSingle();
+      if (lookupError) throw lookupError;
+
+      if (state === null) {
+        if (existing?.id) {
+          const { error } = await auth.admin.from("patient_programs")
+            .delete().eq("id", existing.id).eq("clinic_id", auth.clinicId).eq("patient_id", id);
+          if (error) throw error;
+        }
+      } else if (existing?.id) {
+        const { error } = await auth.admin.from("patient_programs")
+          .update({ exercises: state })
+          .eq("id", existing.id).eq("clinic_id", auth.clinicId).eq("patient_id", id);
+        if (error) throw error;
+      } else {
+        const { error } = await auth.admin.from("patient_programs").insert({
+          clinic_id: auth.clinicId,
+          patient_id: id,
+          title: protocolTitle,
+          exercises: state,
+        });
+        if (error) throw error;
+      }
+      return NextResponse.json({ success: true, protocolState: state });
     }
 
     if (body.action === "progress") {
