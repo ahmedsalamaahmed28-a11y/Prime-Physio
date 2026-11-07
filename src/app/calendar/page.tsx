@@ -613,28 +613,20 @@ export default function CalendarPage() {
   useEffect(() => {
     if (!clinicId) return;
     const loadData = async () => {
-      const { data: patientsData, error: patientsError } = await supabase.from("patients").select("id, nameAr").eq('clinic_id', clinicId);
-      if (patientsError) {
-        console.error("Failed to load patients from Supabase", patientsError);
+      let dbEvents: any[] = [];
+      try {
+        const response = await fetch("/api/calendar", { method: "GET", cache: "no-store" });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "تعذر تحميل بيانات التقويم");
+        setPatients(result.patients || []);
+        dbEvents = result.appointments || [];
+      } catch (error: any) {
+        console.error("Calendar data could not be loaded:", error);
         setPatients([]);
-      } else {
-        setPatients(patientsData || []);
-      }
-
-      const { data: doctorsData, error: doctorsError } = await supabase.from("staff").select("name,email,role").eq('clinic_id', clinicId);
-      if (doctorsError) {
-        console.error("Failed to load doctors from Supabase", doctorsError);
-        setDoctorsList([]);
-      } else {
-        const isDoctor = (role: string) =>
-          ["مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(role);
-        setDoctorsList((doctorsData || []).filter((s: any) => isDoctor(s.role)));
-      }
-
-      const { data: dbEvents, error: dbErr } = await supabase.from("appointments").select("*, treatment_plan:treatment_plans!appointments_treatment_plan_patient_clinic_fkey(id,goals)").eq('clinic_id', clinicId);
-      if (dbErr) {
-        console.error("Failed to load appointments from Supabase", dbErr);
         setEvents([]);
+        setAlertMsg(isRtl
+          ? "تعذر تحميل بيانات المرضى والمواعيد من الخادم. لم يتم حذف أي بيانات. أعد المحاولة: " + (error.message || error)
+          : "Could not load patients and appointments. No records were deleted. Please retry: " + (error.message || error));
         return;
       }
 
