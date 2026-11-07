@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { CheckCircle2, User, FileText, Activity, CreditCard, DollarSign, ArrowUpRight, Calendar as CalendarIcon, Clock } from "lucide-react";
 
 const EmrMockup = () => (
@@ -222,11 +221,7 @@ export default function FeaturesDetail() {
               }`}
             >
               {/* Text Content */}
-              <motion.div
-                initial={{ opacity: 0, x: feature.reversed ? 50 : -50 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, ease: "easeOut" }}
+              <div data-csp-motion="reveal"
                 className="w-full lg:w-1/2"
               >
                 <h3 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6 leading-tight">
@@ -245,17 +240,13 @@ export default function FeaturesDetail() {
                     </li>
                   ))}
                 </ul>
-              </motion.div>
+              </div>
 
               {/* Mockup Content */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
+              <div data-csp-motion="reveal"
                 className="w-full lg:w-1/2"
               >
-                <div className="rounded-2xl overflow-hidden shadow-2xl shadow-slate-200/50 border-4 border-slate-800 bg-slate-800 group" style={{ height: "380px" }}>
+                <div className="h-[380px] rounded-2xl overflow-hidden shadow-2xl shadow-slate-200/50 border-4 border-slate-800 bg-slate-800 group">
                   <div className="h-6 bg-slate-800 flex items-center px-3 gap-1.5 shrink-0 w-full">
                     <div className="w-2.5 h-2.5 rounded-full bg-red-400" />
                     <div className="w-2.5 h-2.5 rounded-full bg-amber-400" />
@@ -266,7 +257,7 @@ export default function FeaturesDetail() {
                     {feature.mockup}
                   </div>
                 </div>
-              </motion.div>
+              </div>
             </div>
           ))}
         </div>

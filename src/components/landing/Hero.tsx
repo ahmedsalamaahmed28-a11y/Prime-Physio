@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
   Activity, CalendarDays, Users, ClipboardList, CreditCard,
   Check, ArrowLeft, Clock, Bell, TrendingUp
@@ -23,11 +22,8 @@ export default function Hero({ cmsContent }: { cmsContent?: any }) {
       <div className="pp-hero-glow pp-hero-glow-one" aria-hidden="true" />
       <div className="pp-hero-glow pp-hero-glow-two" aria-hidden="true" />
       <div className="pp-wrap pp-hero-grid">
-        <motion.div
+        <div data-csp-motion="reveal"
           className="pp-hero-copy"
-          initial={{ opacity: 0, y: 18 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55 }}
         >
           <p className="pp-eyebrow"><span className="pp-status-dot" />{badgeText}</p>
           <h1>{titlePart1} <em>{titlePart2}</em></h1>
@@ -47,13 +43,10 @@ export default function Hero({ cmsContent }: { cmsContent?: any }) {
               <li key={feature}><Check aria-hidden="true" />{feature}</li>
             ))}
           </ul>
-        </motion.div>
+        </div>
 
-        <motion.div
+        <div data-csp-motion="reveal"
           className="pp-hero-visual"
-          initial={{ opacity: 0, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.7, delay: 0.12 }}
           aria-label="معاينة توضيحية للوحة تحكم Prime Physio"
         >
           <div className="pp-dashboard-window">
@@ -96,7 +89,7 @@ export default function Hero({ cmsContent }: { cmsContent?: any }) {
           </div>
           <div className="pp-floating-note"><span><Check /></span><div><b>كل التفاصيل في مكان واحد</b><small>إدارة أكثر وضوحاً لمركزك</small></div></div>
           <div className="pp-floating-clock"><Clock /><span>وقتك أكثر تنظيماً</span></div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

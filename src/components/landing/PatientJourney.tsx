@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Calendar, MessageSquare, UserCheck, Stethoscope, CreditCard, Activity } from "lucide-react";
 
 const journeySteps = [
@@ -80,11 +79,7 @@ export default function PatientJourney() {
 
           <div className="space-y-12 relative z-10">
             {journeySteps.map((step, index) => (
-              <motion.div 
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: index * 0.15 }}
+              <div data-csp-motion="reveal"
                 key={step.id} 
                 className={`relative flex items-center justify-between md:justify-start w-full group ${
                   index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
@@ -112,7 +107,7 @@ export default function PatientJourney() {
                     <p className="text-slate-500 font-arabic leading-relaxed">{step.desc}</p>
                   </div>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>

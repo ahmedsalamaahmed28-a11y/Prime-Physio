@@ -10,7 +10,6 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { Loader } from "@/components/Loader";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
-import { motion } from "motion/react";
 import { useRef } from "react";
 
 const ALL_FEATURES = (isRtl: boolean) => [
@@ -172,10 +171,8 @@ const PricingSwitch = ({ onSwitch, isRtl }: { onSwitch: (value: string) => void;
           }`}
         >
           {selected === "0" && (
-            <motion.span
-              layoutId={"switch"}
+            <span data-csp-motion="reveal"
               className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-[#4F46BA]/40 border-[#4F46BA] bg-gradient-to-t from-[#4F46BA] via-[#6d28d9] to-[#7c3aed]"
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
             />
           )}
           <span className="relative">{isRtl ? "شهري" : "Monthly"}</span>
@@ -190,10 +187,8 @@ const PricingSwitch = ({ onSwitch, isRtl }: { onSwitch: (value: string) => void;
           }`}
         >
           {selected === "1" && (
-            <motion.span
-              layoutId={"switch"}
+            <span data-csp-motion="reveal"
               className="absolute top-0 left-0 sm:h-12 h-10 w-full rounded-full border-4 shadow-sm shadow-[#4F46BA]/40 border-[#4F46BA] bg-gradient-to-t from-[#4F46BA] via-[#6d28d9] to-[#7c3aed]"
-              transition={{ type: "spring", stiffness: 500, damping: 30 }}
             />
           )}
           <span className="relative flex items-center gap-2">
@@ -373,73 +368,39 @@ export default function SubscriptionPage() {
 
   return (
     <div className="px-4 pt-20 min-h-screen mx-auto relative bg-neutral-100" ref={pricingRef} dir={isRtl ? "rtl" : "ltr"}>
-      <div
-        className="absolute top-0 left-[10%] right-[10%] w-[80%] h-full z-0 pointer-events-none"
-        style={{
-          backgroundImage: `
-        radial-gradient(circle at center, #206ce8 0%, transparent 70%)
-      `,
-          opacity: 0.6,
-          mixBlendMode: "multiply",
-        }}
-      />
+      <div className="subscription-glow absolute top-0 left-[10%] right-[10%] w-[80%] h-full z-0 pointer-events-none" />
 
       <div className="text-center mb-6 max-w-3xl mx-auto relative z-10">
-        <motion.h2
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={revealVariants}
-          custom={0}
+        <h2 data-csp-motion="reveal"
           className="md:text-6xl sm:text-4xl text-3xl font-medium text-gray-900 mb-4"
         >
           {isRtl ? "خطط تناسب احتياجات " : "Plans that works best for your "}
-          <motion.span
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={revealVariants}
-            custom={1}
+          <span data-csp-motion="reveal"
             className="border border-dashed border-blue-500 px-2 py-1 rounded-xl bg-blue-100 capitalize inline-block"
           >
             {isRtl ? "عيادتك" : "business"}
-          </motion.span>
-        </motion.h2>
+          </span>
+        </h2>
 
-        <motion.p
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={revealVariants}
-          custom={2}
+        <p data-csp-motion="reveal"
           className="sm:text-base text-sm text-gray-600 sm:w-[70%] w-[80%] mx-auto"
         >
           {isRtl
             ? "موثوق من قبل آلاف العيادات حول العالم، نساعدك على اختيار الخطة المناسبة لاحتياجاتك"
             : "Trusted by millions, We help teams all around the world, Explore which option is right for you."}
-        </motion.p>
+        </p>
       </div>
 
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={revealVariants}
-        custom={3}
+      <div data-csp-motion="reveal"
         className="relative z-10"
       >
         <PricingSwitch onSwitch={togglePricingPeriod} isRtl={isRtl} />
-      </motion.div>
+      </div>
 
       {isTrial && trialEndDate && (() => {
         const daysLeft = Math.max(0, Math.ceil((new Date(trialEndDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)));
         return (
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={revealVariants}
-          custom={4}
+        <div data-csp-motion="reveal"
           className="max-w-lg mx-auto relative z-10 mb-2"
         >
           <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 text-yellow-900 rounded-xl px-5 py-3 text-center shadow-lg">
@@ -449,19 +410,14 @@ export default function SubscriptionPage() {
                 : `🎉 Free Gold Trial — ${daysLeft} days left`}
             </p>
           </div>
-        </motion.div>
+        </div>
         );
       })()}
 
       <div className="grid grid-cols-1 md:grid-cols-3 items-start justify-items-center gap-6 py-6 mx-auto relative z-10">
         {PLANS.map((plan, index) => (
-          <motion.div
+          <div data-csp-motion="reveal"
             key={plan.id}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={revealVariants}
-            custom={5 + index}
           >
             <div
               className={`w-72 relative text-center border p-6 rounded-lg ${
@@ -538,16 +494,11 @@ export default function SubscriptionPage() {
                 </button>
               )}
             </div>
-          </motion.div>
+          </div>
         ))}
       </div>
 
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={revealVariants}
-        custom={8}
+      <div data-csp-motion="reveal"
         className="max-w-7xl mx-auto relative z-10 bg-white border border-slate-200 rounded-2xl p-6 shadow-xs mb-6"
       >
         <h3 className={`text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-6 flex items-center gap-2 ${isRtl ? "" : ""}`}>
@@ -566,9 +517,9 @@ export default function SubscriptionPage() {
             </div>
             <div className="bg-slate-100 rounded-full h-2.5 overflow-hidden">
               {planLimits.patients === -1 ? (
-                <div className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] h-full rounded-full" style={{ width: "100%" }} />
+                <progress className="csp-progress csp-progress--purple" value={100} max={100} aria-label="Unlimited patient plan usage" />
               ) : (
-                <div className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] h-full rounded-full" style={{ width: `${Math.min(100, (patientCount / planLimits.patients) * 100)}%` }} />
+                <progress className="csp-progress csp-progress--purple" value={Math.min(100, (patientCount / planLimits.patients) * 100)} max={100} aria-label="Patient plan usage" />
               )}
             </div>
             <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>
@@ -593,9 +544,9 @@ export default function SubscriptionPage() {
             </div>
             <div className="bg-slate-100 rounded-full h-2.5 overflow-hidden">
               {planLimits.sessions === -1 ? (
-                <div className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] h-full rounded-full" style={{ width: "100%" }} />
+                <progress className="csp-progress csp-progress--purple" value={100} max={100} aria-label="Unlimited session plan usage" />
               ) : (
-                <div className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] h-full rounded-full" style={{ width: `${Math.min(100, (sessionCount / planLimits.sessions) * 100)}%` }} />
+                <progress className="csp-progress csp-progress--purple" value={Math.min(100, (sessionCount / planLimits.sessions) * 100)} max={100} aria-label="Session plan usage" />
               )}
             </div>
             <p className={`text-[10px] text-slate-400 ${isRtl ? "text-right" : "text-left"}`}>
@@ -609,14 +560,9 @@ export default function SubscriptionPage() {
             </p>
           </div>
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={revealVariants}
-        custom={9}
+      <div data-csp-motion="reveal"
         className="text-center max-w-7xl mx-auto relative z-10 mb-6"
       >
         <button
@@ -625,15 +571,10 @@ export default function SubscriptionPage() {
         >
           {showCompare ? (isRtl ? "إخفاء الجدول" : "Hide Comparison") : (isRtl ? "مقارنة تفصيلية" : "Compare All Plans")}
         </button>
-      </motion.div>
+      </div>
 
       {showCompare && (
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={revealVariants}
-          custom={10}
+        <div data-csp-motion="reveal"
           className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-lg max-w-7xl mx-auto relative z-10 mb-6"
         >
           <div className="overflow-x-auto">
@@ -690,15 +631,10 @@ export default function SubscriptionPage() {
               </tbody>
             </table>
           </div>
-        </motion.div>
+        </div>
       )}
 
-      <motion.div
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        variants={revealVariants}
-        custom={11}
+      <div data-csp-motion="reveal"
         className={`flex items-center gap-3 bg-indigo-50 border border-indigo-200 rounded-2xl p-4 max-w-7xl mx-auto relative z-10 mb-6 ${isRtl ? "" : ""}`}
       >
         <Clock className="w-5 h-5 text-[#4F46BA] shrink-0" />
@@ -710,7 +646,7 @@ export default function SubscriptionPage() {
             {isRtl ? "يمكنك إلغاء أو تغيير الخطة في أي وقت." : "You can cancel or change anytime."}
           </p>
         </div>
-      </motion.div>
+      </div>
 
       {showBillingModal && selectedPlan && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">

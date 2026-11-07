@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Users, BarChart3, FileText, Home, Search, Bell, Settings, CreditCard } from "lucide-react";
 
 export default function DashboardInteractive() {
   const [activeTab, setActiveTab] = useState("home");
+
+  const chartBarHeights = ["h-[30%]", "h-[50%]", "h-[40%]", "h-[80%]", "h-[60%]", "h-[90%]", "h-[70%]"];
 
   const tabs = [
     { id: "home", label: "الرئيسية", icon: <Home className="w-4 h-4" /> },
@@ -118,13 +119,8 @@ export default function DashboardInteractive() {
 
                     {/* Content Area Viewport */}
                     <div className="flex-1 p-6 overflow-hidden relative">
-                      <AnimatePresence mode="wait">
-                        <motion.div
+                        <div data-csp-motion="reveal"
                           key={activeTab}
-                          initial={{ opacity: 0, y: 15 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -15 }}
-                          transition={{ duration: 0.25, ease: "easeOut" }}
                           className="h-full w-full absolute inset-0 p-6"
                         >
                           {/* 1. Home Tab Mockup */}
@@ -232,12 +228,9 @@ export default function DashboardInteractive() {
                               <div className="flex-1 bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col">
                                 <div className="h-4 w-48 bg-slate-800 rounded-md mb-8" />
                                 <div className="flex-1 flex items-end justify-between gap-4 px-4">
-                                  {[30, 50, 40, 80, 60, 90, 70].map((h, i) => (
+                                  {chartBarHeights.map((heightClass, i) => (
                                     <div key={i} className="flex-1 relative group h-full flex items-end">
-                                      <div 
-                                        className="w-full bg-[#4F46BA] rounded-t-md transition-all duration-1000 ease-out" 
-                                        style={{ height: `${h}%` }} 
-                                      />
+                                      <div className={`w-full bg-[#4F46BA] rounded-t-md transition-all duration-1000 ease-out ${heightClass}`} />
                                     </div>
                                   ))}
                                 </div>
@@ -250,8 +243,7 @@ export default function DashboardInteractive() {
                               </div>
                             </div>
                           )}
-                        </motion.div>
-                      </AnimatePresence>
+                        </div>
                     </div>
                   </div>
                 </div>

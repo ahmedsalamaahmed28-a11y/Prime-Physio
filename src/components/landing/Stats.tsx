@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import {
   Building,
   CalendarDays,
@@ -24,20 +23,10 @@ export default function Stats() {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <motion.div
+            <div
               key={stat.id}
+              data-csp-motion="reveal"
               className="pp-stat-item"
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              whileHover={{ y: -7, scale: 1.035 }}
-              viewport={{ once: true, amount: 0.35 }}
-              transition={{
-                duration: 0.35,
-                delay: index * 0.07,
-                type: "spring",
-                stiffness: 260,
-                damping: 18,
-              }}
             >
               <span className="pp-stat-icon">
                 <Icon aria-hidden="true" />
@@ -46,7 +35,7 @@ export default function Stats() {
                 <b>{stat.value}</b>
                 <span>{stat.label}</span>
               </div>
-            </motion.div>
+            </div>
           );
         })}
       </div>

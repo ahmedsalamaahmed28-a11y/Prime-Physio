@@ -2,7 +2,7 @@ name: Security and application checks
 
 on:
   push:
-    branches: [main, security/critical-hardening]
+    branches: [main, security/critical-hardening, security/phase-3-csp-nonce]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -49,6 +49,23 @@ jobs:
 
       - name: ESLint
         run: npm run lint
+
+      - name: Enforce nonce-only CSP styles
+        run: |
+          grep -q "style-src-attr 'none'" src/proxy.ts
+          grep -q "style-src-elem" src/proxy.ts
+          if grep -n "unsafe-inline" src/proxy.ts; then
+            echo "::error::unsafe-inline must not be present in the CSP."
+            exit 1
+          fi
+          if grep -RInE 'style[[:space:]]*=|<style([[:space:]>])' src --include='*.tsx' --include='*.jsx' --include='*.ts' --include='*.js' --exclude='email.ts'; then
+            echo "::error::Inline style attributes/elements must be migrated to CSS (email HTML is intentionally excluded because it is delivered outside the app CSP)."
+            exit 1
+          fi
+          if grep -RInE 'framer-motion|motion/react|<motion\\.' src --include='*.tsx' --include='*.jsx' --include='*.ts' --include='*.js'; then
+            echo "::error::Motion libraries can emit inline styles and are not allowed under style-src-attr 'none'."
+            exit 1
+          fi
 
       - name: Production build
         run: npm run build

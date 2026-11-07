@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { X, Check } from "lucide-react";
 
 export default function ComparisonSection() {
@@ -32,11 +31,7 @@ export default function ComparisonSection() {
 
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
           {/* Excel Way */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200 shadow-sm"
+          <div data-csp-motion="reveal" className="bg-white rounded-3xl p-8 lg:p-10 border border-slate-200 shadow-sm"
           >
             <h3 className="text-xl font-bold text-slate-500 mb-6 flex items-center gap-3">
               <span className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
@@ -52,14 +47,10 @@ export default function ComparisonSection() {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </div>
 
           {/* Prime Physio Way */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="bg-gradient-to-br from-[#4F46E5]/5 to-[#7C3AED]/5 rounded-3xl p-8 lg:p-10 border border-[#4F46E5]/20 shadow-xl shadow-indigo-500/5 relative overflow-hidden"
+          <div data-csp-motion="reveal" className="bg-gradient-to-br from-[#4F46E5]/5 to-[#7C3AED]/5 rounded-3xl p-8 lg:p-10 border border-[#4F46E5]/20 shadow-xl shadow-indigo-500/5 relative overflow-hidden"
           >
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#4F46E5]/10 blur-3xl rounded-full" />
             
@@ -79,7 +70,7 @@ export default function ComparisonSection() {
                 </li>
               ))}
             </ul>
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

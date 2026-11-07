@@ -65,11 +65,11 @@ type VisitType = "جلسة علاج" | "كشف أول" | "متابعة" | "تق�
 const PATIENTS: any[] = [];
 const VISIT_TYPES: VisitType[] = ["جلسة علاج", "كشف أول", "متابعة", "تقييم"];
 
-const VISIT_COLORS: Record<VisitType, string> = {
-  "جلسة علاج": "#4F46BA",
-  "كشف أول": "#7c3aed",
-  "متابعة": "#0891b2",
-  "تقييم": "#d97706",
+const VISIT_COLOR_CLASSES: Record<VisitType, string> = {
+  "جلسة علاج": "bg-[#4F46BA]",
+  "كشف أول": "bg-violet-600",
+  "متابعة": "bg-cyan-600",
+  "تقييم": "bg-amber-600",
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -321,7 +321,7 @@ function NewAppointmentDialog({
           </div>
 
           <div className={"flex items-center gap-2 p-3 rounded-lg bg-muted/50 " + (isRtl ? "" : "flex-row-reverse")}>
-            <div className="w-4 h-4 rounded-full flex-shrink-0" style={{ backgroundColor: VISIT_COLORS[visitType] }} />
+            <div className={`w-4 h-4 rounded-full flex-shrink-0 ${VISIT_COLOR_CLASSES[visitType]}`} />
             <p className="text-sm text-muted-foreground">
               {isRtl ? <>سيظهر الموعد بلون <strong>{visitType}</strong> في التقويم</> : <>Appointment will appear as <strong>{tVisitType(visitType)}</strong> in the calendar</>}
             </p>
@@ -437,7 +437,7 @@ function EventDetailsDialog({
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto" dir={isRtl ? "rtl" : "ltr"}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg font-heading">
-            <div className="w-4 h-4 rounded-full shadow-sm" style={{ backgroundColor: VISIT_COLORS[event.visitType] }} />
+            <div className={`w-4 h-4 rounded-full shadow-sm ${VISIT_COLOR_CLASSES[event.visitType]}`} />
             <Link href={"/patients/" + event.patientId} className="text-[#4F46BA] hover:underline dark:text-[#818cf8] font-bold">
               {event.patientName}
             </Link>
@@ -894,7 +894,7 @@ export default function CalendarPage() {
             };
             return (
               <div key={t} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-card border border-border/60 shadow-sm">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: VISIT_COLORS[t] }} />
+                <div className={`w-2.5 h-2.5 rounded-full ${VISIT_COLOR_CLASSES[t]}`} />
                 <span className="text-xs text-muted-foreground font-medium">{tVisitType(t)}</span>
               </div>
             );

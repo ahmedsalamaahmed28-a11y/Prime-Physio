@@ -506,7 +506,7 @@ export default function ClinicalNutritionPage() {
 
                   <div className="space-y-1 pt-2">
                     <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#4F46BA] rounded-full transition-all duration-300" style={{ width: `${bmiProgressValue}%` }} />
+                      <progress className="csp-progress csp-progress--indigo" value={bmiProgressValue} max={100} aria-label="BMI range position" />
                     </div>
                     <div className="flex justify-between text-[10px] text-slate-400 font-sans">
                       <span>&lt; 18.5</span>
@@ -745,7 +745,7 @@ export default function ClinicalNutritionPage() {
                         <span className="font-medium text-slate-500">{proteinRatio}% ({proteinGrams}g)</span>
                       </div>
                       <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-rose-500 rounded-full" style={{ width: `${proteinRatio}%` }} />
+                        <progress className="csp-progress csp-progress--rose" value={proteinRatio} max={100} aria-label="Protein ratio" />
                       </div>
                     </div>
 
@@ -756,7 +756,7 @@ export default function ClinicalNutritionPage() {
                         <span className="font-medium text-slate-500">{carbRatio}% ({carbGrams}g)</span>
                       </div>
                       <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-amber-500 rounded-full" style={{ width: `${carbRatio}%` }} />
+                        <progress className="csp-progress csp-progress--amber" value={carbRatio} max={100} aria-label="Carbohydrate ratio" />
                       </div>
                     </div>
 
@@ -767,7 +767,7 @@ export default function ClinicalNutritionPage() {
                         <span className="font-medium text-slate-500">{fatRatio}% ({fatGrams}g)</span>
                       </div>
                       <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-sky-500 rounded-full" style={{ width: `${fatRatio}%` }} />
+                        <progress className="csp-progress csp-progress--sky" value={fatRatio} max={100} aria-label="Fat ratio" />
                       </div>
                     </div>
                   </div>

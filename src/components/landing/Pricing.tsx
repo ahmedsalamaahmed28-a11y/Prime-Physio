@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Check, Star } from "lucide-react";
 import Link from "next/link";
 
@@ -92,11 +91,8 @@ export default function Pricing({ cmsContent }: { cmsContent?: any }) {
                 }`}
               >
                 {!isAnnual && (
-                  <motion.div
-                    layoutId="pricing-toggle"
-                    className="absolute inset-0 bg-gradient-to-r from-[#4F46E5] to-[#6366F1] rounded-full shadow-md"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    style={{ zIndex: -1 }}
+                  <div data-csp-motion="reveal"
+                    className="absolute inset-0 z-[-1] bg-gradient-to-r from-[#4F46E5] to-[#6366F1] rounded-full shadow-md"
                   />
                 )}
                 شهري
@@ -109,11 +105,8 @@ export default function Pricing({ cmsContent }: { cmsContent?: any }) {
                 }`}
               >
                 {isAnnual && (
-                  <motion.div
-                    layoutId="pricing-toggle"
-                    className="absolute inset-0 bg-gradient-to-r from-[#4F46E5] to-[#6366F1] rounded-full shadow-md"
-                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                    style={{ zIndex: -1 }}
+                  <div data-csp-motion="reveal"
+                    className="absolute inset-0 z-[-1] bg-gradient-to-r from-[#4F46E5] to-[#6366F1] rounded-full shadow-md"
                   />
                 )}
                 سنوي
@@ -130,12 +123,8 @@ export default function Pricing({ cmsContent }: { cmsContent?: any }) {
 
         <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {plans.map((plan, i) => (
-            <motion.div
+            <div data-csp-motion="reveal"
               key={i}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: i * 0.1 }}
               className={`relative flex flex-col rounded-3xl bg-white p-8 xl:p-10 ${
                 plan.popular 
                   ? "border-2 border-[#4F46E5] shadow-2xl shadow-indigo-500/10 scale-105 z-10" 
@@ -179,7 +168,7 @@ export default function Pricing({ cmsContent }: { cmsContent?: any }) {
               >
                 {plan.cta}
               </Link>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

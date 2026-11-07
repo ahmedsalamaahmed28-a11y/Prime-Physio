@@ -166,10 +166,7 @@ export default function BillingPage() {
     if (!iframe) {
       iframe = document.createElement('iframe');
       iframe.id = 'print-iframe';
-      iframe.style.position = 'absolute';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = 'none';
+      iframe.className = "print-frame";
       document.body.appendChild(iframe);
     }
 
@@ -178,34 +175,12 @@ export default function BillingPage() {
         <head>
           <title>${isRtl ? 'كشف حساب مالي - Prime Physio' : 'Financial Statement - Prime Physio'}</title>
           <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-          <style>
-            body { font-family: 'Cairo', sans-serif; padding: 40px; color: #1e293b; }
-            .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0d8a8a; padding-bottom: 20px; margin-bottom: 30px; }
-            .logo-container { display: flex; align-items: center; gap: 15px; }
-            .logo-img { max-height: 60px; max-width: 120px; object-fit: contain; }
-            .title h2 { margin: 0; color: #0d8a8a; font-size: 24px; }
-            .title p { margin: 0; font-size: 14px; color: #64748b; }
-            .doc-info h1 { margin: 0; font-size: 20px; }
-            .doc-info p { margin: 5px 0 0 0; font-size: 14px; color: #64748b; }
-            .stats { display: flex; gap: 20px; margin-bottom: 30px; }
-            .stat-box { flex: 1; padding: 15px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
-            .stat-box p.label { margin: 0 0 5px 0; font-size: 12px; color: #64748b; }
-            .stat-box p.val { margin: 0; font-size: 18px; font-weight: bold; color: #0f172a; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 40px; font-size: 14px; }
-            th { background-color: #0d8a8a; color: white; padding: 12px; text-align: right; border: 1px solid #0d8a8a; }
-            td { padding: 12px; border: 1px solid #e2e8f0; text-align: right; }
-            tr:nth-child(even) { background-color: #f8fafc; }
-            .footer { text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 40px; }
-            @media print {
-              body { padding: 0; }
-              button { display: none; }
-            }
-          </style>
+          <link href="/print.css" rel="stylesheet">
         </head>
         <body>
           <div class="header">
             <div class="logo-container">
-              <img src="/logo.png" class="logo-img" alt="Prime Physio Logo" onerror="this.style.display='none'" />
+              <img src="/logo.png" class="logo-img" alt="Prime Physio Logo" />
               <div class="title">
                 <h2>Prime Physio</h2>
                 <p>للعلاج الطبيعي والتأهيل المتقدم</p>
@@ -220,15 +195,15 @@ export default function BillingPage() {
           <div class="stats">
             <div class="stat-box">
               <p class="label">${isRtl ? 'إجمالي المبيعات المدفوعة' : 'Total Paid Sales'}</p>
-              <p class="val" style="color: #059669;">${paidSales.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}</p>
+              <p class="val val--paid">${paidSales.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}</p>
             </div>
             <div class="stat-box">
               <p class="label">${isRtl ? 'المبالغ المستحقة (انتظار)' : 'Pending Amount'}</p>
-              <p class="val" style="color: #d97706;">${pendingAmount.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}</p>
+              <p class="val val--pending">${pendingAmount.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}</p>
             </div>
             <div class="stat-box">
               <p class="label">${isRtl ? 'إجمالي الفواتير الصادرة' : 'Total Issued Invoices'}</p>
-              <p class="val" style="color: #2563eb;">${invoices.length} ${isRtl ? 'فاتورة' : 'Invoices'}</p>
+              <p class="val val--count">${invoices.length} ${isRtl ? 'فاتورة' : 'Invoices'}</p>
             </div>
           </div>
 
@@ -247,13 +222,13 @@ export default function BillingPage() {
             <tbody>
               ${invoices.map(inv => `
                 <tr>
-                  <td style="font-family: monospace;">${inv.id}</td>
-                  <td style="font-weight: 600;">${inv.patientName}</td>
+                  <td class="mono">${inv.id}</td>
+                  <td class="font-semibold">${inv.patientName}</td>
                   <td>${inv.description}</td>
-                  <td style="font-family: monospace; font-weight: bold;">${inv.amount}</td>
+                  <td class="mono font-bold">${inv.amount}</td>
                   <td>${inv.date}</td>
                   <td>${inv.paymentMethod}</td>
-                  <td style="font-weight: bold; color: ${inv.status === 'مدفوع' ? '#059669' : inv.status === 'ملغي' ? '#e11d48' : '#d97706'};">${inv.status}</td>
+                  <td class="status ${inv.status === 'مدفوع' ? 'status--paid' : inv.status === 'ملغي' ? 'status--cancelled' : 'status--pending'}">${inv.status}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -262,18 +237,13 @@ export default function BillingPage() {
           <div class="footer">
             <p>${isRtl ? 'تم إصدار هذا الكشف آلياً من نظام "Prime Physio" لإدارة العيادات' : 'This statement was automatically generated by Prime Physio Management System'}</p>
           </div>
-          
-          <script>
-            window.onload = () => {
-              setTimeout(() => { window.print(); }, 400);
-            };
-          </script>
         </body>
       </html>
     `;
 
     const doc = iframe.contentWindow?.document;
     if (doc) {
+      iframe.onload = () => window.setTimeout(() => iframe.contentWindow?.print(), 100);
       doc.open();
       doc.write(htmlContent);
       doc.close();
@@ -337,7 +307,7 @@ export default function BillingPage() {
       <div className="flex justify-between space-y-3 mb-8 flex-col md:flex-row md:space-x-4 md:space-y-0">
         {dynamicStats.map((stat) => {
           return (
-            <div key={stat.title} className="p-5 rounded-xl w-full" style={{ backgroundColor: "#4F46BA" }}>
+            <div key={stat.title} className="p-5 rounded-xl w-full bg-[#4F46BA]">
               <p className="text-xs font-bold text-white opacity-50">{stat.title}</p>
               <p className="text-lg font-semibold text-white mt-1">{stat.value}</p>
             </div>
