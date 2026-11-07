@@ -194,20 +194,20 @@ const copy: Record<string, string> = {
   "د. أحمد سلامة":"Dr. Ahmed Salama","د. أحمد كمال":"Dr. Ahmed Kamal","سارة محمد":"Sarah Mohamed","د. عمر حسين":"Dr. Omar Hussein","م. خالد يوسف":"Eng. Khaled Youssef",
   "نظام ادارة متكامل لمراكز العلاج الطبيعي":"An integrated management system for physiotherapy clinics",
   "نظام ادارة متكامل":"An integrated management system",
-  "نظام إدارة متكامل لمراكز العلاج الطبيعي":"An integrated management system for physiotherapy clinics",
+  
   "منظومة ادارة متكاملة":"An integrated clinic management system",
-  "أسعار شفافة وبسيطة":"Clear and simple pricing",
-  "اختر الباقة التي تناسب حجم وطموح مركزك. يمكنك الترقية أو الإلغاء في أي وقت.":"Choose the plan that fits your clinic. Upgrade or cancel at any time.",
-  "شهري":"Monthly", "سنوي":"Yearly", "سنوياً":"per year", "شهرياً":"per month", "خصم 20% 🚀":"20% off 🚀", "الأكثر طلباً":"Most popular",
-  "الأساسية (Starter)":"Starter", "الفضية (Silver)":"Silver", "الذهبية (Gold)":"Gold",
-  "مثالية للعيادات الصغيرة والناشئة.":"Ideal for small and new clinics.",
-  "للمراكز المتنامية التي تحتاج لأدوات احترافية.":"For growing clinics that need professional tools.",
-  "للمستشفيات وسلاسل المراكز المتعددة.":"For hospitals and multi-location clinic groups.",
+  
+  
+    "سنوياً":"per year", "شهرياً":"per month",  "الأكثر طلباً":"Most popular",
+    
+  
+  
+  
   "ج.م / سنوياً":"EGP / year", "ج.م / شهرياً":"EGP / month",
-  "إدارة حتى 50 مريض":"Manage up to 50 patients", "100 جلسة شهرياً":"100 sessions per month", "20 حساب للأخصائيين":"20 therapist accounts", "إدارة مركز واحد":"Manage one clinic", "دعم فني عبر البريد":"Email support",
-  "إدارة حتى 200 مريض":"Manage up to 200 patients", "500 جلسة شهرياً":"500 sessions per month", "50 حساب للأخصائيين":"50 therapist accounts", "التقارير والتحليلات والتغذية العلاجية":"Reports, analytics, and clinical nutrition", "دعم فني هاتفي":"Phone support",
-  "عدد لا محدود من المرضى والجلسات":"Unlimited patients and sessions", "حسابات غير محدودة للأخصائيين":"Unlimited therapist accounts", "المكتبة العلاجية ورسائل التذكير":"Clinical library and reminders", "إدارة فروع متعددة (حتى مركزين)":"Manage multiple branches (up to two clinics)", "دعم VIP على مدار الساعة":"24/7 VIP support",
-  "ابدأ مجانًا":"Start for free", "ابدأ الإصدار الفضي":"Choose Silver", "ابدأ الإصدار الذهبي":"Choose Gold", "ابدأ الإصدار المميز":"Choose Premium", "اشترك الآن":"Subscribe now",
+      
+      
+      
+      
   "غرفة":"Room",
 };
 
