@@ -40,14 +40,14 @@ function AnimatedStatValue({ value }: { value: string }) {
         return;
       }
 
-      const duration = 1600;
+      const duration = 1100;
       let animationFrame = 0;
       let startTime = 0;
 
       const animate = (timestamp: number) => {
         if (!startTime) startTime = timestamp;
         const progress = Math.min((timestamp - startTime) / duration, 1);
-        const easedProgress = 1 - Math.pow(1 - progress, 4);
+        const easedProgress = 1 - Math.pow(1 - progress, 3);
         setCount(Math.round(target * easedProgress));
 
         if (progress < 1) {
