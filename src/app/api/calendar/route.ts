@@ -72,6 +72,19 @@ export async function POST(request: NextRequest) {
     if (!body || typeof body !== "object" || Array.isArray(body)) {
       return NextResponse.json({ error: "بيانات الموعد غير صالحة" }, { status: 400 });
     }
+    const canEditClinicalDetails = hasStaffPermission(auth.staff, "edit_emr");
+    const hasClinicalPayload = Boolean(
+      body.treatmentPlanId ||
+      (typeof body.sessionIntervention === "string" && body.sessionIntervention.trim()) ||
+      (typeof body.sessionObjectives === "string" && body.sessionObjectives.trim()) ||
+      (Array.isArray(body.targetExercises) && body.targetExercises.length > 0)
+    );
+    if (hasClinicalPayload && !canEditClinicalDetails) {
+      return NextResponse.json({ error: "ليس لديك صلاحية ربط الخطة العلاجية أو إدخال تفاصيل الجلسة الطبية" }, { status: 403 });
+    }
+    if (canEditClinicalDetails && body.targetExercises !== undefined && !Array.isArray(body.targetExercises)) {
+      return NextResponse.json({ error: "قائمة التمارين المستهدفة غير صالحة" }, { status: 400 });
+    }
     const start = new Date(body.startTime);
     const end = new Date(body.endTime);
     if (!body.startTime || !body.endTime || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
@@ -130,7 +143,7 @@ export async function POST(request: NextRequest) {
     if (!body.appointmentId || !body.startTime || !body.endTime || !body.invoiceId) {
       return NextResponse.json({ error: "بيانات الموعد أو الفاتورة غير مكتملة" }, { status: 400 });
     }
-    if (body.treatmentPlanId) {
+    if (body.treatmentPlanId && canEditClinicalDetails) {
       const { data: plan, error: planError } = await auth.admin.from("treatment_plans")
         .select("id").eq("id", body.treatmentPlanId).eq("patient_id", patient.id)
         .eq("clinic_id", auth.clinicId).eq("status", "active").maybeSingle();
@@ -165,10 +178,10 @@ export async function POST(request: NextRequest) {
       status: body.status || "مؤكد",
       start_time: body.startTime,
       end_time: body.endTime,
-      treatment_plan_id: body.treatmentPlanId || null,
-      session_intervention: body.sessionIntervention || null,
-      session_objectives: body.sessionObjectives || null,
-      target_exercises: body.targetExercises || [],
+      treatment_plan_id: canEditClinicalDetails ? (body.treatmentPlanId || null) : null,
+      session_intervention: canEditClinicalDetails ? (body.sessionIntervention || null) : null,
+      session_objectives: canEditClinicalDetails ? (body.sessionObjectives || null) : null,
+      target_exercises: canEditClinicalDetails ? (body.targetExercises || []) : [],
     });
     if (appointmentError) {
       await auth.admin.from("invoices").delete().eq("id", body.invoiceId).eq("clinic_id", auth.clinicId);
