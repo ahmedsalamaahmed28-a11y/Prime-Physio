@@ -600,7 +600,7 @@ export default function CalendarPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
-  const { user } = useAuth(); const clinicId = user?.clinicId;
+  const { user, activeBranchId } = useAuth(); const clinicId = user?.clinicId;
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
   const [doctorsList, setDoctorsList] = useState<{ name: string }[]>([]);
