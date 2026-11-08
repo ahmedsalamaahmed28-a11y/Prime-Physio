@@ -63,7 +63,7 @@ export default function Pricing({ cmsContent }: { cmsContent?: any }) {
       name: p.name,
       description: p.description,
       priceMonthly: p.price.replace(/,/g, ''), // Convert CMS string to UI string
-      priceYearly: (parseInt(p.price.replace(/,/g, '')) * 10).toString(), // estimate 2 months free
+      priceYearly: Math.round(parseFloat(p.price.replace(/,/g, '')) * 12 * 0.8).toString(), // apply the displayed 20% annual discount
       features: p.features,
       cta: p.isPopular ? "ابدأ الإصدار المميز" : "اشترك الآن",
       popular: p.isPopular || false,
