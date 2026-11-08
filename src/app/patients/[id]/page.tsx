@@ -16,6 +16,7 @@ import ProgressCharts from "@/components/ProgressCharts";
 import { SmartReportsTab } from "@/components/patients/SmartReportsTab";
 import { PhaseBasedProtocolsTab } from "@/components/patients/PhaseBasedProtocolsTab";
 import { ClinicalWorkflowTab } from "@/components/patients/ClinicalWorkflowTab";
+import { PatientAttachmentsTab } from "@/components/patients/PatientAttachmentsTab";
 import { PrintableReport } from "@/components/patients/PrintableReport";
 import { useReactToPrint } from "react-to-print";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -1366,122 +1367,6 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
 }
 
 // ─── Tab: Radiology ───────────────────────────────────────────────────────────
-
-function RadiologyTab() {
-  const { language } = useLanguage();
-  const isRtl = language === "ar";
-  const { hasPermission } = usePermissions();  const [files, setFiles] = useState<{ name: string; size: string; type: string; date: string; url: string }[]>([]);
-  const [deleteFileIdx, setDeleteFileIdx] = useState<number | null>(null);
-  const [viewFileIdx, setViewFileIdx] = useState<number | null>(null);
-
-  const executeDeleteFile = () => {
-    if (deleteFileIdx === null) return;
-    setFiles((prev) => prev.filter((_, i) => i !== deleteFileIdx));
-    setDeleteFileIdx(null);
-  };  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const ext = file.name.split(".").pop()?.toUpperCase() ?? "FILE";
-    setFiles((prev) => [{ name: file.name, size: `${(file.size / 1024 / 1024).toFixed(1)} MB`, type: ext, date: new Date().toISOString().split("T")[0], url: "" }, ...prev]);
-    e.target.value = "";
-  };
-
-  const typeIcon: Record<string, string> = { MRI: "🧲", "X-Ray": "🔬", PDF: "📄", JPG: "🖼️", PNG: "🖼️", DCM: "🧲" };  return (
-    <div className="pt-4 space-y-6">
-      <Card className="border-dashed border-2 border-teal-200 bg-teal-50/30 hover:bg-teal-50/50 transition-colors">
-        <CardContent className="py-12 flex flex-col items-center gap-4 text-center">
-          <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center text-3xl shadow-sm text-teal-600">
-            📤
-          </div>
-          <p className="text-sm font-semibold text-slate-700">{isRtl ? "ارفع الأشعة والتحاليل (DICOM، JPG، PDF)" : "Upload Scans & Lab Results (DICOM, JPG, PDF)"}</p>
-          <label>
-            <span className="inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-transparent bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] shadow-md h-10 px-6 py-2 cursor-pointer active:scale-95">
-              {isRtl ? "اختر ملفًا" : "Choose File"}
-            </span>
-            <input type="file" accept=".dcm,.jpg,.jpeg,.png,.pdf" className="hidden" onChange={handleUpload} />
-          </label>
-          <p className="text-xs text-teal-600/70 font-medium">{isRtl ? "يتم حفظ الملفات بشكل آمن ومشفر" : "Files are saved securely and encrypted"}</p>
-        </CardContent>
-      </Card>
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-          {isRtl ? `الملفات المرفوعة (${files.length})` : `Uploaded Files (${files.length})`}
-        </h3>        {files.map((f, i) => (
-          <Card key={i} className="shadow-sm hover:shadow-md transition-shadow border-slate-100 rounded-xl overflow-hidden group">
-            <CardContent className="py-3 px-4 flex items-center gap-4">
-              <div className="w-10 h-10 bg-slate-50 border border-slate-100 rounded-lg flex items-center justify-center text-xl shadow-inner group-hover:scale-105 transition-transform">
-                {typeIcon[f.type] ?? "📁"}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-bold text-slate-800 truncate">{f.name}</p>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <Badge variant="outline" className="bg-slate-50 text-[10px] py-0">{f.type}</Badge>
-                  <span className="text-[11px] text-slate-400 font-mono">{f.size}</span>
-                  <span className="text-[11px] text-slate-400">· {f.date}</span>
-                </div>
-              </div>              <div className="flex gap-2 opacity-100 sm:opacity-50 group-hover:opacity-100 transition-opacity">
-                <Button variant="outline" size="sm" onClick={() => setViewFileIdx(i)} className="rounded-lg h-8 text-xs font-semibold">{isRtl ? "عرض" : "View"}</Button>
-                {hasPermission("delete_emr") && (
-                  <Button variant="ghost" size="sm" onClick={() => setDeleteFileIdx(i)} className="text-rose-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg h-8 px-2">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Delete File Confirmation Modal */}
-      <Dialog open={deleteFileIdx !== null} onOpenChange={(open: boolean) => !open && setDeleteFileIdx(null)}>
-        <DialogContent className="sm:max-w-sm text-center" showCloseButton={false}>
-          <div className="flex flex-col items-center justify-center space-y-4 pt-4">
-            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-2">
-              <Trash2 className="w-8 h-8" />
-            </div>
-            <DialogTitle className="text-xl font-bold text-slate-800">
-              {isRtl ? "تأكيد الحذف" : "Confirm Deletion"}
-            </DialogTitle>
-            <DialogDescription className="text-sm text-slate-500">
-              {isRtl 
-                ? "هل أنت متأكد من حذف هذا الملف الطبي؟ لا يمكن التراجع عن هذا الإجراء." 
-                : "Are you sure you want to permanently delete this medical file? This action cannot be undone."}
-            </DialogDescription>
-          </div>
-          <div className={`mt-6 flex gap-3 w-full ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
-            <Button type="button" variant="outline" onClick={() => setDeleteFileIdx(null)} className="flex-1 rounded-xl font-bold">
-              {isRtl ? "إلغاء" : "Cancel"}
-            </Button>
-            <Button type="button" onClick={executeDeleteFile} className="flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold">
-              {isRtl ? "نعم، احذف" : "Yes, Delete"}
-            </Button>
-          </div>        </DialogContent>
-      </Dialog>
-
-      {/* View File Modal Simulator */}
-      <Dialog open={viewFileIdx !== null} onOpenChange={(open: boolean) => !open && setViewFileIdx(null)}>
-        <DialogContent className="sm:max-w-2xl min-h-[500px] flex flex-col p-0 overflow-hidden" showCloseButton={true}>
-          <DialogHeader className="p-4 border-b bg-slate-50/50">
-            <DialogTitle className="text-lg font-bold flex items-center gap-2">
-              <span className="text-2xl">{viewFileIdx !== null ? typeIcon[files[viewFileIdx].type] || "📁" : "📁"}</span>
-              {viewFileIdx !== null ? files[viewFileIdx].name : ""}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex-1 bg-slate-100 flex items-center justify-center p-8">
-            <div className="bg-white border-2 border-dashed border-slate-300 rounded-2xl w-full h-full min-h-[350px] flex flex-col items-center justify-center text-slate-400 gap-4">
-              <span className="text-6xl">🔍</span>
-              <p className="text-sm font-semibold">{isRtl ? "معاينة الملف الطبي (محاكاة)" : "Medical File Preview (Simulation)"}</p>
-              <p className="text-xs">{isRtl ? "في النسخة الحقيقية، سيتم عرض صورة الأشعة أو ملف PDF هنا." : "In production, the DICOM/PDF viewer will render here."}</p>
-            </div>
-          </div>
-          <div className="p-4 bg-white border-t flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setViewFileIdx(null)}>{isRtl ? "إغلاق" : "Close"}</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
 
 // ─── Tab: Packages ────────────────────────────────────────────────────────────
 
@@ -2882,19 +2767,19 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">        <Tabs defaultValue="general">
           <TabsList className="flex overflow-x-auto whitespace-nowrap scrollbar-hide h-auto w-full max-w-5xl justify-start gap-1.5 p-1.5 print:hidden bg-slate-100/50 dark:bg-slate-800/50 rounded-lg border border-slate-200/50">
             <TabsTrigger value="general" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "المعلومات العامة" : "General Info"}</TabsTrigger>
-            <TabsTrigger value="radiology" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "الأشعة والتحاليل" : "Scans & Reports"}</TabsTrigger>
-            <TabsTrigger value="records" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "السجلات الطبية" : "Medical Records"}</TabsTrigger>
+            {hasPermission("view_patient_history") && <TabsTrigger value="radiology" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "الأشعة والتحاليل" : "Scans & Reports"}</TabsTrigger>}
+            {hasPermission("view_patient_history") && <TabsTrigger value="records" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "السجلات الطبية" : "Medical Records"}</TabsTrigger>}
             <TabsTrigger value="reports" className="text-teal-700 dark:text-teal-400 font-medium rounded-md data-[state=active]:bg-teal-50 data-[state=active]:text-teal-800"><FileText className="w-3.5 h-3.5 mr-1.5 ml-1.5"/> {isRtl ? "التقارير الذكية" : "Smart Reports"}</TabsTrigger>
-            <TabsTrigger value="clinical" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "التقييم والخطة العلاجية" : "Evaluation & Care Plan"}</TabsTrigger>
+            {hasPermission("view_patient_history") && <TabsTrigger value="clinical" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "التقييم والخطة العلاجية" : "Evaluation & Care Plan"}</TabsTrigger>}
             <TabsTrigger value="protocols" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "بروتوكولات التأهيل" : "Rehab Protocols"}</TabsTrigger>
             <TabsTrigger value="packages" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "الباقات" : "Packages"}</TabsTrigger>
             <TabsTrigger value="neuro" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "دليل الأعصاب" : "Neuro Reference"}</TabsTrigger>
           </TabsList>
           <TabsContent value="general"><GeneralInfoTab patient={patient} /></TabsContent>
-          <TabsContent value="radiology"><RadiologyTab /></TabsContent>
-          <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>
+          {hasPermission("view_patient_history") && <TabsContent value="radiology"><PatientAttachmentsTab patientId={resolvedParams.id} /></TabsContent>}
+          {hasPermission("view_patient_history") && <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>}
           <TabsContent value="reports"><SmartReportsTab patient={patient} /></TabsContent>
-          <TabsContent value="clinical"><ClinicalWorkflowTab patientId={patient.id} clinicId={clinicId || undefined} isRtl={isRtl} /></TabsContent>
+          {hasPermission("view_patient_history") && <TabsContent value="clinical"><ClinicalWorkflowTab patientId={patient.id} clinicId={clinicId || undefined} isRtl={isRtl} /></TabsContent>}
           <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} initialState={typeof patient.active_protocol === 'string' ? JSON.parse(patient.active_protocol) : patient.active_protocol} onSaveState={handleSaveProtocolState} /></TabsContent>
           <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} /></TabsContent>
           <TabsContent value="neuro"><NeuroReferenceTab /></TabsContent>
