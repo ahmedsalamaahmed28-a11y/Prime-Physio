@@ -10,6 +10,8 @@ const KNOWN_PROTECTED_PAGES = new Set(["home","admin","logout","subscribe","subs
 
 function isPublicPath(pathname: string): boolean {
   if (pathname === "/") return true;
+  // Clinic profile pages are public entry points; only allow a single validated slug segment.
+  if (/^\/clinic\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pathname)) return true;
   if (AUTH_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) return true;
   if (PUBLIC_PATHS.some((p) => pathname.startsWith(p))) return true;
   if (pathname.startsWith("/api/") && !pathname.startsWith("/api/admin/")) return true;
