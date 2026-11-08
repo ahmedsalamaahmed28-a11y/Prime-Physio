@@ -18,6 +18,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        clinicSlug: { label: "Clinic", type: "text" },
       },
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null;
@@ -75,10 +76,39 @@ export const authOptions: NextAuthOptions = {
             console.error("[Auth] Failed to clear one or more login attempt counters");
           }
 
+          let clinicId: string | null = null;
+          const requestedClinicSlug = String(credentials.clinicSlug || "").trim().toLowerCase();
+
+          if (requestedClinicSlug) {
+            if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(requestedClinicSlug) || requestedClinicSlug.length > 80) return null;
+
+            const { data: requestedClinic, error: clinicError } = await admin
+              .from("clinics")
+              .select("id")
+              .eq("slug", requestedClinicSlug)
+              .eq("is_active", true)
+              .eq("status", "active")
+              .maybeSingle();
+
+            if (clinicError || !requestedClinic?.id) return null;
+
+            const { data: membership, error: membershipError } = await admin
+              .from("staff")
+              .select("clinic_id")
+              .eq("email", email)
+              .eq("clinic_id", requestedClinic.id)
+              .limit(1)
+              .maybeSingle();
+
+            if (membershipError || !membership) return null;
+            clinicId = requestedClinic.id;
+          }
+
           return {
             id: data.id,
             email: data.email,
             name: data.email.split("@")[0],
+            clinicId,
           };
         } catch (error) {
           console.error("[Auth] Credentials authorization failed:", error);
@@ -105,6 +135,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
+        if (typeof (user as any).clinicId === "string") token.clinicId = (user as any).clinicId;
       }
       return token;
     },
@@ -113,6 +144,7 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub || token.id;
         session.user.email = token.email;
         session.user.name = token.name;
+        (session.user as any).clinicId = typeof token.clinicId === "string" ? token.clinicId : null;
       }
       return session;
     },
