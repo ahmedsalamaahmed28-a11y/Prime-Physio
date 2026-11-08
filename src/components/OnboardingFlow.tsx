@@ -127,6 +127,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           planId: selectedPlan,
+          billingPeriod: "monthly",
           billingData: {
             first_name: billingFirstName || "Clinic",
             last_name: billingLastName || "Admin",

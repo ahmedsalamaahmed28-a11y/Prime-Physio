@@ -32,13 +32,26 @@ const AVAILABLE_PERMISSIONS = [
   { id: "manage_inventory", labelAr: "إدارة المخزون والمعدات", labelEn: "Manage Inventory", category: "Admin" },
 ];
 
+function parsePermissionList(value: unknown): string[] | null {
+  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string");
+  if (typeof value !== "string" || !value.trim()) return null;
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === "string")
+      : null;
+  } catch {
+    return null;
+  }
+}
+
 const getDefaultPerms = (role: string) => {
   const roleName = role || "";
   if (["مدير العياده", "مدير النظام", "admin"].includes(roleName)) {
     return AVAILABLE_PERMISSIONS.map(p => p.id);
   }
   if (["استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي", "doctor"].includes(roleName)) {
-    return ["edit_emr", "edit_patient"];
+    return ["edit_emr", "edit_patient", "view_patient_history"];
   }
   if (["موظف استقبال", "موظفة استقبال رئيسية", "receptionist"].includes(roleName)) {
     return ["create_invoice", "edit_patient"];
@@ -59,27 +72,37 @@ export default function PermissionsPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!clinicId) return;
+    let cancelled = false;
+
     async function loadData() {
       try {
-        const { data, error } = await supabase.from('staff').select('*').eq('clinic_id', clinicId).order('created_at', { ascending: true });
-        if (!error && data) {
-          setStaff(data);
-          if (data.length > 0) setSelectedStaffEmail(data[0].email);
-          
-          const perms: Record<string, string[]> = {};
-          data.forEach((member) => {
-            if (member.permissions && Array.isArray(member.permissions)) {
-              perms[member.email] = member.permissions;
-            }
-          });
-          setPermissionsMap(perms);
-        }
+        const { data, error } = await supabase
+          .from("staff")
+          .select("*")
+          .eq("clinic_id", clinicId)
+          .order("created_at", { ascending: true });
+
+        if (error) throw error;
+        if (cancelled || !data) return;
+
+        setStaff(data);
+        setSelectedStaffEmail(data.length > 0 ? data[0].email : null);
+
+        const perms: Record<string, string[]> = {};
+        data.forEach((member) => {
+          const parsed = parsePermissionList(member.permissions);
+          if (parsed) perms[member.email] = parsed;
+        });
+        setPermissionsMap(perms);
       } catch (err) {
         console.warn("Failed to load staff permissions", err);
       }
     }
+
     loadData();
-  }, []);
+    return () => { cancelled = true; };
+  }, [clinicId]);
 
   const handleTogglePermission = (permissionId: string) => {
     if (!selectedStaffEmail || !activeStaffMember) return;
@@ -100,15 +123,16 @@ export default function PermissionsPage() {
   };
 
   const handleSave = async () => {
-    if (!selectedStaffEmail) return;
+    if (!selectedStaffEmail || !clinicId) return;
     setIsSaving(true);
     
     try {
       const userPerms = permissionsMap[selectedStaffEmail] || getDefaultPerms(activeStaffMember?.role || "");
       const { error } = await supabase
         .from('staff')
-        .update({ permissions: userPerms })
-        .eq('email', selectedStaffEmail);
+        .update({ permissions: JSON.stringify(userPerms) })
+        .eq("clinic_id", clinicId)
+        .eq("email", selectedStaffEmail);
         
       if (error) throw error;
 
