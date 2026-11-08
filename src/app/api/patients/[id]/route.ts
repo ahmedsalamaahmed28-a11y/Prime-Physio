@@ -9,13 +9,13 @@ export const revalidate = 0;
 
 const GENERAL_FIELDS = [
   "nameAr", "nameEn", "age", "gender", "phone", "email", "nationalId",
-  "bloodType", "allergies", "dvt", "emergencyContact", "emergencyPhone",
+  "emergencyContact", "emergencyPhone",
   "address", "occupation", "referral", "doctor",
 ] as const;
 
 const MEDICAL_FIELDS = [
   "chiefComplaint", "diagnosis", "medicalHistory", "pastSurgeries",
-  "chronicDiseases", "currentMedications", "drugAllergies",
+  "chronicDiseases", "currentMedications", "drugAllergies", "bloodType", "allergies", "dvt",
 ] as const;
 
 async function getAuthorizedClinic() {
@@ -50,7 +50,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
   const { id } = await context.params;
   const canReadMedical = canViewPatientHistory(auth.staff);
   const baseFields = "id,clinic_id,nameAr,nameEn,email,nationalId,phone,gender,age,address,activePackage,sessionsUsed,sessionsTotal,status,occupation,emergencyContact,emergencyPhone,doctor,created_at,updated_at";
-  const selectFields = canReadMedical ? baseFields + ",bloodType,allergies,dvt,referral,medical_history" : baseFields;
+  const selectFields = canReadMedical ? baseFields + ",referral" : baseFields;
 
   const { data, error } = await auth.admin
     .from("patients")
@@ -64,7 +64,29 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
     return NextResponse.json({ error: "تعذر تحميل بيانات المريض" }, { status: 500 });
   }
   if (!data) return NextResponse.json({ error: "المريض غير موجود في العيادة الحالية" }, { status: 404 });
-  return NextResponse.json({ patient: data }, { headers: { "Cache-Control": "no-store, private" } });
+
+  let patient = { ...data };
+  if (canReadMedical) {
+    const { data: medicalRecord, error: medicalError } = await auth.admin
+      .from("patient_medical_records")
+      .select("medical_history")
+      .eq("patient_id", id)
+      .eq("clinic_id", auth.clinicId)
+      .maybeSingle();
+    if (medicalError) {
+      console.error("[Patient API] Medical record fetch failed:", medicalError);
+      return NextResponse.json({ error: "تعذر تحميل الملف الطبي" }, { status: 500 });
+    }
+    const medical = (medicalRecord?.medical_history || {}) as Record<string, unknown>;
+    patient = {
+      ...patient,
+      medical_history: medical,
+      bloodType: medical.bloodType || "",
+      allergies: medical.allergies || "",
+      dvt: medical.dvt || "",
+    };
+  }
+  return NextResponse.json({ patient }, { headers: { "Cache-Control": "no-store, private" } });
 }
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -77,17 +99,19 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     if (!body || typeof body !== "object" || Array.isArray(body)) {
       return NextResponse.json({ error: "بيانات التعديل غير صالحة" }, { status: 400 });
     }
-    if (Object.keys(body).some((key) => GENERAL_FIELDS.includes(key as typeof GENERAL_FIELDS[number]))
-      && !hasStaffPermission(auth.staff, "edit_patient")) {
+    const generalKeys = Object.keys(body).filter((key) => GENERAL_FIELDS.includes(key as typeof GENERAL_FIELDS[number]));
+    const protectedMedicalKeys = ["bloodType", "allergies", "dvt"].filter((key) => Object.prototype.hasOwnProperty.call(body, key));
+    if (generalKeys.length > 0 && !hasStaffPermission(auth.staff, "edit_patient")) {
       return NextResponse.json({ error: "ليس لديك صلاحية تعديل البيانات الأساسية للمريض" }, { status: 403 });
     }
-    if (body.medicalFields !== undefined && !hasStaffPermission(auth.staff, "edit_emr")) {
+    if ((body.medicalFields !== undefined || protectedMedicalKeys.length > 0)
+      && !hasStaffPermission(auth.staff, "edit_emr")) {
       return NextResponse.json({ error: "ليس لديك صلاحية تعديل الملف الطبي" }, { status: 403 });
     }
 
     const { data: existing, error: lookupError } = await auth.admin
       .from("patients")
-      .select("id,medical_history")
+      .select("id")
       .eq("id", id)
       .eq("clinic_id", auth.clinicId)
       .maybeSingle();
@@ -107,13 +131,39 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       if (!body.medicalFields || typeof body.medicalFields !== "object" || Array.isArray(body.medicalFields)) {
         return NextResponse.json({ error: "بيانات الملف الطبي غير صالحة" }, { status: 400 });
       }
-      const medical = { ...((existing.medical_history as Record<string, unknown> | null) || {}) };
-      for (const field of MEDICAL_FIELDS) {
-        if (Object.prototype.hasOwnProperty.call(body.medicalFields, field)) {
-          medical[field] = body.medicalFields[field];
+      // Medical data is stored separately from patient demographics and protected by its own RLS.
+    }
+    if (protectedMedicalKeys.length > 0 || body.medicalFields !== undefined) {
+      const { data: currentMedical, error: currentMedicalError } = await auth.admin
+        .from("patient_medical_records")
+        .select("medical_history")
+        .eq("patient_id", id)
+        .eq("clinic_id", auth.clinicId)
+        .maybeSingle();
+      if (currentMedicalError) throw currentMedicalError;
+
+      const medical = { ...((currentMedical?.medical_history as Record<string, unknown> | null) || {}) };
+      if (body.medicalFields !== undefined) {
+        if (!body.medicalFields || typeof body.medicalFields !== "object" || Array.isArray(body.medicalFields)) {
+          return NextResponse.json({ error: "بيانات الملف الطبي غير صالحة" }, { status: 400 });
+        }
+        for (const field of MEDICAL_FIELDS) {
+          if (Object.prototype.hasOwnProperty.call(body.medicalFields, field)) {
+            medical[field] = body.medicalFields[field];
+          }
         }
       }
-      updates.medical_history = medical;
+      for (const field of protectedMedicalKeys) medical[field] = body[field];
+
+      const { error: medicalSaveError } = await auth.admin
+        .from("patient_medical_records")
+        .upsert({
+          patient_id: id,
+          clinic_id: auth.clinicId,
+          medical_history: medical,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "patient_id" });
+      if (medicalSaveError) throw medicalSaveError;
     }
 
     if (Object.keys(updates).length === 0) {
@@ -133,11 +183,21 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       console.error("[Patient API] Update failed:", error);
       return NextResponse.json({ error: "تعذر حفظ بيانات المريض" }, { status: 500 });
     }
-    const responsePatient = { ...data };
-    if (!canViewPatientHistory(auth.staff)) delete responsePatient.medical_history;
-    return NextResponse.json({ success: true, patient: responsePatient }, {
-      headers: { "Cache-Control": "no-store, private" },
-    });
+    const responsePatient: Record<string, unknown> = { ...data };
+    if (canViewPatientHistory(auth.staff)) {
+      const { data: medicalRecord, error: medicalError } = await auth.admin
+        .from("patient_medical_records")
+        .select("medical_history")
+        .eq("patient_id", id)
+        .eq("clinic_id", auth.clinicId)
+        .maybeSingle();
+      if (medicalError) throw medicalError;
+      const medical = (medicalRecord?.medical_history || {}) as Record<string, unknown>;
+      responsePatient.medical_history = medical;
+      responsePatient.bloodType = medical.bloodType || "";
+      responsePatient.allergies = medical.allergies || "";
+      responsePatient.dvt = medical.dvt || "";
+    }
   } catch (error) {
     console.error("[Patient API] Unexpected error:", error);
     return NextResponse.json({ error: "حدث خطأ غير متوقع أثناء حفظ البيانات" }, { status: 500 });
@@ -148,6 +208,9 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 export async function DELETE(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await getAuthorizedClinic();
   if ("error" in auth) return auth.error;
+  if (!hasStaffPermission(auth.staff, "delete_patient")) {
+    return NextResponse.json({ error: "ليس لديك صلاحية حذف المرضى" }, { status: 403 });
+  }
   const { id } = await context.params;
 
   try {
