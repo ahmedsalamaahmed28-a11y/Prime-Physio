@@ -65,7 +65,7 @@ export function usePermissions() {
     if (hasOverride) return customPerms.includes(action);
 
     if (user?.roleKey === "doctor") {
-      return ["edit_emr", "edit_patient"].includes(action);
+      return ["edit_emr", "edit_patient", "view_patient_history"].includes(action);
     }
 
     if (user?.roleKey === "receptionist") {
