@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const PAYMOB_BASE = "https://accept.paymob.com/api";
-const PLAN_PRICES: Record<string, number> = { silver: 1000 * 100, gold: 1500 * 100 };
+const ALLOWED_PAID_PLANS = new Set(["silver", "gold"]);
 const PLAN_NAMES: Record<string, string> = {
   silver: "الخطة الفضية - Prime Physio",
   gold: "الخطة الذهبية - Prime Physio",
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const planId = typeof body?.planId === "string" ? body.planId : "";
     const billingPeriod = body?.billingPeriod === "yearly" ? "yearly" : body?.billingPeriod === "monthly" ? "monthly" : "";
     const billingData = body?.billingData && typeof body.billingData === "object" ? body.billingData : {};
-    if (!PLAN_PRICES[planId] || !billingPeriod) {
+    if (!ALLOWED_PAID_PLANS.has(planId) || !billingPeriod) {
       return NextResponse.json({ error: "خطة أو مدة اشتراك غير صحيحة" }, { status: 400 });
     }
 
@@ -53,8 +53,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "يجب أن يكون الطلب من مدير العيادة المسجل" }, { status: 403 });
     }
 
-    let amountCents = PLAN_PRICES[planId];
-    if (billingPeriod === "yearly") amountCents = Math.round(amountCents * 12 * 0.8);
+    const { data: plan, error: planError } = await admin
+      .from("subscription_plans")
+      .select("price_monthly, price_yearly, is_active")
+      .eq("name", planId)
+      .maybeSingle();
+
+    if (planError || !plan || !plan.is_active) {
+      console.error("[Paymob] Active subscription plan lookup failed:", planError);
+      return NextResponse.json({ error: "الخطة غير متاحة للاشتراك حاليًا" }, { status: 503 });
+    }
+
+    const amountEgp = billingPeriod === "yearly" ? plan.price_yearly : plan.price_monthly;
+    if (!Number.isSafeInteger(amountEgp) || amountEgp <= 0) {
+      return NextResponse.json({ error: "سعر الاشتراك غير صالح" }, { status: 500 });
+    }
+    const amountCents = amountEgp * 100;
 
     const authRes = await fetch(`${PAYMOB_BASE}/auth/tokens`, {
       method: "POST",
