@@ -16,24 +16,24 @@ export default function DashboardInteractive() {
   ];
 
   return (
-    <section className="py-24 bg-[#F8FAFC] overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl font-black text-slate-900 sm:text-4xl">اكتشف لوحة التحكم التفاعلية</h2>
-          <p className="mt-4 text-lg text-slate-600 font-medium">
+    <section className="py-14 sm:py-24 bg-[#F8FAFC] overflow-hidden">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 sm:text-4xl">اكتشف لوحة التحكم التفاعلية</h2>
+          <p className="mt-3 sm:mt-4 text-sm sm:text-lg text-slate-600 font-medium">
             شاهد كيف تبدو واجهة Prime Physio من الداخل بنفس التصميم الحقيقي للمنصة.
           </p>
         </div>
 
         <div className="max-w-5xl mx-auto">
           {/* Tabs Control */}
-          <div className="flex justify-center mb-8">
-            <div className="bg-white p-1.5 rounded-full border border-slate-200 flex flex-wrap justify-center gap-1 shadow-sm">
+          <div className="flex justify-center mb-5 sm:mb-8">
+            <div className="bg-white p-1 rounded-2xl sm:rounded-full border border-slate-200 flex flex-wrap justify-center gap-1 shadow-sm max-w-full">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-2 sm:px-6 sm:py-2.5 rounded-full text-sm font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-2.5 py-2 sm:gap-2 sm:px-6 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold transition-all ${
                     activeTab === tab.id
                       ? "bg-[#4F46E5] text-white shadow-md"
                       : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
@@ -48,16 +48,16 @@ export default function DashboardInteractive() {
 
           {/* MacBook Frame */}
           <div className="relative mx-auto w-full max-w-5xl">
-            <div className="relative pt-[56.25%]"> {/* 16:9 Aspect Ratio */}
-              <div className="absolute inset-0 bg-white rounded-t-3xl border-x-4 border-t-4 border-slate-800 shadow-2xl overflow-hidden flex flex-col">
+            <div className="relative pt-[78%] min-[480px]:pt-[65%] sm:pt-[56.25%]"> {/* Taller preview on phones; returns to 16:9 on desktop */}
+              <div className="absolute inset-0 bg-white rounded-t-2xl sm:rounded-t-3xl border-x-2 sm:border-x-4 border-t-2 sm:border-t-4 border-slate-800 shadow-2xl overflow-hidden flex flex-col">
                 {/* Browser Top Bar */}
-                <div className="h-10 bg-slate-100 flex items-center px-4 gap-2 border-b border-slate-200 shrink-0">
+                <div className="h-8 sm:h-10 bg-slate-100 flex items-center px-2 sm:px-4 gap-2 border-b border-slate-200 shrink-0">
                   <div className="flex gap-1.5">
                     <div className="w-3 h-3 rounded-full bg-red-400" />
                     <div className="w-3 h-3 rounded-full bg-amber-400" />
                     <div className="w-3 h-3 rounded-full bg-green-400" />
                   </div>
-                  <div className="mx-auto flex-1 max-w-lg h-6 bg-white rounded-md border border-slate-200 flex items-center justify-center text-[10px] text-slate-400 font-sans">
+                  <div className="mx-auto flex-1 max-w-lg h-5 sm:h-6 bg-white rounded-md border border-slate-200 flex items-center justify-center text-[9px] sm:text-[10px] text-slate-400 font-sans">
                     primephysio.app/dashboard
                   </div>
                 </div>
@@ -66,32 +66,32 @@ export default function DashboardInteractive() {
                 <div className="flex-1 flex overflow-hidden bg-slate-50/50" dir="rtl">
                   
                   {/* Real Dashboard Sidebar Mockup */}
-                  <div className="w-40 sm:w-48 bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white flex flex-col shrink-0 shadow-lg z-10">
-                    <div className="h-14 flex items-center justify-center border-b border-white/10 shrink-0">
-                      <span className="font-bold text-lg tracking-tight">PrimePhysio</span>
+                  <div className="w-11 min-[480px]:w-14 sm:w-40 lg:w-48 bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white flex flex-col shrink-0 shadow-lg z-10">
+                    <div className="h-10 sm:h-14 flex items-center justify-center border-b border-white/10 shrink-0">
+                      <span className="font-bold text-sm sm:text-lg tracking-tight"><span className="sm:hidden">P</span><span className="hidden sm:inline">PrimePhysio</span></span>
                     </div>
-                    <div className="p-3 flex-1 flex flex-col gap-1 overflow-hidden">
+                    <div className="p-1 sm:p-3 flex-1 flex flex-col gap-1 overflow-hidden">
                       {tabs.map((tab) => (
                         <div 
                           key={tab.id}
-                          className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all text-xs sm:text-sm ${
+                          className={`flex items-center justify-center sm:justify-start gap-0 sm:gap-3 px-1 sm:px-3 py-2 rounded-xl transition-all text-xs sm:text-sm ${
                             activeTab === tab.id ? "bg-white/10 font-bold border border-white/20" : "text-white/80 font-medium"
                           }`}
                         >
                           {tab.icon}
-                          <span>{tab.label}</span>
+                          <span className="hidden sm:inline">{tab.label}</span>
                         </div>
                       ))}
-                      <div className="mt-auto flex items-center gap-3 px-3 py-2 rounded-xl text-white/80 font-medium text-xs sm:text-sm">
+                      <div className="mt-auto flex items-center justify-center sm:justify-start gap-0 sm:gap-3 px-1 sm:px-3 py-2 rounded-xl text-white/80 font-medium text-xs sm:text-sm">
                         <Settings className="w-4 h-4" />
-                        <span>الإعدادات</span>
+                        <span className="hidden sm:inline">الإعدادات</span>
                       </div>
                     </div>
-                    <div className="p-3 border-t border-white/10 bg-white/5 flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-indigo-500 border border-white/20 flex items-center justify-center text-xs font-bold shadow-sm">
+                    <div className="p-1.5 sm:p-3 border-t border-white/10 bg-white/5 flex items-center justify-center sm:justify-start gap-2">
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-indigo-500 border border-white/20 flex items-center justify-center text-xs font-bold shadow-sm shrink-0">
                         أ
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="hidden sm:block flex-1 min-w-0">
                         <div className="text-[10px] font-bold truncate">د. أحمد سلامة</div>
                         <div className="text-[9px] text-white/70 truncate">أخصائي</div>
                       </div>
@@ -101,13 +101,13 @@ export default function DashboardInteractive() {
                   {/* Main Content Area */}
                   <div className="flex-1 flex flex-col min-w-0">
                     {/* Header Mockup */}
-                    <header className="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-6 shrink-0 z-10">
-                      <div className="w-48 sm:w-64 h-8 bg-slate-100 rounded-lg border border-slate-200/80 flex items-center px-3 text-slate-400">
+                    <header className="h-11 sm:h-14 bg-white border-b border-slate-200 flex items-center justify-between px-2 sm:px-6 gap-2 shrink-0 z-10">
+                      <div className="w-28 min-[480px]:w-36 sm:w-48 lg:w-64 h-7 sm:h-8 bg-slate-100 rounded-lg border border-slate-200/80 flex items-center px-2 sm:px-3 text-slate-400 min-w-0">
                         <Search className="w-3.5 h-3.5 ml-2" />
-                        <span className="text-xs">بحث عن مريض...</span>
+                        <span className="text-[10px] sm:text-xs truncate">بحث عن مريض...</span>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center text-[10px] font-bold">
+                      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+                        <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center text-[9px] sm:text-[10px] font-bold">
                           متصل
                         </div>
                         <div className="relative">
@@ -118,10 +118,10 @@ export default function DashboardInteractive() {
                     </header>
 
                     {/* Content Area Viewport */}
-                    <div className="flex-1 p-6 overflow-hidden relative">
+                    <div className="flex-1 p-2 sm:p-6 overflow-hidden relative min-w-0">
                         <div data-csp-motion="reveal"
                           key={activeTab}
-                          className="h-full w-full absolute inset-0 p-6"
+                          className="h-full w-full absolute inset-0 p-2 sm:p-6"
                         >
                           {/* 1. Home Tab Mockup */}
                           {activeTab === "home" && (
@@ -130,24 +130,24 @@ export default function DashboardInteractive() {
                                 <div className="h-5 w-40 bg-slate-200 rounded-md" />
                                 <div className="h-8 w-28 bg-[#4F46BA] rounded-lg" />
                               </div>
-                              <div className="grid grid-cols-3 gap-4 shrink-0">
+                              <div className="grid grid-cols-3 gap-2 sm:gap-4 shrink-0">
                                 {[1, 2, 3].map(i => (
-                                  <div key={i} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                                    <div className="flex items-center gap-3 mb-3">
-                                      <div className="w-8 h-8 rounded-full bg-slate-100" />
+                                  <div key={i} className="bg-white border border-slate-200 rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-sm min-w-0">
+                                    <div className="flex items-center gap-1.5 sm:gap-3 mb-2 sm:mb-3">
+                                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-100 shrink-0" />
                                       <div className="h-3 w-16 bg-slate-200 rounded-full" />
                                     </div>
-                                    <div className="h-6 w-24 bg-slate-800 rounded-md" />
+                                    <div className="h-5 sm:h-6 w-16 sm:w-24 bg-slate-800 rounded-md" />
                                   </div>
                                 ))}
                               </div>
-                              <div className="flex-1 bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col gap-3">
+                              <div className="flex-1 bg-white border border-slate-200 rounded-xl p-2 sm:p-4 shadow-sm flex flex-col gap-2 sm:gap-3 min-h-0">
                                 <div className="h-4 w-32 bg-slate-200 rounded-md mb-2" />
                                 {[1, 2, 3, 4].map(i => (
-                                  <div key={i} className="h-10 w-full bg-slate-50 border border-slate-100 rounded-lg flex items-center px-3 gap-3">
-                                    <div className="w-6 h-6 rounded-full bg-indigo-100" />
-                                    <div className="h-2.5 w-32 bg-slate-200 rounded-full" />
-                                    <div className="h-2.5 w-16 bg-slate-200 rounded-full mr-auto" />
+                                  <div key={i} className="h-8 sm:h-10 w-full bg-slate-50 border border-slate-100 rounded-lg flex items-center px-2 sm:px-3 gap-2 sm:gap-3 min-w-0">
+                                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-100 shrink-0" />
+                                    <div className="h-2.5 w-20 sm:w-32 bg-slate-200 rounded-full" />
+                                    <div className="h-2.5 w-10 sm:w-16 bg-slate-200 rounded-full mr-auto" />
                                   </div>
                                 ))}
                               </div>
@@ -165,15 +165,15 @@ export default function DashboardInteractive() {
                                 <div className="h-4 w-4 bg-slate-200 rounded-full ml-3" />
                                 <div className="h-3 w-48 bg-slate-100 rounded-full" />
                               </div>
-                              <div className="grid grid-cols-2 gap-4">
+                              <div className="grid grid-cols-2 gap-2 sm:gap-4">
                                 {[1, 2, 3, 4, 5, 6].map(i => (
-                                  <div key={i} className="bg-white border border-slate-200 rounded-xl p-4 flex items-center gap-4 shadow-sm">
-                                    <div className="w-12 h-12 rounded-full bg-slate-100 border-2 border-white shadow-sm" />
+                                  <div key={i} className="bg-white border border-slate-200 rounded-lg sm:rounded-xl p-2 sm:p-4 flex items-center gap-2 sm:gap-4 shadow-sm min-w-0">
+                                    <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-full bg-slate-100 border-2 border-white shadow-sm shrink-0" />
                                     <div className="space-y-2 flex-1">
-                                      <div className="h-3 w-28 bg-slate-800 rounded-full" />
-                                      <div className="h-2 w-20 bg-slate-400 rounded-full" />
+                                      <div className="h-3 w-16 sm:w-28 bg-slate-800 rounded-full" />
+                                      <div className="h-2 w-12 sm:w-20 bg-slate-400 rounded-full" />
                                     </div>
-                                    <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100" />
+                                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-indigo-50 border border-indigo-100 shrink-0" />
                                   </div>
                                 ))}
                               </div>
@@ -190,25 +190,25 @@ export default function DashboardInteractive() {
                                   <div className="h-8 w-24 bg-[#4F46BA] rounded-lg" />
                                 </div>
                               </div>
-                              <div className="flex gap-4 shrink-0">
-                                <div className="flex-1 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-4 text-white shadow-md">
+                              <div className="flex gap-2 sm:gap-4 shrink-0">
+                                <div className="flex-1 min-w-0 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-2 sm:p-4 text-white shadow-md">
                                   <div className="h-3 w-24 bg-white/30 rounded-full mb-3" />
-                                  <div className="h-8 w-32 bg-white rounded-md" />
+                                  <div className="h-7 sm:h-8 w-20 sm:w-32 bg-white rounded-md" />
                                 </div>
-                                <div className="flex-1 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl p-4 text-white shadow-md">
+                                <div className="flex-1 min-w-0 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl p-2 sm:p-4 text-white shadow-md">
                                   <div className="h-3 w-24 bg-white/30 rounded-full mb-3" />
-                                  <div className="h-8 w-32 bg-white rounded-md" />
+                                  <div className="h-7 sm:h-8 w-20 sm:w-32 bg-white rounded-md" />
                                 </div>
                               </div>
-                              <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col">
-                                <div className="h-10 border-b border-slate-100 flex items-center px-4 bg-slate-50/50 rounded-t-xl gap-4">
+                              <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col min-h-0">
+                                <div className="h-8 sm:h-10 border-b border-slate-100 flex items-center px-2 sm:px-4 bg-slate-50/50 rounded-t-xl gap-2 sm:gap-4">
                                   <div className="h-2 w-20 bg-slate-300 rounded-full" />
                                   <div className="h-2 w-32 bg-slate-300 rounded-full mr-auto" />
                                 </div>
-                                <div className="p-4 flex flex-col gap-3">
+                                <div className="p-2 sm:p-4 flex flex-col gap-2 sm:gap-3">
                                   {[1, 2, 3].map(i => (
-                                    <div key={i} className="h-12 w-full border border-slate-100 rounded-lg flex items-center px-4 gap-4">
-                                      <div className="w-8 h-8 rounded-full bg-emerald-50" />
+                                    <div key={i} className="h-10 sm:h-12 w-full border border-slate-100 rounded-lg flex items-center px-2 sm:px-4 gap-2 sm:gap-4">
+                                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-50 shrink-0" />
                                       <div className="h-2 w-24 bg-slate-800 rounded-full" />
                                       <div className="h-2 w-16 bg-emerald-500 rounded-full mr-auto" />
                                     </div>
@@ -225,9 +225,9 @@ export default function DashboardInteractive() {
                                 <div className="h-5 w-32 bg-slate-200 rounded-md" />
                                 <div className="h-8 w-32 bg-white border border-slate-200 rounded-lg" />
                               </div>
-                              <div className="flex-1 bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col">
-                                <div className="h-4 w-48 bg-slate-800 rounded-md mb-8" />
-                                <div className="flex-1 flex items-end justify-between gap-4 px-4">
+                              <div className="flex-1 bg-white border border-slate-200 rounded-xl p-2 sm:p-6 shadow-sm flex flex-col min-h-0">
+                                <div className="h-4 w-32 sm:w-48 bg-slate-800 rounded-md mb-3 sm:mb-8" />
+                                <div className="flex-1 flex items-end justify-between gap-2 sm:gap-4 px-2 sm:px-4 min-h-0">
                                   {chartBarHeights.map((heightClass, i) => (
                                     <div key={i} className="flex-1 relative group h-full flex items-end">
                                       <div className={`w-full bg-[#4F46BA] rounded-t-md transition-all duration-1000 ease-out ${heightClass}`} />
@@ -235,7 +235,7 @@ export default function DashboardInteractive() {
                                   ))}
                                 </div>
                                 <div className="h-px bg-slate-200 w-full mt-2 mb-2" />
-                                <div className="flex justify-between px-4">
+                                <div className="flex justify-between px-2 sm:px-4">
                                   {[1, 2, 3, 4, 5, 6, 7].map(i => (
                                     <div key={i} className="h-2 w-6 bg-slate-300 rounded-full" />
                                   ))}
