@@ -42,6 +42,7 @@ function ManageContent() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const searchParams = useSearchParams();
+  const clinicSlug = (searchParams?.get("clinic_slug") || "").trim().toLowerCase();
   const { user } = useAuth();
   const isOnboarding = searchParams?.get("onboard") === "1";
   const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
@@ -173,6 +174,7 @@ function ManageContent() {
     const result = await signIn("credentials", {
       email: cleanEmail,
       password: cleanPassword,
+      ...(clinicSlug ? { clinicSlug } : {}),
       redirect: false,
     });
 
@@ -189,6 +191,12 @@ function ManageContent() {
   };
 
   const handleGoogleLogin = async () => {
+    if (clinicSlug) {
+      setError(isRtl
+        ? "تسجيل الدخول باستخدام Google غير متاح حاليًا من رابط المركز. استخدم البريد الإلكتروني وكلمة المرور لضمان التحقق من عضوية المركز."
+        : "Google sign-in is temporarily unavailable from a clinic-specific link. Use email and password so clinic membership can be verified.");
+      return;
+    }
     setError("");
     setIsLoading(true);
     await setAppValue("current_user", null);
@@ -353,7 +361,7 @@ function ManageContent() {
               <div className="flex-grow border-t border-slate-200" />
             </div>
 
-            <button
+            {!clinicSlug && <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={isLoading}
@@ -366,7 +374,7 @@ function ManageContent() {
                 <path fill="#4285F4" d="M12 5c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.8 9.8 0 0 0 12 2a10 10 0 0 0-8.9 5.5l4 3.1A5.8 5.8 0 0 1 12 5z" />
               </svg>
               {isRtl ? "الدخول باستخدام Google" : "Continue with Google"}
-            </button>
+            </button>}
 
             <p className="text-center text-sm font-medium text-slate-500 mt-8">
               {isRtl ? "ليس لديك حساب؟" : "Don't have an account?"}{' '}
