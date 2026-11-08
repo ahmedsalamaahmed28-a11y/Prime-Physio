@@ -97,6 +97,13 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     }
     // A failed server lookup is not proof that the user has no clinic.
     if (res.status >= 500) return user;
+    // A clinic-specific login must fail closed if the authoritative membership
+    // endpoint does not confirm the requested tenant (including an expired session).
+    if (preferredClinicId && !res.ok) {
+      if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+      user.clinicId = null;
+      return user;
+    }
     if (res.ok) {
       const data = await res.json();
       if (data.clinicId || data.roleKey === "platform_admin") {
@@ -120,7 +127,14 @@ async function enrichUserWithClinic(user: User): Promise<User> {
       }
     }
   } catch {
-    // API call failed — fall through to Supabase queries
+    // Do not let a network failure bypass tenant verification through an unscoped
+    // browser-side staff query. The selected clinic must be confirmed server-side.
+    if (preferredClinicId) {
+      if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+      user.clinicId = null;
+      return user;
+    }
+    // Non-tenant login may still use the supported Supabase-auth fallback.
   }
 
   try {
