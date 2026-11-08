@@ -81,7 +81,7 @@ export default function PatientJourney() {
             {journeySteps.map((step, index) => (
               <div data-csp-motion="reveal"
                 key={step.id} 
-                className={`relative flex items-center justify-between md:justify-start w-full group ${
+                className={`relative flex flex-col items-center gap-3 md:flex-row md:items-center md:justify-start w-full group ${
                   index % 2 === 0 ? "md:flex-row" : "md:flex-row-reverse"
                 }`}
               >
@@ -89,7 +89,7 @@ export default function PatientJourney() {
                 <div className="hidden md:block w-5/12" />
 
                 {/* Center Icon Node */}
-                <div className="absolute right-1/2 translate-x-1/2 md:translate-x-0 md:right-8 md:relative md:w-16 flex justify-center z-20">
+                <div className="relative right-auto translate-x-0 md:right-8 md:w-16 flex justify-center z-20 shrink-0">
                   <div className="w-12 h-12 md:w-16 md:h-16 rounded-full flex items-center justify-center bg-slate-50 shadow-xl shadow-slate-200/50 border-4 border-slate-50 transition-transform duration-300 group-hover:scale-110 group-hover:border-indigo-50">
                     <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center bg-gradient-to-br ${step.color} text-white`}>
                       <step.icon className="w-4 h-4 md:w-5 md:h-5" />
@@ -98,8 +98,8 @@ export default function PatientJourney() {
                 </div>
 
                 {/* Content Card */}
-                <div className={`w-full md:w-5/12 pt-16 md:pt-0 pb-4 ${index % 2 === 0 ? "md:pr-12" : "md:pl-12"}`}>
-                  <div className="bg-white p-6 md:p-8 rounded-3xl shadow-lg shadow-slate-200/40 border border-slate-100 hover:shadow-xl transition-shadow duration-300 relative group-hover:-translate-y-1 group-hover:border-indigo-100 text-center md:text-right">
+                <div className={`w-full min-w-0 md:w-5/12 pt-0 md:pt-0 pb-4 ${index % 2 === 0 ? "md:pr-12" : "md:pl-12"}`}>
+                  <div className="w-full min-w-0 bg-white p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/40 border border-slate-100 hover:shadow-xl transition-shadow duration-300 relative group-hover:-translate-y-1 group-hover:border-indigo-100 text-center md:text-right">
                     <div className={`inline-flex items-center justify-center w-10 h-10 rounded-xl ${step.bgLight} ${step.textLight} mb-4`}>
                       <span className="font-bold text-lg font-sans">{step.id}</span>
                     </div>
