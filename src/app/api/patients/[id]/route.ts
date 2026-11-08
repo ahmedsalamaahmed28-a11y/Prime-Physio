@@ -65,7 +65,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
   }
   if (!data) return NextResponse.json({ error: "المريض غير موجود في العيادة الحالية" }, { status: 404 });
 
-  let patient = { ...data };
+  const patient: Record<string, unknown> = { ...(data as Record<string, unknown>) };
   if (canReadMedical) {
     const { data: medicalRecord, error: medicalError } = await auth.admin
       .from("patient_medical_records")
