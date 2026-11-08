@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase-admin";
+import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -25,7 +26,7 @@ async function getAuthorizedClinic() {
   const admin = getAdminClient();
   const { data: staff, error } = await admin
     .from("staff")
-    .select("clinic_id,status")
+    .select("clinic_id,status,role,permissions")
     .eq("email", email)
     .limit(1)
     .maybeSingle();
@@ -37,17 +38,23 @@ async function getAuthorizedClinic() {
   if (!staff?.clinic_id || staff.status === "محذوف") {
     return { error: NextResponse.json({ error: "لا توجد صلاحية نشطة لهذه العيادة" }, { status: 403 }) };
   }
-  return { admin, clinicId: staff.clinic_id };
+  return { admin, clinicId: staff.clinic_id, staff };
 }
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await getAuthorizedClinic();
   if ("error" in auth) return auth.error;
+  if (!hasStaffPermission(auth.staff, "edit_patient") && !canViewPatientHistory(auth.staff)) {
+    return NextResponse.json({ error: "ليس لديك صلاحية الاطلاع على ملف المريض" }, { status: 403 });
+  }
   const { id } = await context.params;
+  const canReadMedical = canViewPatientHistory(auth.staff);
+  const baseFields = "id,clinic_id,nameAr,nameEn,email,nationalId,phone,gender,age,address,activePackage,sessionsUsed,sessionsTotal,status,occupation,emergencyContact,emergencyPhone,doctor,created_at,updated_at";
+  const selectFields = canReadMedical ? baseFields + ",bloodType,allergies,dvt,referral,medical_history" : baseFields;
 
   const { data, error } = await auth.admin
     .from("patients")
-    .select("*")
+    .select(selectFields)
     .eq("id", id)
     .eq("clinic_id", auth.clinicId)
     .maybeSingle();
@@ -57,7 +64,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
     return NextResponse.json({ error: "تعذر تحميل بيانات المريض" }, { status: 500 });
   }
   if (!data) return NextResponse.json({ error: "المريض غير موجود في العيادة الحالية" }, { status: 404 });
-  return NextResponse.json({ patient: data });
+  return NextResponse.json({ patient: data }, { headers: { "Cache-Control": "no-store, private" } });
 }
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
@@ -69,6 +76,13 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     const body = await request.json();
     if (!body || typeof body !== "object" || Array.isArray(body)) {
       return NextResponse.json({ error: "بيانات التعديل غير صالحة" }, { status: 400 });
+    }
+    if (Object.keys(body).some((key) => GENERAL_FIELDS.includes(key as typeof GENERAL_FIELDS[number]))
+      && !hasStaffPermission(auth.staff, "edit_patient")) {
+      return NextResponse.json({ error: "ليس لديك صلاحية تعديل البيانات الأساسية للمريض" }, { status: 403 });
+    }
+    if (body.medicalFields !== undefined && !hasStaffPermission(auth.staff, "edit_emr")) {
+      return NextResponse.json({ error: "ليس لديك صلاحية تعديل الملف الطبي" }, { status: 403 });
     }
 
     const { data: existing, error: lookupError } = await auth.admin
@@ -119,7 +133,11 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       console.error("[Patient API] Update failed:", error);
       return NextResponse.json({ error: "تعذر حفظ بيانات المريض" }, { status: 500 });
     }
-    return NextResponse.json({ success: true, patient: data });
+    const responsePatient = { ...data };
+    if (!canViewPatientHistory(auth.staff)) delete responsePatient.medical_history;
+    return NextResponse.json({ success: true, patient: responsePatient }, {
+      headers: { "Cache-Control": "no-store, private" },
+    });
   } catch (error) {
     console.error("[Patient API] Unexpected error:", error);
     return NextResponse.json({ error: "حدث خطأ غير متوقع أثناء حفظ البيانات" }, { status: 500 });
