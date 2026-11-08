@@ -620,7 +620,7 @@ export default function CalendarPage() {
         if (!response.ok) throw new Error(result.error || "تعذر تحميل بيانات التقويم");
         setPatients(result.patients || []);
         const isDoctor = (role: string) =>
-          ["مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(role);
+          ["admin", "clinic_admin", "doctor", "مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(role);
         setDoctorsList((result.doctors || []).filter((staff: any) => isDoctor(staff.role)));
         dbEvents = result.appointments || [];
       } catch (error: any) {
