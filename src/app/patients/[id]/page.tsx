@@ -2780,7 +2780,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
           {hasPermission("view_patient_history") && <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>}
           {hasPermission("view_patient_history") && <TabsContent value="reports"><SmartReportsTab patient={patient} /></TabsContent>}
           {hasPermission("view_patient_history") && <TabsContent value="clinical"><ClinicalWorkflowTab patientId={patient.id} clinicId={clinicId || undefined} isRtl={isRtl} /></TabsContent>}
-          <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} initialState={typeof patient.active_protocol === 'string' ? JSON.parse(patient.active_protocol) : patient.active_protocol} onSaveState={handleSaveProtocolState} /></TabsContent>
+          {hasPermission("view_patient_history") && <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} initialState={typeof patient.active_protocol === 'string' ? JSON.parse(patient.active_protocol) : patient.active_protocol} onSaveState={handleSaveProtocolState} /></TabsContent>}
           <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} /></TabsContent>
           <TabsContent value="neuro"><NeuroReferenceTab /></TabsContent>
         </Tabs>
