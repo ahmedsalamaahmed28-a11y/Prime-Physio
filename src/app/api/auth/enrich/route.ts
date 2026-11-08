@@ -77,10 +77,14 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const { data: staff, error } = await admin
+    let staffQuery = admin
       .from("staff")
       .select("clinic_id, role")
-      .eq("email", session.user.email.toLowerCase().trim())
+      .eq("email", session.user.email.toLowerCase().trim());
+
+    if (sessionClinicId) staffQuery = staffQuery.eq("clinic_id", sessionClinicId);
+
+    const { data: staff, error } = await staffQuery
       .limit(1)
       .maybeSingle();
 
