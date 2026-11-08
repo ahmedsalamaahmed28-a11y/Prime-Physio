@@ -1,7 +1,7 @@
 import { createHmac, randomInt } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type VerificationPurpose = "signup" | "password_reset";
+export type VerificationPurpose = "signup" | "password_reset" | "center_creation";
 
 function getHashSecret() {
   const secret = process.env.OTP_HASH_SECRET || process.env.NEXTAUTH_SECRET;
@@ -100,7 +100,7 @@ export async function checkVerificationCode(
 export async function allowOtpSendFromIp(
   admin: SupabaseClient,
   clientIp: string,
-  purpose: "signup" | "password_reset"
+  purpose: "signup" | "password_reset" | "center_creation"
 ): Promise<boolean> {
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret || secret.length < 32) return false;
