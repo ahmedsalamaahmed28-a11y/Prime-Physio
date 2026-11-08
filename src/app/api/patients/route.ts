@@ -104,6 +104,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "ليس لديك صلاحية إضافة مريض" }, { status: 403 });
     }
 
+    const { data: activeBranches, error: branchesError } = await admin.from("branches")
+      .select("id").eq("clinic_id", staff.clinic_id).eq("status", "active");
+    if (branchesError) throw branchesError;
+    let branchId: string | null = null;
+    if (body.branchId) {
+      const selectedBranch = (activeBranches || []).find((item: any) => item.id === body.branchId);
+      if (!selectedBranch) return NextResponse.json({ error: "الفرع المختار لا يتبع هذه العيادة" }, { status: 400 });
+      branchId = selectedBranch.id;
+    } else if ((activeBranches || []).length === 1) {
+      branchId = activeBranches![0].id;
+    } else if ((activeBranches || []).length > 1) {
+      return NextResponse.json({ error: "يرجى تحديد الفرع قبل إضافة المريض" }, { status: 400 });
+    }
+
     const patient: Record<string, unknown> = {};
     for (const field of PATIENT_FIELDS) {
       if (body[field] !== undefined) patient[field] = body[field];
@@ -121,6 +135,7 @@ export async function POST(request: NextRequest) {
     }
 
     patient.clinic_id = staff.clinic_id;
+    patient.branch_id = branchId;
 
     const { data, error } = await admin
       .from("patients")
@@ -169,6 +184,7 @@ export async function POST(request: NextRequest) {
         status: body.invoice.status || "انتظار",
         payment_method: body.invoice.payment_method || "—",
         date: body.invoice.date || new Date().toISOString().slice(0, 10),
+        branch_id: branchId,
       };
       const { error: invoiceError } = await admin.from("invoices").insert(invoice);
       if (invoiceError) {
