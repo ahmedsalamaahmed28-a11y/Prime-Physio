@@ -48,7 +48,7 @@ export default function DashboardInteractive() {
 
           {/* MacBook Frame */}
           <div className="relative mx-auto w-full max-w-5xl">
-            <div className="relative pt-[78%] min-[480px]:pt-[65%] sm:pt-[56.25%]"> {/* Taller preview on phones; returns to 16:9 on desktop */}
+            <div className="relative pt-[112%] min-[390px]:pt-[100%] min-[480px]:pt-[88%] sm:pt-[56.25%]"> {/* Give the mobile dashboard enough vertical room; keep desktop widescreen */}
               <div className="absolute inset-0 bg-white rounded-t-2xl sm:rounded-t-3xl border-x-2 sm:border-x-4 border-t-2 sm:border-t-4 border-slate-800 shadow-2xl overflow-hidden flex flex-col">
                 {/* Browser Top Bar */}
                 <div className="h-8 sm:h-10 bg-slate-100 flex items-center px-2 sm:px-4 gap-2 border-b border-slate-200 shrink-0">
@@ -118,14 +118,14 @@ export default function DashboardInteractive() {
                     </header>
 
                     {/* Content Area Viewport */}
-                    <div className="flex-1 p-2 sm:p-6 overflow-hidden relative min-w-0">
+                    <div className="flex-1 p-2 sm:p-6 overflow-y-auto sm:overflow-hidden relative min-w-0">
                         <div data-csp-motion="reveal"
                           key={activeTab}
-                          className="h-full w-full absolute inset-0 p-2 sm:p-6"
+                          className="relative min-h-full h-auto w-full p-1 sm:p-6 sm:absolute sm:inset-0 sm:h-full"
                         >
                           {/* 1. Home Tab Mockup */}
                           {activeTab === "home" && (
-                            <div className="flex flex-col h-full gap-4">
+                            <div className="flex flex-col min-h-full h-auto gap-2 sm:h-full sm:gap-4">
                               <div className="flex justify-between items-center shrink-0">
                                 <div className="h-5 w-40 bg-slate-200 rounded-md" />
                                 <div className="h-8 w-28 bg-[#4F46BA] rounded-lg" />
@@ -156,7 +156,7 @@ export default function DashboardInteractive() {
 
                           {/* 2. Patients Tab Mockup */}
                           {activeTab === "patients" && (
-                            <div className="flex flex-col h-full gap-4">
+                            <div className="flex flex-col min-h-full h-auto gap-2 sm:h-full sm:gap-4">
                               <div className="flex justify-between items-center shrink-0">
                                 <div className="h-5 w-32 bg-slate-200 rounded-md" />
                                 <div className="h-8 w-32 bg-[#4F46BA] rounded-lg" />
@@ -182,7 +182,7 @@ export default function DashboardInteractive() {
 
                           {/* 3. Billing Tab Mockup */}
                           {activeTab === "billing" && (
-                            <div className="flex flex-col h-full gap-4">
+                            <div className="flex flex-col min-h-full h-auto gap-2 sm:h-full sm:gap-4">
                               <div className="flex justify-between items-center shrink-0">
                                 <div className="h-5 w-48 bg-slate-200 rounded-md" />
                                 <div className="flex gap-2">
@@ -220,7 +220,7 @@ export default function DashboardInteractive() {
 
                           {/* 4. Analytics Tab Mockup */}
                           {activeTab === "analytics" && (
-                            <div className="flex flex-col h-full gap-4">
+                            <div className="flex flex-col min-h-full h-auto gap-2 sm:h-full sm:gap-4">
                               <div className="flex justify-between items-center shrink-0">
                                 <div className="h-5 w-32 bg-slate-200 rounded-md" />
                                 <div className="h-8 w-32 bg-white border border-slate-200 rounded-lg" />
