@@ -2,9 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase-admin";
+import { hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+const LIST_FIELDS = [
+  "id", "nameAr", "nameEn", "phone", "gender", "age", "address",
+  "activePackage", "sessionsUsed", "sessionsTotal", "status", "occupation",
+  "emergencyContact", "emergencyPhone", "doctor",
+] as const;
 
 const PATIENT_FIELDS = [
   "id",
@@ -38,7 +45,7 @@ export async function GET() {
 
     const admin = getAdminClient();
     const { data: staff, error: staffError } = await admin
-      .from("staff").select("clinic_id,status").eq("email", email).limit(1).maybeSingle();
+      .from("staff").select("clinic_id,status,role,permissions").eq("email", email).limit(1).maybeSingle();
     if (staffError) {
       console.error("[Patients API] Staff lookup failed:", staffError);
       return NextResponse.json({ error: "تعذر التحقق من صلاحية الحساب" }, { status: 503 });
@@ -131,7 +138,7 @@ export async function POST(request: NextRequest) {
     }
 
     const warnings: string[] = [];
-    if (body.invoice && typeof body.invoice === "object") {
+    if (body.invoice && typeof body.invoice === "object" && hasStaffPermission(staff, "create_invoice")) {
       const invoice = {
         id: body.invoice.id,
         clinic_id: staff.clinic_id,
@@ -150,7 +157,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (body.appointment && typeof body.appointment === "object") {
+    if (body.appointment && typeof body.appointment === "object" && hasStaffPermission(staff, "edit_appointments")) {
       const appointment = {
         id: body.appointment.id,
         clinic_id: staff.clinic_id,
@@ -167,6 +174,13 @@ export async function POST(request: NextRequest) {
         console.error("[Patients API] Initial appointment insert failed:", appointmentError);
         warnings.push("تم إنشاء ملف المريض، لكن تعذر إنشاء الموعد الأول: " + appointmentError.message);
       }
+    }
+
+    if (body.invoice && !hasStaffPermission(staff, "create_invoice")) {
+      warnings.push("تم إنشاء ملف المريض، لكن لم تُنشأ الفاتورة لعدم توفر صلاحية إنشاء الفواتير.");
+    }
+    if (body.appointment && !hasStaffPermission(staff, "edit_appointments")) {
+      warnings.push("تم إنشاء ملف المريض، لكن لم يُنشأ الموعد لعدم توفر صلاحية إدارة المواعيد.");
     }
 
     return NextResponse.json({ success: true, patientId: data.id, warnings }, { status: 201 });
