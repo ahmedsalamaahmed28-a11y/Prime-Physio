@@ -83,8 +83,8 @@ function mapStaffRoleToRoleKey(staffRole: string): "admin" | "doctor" | "recepti
 
 async function enrichUserWithClinic(user: User): Promise<User> {
   // First, try server API (uses service_role — works for NextAuth users without Supabase session)
+  const preferredClinicId = typeof window !== 'undefined' ? sessionStorage.getItem("preferred_clinic_id") : null;
   try {
-    const preferredClinicId = typeof window !== 'undefined' ? sessionStorage.getItem("preferred_clinic_id") : null;
     const t = Date.now();
     const queryParams = preferredClinicId ? `?preferred_clinic_id=${preferredClinicId}&t=${t}` : `?t=${t}`;
     const res = await fetch(`/api/auth/enrich${queryParams}`);
