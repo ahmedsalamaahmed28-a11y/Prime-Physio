@@ -51,7 +51,7 @@ const getDefaultPerms = (role: string) => {
     return AVAILABLE_PERMISSIONS.map(p => p.id);
   }
   if (["استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي", "doctor"].includes(roleName)) {
-    return ["edit_emr", "edit_patient"];
+    return ["edit_emr", "edit_patient", "view_patient_history"];
   }
   if (["موظف استقبال", "موظفة استقبال رئيسية", "receptionist"].includes(roleName)) {
     return ["create_invoice", "edit_patient"];
