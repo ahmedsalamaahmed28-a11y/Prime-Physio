@@ -445,3 +445,53 @@ details.ob2More[open]>summary h2::after{content:"–"}
 @media (prefers-reduced-motion: reduce) {
   .integration-orbit--inner, .integration-orbit--outer { animation: none; }
 }
+
+
+/* CSP-safe animated statistics: no inline style attributes. */
+.pp-stat-odometer { visibility: hidden; }
+.pp-stat-odometer.is-visible { visibility: visible; }
+.pp-stat-digit-window { display: inline-block; height: 1.08em; overflow: hidden; vertical-align: bottom; }
+.pp-stat-digit-strip { display: flex; flex-direction: column; transform: translateY(0); }
+.pp-stat-digit-strip.is-rolling { transition: transform 1.35s cubic-bezier(.18,.72,.22,1); }
+.pp-stat-digit { display: block; height: 1.08em; line-height: 1.08em; }
+.pp-stat-separator { display: inline-block; }
+.pp-stat-roll-0.is-rolling { transform: translateY(-0.00em); }
+.pp-stat-roll-1.is-rolling { transform: translateY(-1.08em); }
+.pp-stat-roll-2.is-rolling { transform: translateY(-2.16em); }
+.pp-stat-roll-3.is-rolling { transform: translateY(-3.24em); }
+.pp-stat-roll-4.is-rolling { transform: translateY(-4.32em); }
+.pp-stat-roll-5.is-rolling { transform: translateY(-5.40em); }
+.pp-stat-roll-6.is-rolling { transform: translateY(-6.48em); }
+.pp-stat-roll-7.is-rolling { transform: translateY(-7.56em); }
+.pp-stat-roll-8.is-rolling { transform: translateY(-8.64em); }
+.pp-stat-roll-9.is-rolling { transform: translateY(-9.72em); }
+.pp-stat-roll-10.is-rolling { transform: translateY(-10.80em); }
+.pp-stat-roll-11.is-rolling { transform: translateY(-11.88em); }
+.pp-stat-roll-12.is-rolling { transform: translateY(-12.96em); }
+.pp-stat-roll-13.is-rolling { transform: translateY(-14.04em); }
+.pp-stat-roll-14.is-rolling { transform: translateY(-15.12em); }
+.pp-stat-roll-15.is-rolling { transform: translateY(-16.20em); }
+.pp-stat-roll-16.is-rolling { transform: translateY(-17.28em); }
+.pp-stat-roll-17.is-rolling { transform: translateY(-18.36em); }
+.pp-stat-roll-18.is-rolling { transform: translateY(-19.44em); }
+.pp-stat-roll-19.is-rolling { transform: translateY(-20.52em); }
+.pp-stat-roll-20.is-rolling { transform: translateY(-21.60em); }
+.pp-stat-roll-21.is-rolling { transform: translateY(-22.68em); }
+.pp-stat-roll-22.is-rolling { transform: translateY(-23.76em); }
+.pp-stat-roll-23.is-rolling { transform: translateY(-24.84em); }
+.pp-stat-roll-24.is-rolling { transform: translateY(-25.92em); }
+.pp-stat-roll-25.is-rolling { transform: translateY(-27.00em); }
+.pp-stat-roll-26.is-rolling { transform: translateY(-28.08em); }
+.pp-stat-roll-27.is-rolling { transform: translateY(-29.16em); }
+.pp-stat-roll-28.is-rolling { transform: translateY(-30.24em); }
+.pp-stat-roll-29.is-rolling { transform: translateY(-31.32em); }
+.pp-stat-roll-30.is-rolling { transform: translateY(-32.40em); }
+.pp-stat-roll-31.is-rolling { transform: translateY(-33.48em); }
+.pp-stat-roll-32.is-rolling { transform: translateY(-34.56em); }
+.pp-stat-roll-33.is-rolling { transform: translateY(-35.64em); }
+.pp-stat-roll-34.is-rolling { transform: translateY(-36.72em); }
+.pp-stat-roll-35.is-rolling { transform: translateY(-37.80em); }
+.pp-stat-roll-36.is-rolling { transform: translateY(-38.88em); }
+.pp-stat-roll-37.is-rolling { transform: translateY(-39.96em); }
+.pp-stat-roll-38.is-rolling { transform: translateY(-41.04em); }
+.pp-stat-roll-39.is-rolling { transform: translateY(-42.12em); }

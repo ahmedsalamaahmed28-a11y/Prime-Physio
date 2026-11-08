@@ -76,6 +76,9 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
     logoPreview: string;
   }>>([{ id: "1", shortName: "", fullName: sessionName || "", slug: "", logoFile: null, logoPreview: "" }]);
   const [createdCenterSlug, setCreatedCenterSlug] = useState("");
+  const [centerOtpSent, setCenterOtpSent] = useState(false);
+  const [centerOtpCode, setCenterOtpCode] = useState("");
+  const [isSendingCenterOtp, setIsSendingCenterOtp] = useState(false);
 
   const addCenter = () => {
     if (centers.length >= 5) return;
@@ -152,6 +155,22 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
   }
 
 
+  const handleSendCenterOtp = async () => {
+    setError("");
+    setIsSendingCenterOtp(true);
+    try {
+      const res = await fetch("/api/setup/send-center-otp", { method: "POST", headers: { "Content-Type": "application/json" } });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || (isRtl ? "تعذر إرسال رمز التحقق" : "Could not send verification code"));
+      setCenterOtpSent(true);
+      setCenterOtpCode("");
+    } catch (e: any) {
+      setError(e?.message || (isRtl ? "تعذر إرسال رمز التحقق" : "Could not send verification code"));
+    } finally {
+      setIsSendingCenterOtp(false);
+    }
+  };
+
   const handleCreateClinic = async () => {
     setError("")
 
@@ -159,6 +178,15 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
     if (validCenters.length === 0) {
       setError(isRtl ? "الرجاء إدخال بيانات مركز واحد على الأقل" : "Please fill in at least one center")
       return
+    }
+
+    if (!centerOtpSent) {
+      await handleSendCenterOtp();
+      return;
+    }
+    if (!/^\d{6}$/.test(centerOtpCode.trim())) {
+      setError(isRtl ? "أدخل رمز التحقق المكوّن من 6 أرقام" : "Enter the 6-digit verification code");
+      return;
     }
 
     setIsUploading(true)
@@ -180,7 +208,8 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
         body: JSON.stringify({
           email: user?.email || sessionEmail || "",
           name: user?.name || sessionName || "Clinic Admin",
-          centers: centersPayload
+          centers: centersPayload,
+          code: centerOtpCode.trim()
         }),
       });
       const data = await res.json();
@@ -483,6 +512,21 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
             </div>
           ))}
 
+          {centerOtpSent && (
+            <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-5 mb-4 space-y-3" dir={isRtl ? "rtl" : "ltr"}>
+              <div>
+                <p className="text-sm font-bold text-slate-800">{isRtl ? "تأكيد البريد الإلكتروني" : "Verify your email"}</p>
+                <p className="text-xs text-slate-500 mt-1">{isRtl ? `أرسلنا رمزًا مكوّنًا من 6 أرقام إلى ${user?.email || sessionEmail || "بريد حسابك"}. الرمز صالح لمدة 10 دقائق.` : `We sent a 6-digit code to ${user?.email || sessionEmail || "your account email"}. It expires in 10 minutes.`}</p>
+              </div>
+              <input type="text" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={centerOtpCode}
+                onChange={(e) => setCenterOtpCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="••••••" dir="ltr" className="w-full border border-indigo-200 bg-white rounded-xl px-4 py-3 text-center text-xl tracking-[0.5em] font-bold outline-none focus:border-[#4F46BA]" />
+              <button type="button" onClick={handleSendCenterOtp} disabled={isSendingCenterOtp} className="text-xs font-bold text-[#4F46BA] disabled:opacity-50">
+                {isSendingCenterOtp ? (isRtl ? "جاري الإرسال..." : "Sending...") : (isRtl ? "إعادة إرسال الرمز" : "Resend code")}
+              </button>
+            </div>
+          )}
+
           {selectedPlan === "gold" && centers.length < 5 && (
             <button onClick={addCenter}
               className="w-full py-3 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400 hover:border-[#4F46BA]/40 hover:text-[#4F46BA] text-sm font-bold transition-all mb-4 flex items-center justify-center gap-2"
@@ -493,13 +537,13 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
           )}
 
           <button onClick={handleCreateClinic}
-            disabled={isUploading || !centers.some(c => c.shortName.trim() && c.slug.trim())}
+            disabled={isUploading || isSendingCenterOtp || !centers.some(c => c.shortName.trim() && c.slug.trim())}
             className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-bold py-3 rounded-2xl text-sm hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-md active:scale-[0.98]"
           >
-            {isUploading ? (
-              <><Loader size={16} /> {isRtl ? "جاري إنشاء المراكز..." : "Creating centers..."}</>
+            {isUploading || isSendingCenterOtp ? (
+              <><Loader size={16} /> {isRtl ? (isSendingCenterOtp ? "جاري إرسال الرمز..." : "جاري إنشاء المراكز...") : (isSendingCenterOtp ? "Sending code..." : "Creating centers...")}</>
             ) : (
-              <>{isRtl ? "إنشاء المراكز" : "Create Centers"} <ArrowRight className={`w-4 h-4 ${isRtl ? "rotate-180" : ""}`} /></>
+              <>{centerOtpSent ? (isRtl ? "تأكيد الرمز وإنشاء المراكز" : "Verify Code & Create Centers") : (isRtl ? "إرسال رمز التحقق" : "Send Verification Code")} <ArrowRight className={`w-4 h-4 ${isRtl ? "rotate-180" : ""}`} /></>
             )}
           </button>
         </div>

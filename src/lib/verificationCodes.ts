@@ -1,7 +1,7 @@
 import { createHmac, randomInt } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type VerificationPurpose = "signup" | "password_reset";
+export type VerificationPurpose = "signup" | "password_reset" | "center_creation";
 
 function getHashSecret() {
   const secret = process.env.OTP_HASH_SECRET || process.env.NEXTAUTH_SECRET;
@@ -100,7 +100,7 @@ export async function checkVerificationCode(
 export async function allowOtpSendFromIp(
   admin: SupabaseClient,
   clientIp: string,
-  purpose: "signup" | "password_reset"
+  purpose: "signup" | "password_reset" | "center_creation"
 ): Promise<boolean> {
   const secret = process.env.NEXTAUTH_SECRET;
   if (!secret || secret.length < 32) return false;
@@ -108,7 +108,9 @@ export async function allowOtpSendFromIp(
   const ipHash = createHmac("sha256", secret).update(`otp-send:${purpose}:${normalizedIp}`).digest("hex");
   const bucketEmail = purpose === "signup"
     ? "signup-otp-send@prime-physio.internal"
-    : "password-reset-otp-send@prime-physio.internal";
+    : purpose === "password_reset"
+      ? "password-reset-otp-send@prime-physio.internal"
+      : "center-creation-otp-send@prime-physio.internal";
   const { data, error } = await admin.rpc("check_auth_login_attempt", {
     p_email: bucketEmail,
     p_ip_hash: ipHash,

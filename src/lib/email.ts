@@ -10,17 +10,17 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendVerificationCode(email: string, code: string): Promise<boolean> {
+export async function sendVerificationCode(email: string, code: string, purpose: "signup" | "center_creation" = "signup"): Promise<boolean> {
   try {
     await transporter.sendMail({
       from: `"Prime Physio" <${process.env.SMTP_USER || "noreply@primephysio.com"}>`,
       to: email,
-      subject: "رمز التحقق - Prime Physio",
-      text: `رمز التحقق الخاص بك هو: ${code}\n\nيستخدم هذا الرمز لمرة واحدة فقط وينتهي بعد 10 دقائق.`,
+      subject: purpose === "center_creation" ? "تأكيد إنشاء المركز - Prime Physio" : "رمز التحقق - Prime Physio",
+      text: `${purpose === "center_creation" ? "رمز تأكيد إنشاء المركز" : "رمز التحقق الخاص بك"}: ${code}\n\nيستخدم هذا الرمز لمرة واحدة فقط وينتهي بعد 10 دقائق.`,
       html: `
         <div dir="rtl" style="font-family: Arial, sans-serif; padding: 24px;">
-          <h2 style="color: #0d8a8a;">Prime Physio - رمز التحقق</h2>
-          <p>رمز التحقق الخاص بك هو:</p>
+          <h2 style="color: #0d8a8a;">Prime Physio - ${purpose === "center_creation" ? "تأكيد إنشاء المركز" : "رمز التحقق"}</h2>
+          <p>${purpose === "center_creation" ? "رمز تأكيد إنشاء المركز الخاص بك هو:" : "رمز التحقق الخاص بك هو:"}</p>
           <div style="font-size: 32px; font-weight: bold; color: #085454; letter-spacing: 8px; text-align: center; padding: 16px; background: #f0fdfa; border-radius: 12px; margin: 16px 0;">
             ${code}
           </div>

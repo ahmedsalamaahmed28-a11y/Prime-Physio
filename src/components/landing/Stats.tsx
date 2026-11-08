@@ -59,10 +59,9 @@ function AnimatedStatValue({ value }: { value: string }) {
     <span aria-label={value} className="pp-stat-number tabular-nums">
       <span aria-hidden="true">{prefix}</span>
       <span
-        className="pp-stat-odometer"
+        className={`pp-stat-odometer${showDigits ? " is-visible" : ""}`}
         aria-hidden="true"
         dir="ltr"
-        style={{ visibility: showDigits ? "visible" : "hidden" }}
       >
         {Array.from(digits).map((character, index) => {
           if (!/[0-9]/.test(character)) {
@@ -70,12 +69,10 @@ function AnimatedStatValue({ value }: { value: string }) {
           }
 
           const rollTo = 30 + Number(character);
-          const targetOffset = rollTo * 1.08;
           return (
             <span className="pp-stat-digit-window" key={`digit-${index}`}>
               <span
-                className={`pp-stat-digit-strip${phase === "rolling" ? " is-rolling" : ""}`}
-                style={{ "--roll-y": `${phase === "settled" ? -targetOffset : phase === "reset" ? 0 : -targetOffset}em` } as React.CSSProperties}
+                className={`pp-stat-digit-strip pp-stat-roll-${rollTo}${phase === "reset" ? " is-reset" : phase === "rolling" || phase === "settled" ? " is-rolling" : ""}`}
               >
                 {"0123456789".repeat(4).split("").map((digit, digitIndex) => (
                   <span className="pp-stat-digit" key={digitIndex}>{digit}</span>
