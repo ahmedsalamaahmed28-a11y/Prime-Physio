@@ -162,18 +162,26 @@ export default function DashboardInteractive() {
                                 <div className="h-8 w-32 bg-[#4F46BA] rounded-lg" />
                               </div>
                               <div className="h-12 w-full bg-white border border-slate-200 rounded-xl flex items-center px-4 shrink-0 shadow-sm">
-                                <div className="h-4 w-4 bg-slate-200 rounded-full ml-3" />
+                                <Search className="w-4 h-4 text-slate-400 ml-3 shrink-0" />
                                 <div className="h-3 w-48 bg-slate-100 rounded-full" />
                               </div>
                               <div className="grid grid-cols-2 gap-2 sm:gap-4">
-                                {[1, 2, 3, 4, 5, 6].map(i => (
-                                  <div key={i} className="bg-white border border-slate-200 rounded-lg sm:rounded-xl p-2 sm:p-4 flex items-center gap-2 sm:gap-4 shadow-sm min-w-0">
-                                    <div className="w-7 h-7 sm:w-12 sm:h-12 rounded-full bg-slate-100 border-2 border-white shadow-sm shrink-0" />
-                                    <div className="space-y-2 flex-1">
-                                      <div className="h-3 w-16 sm:w-28 bg-slate-800 rounded-full" />
-                                      <div className="h-2 w-12 sm:w-20 bg-slate-400 rounded-full" />
+                                {[
+                                  { name: "محمد علي", initial: "م", color: "bg-indigo-100 text-indigo-700" },
+                                  { name: "سارة أحمد", initial: "س", color: "bg-rose-100 text-rose-700" },
+                                  { name: "أحمد محمود", initial: "أ", color: "bg-emerald-100 text-emerald-700" },
+                                  { name: "منى خالد", initial: "م", color: "bg-amber-100 text-amber-700" },
+                                  { name: "عمر حسن", initial: "ع", color: "bg-sky-100 text-sky-700" },
+                                  { name: "نور محمد", initial: "ن", color: "bg-violet-100 text-violet-700" },
+                                ].map((patient) => (
+                                  <div key={patient.name} className="bg-white border border-slate-200 rounded-lg sm:rounded-xl p-2 sm:p-4 flex items-center gap-2 sm:gap-4 shadow-sm min-w-0">
+                                    <div className={`w-8 h-8 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-xs sm:text-base font-black border-2 border-white shadow-sm shrink-0 ${patient.color}`}>
+                                      {patient.initial}
                                     </div>
-                                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-indigo-50 border border-indigo-100 shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="text-[10px] sm:text-sm font-bold text-slate-800 truncate">{patient.name}</div>
+                                      <div className="text-[8px] sm:text-xs text-slate-400 mt-1 truncate">جلسة علاجية</div>
+                                    </div>
                                   </div>
                                 ))}
                               </div>
