@@ -19,9 +19,6 @@ const PATIENT_FIELDS = [
   "nameEn",
   "email",
   "nationalId",
-  "bloodType",
-  "allergies",
-  "dvt",
   "referral",
   "phone",
   "gender",
@@ -55,7 +52,7 @@ export async function GET() {
     }
 
     const { data, error } = await admin
-      .from("patients").select("*").eq("clinic_id", staff.clinic_id).order("id", { ascending: true });
+      .from("patients").select(LIST_FIELDS.join(",")).eq("clinic_id", staff.clinic_id).order("id", { ascending: true });
     if (error) {
       console.error("[Patients API] List query failed:", error);
       return NextResponse.json({ error: "تعذر تحميل قائمة المرضى" }, { status: 500 });
@@ -83,7 +80,7 @@ export async function POST(request: NextRequest) {
     const admin = getAdminClient();
     let staffQuery = admin
       .from("staff")
-      .select("clinic_id,status")
+      .select("clinic_id,status,role,permissions")
       .eq("email", email);
     if (typeof body.clinic_id === "string" && body.clinic_id) {
       staffQuery = staffQuery.eq("clinic_id", body.clinic_id);
@@ -102,6 +99,9 @@ export async function POST(request: NextRequest) {
 
     if (body.clinic_id && body.clinic_id !== staff.clinic_id) {
       return NextResponse.json({ error: "لا يمكن إضافة مريض إلى عيادة أخرى" }, { status: 403 });
+    }
+    if (!hasStaffPermission(staff, "edit_patient")) {
+      return NextResponse.json({ error: "ليس لديك صلاحية إضافة مريض" }, { status: 403 });
     }
 
     const patient: Record<string, unknown> = {};
