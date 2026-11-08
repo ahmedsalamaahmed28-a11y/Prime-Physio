@@ -118,14 +118,14 @@ export default function DashboardInteractive() {
                     </header>
 
                     {/* Content Area Viewport */}
-                    <div className="flex-1 p-2 sm:p-6 overflow-y-auto sm:overflow-hidden relative min-w-0">
+                    <div className="flex-1 min-h-0 p-2 sm:p-6 overflow-hidden relative min-w-0">
                         <div data-csp-motion="reveal"
                           key={activeTab}
-                          className="relative min-h-full h-auto w-full p-1 sm:p-6 sm:absolute sm:inset-0 sm:h-full"
+                          className="relative h-full min-h-0 w-full p-1 sm:p-6 sm:absolute sm:inset-0"
                         >
                           {/* 1. Home Tab Mockup */}
                           {activeTab === "home" && (
-                            <div className="flex flex-col min-h-full h-auto gap-2 sm:h-full sm:gap-4">
+                            <div className="flex flex-col h-full min-h-0 gap-2 sm:gap-4">
                               <div className="flex justify-between items-center shrink-0">
                                 <div className="h-5 w-40 bg-slate-200 rounded-md" />
                                 <div className="h-8 w-28 bg-[#4F46BA] rounded-lg" />
@@ -156,7 +156,7 @@ export default function DashboardInteractive() {
 
                           {/* 2. Patients Tab Mockup */}
                           {activeTab === "patients" && (
-                            <div className="flex flex-col min-h-full h-auto gap-2 sm:h-full sm:gap-4">
+                            <div className="flex flex-col h-full min-h-0 gap-2 sm:gap-4">
                               <div className="flex justify-between items-center shrink-0">
                                 <div className="h-5 w-32 bg-slate-200 rounded-md" />
                                 <div className="h-8 w-32 bg-[#4F46BA] rounded-lg" />
@@ -182,7 +182,7 @@ export default function DashboardInteractive() {
 
                           {/* 3. Billing Tab Mockup */}
                           {activeTab === "billing" && (
-                            <div className="flex flex-col min-h-full h-auto gap-2 sm:h-full sm:gap-4">
+                            <div className="flex flex-col h-full min-h-0 gap-2 sm:gap-4">
                               <div className="flex justify-between items-center shrink-0">
                                 <div className="h-5 w-48 bg-slate-200 rounded-md" />
                                 <div className="flex gap-2">
@@ -220,7 +220,7 @@ export default function DashboardInteractive() {
 
                           {/* 4. Analytics Tab Mockup */}
                           {activeTab === "analytics" && (
-                            <div className="flex flex-col min-h-full h-auto gap-2 sm:h-full sm:gap-4">
+                            <div className="flex flex-col h-full min-h-0 gap-2 sm:gap-4">
                               <div className="flex justify-between items-center shrink-0">
                                 <div className="h-5 w-32 bg-slate-200 rounded-md" />
                                 <div className="h-8 w-32 bg-white border border-slate-200 rounded-lg" />
