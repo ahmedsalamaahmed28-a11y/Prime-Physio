@@ -53,7 +53,7 @@ export default function HomePage() {
 
         if (clinicId) {
           const { data: realAppointments } = await supabase
-            .from("appointments").select("*").eq("clinic_id", clinicId).order("start_time", { ascending: true });
+            .from("appointments").select("id,patient_id,patient_name,doctor_name,appointment_type,status,start_time,end_time").eq("clinic_id", clinicId).order("start_time", { ascending: true });
           const todayDateStr = new Date().toDateString();
           if (realAppointments && realAppointments.length > 0) {
             setAppointments(
