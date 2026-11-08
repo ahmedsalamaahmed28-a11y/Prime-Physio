@@ -401,7 +401,7 @@ function ManageContent() {
               <div className="flex-grow border-t border-slate-200" />
             </div>
 
-            {!clinicSlug && <button
+            <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={isLoading}
@@ -414,7 +414,7 @@ function ManageContent() {
                 <path fill="#4285F4" d="M12 5c1.5 0 2.8.5 3.9 1.5l2.9-2.9A9.8 9.8 0 0 0 12 2a10 10 0 0 0-8.9 5.5l4 3.1A5.8 5.8 0 0 1 12 5z" />
               </svg>
               {isRtl ? "الدخول باستخدام Google" : "Continue with Google"}
-            </button>}
+            </button>
 
             <p className="text-center text-sm font-medium text-slate-500 mt-8">
               {isRtl ? "ليس لديك حساب؟" : "Don't have an account?"}{' '}
