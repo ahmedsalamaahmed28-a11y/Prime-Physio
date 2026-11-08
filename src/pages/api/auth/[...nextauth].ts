@@ -92,15 +92,26 @@ export const authOptions: NextAuthOptions = {
 
             if (clinicError || !requestedClinic?.id) return null;
 
-            const { data: membership, error: membershipError } = await admin
-              .from("staff")
-              .select("clinic_id")
+            const { data: platformAdmin, error: platformAdminError } = await admin
+              .from("platform_admins")
+              .select("id")
               .eq("email", email)
-              .eq("clinic_id", requestedClinic.id)
               .limit(1)
               .maybeSingle();
 
-            if (membershipError || !membership) return null;
+            if (platformAdminError) return null;
+
+            if (!platformAdmin) {
+              const { data: membership, error: membershipError } = await admin
+                .from("staff")
+                .select("clinic_id")
+                .eq("email", email)
+                .eq("clinic_id", requestedClinic.id)
+                .limit(1)
+                .maybeSingle();
+
+              if (membershipError || !membership) return null;
+            }
             clinicId = requestedClinic.id;
           }
 
