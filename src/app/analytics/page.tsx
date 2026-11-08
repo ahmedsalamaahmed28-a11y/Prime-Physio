@@ -26,70 +26,79 @@ export default function AnalyticsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    if (!clinicId) {
+      setIsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
     async function fetchAnalytics() {
       try {
         setIsLoading(true);
-        const [{ data: patients, error }, { data: execReports }] = await Promise.all([
-          supabase.from("patients").select("*").eq('clinic_id', clinicId),
-          supabase.from("executive_reports").select("*").eq('clinic_id', clinicId).order("created_at", { ascending: false }).limit(5)
+        const [patientsResult, sessionsResult, invoicesResult, reportsResult] = await Promise.all([
+          supabase.from("patients").select("id,status,activePackage").eq("clinic_id", clinicId),
+          supabase.from("sessions").select("id").eq("clinic_id", clinicId),
+          supabase.from("invoices").select("amount,status").eq("clinic_id", clinicId),
+          supabase.from("executive_reports").select("*").eq("clinic_id", clinicId).order("created_at", { ascending: false }).limit(5),
         ]);
-        
-        if (execReports) setExecutiveReports(execReports);
 
-        if (!error && patients) {
-          const totalPatients = patients.length;
-          const activePatients = patients.filter(p => p.status === "نشط").length;
-          const inactivePatients = patients.filter(p => p.status === "غير نشط").length;
-          
-          let totalSessions = 0;
-          let netRevenue = 0;
-          let backPackageCount = 0;
-          let kneePackageCount = 0;
-          let singleSessionsCount = 0;
+        const firstError = patientsResult.error || sessionsResult.error || invoicesResult.error || reportsResult.error;
+        if (firstError) throw firstError;
+        if (cancelled) return;
 
-          patients.forEach((p) => {
-            totalSessions += p.sessionsUsed || 0;
-            const packageName = p.activePackage || "جلسات فردية";
-            
-            if (p.status === "نشط") {
-              if (packageName === "باقة علاج الظهر") {
-                netRevenue += 1500;
-                backPackageCount++;
-              } else if (packageName === "تأهيل الركبة") {
-                netRevenue += 1200;
-                kneePackageCount++;
-              } else {
-                netRevenue += 200;
-                singleSessionsCount++;
-              }
-            }
-          });
+        const patients = patientsResult.data || [];
+        const sessions = sessionsResult.data || [];
+        const invoices = invoicesResult.data || [];
+        setExecutiveReports(reportsResult.data || []);
 
-          setStats({
-            totalPatients,
-            activePatients,
-            inactivePatients,
-            totalSessions,
-            netRevenue,
-            satisfactionRate: null,
-            backPackageCount,
-            kneePackageCount,
-            singleSessionsCount
-          });
-        }
+        const totalPatients = patients.length;
+        const activePatients = patients.filter((patient) => patient.status === "نشط").length;
+        const inactivePatients = patients.filter((patient) => patient.status === "غير نشط").length;
+        const paidInvoices = invoices.filter((invoice) => ["مدفوع", "Paid"].includes(String(invoice.status || "")));
+        const netRevenue = paidInvoices.reduce((sum, invoice) => {
+          const amount = Number(String(invoice.amount ?? "").replace(/[^0-9.-]/g, ""));
+          return sum + (Number.isFinite(amount) ? amount : 0);
+        }, 0);
+
+        let backPackageCount = 0;
+        let kneePackageCount = 0;
+        let singleSessionsCount = 0;
+        patients.forEach((patient) => {
+          const packageName = patient.activePackage || "جلسات فردية";
+          if (packageName === "باقة علاج الظهر") backPackageCount++;
+          else if (packageName === "تأهيل الركبة") kneePackageCount++;
+          else singleSessionsCount++;
+        });
+
+        setStats({
+          totalPatients,
+          activePatients,
+          inactivePatients,
+          totalSessions: sessions.length,
+          netRevenue,
+          satisfactionRate: null,
+          backPackageCount,
+          kneePackageCount,
+          singleSessionsCount,
+        });
       } catch (err) {
         console.error("Failed to load analytics data:", err);
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     }
+
     fetchAnalytics();
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [clinicId]);
 
   const localizedStats = [
     { title: isRtl ? "إجمالي المرضى بالعيادة" : "Total Clinic Patients", value: `${stats.totalPatients} ${isRtl ? 'مريض' : 'Patients'}`, desc: isRtl ? `نشط: ${stats.activePatients} | غير نشط: ${stats.inactivePatients}` : `Active: ${stats.activePatients} | Inactive: ${stats.inactivePatients}`, icon: Users, color: "text-[#4F46BA] bg-indigo-50 dark:bg-indigo-950/20 ring-1 ring-indigo-100/50" },
     { title: isRtl ? "الجلسات المنفذة" : "Completed Sessions", value: `${stats.totalSessions} ${isRtl ? 'جلسة' : 'Sessions'}`, desc: isRtl ? "من واقع سجلات العلاج الطبيعي" : "Based on physiotherapy records", icon: Calendar, color: "text-indigo-600 bg-indigo-50 dark:bg-indigo-950/20 ring-1 ring-indigo-100/50" },
-    { title: isRtl ? "صافي الإيرادات (المدفوعة)" : "Net Revenue (Paid)", value: `${stats.netRevenue.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}`, desc: isRtl ? "جميع المدفوعات نقدية (نقدي)" : "All payments are cash", icon: DollarSign, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 ring-1 ring-emerald-100/50" },
+    { title: isRtl ? "إجمالي التحصيل المدفوع" : "Paid Invoice Collections", value: `${stats.netRevenue.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}`, desc: isRtl ? "إجمالي الفواتير المسجلة كمدفوعة" : "Total invoices recorded as paid", icon: DollarSign, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 ring-1 ring-emerald-100/50" },
     { title: isRtl ? "معدل رضا المرضى" : "Patient Satisfaction", value: stats.satisfactionRate !== null ? `${stats.satisfactionRate}٪` : "—", desc: isRtl ? "لا توجد تقييمات بعد" : "No reviews yet", icon: stats.satisfactionRate !== null ? TrendingUp : Minus, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/20 ring-1 ring-blue-100/50" },
   ];
 
@@ -130,7 +139,7 @@ export default function AnalyticsPage() {
           <CardContent className="pt-6 space-y-4">
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-medium text-slate-600">
-                <span>{isRtl ? "باقة علاج الظهر (1,500 ج.م)" : "Back Therapy Package (1,500 EGP)"}</span>
+                <span>{isRtl ? "باقة علاج الظهر" : "Back Therapy Package"}</span>
                 <span>{stats.backPackageCount} {isRtl ? "مبيعات" : "Sales"}</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
@@ -140,7 +149,7 @@ export default function AnalyticsPage() {
 
             <div className="space-y-2">
               <div className="flex justify-between text-xs font-medium text-slate-600">
-                <span>{isRtl ? "تأهيل الركبة (1,200 ج.م)" : "Knee Rehab (1,200 EGP)"}</span>
+                <span>{isRtl ? "تأهيل الركبة" : "Knee Rehab"}</span>
                 <span>{stats.kneePackageCount} {isRtl ? "مبيعات" : "Sales"}</span>
               </div>
               <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
