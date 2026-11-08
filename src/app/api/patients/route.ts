@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase-admin";
-import { hasStaffPermission } from "@/lib/server/staff-permissions";
+import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -138,6 +138,26 @@ export async function POST(request: NextRequest) {
     }
 
     const warnings: string[] = [];
+    const medicalAtCreation = ["bloodType", "allergies", "dvt"].reduce<Record<string, unknown>>((acc, field) => {
+      if (body[field] !== undefined && body[field] !== null && body[field] !== "") acc[field] = body[field];
+      return acc;
+    }, {});
+    if (Object.keys(medicalAtCreation).length > 0) {
+      if (!canViewPatientHistory(staff) || !hasStaffPermission(staff, "edit_emr")) {
+        warnings.push("تم إنشاء ملف المريض، لكن لم تُحفظ البيانات الطبية الحساسة لعدم توفر الصلاحية.");
+      } else {
+        const { error: medicalError } = await admin.from("patient_medical_records").upsert({
+          patient_id: data.id,
+          clinic_id: staff.clinic_id,
+          medical_history: medicalAtCreation,
+        }, { onConflict: "patient_id" });
+        if (medicalError) {
+          console.error("[Patients API] Medical record insert failed:", medicalError);
+          warnings.push("تم إنشاء ملف المريض، لكن تعذر حفظ البيانات الطبية.");
+        }
+      }
+    }
+
     if (body.invoice && typeof body.invoice === "object" && hasStaffPermission(staff, "create_invoice")) {
       const invoice = {
         id: body.invoice.id,
