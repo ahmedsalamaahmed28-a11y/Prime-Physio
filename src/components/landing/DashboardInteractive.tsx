@@ -131,23 +131,36 @@ export default function DashboardInteractive() {
                                 <div className="h-8 w-28 bg-[#4F46BA] rounded-lg" />
                               </div>
                               <div className="grid grid-cols-3 gap-2 sm:gap-4 shrink-0">
-                                {[1, 2, 3].map(i => (
-                                  <div key={i} className="bg-white border border-slate-200 rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-sm min-w-0">
-                                    <div className="flex items-center gap-1.5 sm:gap-3 mb-2 sm:mb-3">
-                                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-slate-100 shrink-0" />
-                                      <div className="h-3 w-16 bg-slate-200 rounded-full" />
+                                {[
+                                  { label: "مواعيد اليوم", value: "12", icon: <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-indigo-600 bg-indigo-50" },
+                                  { label: "إجمالي المرضى", value: "248", icon: <Users className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-emerald-600 bg-emerald-50" },
+                                  { label: "جلسات مكتملة", value: "36", icon: <FileText className="w-4 h-4 sm:w-5 sm:h-5" />, color: "text-amber-600 bg-amber-50" },
+                                ].map((item) => (
+                                  <div key={item.label} className="bg-white border border-slate-200 rounded-lg sm:rounded-xl p-2 sm:p-4 shadow-sm min-w-0">
+                                    <div className="flex items-center gap-1.5 sm:gap-3 mb-2 sm:mb-3 min-w-0">
+                                      <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 ${item.color}`}>{item.icon}</div>
+                                      <span className="text-[9px] sm:text-xs font-semibold text-slate-500 truncate">{item.label}</span>
                                     </div>
-                                    <div className="h-5 sm:h-6 w-16 sm:w-24 bg-slate-800 rounded-md" />
+                                    <div className="text-base sm:text-xl font-black text-slate-800">{item.value}</div>
                                   </div>
                                 ))}
                               </div>
                               <div className="flex-1 bg-white border border-slate-200 rounded-xl p-2 sm:p-4 shadow-sm flex flex-col gap-2 sm:gap-3 min-h-0">
                                 <div className="h-4 w-32 bg-slate-200 rounded-md mb-2" />
-                                {[1, 2, 3, 4].map(i => (
-                                  <div key={i} className="h-8 sm:h-10 w-full bg-slate-50 border border-slate-100 rounded-lg flex items-center px-2 sm:px-3 gap-2 sm:gap-3 min-w-0">
-                                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-indigo-100 shrink-0" />
-                                    <div className="h-2.5 w-20 sm:w-32 bg-slate-200 rounded-full" />
-                                    <div className="h-2.5 w-10 sm:w-16 bg-slate-200 rounded-full mr-auto" />
+                                {[
+                                  { name: "محمد علي", time: "09:00 ص", type: "تأهيل إصابة الركبة", status: "قيد الانتظار", initial: "م", color: "bg-indigo-100 text-indigo-700" },
+                                  { name: "سارة أحمد", time: "10:30 ص", type: "جلسة علاج طبيعي", status: "تم التأكيد", initial: "س", color: "bg-rose-100 text-rose-700" },
+                                  { name: "أحمد محمود", time: "12:00 م", type: "تأهيل العمود الفقري", status: "تم التأكيد", initial: "أ", color: "bg-emerald-100 text-emerald-700" },
+                                  { name: "منى خالد", time: "01:30 م", type: "جلسة متابعة", status: "قيد الانتظار", initial: "م", color: "bg-amber-100 text-amber-700" },
+                                ].map((item) => (
+                                  <div key={item.name} className="min-h-9 sm:min-h-11 w-full bg-slate-50 border border-slate-100 rounded-lg flex items-center px-2 sm:px-3 gap-2 sm:gap-3 min-w-0">
+                                    <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0 ${item.color}`}>{item.initial}</div>
+                                    <div className="min-w-0 flex-1">
+                                      <div className="text-[9px] sm:text-xs font-bold text-slate-700 truncate">{item.name}</div>
+                                      <div className="text-[8px] sm:text-[10px] text-slate-400 truncate">{item.type}</div>
+                                    </div>
+                                    <span className="hidden min-[390px]:inline text-[8px] sm:text-[10px] text-slate-400 shrink-0">{item.time}</span>
+                                    <span className="text-[8px] sm:text-[10px] font-semibold text-indigo-600 shrink-0">{item.status}</span>
                                   </div>
                                 ))}
                               </div>
@@ -192,7 +205,7 @@ export default function DashboardInteractive() {
                           {activeTab === "billing" && (
                             <div className="flex flex-col h-full min-h-0 gap-2 sm:gap-4">
                               <div className="flex justify-between items-center shrink-0">
-                                <div className="h-5 w-48 bg-slate-200 rounded-md" />
+                                <div className="text-xs sm:text-sm font-bold text-slate-700">ملخص الحسابات</div>
                                 <div className="flex gap-2">
                                   <div className="h-8 w-24 bg-white border border-slate-200 rounded-lg" />
                                   <div className="h-8 w-24 bg-[#4F46BA] rounded-lg" />
@@ -200,25 +213,35 @@ export default function DashboardInteractive() {
                               </div>
                               <div className="flex gap-2 sm:gap-4 shrink-0">
                                 <div className="flex-1 min-w-0 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-2 sm:p-4 text-white shadow-md">
-                                  <div className="h-3 w-24 bg-white/30 rounded-full mb-3" />
-                                  <div className="h-7 sm:h-8 w-20 sm:w-32 bg-white rounded-md" />
+                                  <div className="text-[9px] sm:text-xs font-semibold text-white/85 mb-2">إيرادات اليوم</div>
+                                  <div className="text-lg sm:text-2xl font-black">4,850 <span className="text-[9px] sm:text-xs font-medium">ج.م</span></div>
                                 </div>
                                 <div className="flex-1 min-w-0 bg-gradient-to-br from-rose-500 to-rose-600 rounded-xl p-2 sm:p-4 text-white shadow-md">
-                                  <div className="h-3 w-24 bg-white/30 rounded-full mb-3" />
-                                  <div className="h-7 sm:h-8 w-20 sm:w-32 bg-white rounded-md" />
+                                  <div className="text-[9px] sm:text-xs font-semibold text-white/85 mb-2">مبالغ مستحقة</div>
+                                  <div className="text-lg sm:text-2xl font-black">1,200 <span className="text-[9px] sm:text-xs font-medium">ج.م</span></div>
                                 </div>
                               </div>
                               <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col min-h-0">
                                 <div className="h-8 sm:h-10 border-b border-slate-100 flex items-center px-2 sm:px-4 bg-slate-50/50 rounded-t-xl gap-2 sm:gap-4">
-                                  <div className="h-2 w-20 bg-slate-300 rounded-full" />
-                                  <div className="h-2 w-32 bg-slate-300 rounded-full mr-auto" />
+                                  <span className="text-[9px] sm:text-xs font-bold text-slate-500">المريض</span>
+                                  <span className="text-[9px] sm:text-xs font-bold text-slate-500 mr-auto">تفاصيل الدفع</span>
                                 </div>
                                 <div className="p-2 sm:p-4 flex flex-col gap-2 sm:gap-3">
-                                  {[1, 2, 3].map(i => (
-                                    <div key={i} className="h-10 sm:h-12 w-full border border-slate-100 rounded-lg flex items-center px-2 sm:px-4 gap-2 sm:gap-4">
-                                      <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-50 shrink-0" />
-                                      <div className="h-2 w-24 bg-slate-800 rounded-full" />
-                                      <div className="h-2 w-16 bg-emerald-500 rounded-full mr-auto" />
+                                  {[
+                                    { name: "محمد علي", service: "جلسة علاج طبيعي", amount: "450 ج.م", status: "مدفوع", initial: "م", color: "bg-indigo-100 text-indigo-700" },
+                                    { name: "سارة أحمد", service: "تأهيل إصابة", amount: "600 ج.م", status: "مدفوع", initial: "س", color: "bg-rose-100 text-rose-700" },
+                                    { name: "أحمد محمود", service: "جلسة متابعة", amount: "300 ج.م", status: "مستحق", initial: "أ", color: "bg-emerald-100 text-emerald-700" },
+                                  ].map((item) => (
+                                    <div key={item.name} className="min-h-10 sm:min-h-12 w-full border border-slate-100 rounded-lg flex items-center px-2 sm:px-4 gap-2 sm:gap-4 min-w-0">
+                                      <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0 ${item.color}`}>{item.initial}</div>
+                                      <div className="min-w-0 flex-1">
+                                        <div className="text-[9px] sm:text-xs font-bold text-slate-700 truncate">{item.name}</div>
+                                        <div className="text-[8px] sm:text-[10px] text-slate-400 truncate">{item.service}</div>
+                                      </div>
+                                      <div className="text-left shrink-0">
+                                        <div className="text-[9px] sm:text-xs font-bold text-slate-700">{item.amount}</div>
+                                        <div className={`text-[8px] sm:text-[10px] font-semibold ${item.status === "مدفوع" ? "text-emerald-600" : "text-amber-600"}`}>{item.status}</div>
+                                      </div>
                                     </div>
                                   ))}
                                 </div>
