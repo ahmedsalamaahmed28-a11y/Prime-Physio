@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase-admin";
+import { hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -11,7 +12,7 @@ async function authorize() {
   const email = session?.user?.email?.toLowerCase().trim();
   if (!email) return { response: NextResponse.json({ error: "يجب تسجيل الدخول أولاً" }, { status: 401 }) };
   const admin = getAdminClient();
-  const { data: staff, error } = await admin.from("staff").select("clinic_id,status").eq("email", email).limit(1).maybeSingle();
+  const { data: staff, error } = await admin.from("staff").select("clinic_id,status,role,permissions").eq("email", email).limit(1).maybeSingle();
   if (error) {
     console.error("[Calendar API] Staff lookup failed:", error);
     return { response: NextResponse.json({ error: "تعذر التحقق من صلاحية الحساب" }, { status: 503 }) };
@@ -19,7 +20,7 @@ async function authorize() {
   if (!staff?.clinic_id || staff.status === "محذوف") {
     return { response: NextResponse.json({ error: "لا توجد صلاحية نشطة لهذه العيادة" }, { status: 403 }) };
   }
-  return { admin, clinicId: staff.clinic_id };
+  return { admin, clinicId: staff.clinic_id, staff };
 }
 
 export async function GET() {
@@ -45,10 +46,63 @@ export async function POST(request: NextRequest) {
   const auth = await authorize();
   if ("response" in auth) return auth.response;
   try {
+    if (!hasStaffPermission(auth.staff, "edit_appointments") || !hasStaffPermission(auth.staff, "create_invoice")) {
+      return NextResponse.json({ error: "ليس لديك صلاحية حجز المواعيد وإنشاء الفواتير" }, { status: 403 });
+    }
     const body = await request.json();
     if (!body || typeof body !== "object" || Array.isArray(body)) {
       return NextResponse.json({ error: "بيانات الموعد غير صالحة" }, { status: 400 });
     }
+    const start = new Date(body.startTime);
+    const end = new Date(body.endTime);
+    if (!body.startTime || !body.endTime || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
+      return NextResponse.json({ error: "وقت بداية ونهاية الموعد غير صالحين" }, { status: 400 });
+    }
+    if (typeof body.doctor !== "string" || !body.doctor.trim()) {
+      return NextResponse.json({ error: "يرجى اختيار المعالج المسؤول عن الموعد" }, { status: 400 });
+    }
+
+    const { data: therapistMatches, error: therapistError } = await auth.admin.from("staff")
+      .select("id,name,role,status")
+      .eq("clinic_id", auth.clinicId)
+      .eq("name", body.doctor.trim());
+    if (therapistError) throw therapistError;
+    const therapistRoles = ["admin", "مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي", "doctor"];
+    const therapists = (therapistMatches || []).filter((item: any) =>
+      item.status !== "محذوف" && therapistRoles.includes(item.role)
+    );
+    if (therapists.length !== 1) {
+      return NextResponse.json({
+        error: therapists.length > 1 ? "يوجد أكثر من معالج بالاسم نفسه؛ يرجى تمييز اسم المعالج" : "المعالج المختار غير مسجل أو غير نشط في هذه العيادة",
+      }, { status: 400 });
+    }
+    const therapist = therapists[0];
+
+    const { data: activeBranches, error: branchesError } = await auth.admin.from("branches")
+      .select("id").eq("clinic_id", auth.clinicId).eq("status", "active");
+    if (branchesError) throw branchesError;
+    let branchId: string | null = null;
+    if (body.branchId) {
+      const selectedBranch = (activeBranches || []).find((item: any) => item.id === body.branchId);
+      if (!selectedBranch) return NextResponse.json({ error: "الفرع المختار لا يتبع هذه العيادة" }, { status: 400 });
+      branchId = selectedBranch.id;
+    } else if ((activeBranches || []).length === 1) {
+      branchId = activeBranches![0].id;
+    } else if ((activeBranches || []).length > 1) {
+      return NextResponse.json({ error: "يرجى تحديد الفرع قبل حجز الموعد" }, { status: 400 });
+    }
+
+    let roomId: string | null = null;
+    if (body.roomId) {
+      const { data: room, error: roomError } = await auth.admin.from("appointment_rooms")
+        .select("id,branch_id").eq("id", body.roomId).eq("clinic_id", auth.clinicId).eq("is_active", true).maybeSingle();
+      if (roomError) throw roomError;
+      if (!room || (room.branch_id && room.branch_id !== branchId)) {
+        return NextResponse.json({ error: "الغرفة المختارة غير متاحة في هذا الفرع" }, { status: 400 });
+      }
+      roomId = room.id;
+    }
+
     const { data: patient, error: patientError } = await auth.admin.from("patients")
       .select("id,nameAr").eq("id", body.patientId).eq("clinic_id", auth.clinicId).maybeSingle();
     if (patientError) throw patientError;
@@ -75,6 +129,7 @@ export async function POST(request: NextRequest) {
       status: body.invoiceStatus || "انتظار",
       payment_method: "—",
       date: body.invoiceDate,
+      branch_id: branchId,
     });
     if (invoiceError) throw invoiceError;
 
@@ -83,7 +138,10 @@ export async function POST(request: NextRequest) {
       clinic_id: auth.clinicId,
       patient_id: patient.id,
       patient_name: patient.nameAr,
-      doctor_name: body.doctor || null,
+      doctor_name: therapist.name,
+      therapist_id: therapist.id,
+      room_id: roomId,
+      branch_id: branchId,
       appointment_type: body.visitType,
       status: body.status || "مؤكد",
       start_time: body.startTime,
@@ -95,6 +153,9 @@ export async function POST(request: NextRequest) {
     });
     if (appointmentError) {
       await auth.admin.from("invoices").delete().eq("id", body.invoiceId).eq("clinic_id", auth.clinicId);
+      if (appointmentError.code === "23P01" || /THERAPIST_TIME_CONFLICT|ROOM_TIME_CONFLICT/.test(appointmentError.message || "")) {
+        return NextResponse.json({ error: "يوجد تعارض في موعد المعالج أو الغرفة خلال هذه الفترة. اختر وقتًا آخر." }, { status: 409 });
+      }
       throw appointmentError;
     }
     return NextResponse.json({ success: true });
@@ -111,6 +172,13 @@ export async function PATCH(request: NextRequest) {
     const body = await request.json();
     if (!body?.appointmentId || typeof body.appointmentId !== "string") {
       return NextResponse.json({ error: "رقم الموعد مطلوب" }, { status: 400 });
+    }
+    if (body.action === "complete") {
+      if (!hasStaffPermission(auth.staff, "edit_emr")) {
+        return NextResponse.json({ error: "ليس لديك صلاحية إنهاء الجلسة وتسجيل التقدم الطبي" }, { status: 403 });
+      }
+    } else if (!hasStaffPermission(auth.staff, "edit_appointments")) {
+      return NextResponse.json({ error: "ليس لديك صلاحية تعديل أو إلغاء المواعيد" }, { status: 403 });
     }
     const { data: existing, error: lookupError } = await auth.admin.from("appointments")
       .select("id,patient_id").eq("id", body.appointmentId).eq("clinic_id", auth.clinicId).maybeSingle();
@@ -135,7 +203,28 @@ export async function PATCH(request: NextRequest) {
     const updates: Record<string, unknown> = {};
     if (body.action === "cancel") updates.status = "ملغي";
     else if (body.action === "update") {
-      updates.doctor_name = body.doctor;
+      const start = new Date(body.startTime);
+      const end = new Date(body.endTime);
+      if (!body.startTime || !body.endTime || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
+        return NextResponse.json({ error: "وقت بداية ونهاية الموعد غير صالحين" }, { status: 400 });
+      }
+      if (typeof body.doctor !== "string" || !body.doctor.trim()) {
+        return NextResponse.json({ error: "يرجى اختيار المعالج المسؤول عن الموعد" }, { status: 400 });
+      }
+      const { data: therapistMatches, error: therapistError } = await auth.admin.from("staff")
+        .select("id,name,role,status")
+        .eq("clinic_id", auth.clinicId)
+        .eq("name", body.doctor.trim());
+      if (therapistError) throw therapistError;
+      const therapistRoles = ["admin", "مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي", "doctor"];
+      const therapists = (therapistMatches || []).filter((item: any) =>
+        item.status !== "محذوف" && therapistRoles.includes(item.role)
+      );
+      if (therapists.length !== 1) {
+        return NextResponse.json({ error: "المعالج المختار غير مسجل بشكل فريد أو غير نشط" }, { status: 400 });
+      }
+      updates.doctor_name = therapists[0].name;
+      updates.therapist_id = therapists[0].id;
       updates.appointment_type = body.visitType;
       updates.status = body.status;
       updates.start_time = body.startTime;
@@ -144,7 +233,12 @@ export async function PATCH(request: NextRequest) {
 
     const { data, error } = await auth.admin.from("appointments").update(updates)
       .eq("id", body.appointmentId).eq("clinic_id", auth.clinicId).select("id").maybeSingle();
-    if (error) throw error;
+    if (error) {
+      if (error.code === "23P01" || /THERAPIST_TIME_CONFLICT|ROOM_TIME_CONFLICT/.test(error.message || "")) {
+        return NextResponse.json({ error: "يوجد تعارض في موعد المعالج أو الغرفة خلال هذه الفترة. اختر وقتًا آخر." }, { status: 409 });
+      }
+      throw error;
+    }
     if (!data) return NextResponse.json({ error: "لم يتم تحديث الموعد" }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (error: any) {
