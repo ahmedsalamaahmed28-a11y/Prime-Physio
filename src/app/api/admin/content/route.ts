@@ -1,5 +1,5 @@
 import { NextResponse, NextRequest } from "next/server";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
 import { requireRole } from "@/app/api/utils/auth";
 
 // GET /api/admin/content

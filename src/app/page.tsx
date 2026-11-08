@@ -1,6 +1,6 @@
 import Link from "next/link";
 import "./landing.css";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import TrustedStrip from "@/components/landing/TrustedStrip";

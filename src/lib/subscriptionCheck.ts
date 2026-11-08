@@ -1,4 +1,6 @@
-import { getAdminClient } from "./supabase";
+import "server-only";
+
+import { getAdminClient } from "./supabase-admin";
 
 const PLAN_LIMITS: Record<string, { patients: number; sessionsPerMonth: number }> = {
   basic:  { patients: 50,  sessionsPerMonth: 100 },
