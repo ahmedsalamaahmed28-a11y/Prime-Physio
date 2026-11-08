@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase-admin";
-import { hasStaffPermission } from "@/lib/server/staff-permissions";
+import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -35,7 +35,26 @@ export async function GET() {
     if (patients.error) throw patients.error;
     if (appointments.error) throw appointments.error;
     if (doctors.error) throw doctors.error;
-    return NextResponse.json({ patients: patients.data || [], appointments: appointments.data || [], doctors: doctors.data || [] }, { headers: { "Cache-Control": "no-store" } });
+    const canReadClinicalDetails = canViewPatientHistory(auth.staff);
+    const safeAppointments = (appointments.data || []).map((appointment: Record<string, unknown>) => {
+      if (canReadClinicalDetails) return appointment;
+      const safe = { ...appointment };
+      delete safe.treatment_plan;
+      delete safe.treatment_plan_id;
+      delete safe.session_intervention;
+      delete safe.session_objectives;
+      delete safe.target_exercises;
+      return safe;
+    });
+    const therapistRoles = ["admin", "مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي", "doctor"];
+    const safeDoctors = (doctors.data || []).filter((doctor: { role?: string | null }) =>
+      therapistRoles.includes(doctor.role || "")
+    );
+    return NextResponse.json({
+      patients: patients.data || [],
+      appointments: safeAppointments,
+      doctors: safeDoctors,
+    }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error: any) {
     console.error("[Calendar API] Load failed:", error);
     return NextResponse.json({ error: "تعذر تحميل بيانات المواعيد والمرضى", detail: error?.message }, { status: 500 });
