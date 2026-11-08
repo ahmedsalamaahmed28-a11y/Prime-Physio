@@ -3,19 +3,29 @@ import nodemailer from "nodemailer";
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.gmail.com",
   port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,
+  secure: Number(process.env.SMTP_PORT) === 465,
+  requireTLS: Number(process.env.SMTP_PORT || 587) === 587,
   auth: {
     user: process.env.SMTP_USER || "",
     pass: process.env.SMTP_PASS || "",
   },
 });
 
-export async function sendVerificationCode(email: string, code: string, purpose: "signup" | "center_creation" = "signup"): Promise<boolean> {
+export async function sendVerificationCode(
+  email: string,
+  code: string,
+  purpose: "signup" | "center_creation" = "signup"
+): Promise<boolean> {
+  const normalizedEmail = email.trim().toLowerCase();
+
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: `"Prime Physio" <${process.env.SMTP_USER || "noreply@primephysio.com"}>`,
-      to: email,
-      subject: purpose === "center_creation" ? "تأكيد إنشاء المركز - Prime Physio" : "رمز التحقق - Prime Physio",
+      to: normalizedEmail,
+      subject:
+        purpose === "center_creation"
+          ? "تأكيد إنشاء المركز - Prime Physio"
+          : "رمز التحقق - Prime Physio",
       text: `${purpose === "center_creation" ? "رمز تأكيد إنشاء المركز" : "رمز التحقق الخاص بك"}: ${code}\n\nيستخدم هذا الرمز لمرة واحدة فقط وينتهي بعد 10 دقائق.`,
       html: `
         <div dir="rtl" style="font-family: Arial, sans-serif; padding: 24px;">
@@ -30,9 +40,37 @@ export async function sendVerificationCode(email: string, code: string, purpose:
         </div>
       `,
     });
+
+    const accepted = Array.isArray(info.accepted) ? info.accepted : [];
+    const rejectedCount = Array.isArray(info.rejected) ? info.rejected.length : 0;
+    const recipientAccepted = accepted.some(
+      (recipient) => String(recipient).trim().toLowerCase() === normalizedEmail
+    );
+
+    // Never log the OTP, SMTP credentials, or the recipient address.
+    console.info("[Email] Verification email SMTP result:", {
+      purpose,
+      messageId: info.messageId,
+      acceptedCount: accepted.length,
+      rejectedCount,
+      recipientAccepted,
+      responseCode: info.response?.match(/\\b[245]\\d{2}\\b/)?.[0] ?? null,
+    });
+
+    if (!recipientAccepted) {
+      console.error("[Email] SMTP did not accept the verification recipient.");
+      return false;
+    }
+
     return true;
   } catch (err) {
-    console.error("[Email] Failed to send verification code:", err);
+    const error = err as NodeJS.ErrnoException & { responseCode?: number; command?: string };
+    console.error("[Email] Failed to send verification code:", {
+      name: error.name,
+      code: error.code,
+      responseCode: error.responseCode,
+      command: error.command,
+    });
     return false;
   }
 }
