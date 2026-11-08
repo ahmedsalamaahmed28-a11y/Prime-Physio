@@ -43,7 +43,7 @@ function ManageContent() {
   const isRtl = language === "ar";
   const searchParams = useSearchParams();
   const clinicSlug = (searchParams?.get("clinic_slug") || "").trim().toLowerCase();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading, isEnriching } = useAuth();
   const isOnboarding = searchParams?.get("onboard") === "1";
   const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
 
@@ -67,6 +67,23 @@ function ManageContent() {
   const [forgotLoading, setForgotLoading] = useState(false);
   
   const forgotOtpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
+
+  React.useEffect(() => {
+    if (!clinicSlug || !user || authLoading || isEnriching) return;
+    if (user.roleKey === "platform_admin") {
+      window.location.replace("/platform");
+      return;
+    }
+    if (user.clinicId) {
+      window.location.replace("/home");
+      return;
+    }
+    if (user.clinicId === null) {
+      setError(isRtl
+        ? "هذا الحساب غير مرتبط بعضوية نشطة في هذا المركز. تأكد من استخدام حساب تابع للمركز."
+        : "This account does not have an active membership in this clinic. Use an account that belongs to this clinic.");
+    }
+  }, [clinicSlug, user, authLoading, isEnriching, isRtl]);
 
   const handleForgotSendOtp = async () => {
     setForgotError("");
@@ -191,18 +208,38 @@ function ManageContent() {
   };
 
   const handleGoogleLogin = async () => {
-    if (clinicSlug) {
-      setError(isRtl
-        ? "تسجيل الدخول باستخدام Google غير متاح حاليًا من رابط المركز. استخدم البريد الإلكتروني وكلمة المرور لضمان التحقق من عضوية المركز."
-        : "Google sign-in is temporarily unavailable from a clinic-specific link. Use email and password so clinic membership can be verified.");
-      return;
-    }
     setError("");
     setIsLoading(true);
     await setAppValue("current_user", null);
-    await setAppValue("pending_role", "admin");
-    await setAppValue("pending_google_signup", "true");
+
     try {
+      if (clinicSlug) {
+        // Resolve the public slug first, then let the server verify membership after Google returns.
+        const clinicResponse = await fetch(`/api/public/clinics?slug=${encodeURIComponent(clinicSlug)}`, { cache: "no-store" });
+        const clinicPayload = await clinicResponse.json();
+        if (!clinicResponse.ok || !clinicPayload?.clinic?.id) {
+          throw new Error(isRtl ? "رابط المركز غير صالح أو أن المركز غير متاح." : "This clinic link is invalid or the clinic is unavailable.");
+        }
+
+        sessionStorage.setItem("preferred_clinic_id", clinicPayload.clinic.id);
+        await setAppValue("pending_role", "doctor");
+        // A clinic-specific login must never trigger new-clinic auto-provisioning.
+        await setAppValue("pending_google_signup", "");
+        const callbackUrl = `/manage?clinic_slug=${encodeURIComponent(clinicSlug)}`;
+        const result = await signIn("google", { callbackUrl, redirect: false });
+        if (result?.error) {
+          sessionStorage.removeItem("preferred_clinic_id");
+          setError(isRtl ? "تعذر تسجيل الدخول باستخدام Google. حاول مرة أخرى." : "Google sign-in failed. Please try again.");
+          setIsLoading(false);
+        } else if (result?.url) {
+          window.location.href = result.url;
+        }
+        return;
+      }
+
+      sessionStorage.removeItem("preferred_clinic_id");
+      await setAppValue("pending_role", "admin");
+      await setAppValue("pending_google_signup", "true");
       const result = await signIn("google", { callbackUrl: "/home", redirect: false });
       if (result?.error) {
         setError(isRtl ? "عذراً، تعذر الاتصال بحساب Google. يرجى التحقق من اتصالك والمحاولة مجدداً." : "Unable to sign in with Google. Please check your connection and try again.");
@@ -211,7 +248,10 @@ function ManageContent() {
         window.location.href = result.url;
       }
     } catch (e) {
-      setError(isRtl ? "حدث خطأ غير متوقع أثناء محاولة تسجيل الدخول بواسطة Google." : "An unexpected error occurred during Google sign-in.");
+      sessionStorage.removeItem("preferred_clinic_id");
+      setError(e instanceof Error
+        ? e.message
+        : (isRtl ? "حدث خطأ غير متوقع أثناء محاولة تسجيل الدخول بواسطة Google." : "An unexpected error occurred during Google sign-in."));
       setIsLoading(false);
     }
   };

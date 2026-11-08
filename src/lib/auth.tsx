@@ -88,8 +88,15 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     const t = Date.now();
     const queryParams = preferredClinicId ? `?preferred_clinic_id=${preferredClinicId}&t=${t}` : `?t=${t}`;
     const res = await fetch(`/api/auth/enrich${queryParams}`);
+    // A denied clinic selection is a confirmed membership failure; never fall back
+    // to an unscoped browser query after the server rejects the requested tenant.
+    if (res.status === 403) {
+      if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+      user.clinicId = null;
+      return user;
+    }
     // A failed server lookup is not proof that the user has no clinic.
-    if (res.status === 403 || res.status >= 500) return user;
+    if (res.status >= 500) return user;
     if (res.ok) {
       const data = await res.json();
       if (data.clinicId || data.roleKey === "platform_admin") {
@@ -102,6 +109,13 @@ async function enrichUserWithClinic(user: User): Promise<User> {
         if (data.roleKey === "platform_admin") {
           user.isPlatformAdmin = true;
         }
+        if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+        return user;
+      }
+      if (preferredClinicId) {
+        // The server confirmed that the signed-in identity has no membership in this tenant.
+        if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+        user.clinicId = null;
         return user;
       }
     }
