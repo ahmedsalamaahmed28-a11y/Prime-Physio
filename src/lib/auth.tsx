@@ -83,13 +83,27 @@ function mapStaffRoleToRoleKey(staffRole: string): "admin" | "doctor" | "recepti
 
 async function enrichUserWithClinic(user: User): Promise<User> {
   // First, try server API (uses service_role — works for NextAuth users without Supabase session)
+  const preferredClinicId = typeof window !== 'undefined' ? sessionStorage.getItem("preferred_clinic_id") : null;
   try {
-    const preferredClinicId = typeof window !== 'undefined' ? sessionStorage.getItem("preferred_clinic_id") : null;
     const t = Date.now();
     const queryParams = preferredClinicId ? `?preferred_clinic_id=${preferredClinicId}&t=${t}` : `?t=${t}`;
     const res = await fetch(`/api/auth/enrich${queryParams}`);
+    // A denied clinic selection is a confirmed membership failure; never fall back
+    // to an unscoped browser query after the server rejects the requested tenant.
+    if (res.status === 403) {
+      if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+      user.clinicId = null;
+      return user;
+    }
     // A failed server lookup is not proof that the user has no clinic.
-    if (res.status === 403 || res.status >= 500) return user;
+    if (res.status >= 500) return user;
+    // A clinic-specific login must fail closed if the authoritative membership
+    // endpoint does not confirm the requested tenant (including an expired session).
+    if (preferredClinicId && !res.ok) {
+      if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+      user.clinicId = null;
+      return user;
+    }
     if (res.ok) {
       const data = await res.json();
       if (data.clinicId || data.roleKey === "platform_admin") {
@@ -102,11 +116,25 @@ async function enrichUserWithClinic(user: User): Promise<User> {
         if (data.roleKey === "platform_admin") {
           user.isPlatformAdmin = true;
         }
+        if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+        return user;
+      }
+      if (preferredClinicId) {
+        // The server confirmed that the signed-in identity has no membership in this tenant.
+        if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+        user.clinicId = null;
         return user;
       }
     }
   } catch {
-    // API call failed — fall through to Supabase queries
+    // Do not let a network failure bypass tenant verification through an unscoped
+    // browser-side staff query. The selected clinic must be confirmed server-side.
+    if (preferredClinicId) {
+      if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+      user.clinicId = null;
+      return user;
+    }
+    // Non-tenant login may still use the supported Supabase-auth fallback.
   }
 
   try {

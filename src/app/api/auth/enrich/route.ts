@@ -39,6 +39,18 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const preferredClinicId = searchParams.get("preferred_clinic_id");
+    // A clinic ID attached to the signed NextAuth session is authoritative.
+    // A browser-supplied preferred_clinic_id may not switch a scoped session.
+    const sessionClinicId = typeof (session.user as any).clinicId === "string"
+      ? (session.user as any).clinicId as string
+      : null;
+
+    if (sessionClinicId && preferredClinicId && preferredClinicId !== sessionClinicId) {
+      return NextResponse.json({ clinicId: null, role: null, error: "Access denied" }, {
+        status: 403,
+        headers: { "Cache-Control": "no-store, private" },
+      });
+    }
 
     const admin = getAdminClient();
 
@@ -65,10 +77,14 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const { data: staff, error } = await admin
+    let staffQuery = admin
       .from("staff")
       .select("clinic_id, role")
-      .eq("email", session.user.email.toLowerCase().trim())
+      .eq("email", session.user.email.toLowerCase().trim());
+
+    if (sessionClinicId) staffQuery = staffQuery.eq("clinic_id", sessionClinicId);
+
+    const { data: staff, error } = await staffQuery
       .limit(1)
       .maybeSingle();
 
@@ -81,7 +97,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ clinicId: null, role: null }, { headers: { "Cache-Control": "no-store, private" } });
     }
 
-    const targetClinicId = preferredClinicId || staff.clinic_id;
+    const targetClinicId = sessionClinicId || preferredClinicId || staff.clinic_id;
 
     if (preferredClinicId) {
       const { data: staffCheck, error: staffCheckError } = await admin

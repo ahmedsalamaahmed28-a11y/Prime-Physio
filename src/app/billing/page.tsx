@@ -63,6 +63,17 @@ const normalizeInvoiceStatus = (value: string): "انتظار" | "مدفوع" | 
   return "انتظار";
 };
 
+const parseCurrencyAmount = (value: unknown): number => {
+  const arabicDigits = "٠١٢٣٤٥٦٧٨٩";
+  const normalized = String(value ?? "")
+    .replace(/[٠-٩]/g, (digit) => String(arabicDigits.indexOf(digit)))
+    .replace(/[٬,]/g, "")
+    .replace(/[٫]/g, ".")
+    .replace(/[^0-9.-]/g, "");
+  const amount = Number(normalized);
+  return Number.isFinite(amount) ? amount : 0;
+};
+
 const statusSelectClass = (status: string) => {
   if (status === "مدفوع")  return "bg-emerald-50 text-emerald-700 border-emerald-200";
   if (status === "ملغي")   return "bg-rose-50   text-rose-700   border-rose-200";
@@ -71,7 +82,7 @@ const statusSelectClass = (status: string) => {
 
 export default function BillingPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission, isAdmin } = usePermissions();
@@ -85,6 +96,7 @@ export default function BillingPage() {
   const [deleteInvoiceId, setDeleteInvoiceId] = useState<string | null>(null);
 
   const loadInvoices = async () => {
+    if (!clinicId) { setInvoices([]); return; }
     try {
       setIsLoading(true);
       const { data: invs, error: invErr } = await supabase
@@ -102,7 +114,7 @@ export default function BillingPage() {
           amount: inv.amount,
           date: inv.date,
           status: normalizeInvoiceStatus(inv.status ?? ""),
-          paymentMethod: normalizeInvoiceStatus(inv.status ?? "") === "مدفوع" ? (isRtl ? "نقدي" : "Cash") : "â€”"
+          paymentMethod: inv.payment_method || "—"
         }));
         setInvoices(mapped);
       } else {
@@ -117,6 +129,7 @@ export default function BillingPage() {
   };
 
   const loadPatients = async () => {
+    if (!clinicId) { setPatients([]); return; }
     try {
       const { data, error } = await supabase.from("patients").select("id, nameAr").eq("clinic_id", clinicId);
       if (!error && data) {
@@ -159,7 +172,7 @@ export default function BillingPage() {
   useEffect(() => {
     loadInvoices();
     loadPatients();
-  }, [isRtl]);
+  }, [clinicId, isRtl]);
 
   const handleExportPDF = () => {
     let iframe = document.getElementById('print-iframe') as HTMLIFrameElement;
@@ -252,7 +265,7 @@ export default function BillingPage() {
 
   const paidSales = invoices
     .filter((inv) => inv.status === "مدفوع")
-    .reduce((sum, inv) => sum + parseInt(String(inv.amount).replace(/[^0-9]/g, "") || "0"), 0);
+    .reduce((sum, inv) => sum + parseCurrencyAmount(inv.amount), 0);
 
   const pendingAmount = invoices
     .filter((inv) => inv.status === "انتظار")

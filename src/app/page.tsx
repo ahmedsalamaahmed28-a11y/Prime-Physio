@@ -3,6 +3,7 @@ import "./landing.css";
 import { getAdminClient } from "@/lib/supabase";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
+import ClinicSearch from "@/components/landing/ClinicSearch";
 import TrustedStrip from "@/components/landing/TrustedStrip";
 import FeaturesBento from "@/components/landing/FeaturesBento";
 import FeaturesDetail from "@/components/landing/FeaturesDetail";
@@ -43,6 +44,7 @@ export default async function LandingPage() {
     <Navbar />
     <main className="flex-grow">
       <Hero cmsContent={contentMap.hero} />
+      <ClinicSearch />
       <Stats />
       <TrustedStrip />
       <FeaturesBento />
