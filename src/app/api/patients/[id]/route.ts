@@ -101,6 +101,9 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
     }
     const generalKeys = Object.keys(body).filter((key) => GENERAL_FIELDS.includes(key as typeof GENERAL_FIELDS[number]));
     const protectedMedicalKeys = ["bloodType", "allergies", "dvt"].filter((key) => Object.prototype.hasOwnProperty.call(body, key));
+    if (generalKeys.length === 0 && protectedMedicalKeys.length === 0 && body.medicalFields === undefined) {
+      return NextResponse.json({ error: "لا توجد بيانات صالحة للحفظ" }, { status: 400 });
+    }
     if (generalKeys.length > 0 && !hasStaffPermission(auth.staff, "edit_patient")) {
       return NextResponse.json({ error: "ليس لديك صلاحية تعديل البيانات الأساسية للمريض" }, { status: 403 });
     }
@@ -166,24 +169,32 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       if (medicalSaveError) throw medicalSaveError;
     }
 
-    if (Object.keys(updates).length === 0) {
-      return NextResponse.json({ error: "لا توجد بيانات صالحة للحفظ" }, { status: 400 });
-    }
+    let responsePatient: Record<string, unknown>;
+    if (Object.keys(updates).length > 0) {
+      updates.updated_at = new Date().toISOString();
+      const { data, error } = await auth.admin
+        .from("patients")
+        .update(updates)
+        .eq("id", id)
+        .eq("clinic_id", auth.clinicId)
+        .select("*")
+        .single();
 
-    updates.updated_at = new Date().toISOString();
-    const { data, error } = await auth.admin
-      .from("patients")
-      .update(updates)
-      .eq("id", id)
-      .eq("clinic_id", auth.clinicId)
-      .select("*")
-      .single();
-
-    if (error) {
-      console.error("[Patient API] Update failed:", error);
-      return NextResponse.json({ error: "تعذر حفظ بيانات المريض" }, { status: 500 });
+      if (error) {
+        console.error("[Patient API] Update failed:", error);
+        return NextResponse.json({ error: "تعذر حفظ بيانات المريض" }, { status: 500 });
+      }
+      responsePatient = { ...data };
+    } else {
+      const { data, error } = await auth.admin
+        .from("patients")
+        .select("*")
+        .eq("id", id)
+        .eq("clinic_id", auth.clinicId)
+        .single();
+      if (error) throw error;
+      responsePatient = { ...data };
     }
-    const responsePatient: Record<string, unknown> = { ...data };
     if (canViewPatientHistory(auth.staff)) {
       const { data: medicalRecord, error: medicalError } = await auth.admin
         .from("patient_medical_records")
@@ -198,6 +209,9 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       responsePatient.allergies = medical.allergies || "";
       responsePatient.dvt = medical.dvt || "";
     }
+    return NextResponse.json({ success: true, patient: responsePatient }, {
+      headers: { "Cache-Control": "no-store, private" },
+    });
   } catch (error) {
     console.error("[Patient API] Unexpected error:", error);
     return NextResponse.json({ error: "حدث خطأ غير متوقع أثناء حفظ البيانات" }, { status: 500 });
