@@ -155,7 +155,7 @@ function SignupPageContent() {
       setError(isRtl ? "يرجى إدخال الاسم الأول واسم العائلة والبريد الإلكتروني ورقم الموبايل." : "Please enter your first name, last name, email and mobile number.");
       return;
     }
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(cleanEmail)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       setError(isRtl ? "البريد الإلكتروني غير صحيح." : "Enter a valid email address.");
       return;
     }
