@@ -422,7 +422,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setIsEnriching(false);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : "/home";
+    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/home" : "/center-management";
   };
 
   const registerWithSupabase = async (email: string, pass: string, meta: any) => {
