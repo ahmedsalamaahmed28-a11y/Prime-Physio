@@ -5,17 +5,17 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
-  Activity, Bell, Building2, ChevronLeft, CircleHelp, CreditCard,
-  Download, Globe2, LayoutDashboard, LogOut, Plus, RefreshCw,
-  Sparkles, UserRound, Wallet
+  Activity, Bell, Building, ChevronLeft, HelpCircle, CreditCard,
+  Download, Globe, LayoutDashboard, LogOut, Plus, RefreshCw,
+  Sparkles, User, CreditCard
 } from "lucide-react";
 
 const menu = [
   { label: "نظرة عامة", en: "Overview", href: "/center-management", icon: LayoutDashboard },
-  { label: "مراكزي", en: "My Centers", href: "/my-centers", icon: Building2 },
+  { label: "مراكزي", en: "My Centers", href: "/my-centers", icon: Building },
   { label: "التصدير الكامل للبيانات", en: "Full data export", href: "/center-management#export", icon: Download },
-  { label: "الحساب والاشتراك", en: "Account & subscription", href: "/subscription", icon: UserRound },
-  { label: "الباقات", en: "Plans", href: "/packages", icon: Wallet },
+  { label: "الحساب والاشتراك", en: "Account & subscription", href: "/subscription", icon: User },
+  { label: "الباقات", en: "Plans", href: "/packages", icon: CreditCard },
   { label: "الإشعارات", en: "Notifications", href: "/notifications", icon: Bell },
 ];
 
@@ -52,7 +52,7 @@ export default function CenterManagementPage() {
             })}
           </nav>
           <div className="mt-auto space-y-1 border-t border-slate-100 pt-5">
-            <Link href="/support" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50"><CircleHelp className="h-[18px] w-[18px]" />{isRtl ? "مركز المساعدة" : "Help Center"}</Link>
+            <Link href="/support" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50"><HelpCircle className="h-[18px] w-[18px]" />{isRtl ? "مركز المساعدة" : "Help Center"}</Link>
             <Link href="/about" className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50"><Sparkles className="h-[18px] w-[18px]" />{isRtl ? "الجديد" : "What's New"}</Link>
           </div>
         </aside>
@@ -65,7 +65,7 @@ export default function CenterManagementPage() {
             </div>
             <div className="hidden items-center gap-2 text-sm font-bold text-slate-700 lg:flex"><Activity className="h-5 w-5 text-[#5147B8]" />Center Management</div>
             <div className="flex items-center gap-3">
-              <button onClick={toggleLanguage} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50"><Globe2 className="h-4 w-4" />{isRtl ? "English" : "العربية"}</button>
+              <button onClick={toggleLanguage} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50"><Globe className="h-4 w-4" />{isRtl ? "English" : "العربية"}</button>
               <button aria-label={isRtl ? "الإشعارات" : "Notifications"} onClick={() => router.push("/notifications")} className="relative rounded-xl p-2.5 text-slate-500 hover:bg-slate-100"><Bell className="h-5 w-5" /></button>
               <div className="hidden h-9 w-px bg-slate-200 sm:block" />
               <button onClick={() => logout()} className="flex items-center gap-2 rounded-xl px-2 py-1.5 text-start hover:bg-slate-50">
@@ -85,7 +85,7 @@ export default function CenterManagementPage() {
               </div>
               <div className="flex items-center gap-2">
                 <button onClick={() => window.location.reload()} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 shadow-sm hover:bg-slate-50"><RefreshCw className="h-4 w-4" />{isRtl ? "تحديث" : "Refresh"}</button>
-                <Link href="/my-centers" className="flex items-center gap-2 rounded-xl bg-[#5147B8] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#4338A5]"><Building2 className="h-4 w-4" />{isRtl ? "مراكزي" : "My Centers"}</Link>
+                <Link href="/my-centers" className="flex items-center gap-2 rounded-xl bg-[#5147B8] px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#4338A5]"><Building className="h-4 w-4" />{isRtl ? "مراكزي" : "My Centers"}</Link>
               </div>
             </div>
 
@@ -98,7 +98,7 @@ export default function CenterManagementPage() {
             <div className="overflow-hidden rounded-3xl border border-[#E5E2FA] bg-white shadow-sm">
               <div className="grid gap-0 lg:grid-cols-[1.1fr_0.9fr]">
                 <div className="p-7 sm:p-10">
-                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F0EEFF] text-[#5147B8]"><Building2 className="h-6 w-6" /></div>
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#F0EEFF] text-[#5147B8]"><Building className="h-6 w-6" /></div>
                   <span className="rounded-full bg-[#F0EEFF] px-3 py-1 text-[11px] font-extrabold text-[#5147B8]">{isRtl ? "خطوتك الأولى" : "Your first step"}</span>
                   <h2 className="mt-4 text-2xl font-extrabold text-slate-900">{isRtl ? "جهز مركزك الأول" : "Set up your first center"}</h2>
                   <p className="mt-3 max-w-xl text-sm leading-7 text-slate-500">{isRtl ? "ابدأ باختيار الباقة المناسبة، ثم أضف بيانات مركزك وفريق العمل. بعد الإعداد ستظهر هنا جلساتك والحضور والإيرادات وبيانات فريقك في مكان واحد." : "Choose the right plan, then add your center and team details. Once setup is complete, your sessions, attendance, revenue and team information will appear here."}</p>
