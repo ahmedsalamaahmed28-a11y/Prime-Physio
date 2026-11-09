@@ -541,8 +541,8 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
 
               <div className="space-y-1">
                 <label className="text-xs font-bold text-slate-600">{isRtl ? "شعار المركز" : "Clinic Logo"}</label>
-                <div onClick={() => document.getElementById(`logo-${center.id}`)?.click()}
-                  className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center cursor-pointer hover:border-[#4F46BA]/40 transition-colors"
+                <label htmlFor={`logo-${center.id}`}
+                  className="block border-2 border-dashed border-slate-200 rounded-xl p-6 text-center cursor-pointer hover:border-[#4F46BA]/40 transition-colors"
                 >
                   {center.logoPreview ? (
                     <div className="flex flex-col items-center gap-2">
@@ -562,7 +562,6 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
                     </span>
                   )}
                   <input id={`logo-${center.id}`} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
-                    onClick={(e) => e.stopPropagation()}
                     disabled={compressingLogoId === center.id}
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
@@ -583,7 +582,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
                       }
                     }}
                   />
-                </div>
+                </label>
               </div>
             </div>
           ))}
