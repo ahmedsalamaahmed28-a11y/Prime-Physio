@@ -6,8 +6,9 @@ import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
   Bell, Building2, CircleHelp, CreditCard, Download, Globe,
-  LayoutDashboard, LogOut, RefreshCw, Sparkles, UserRound
+  LayoutDashboard, RefreshCw, Sparkles, UserRound, Menu as MenuIcon, X
 } from "lucide-react";
+import { useState } from "react";
 
 const menu = [
   { label: "نظرة عامة", en: "Overview", href: "/center-management", icon: LayoutDashboard },
@@ -22,6 +23,7 @@ export default function CenterManagementPage() {
   const { user, isLoading, isEnriching, logout } = useAuth();
   const { language, toggleLanguage } = useLanguage();
   const router = useRouter();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isRtl = language === "ar";
   const displayName = user?.name?.replace(/^د\\.\\s*/, "").trim() || user?.email?.split("@")[0] || (isRtl ? "صاحب الحساب" : "Account owner");
   const monthLabel = new Intl.DateTimeFormat(isRtl ? "ar-EG" : "en-US", { month: "long", year: "numeric" }).format(new Date());
@@ -31,72 +33,98 @@ export default function CenterManagementPage() {
   }
 
   const startSetup = () => router.push("/manage?onboard=1");
+  const sidebar = (
+    <>
+      <Link href="/home.php" onClick={() => setMobileMenuOpen(false)} className="mb-[26px] flex h-[42px] w-full items-center justify-start gap-[9px] px-[2px]">
+        <span className="text-[21px] font-black tracking-tight text-[#153B60]">Prime<span className="text-[#1769AA]">Physio</span></span>
+        <span className="flex h-[35px] w-[35px] items-center justify-center rounded-[9px] bg-[#1769AA] text-white"><Building2 className="h-[21px] w-[21px]" /></span>
+      </Link>
+      <nav className="space-y-[2px]">
+        {menu.map((item, index) => {
+          const Icon = item.icon;
+          return (
+            <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)}
+              className={`flex h-[44px] w-full items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold transition-colors ${index === 0 ? "bg-[#EFF5FC] text-[#1769AA]" : "text-[#59616B] hover:bg-[#F7F9FB] hover:text-[#1769AA]"}`}>
+              <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} />
+              <span className="flex-1 text-right">{isRtl ? item.label : item.en}</span>
+            </Link>
+          );
+        })}
+      </nav>
+      <div className="mt-auto space-y-[2px] border-t border-[#EEF0F2] pt-[15px]">
+        <Link href="/support" onClick={() => setMobileMenuOpen(false)} className="flex h-[42px] items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold text-[#737B85] hover:bg-[#F7F9FB]">
+          <CircleHelp className="h-[18px] w-[18px]" strokeWidth={1.9} /><span>{isRtl ? "مركز المساعدة" : "Help Center"}</span>
+        </Link>
+        <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="flex h-[42px] items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold text-[#737B85] hover:bg-[#F7F9FB]">
+          <Sparkles className="h-[18px] w-[18px]" strokeWidth={1.9} /><span>{isRtl ? "الجديد" : "What's New"}</span>
+        </Link>
+      </div>
+    </>
+  );
 
   return (
     <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-white font-sans text-[#303846]">
-      <div className="flex min-h-screen">
-        <aside className="hidden w-[290px] shrink-0 flex-col border-l border-[#E8EBEF] bg-white px-4 pb-5 pt-5 lg:flex">
-          <Link href="/home.php" className="mb-7 flex h-9 items-center justify-end gap-2 px-1">
-            <span className="text-[21px] font-black tracking-tight text-[#153B60]">Prime<span className="text-[#1769AA]">Physio</span></span>
-            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#1769AA] text-white"><Building2 className="h-5 w-5" /></span>
-          </Link>
-          <nav className="space-y-1">
-            {menu.map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <Link key={item.href} href={item.href} className={`flex min-h-[44px] items-center gap-3 rounded-lg px-4 py-2.5 text-[14px] font-semibold transition-colors ${index === 0 ? "bg-[#EFF5FC] text-[#1769AA]" : "text-[#59616B] hover:bg-slate-50 hover:text-[#1769AA]"}`}>
-                  <Icon className="h-[18px] w-[18px] shrink-0" />
-                  <span className="flex-1">{isRtl ? item.label : item.en}</span>
-                </Link>
-              );
-            })}
-          </nav>
-          <div className="mt-auto space-y-1 border-t border-[#EEF0F2] pt-4">
-            <Link href="/support" className="flex min-h-[42px] items-center gap-3 rounded-lg px-4 py-2 text-[14px] font-semibold text-[#737B85] hover:bg-slate-50"><CircleHelp className="h-[18px] w-[18px]" />{isRtl ? "مركز المساعدة" : "Help Center"}</Link>
-            <Link href="/about" className="flex min-h-[42px] items-center gap-3 rounded-lg px-4 py-2 text-[14px] font-semibold text-[#737B85] hover:bg-slate-50"><Sparkles className="h-[18px] w-[18px]" />{isRtl ? "الجديد" : "What's New"}</Link>
-          </div>
+      <div className="flex min-h-screen w-full">
+        <aside className="hidden w-[290px] shrink-0 flex-col border-l border-[#E8EBEF] bg-white px-[12px] pb-[18px] pt-[16px] lg:flex">
+          {sidebar}
         </aside>
 
-        <section className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-20 flex h-[68px] shrink-0 items-center justify-between border-b border-[#E8EBEF] bg-white px-5 sm:px-8">
-            <div className="flex items-center gap-3">
-              <button onClick={() => logout()} className="flex items-center gap-2 rounded-full px-1 py-1 text-start hover:bg-slate-50" aria-label={isRtl ? "تسجيل الخروج" : "Log out"}>
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1769AA] text-sm font-extrabold text-white">{displayName.slice(0, 1)}</span>
-                <span className="hidden text-sm font-bold text-[#3E4650] sm:block">{displayName}</span>
-                <LogOut className="h-4 w-4 text-slate-400" />
+        {mobileMenuOpen && (
+          <div className="fixed inset-0 z-50 flex lg:hidden">
+            <button aria-label={isRtl ? "إغلاق القائمة" : "Close menu"} onClick={() => setMobileMenuOpen(false)} className="absolute inset-0 bg-black/25" />
+            <aside className="relative z-10 flex h-full w-[290px] max-w-[85vw] flex-col border-l border-[#E8EBEF] bg-white px-[12px] pb-[18px] pt-[16px] shadow-xl">
+              <button onClick={() => setMobileMenuOpen(false)} aria-label="Close" className="mb-3 self-start rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button>
+              {sidebar}
+            </aside>
+          </div>
+        )}
+
+        <section className="flex min-h-screen min-w-0 flex-1 flex-col">
+          <header dir="ltr" className="sticky top-0 z-20 flex h-[68px] shrink-0 items-center justify-between border-b border-[#E8EBEF] bg-white px-[32px]">
+            <div className="flex items-center gap-[15px]">
+              <button onClick={() => logout()} className="flex items-center gap-[9px] rounded-full py-1 text-start hover:opacity-80" aria-label={isRtl ? "تسجيل الخروج" : "Log out"}>
+                <span className="text-[14px] font-semibold text-[#3E4650]">{displayName}</span>
+                <span className="flex h-[36px] w-[36px] items-center justify-center rounded-full bg-[#1769AA] text-[14px] font-extrabold text-white">{displayName.slice(0, 1)}</span>
               </button>
-              <button aria-label={isRtl ? "الإشعارات" : "Notifications"} onClick={() => router.push("/notifications")} className="rounded-full p-2 text-[#68717C] hover:bg-slate-100"><Bell className="h-5 w-5" /></button>
-              <button onClick={toggleLanguage} className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-xs font-semibold text-[#5E6670] hover:bg-slate-50"><span>{isRtl ? "English" : "العربية"}</span><Globe className="h-4 w-4" /></button>
+              <button aria-label={isRtl ? "الإشعارات" : "Notifications"} onClick={() => router.push("/notifications")} className="relative rounded-full p-[5px] text-[#68717C] hover:bg-slate-100">
+                <Bell className="h-[21px] w-[21px]" strokeWidth={1.9} />
+                <span className="absolute bottom-[2px] left-[1px] h-[7px] w-[7px] rounded-full bg-[#C5CBD2]" />
+              </button>
+              <button onClick={toggleLanguage} className="flex items-center gap-[7px] rounded-lg px-1 py-2 text-[12px] font-semibold text-[#5E6670] hover:bg-slate-50">
+                <span>{isRtl ? "English" : "العربية"}</span><Globe className="h-[17px] w-[17px]" strokeWidth={1.8} />
+              </button>
             </div>
-            <div className="flex items-center gap-2 lg:hidden">
-              <span className="text-base font-black text-[#153B60]">Prime<span className="text-[#1769AA]">Physio</span></span>
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1769AA] text-white"><Building2 className="h-4 w-4" /></span>
-            </div>
+            <button onClick={() => setMobileMenuOpen(true)} className="rounded-lg p-2 text-[#1769AA] hover:bg-slate-50 lg:hidden" aria-label={isRtl ? "فتح القائمة" : "Open menu"}><MenuIcon className="h-5 w-5" /></button>
           </header>
 
-          <div className="mx-auto w-full max-w-[1240px] flex-1 px-5 pb-10 pt-9 sm:px-8 sm:pt-10">
-            <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h1 className="text-[27px] font-extrabold leading-tight tracking-tight text-[#202B38] sm:text-[30px]">{isRtl ? `مرحباً، ${displayName}` : `Welcome, ${displayName}`}</h1>
-                <p className="mt-2 text-[14px] text-[#8A929C]">{isRtl ? `كل مراكزك هذا الشهر · ${monthLabel}` : `All your centers this month · ${monthLabel}`}</p>
+          <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col px-[32px] pb-[26px] pt-[40px] max-sm:px-4 max-sm:pt-7">
+            <div className="mb-[24px] flex min-h-[75px] items-center justify-between gap-5 max-sm:flex-col max-sm:items-stretch">
+              <div className="order-2 flex items-center gap-[13px] max-sm:order-2">
+                <Link href="/my-centers" className="inline-flex h-[40px] items-center gap-[8px] rounded-full bg-[#1769AA] px-[17px] text-[14px] font-bold text-white shadow-[0_4px_12px_rgba(23,105,170,.18)] transition hover:bg-[#12598F]">
+                  {isRtl ? "مراكزي" : "My Centers"}<Building2 className="h-[17px] w-[17px]" />
+                </Link>
+                <span className="h-[8px] w-[8px] rounded-full bg-[#D9E4F0]" />
+                <button onClick={() => window.location.reload()} className="inline-flex h-[40px] items-center gap-[8px] rounded-full border border-[#E7EBEF] bg-white px-[16px] text-[14px] font-semibold text-[#69727D] transition hover:bg-slate-50">
+                  {isRtl ? "التحديث" : "Refresh"}<RefreshCw className="h-[17px] w-[17px]" />
+                </button>
               </div>
-              <div className="flex items-center gap-3">
-                <Link href="/my-centers" className="inline-flex items-center gap-2 rounded-full bg-[#1769AA] px-5 py-2.5 text-[14px] font-bold text-white shadow-[0_4px_12px_rgba(23,105,170,.18)] transition hover:bg-[#12598F]"><Building2 className="h-4 w-4" />{isRtl ? "مراكزي" : "My Centers"}</Link>
-                <button onClick={() => window.location.reload()} className="inline-flex items-center gap-2 rounded-full border border-[#E7EBEF] bg-white px-4 py-2.5 text-[14px] font-semibold text-[#69727D] transition hover:bg-slate-50"><RefreshCw className="h-4 w-4" />{isRtl ? "التحديث" : "Refresh"}</button>
+              <div className="order-1 text-right max-sm:order-1">
+                <h1 className="text-[30px] font-extrabold leading-[1.35] tracking-tight text-[#202B38] max-sm:text-[25px]">{isRtl ? `مرحباً، ${displayName}` : `Welcome, ${displayName}`}</h1>
+                <p className="mt-[3px] text-[14px] text-[#8A929C]">{isRtl ? `كل مراكزك هذا الشهر · ${monthLabel}` : `All your centers this month · ${monthLabel}`}</p>
               </div>
             </div>
 
-            <section className="flex min-h-[325px] w-full flex-col items-center justify-center rounded-[20px] border border-dashed border-[#E6E9ED] bg-white px-5 py-10 text-center sm:min-h-[328px]">
-              <Building2 className="mb-4 h-11 w-11 text-[#245B91]" strokeWidth={2.1} />
-              <h2 className="text-[21px] font-extrabold text-[#303846]">{isRtl ? "جهز مركزك الأول" : "Set up your first center"}</h2>
-              <p className="mt-2 max-w-[440px] text-[15px] leading-7 text-[#9299A2]">{isRtl ? "بعد إنشاء مركزك ستُعرض في هذه الصفحة كل فروعك، الجلسات والحضور والإيرادات والفريق." : "Once you create a center, this page will show all your branches, sessions, attendance, revenue and team."}</p>
-              <button onClick={startSetup} className="mt-5 inline-flex items-center justify-center rounded-full bg-[#1769AA] px-7 py-3 text-[14px] font-extrabold text-white shadow-[0_5px_14px_rgba(23,105,170,.2)] transition hover:-translate-y-0.5 hover:bg-[#12598F]">{isRtl ? "اختر باقة أولاً" : "Choose a plan first"}</button>
+            <section className="flex min-h-[328px] w-full flex-col items-center justify-center rounded-[19px] border border-dashed border-[#E6E9ED] bg-white px-5 py-10 text-center">
+              <Building2 className="mb-[15px] h-[43px] w-[43px] text-[#245B91]" strokeWidth={2.1} />
+              <h2 className="text-[21px] font-extrabold leading-[1.5] text-[#303846]">{isRtl ? "جهز مركزك الأول" : "Set up your first center"}</h2>
+              <p className="mt-[4px] max-w-[440px] text-[15px] leading-[29px] text-[#9299A2]">{isRtl ? "بعد إنشاء مركزك ستُعرض في هذه الصفحة كل فروعك، الجلسات والحضور والإيرادات والفريق." : "Once you create a center, this page will show all your branches, sessions, attendance, revenue and team."}</p>
+              <button onClick={startSetup} className="mt-[16px] inline-flex h-[46px] items-center justify-center rounded-full bg-[#1769AA] px-[27px] text-[14px] font-extrabold text-white shadow-[0_5px_14px_rgba(23,105,170,.2)] transition hover:bg-[#12598F]">{isRtl ? "اختر باقة أولاً" : "Choose a plan first"}</button>
             </section>
           </div>
 
-          <footer className="mt-auto flex min-h-[54px] flex-wrap items-center justify-between gap-3 border-t border-[#E8EBEF] bg-white px-5 py-4 text-[12px] text-[#9AA1AA] sm:px-8">
-            <div className="flex flex-wrap items-center gap-3"><Link href="/support" className="hover:text-[#1769AA]">{isRtl ? "مركز المساعدة" : "Help Center"}</Link><span>·</span><Link href="/terms" className="hover:text-[#1769AA]">{isRtl ? "الشروط" : "Terms"}</Link><span>·</span><Link href="/privacy" className="hover:text-[#1769AA]">{isRtl ? "الخصوصية" : "Privacy"}</Link></div>
-            <span>© 2026 Prime Physio</span>
+          <footer className="mt-auto flex min-h-[64px] flex-wrap items-center justify-between gap-3 border-t border-[#E8EBEF] bg-white px-[32px] py-[15px] text-[12px] text-[#9AA1AA] max-sm:px-4">
+            <div className="flex flex-wrap items-center gap-[7px]"><Link href="/support" className="hover:text-[#1769AA]">{isRtl ? "مركز المساعدة" : "Help Center"}</Link><span>·</span><Link href="/terms" className="hover:text-[#1769AA]">{isRtl ? "الشروط" : "Terms"}</Link><span>·</span><Link href="/privacy" className="hover:text-[#1769AA]">{isRtl ? "الخصوصية" : "Privacy"}</Link></div>
+            <span>© Prime Physio 2026</span>
           </footer>
         </section>
       </div>
