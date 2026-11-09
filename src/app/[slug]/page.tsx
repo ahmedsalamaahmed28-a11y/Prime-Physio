@@ -58,7 +58,7 @@ export default function BrandedLoginPage() {
           refresh_token: payload.session.refresh_token,
         });
         if (sessionError) throw sessionError;
-        sessionStorage.removeItem("preferred_clinic_id");
+        // Keep the selected center in sessionStorage until the dashboard auth provider re-enriches the user after navigation.
         window.location.replace("/home");
       } catch (activationError) {
         activationStarted.current = false;
