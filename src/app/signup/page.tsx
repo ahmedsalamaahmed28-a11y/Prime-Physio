@@ -144,18 +144,20 @@ function SignupPageContent() {
 
   const isValidPhone = (value: string) => /^\+[1-9]\d{6,14}$/.test(value);
 
-  const requestCode = async () => {
+  const requestCode = async (emailValue?: string) => {
+    const submittedEmail = (emailValue ?? cleanEmail).trim().toLowerCase();
+    setEmail(submittedEmail);
     setError("");
     setNotice("");
     if (!acceptedLegal) {
       setError(isRtl ? "يجب الموافقة على شروط الاستخدام وسياسة الخصوصية للمتابعة." : "You must accept the Terms of Use and Privacy Policy to continue.");
       return;
     }
-    if (!firstName.trim() || !lastName.trim() || !cleanEmail || !cleanPhone) {
+    if (!firstName.trim() || !lastName.trim() || !submittedEmail || !cleanPhone) {
       setError(isRtl ? "يرجى إدخال الاسم الأول واسم العائلة والبريد الإلكتروني ورقم الموبايل." : "Please enter your first name, last name, email and mobile number.");
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(submittedEmail)) {
       setError(isRtl ? "البريد الإلكتروني غير صحيح." : "Enter a valid email address.");
       return;
     }
@@ -177,7 +179,7 @@ function SignupPageContent() {
       const response = await fetch("/api/auth/send-verification", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail }),
+        body: JSON.stringify({ email: submittedEmail }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || (isRtl ? "تعذر إرسال رمز التحقق." : "Could not send the verification code."));
@@ -192,9 +194,12 @@ function SignupPageContent() {
     }
   };
 
-  const handleDetails = async (event: React.FormEvent) => {
+  const handleDetails = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await requestCode();
+    // Read the submitted DOM value too: browser autofill may not trigger React onChange.
+    const formData = new FormData(event.currentTarget);
+    const submittedEmail = formData.get("email");
+    await requestCode(typeof submittedEmail === "string" ? submittedEmail : cleanEmail);
   };
 
   const handleVerify = async (event: React.FormEvent) => {
@@ -292,7 +297,7 @@ function SignupPageContent() {
                   <div><div className="mb-1.5 flex items-center gap-2"><label className={labelClass}>{isRtl ? "الاسم الأول" : "First name"} </label></div><div className="relative"><User className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input autoComplete="given-name" required value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass + (isRtl ? " pr-10" : " pl-10")} /></div></div>
                   <div><div className="mb-1.5 flex items-center gap-2"><label className="text-[15px] font-bold leading-[22px] text-[#334155]">{isRtl ? "اسم العائلة" : "Last name"} </label></div><input autoComplete="family-name" required value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} /></div>
                 </div>
-                <div><div className="mb-1.5 flex items-center gap-2"><label className="text-[15px] font-bold leading-[22px] text-[#334155]">{isRtl ? "البريد الإلكتروني" : "Email"} </label><FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة البريد الإلكتروني" : "Email help"} text={isRtl ? "يُرسل كود التفعيل إلى هذا البريد، ويصبح بريد الدخول. إذا بدا العنوان مكتوبًا بخطأ (gmail.con أو hotmial.com...) يظهر تحته سطر «هل تقصد»؛ اضغط «استخدمه» لتصحيحه." : "Your activation code is sent to this email, and it becomes your login email. If the address looks mistyped (gmail.con or hotmial.com...), a “Did you mean” suggestion appears below; click “Use it” to correct it."} /></div><div className="relative"><Mail className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className={inputClass + (isRtl ? " pr-10" : " pl-10")} /></div>{emailSuggestion && emailSuggestion !== cleanEmail && <p className="mt-2 text-xs text-slate-500">{isRtl ? "هل تقصد" : "Did you mean"} <button type="button" onClick={() => setEmail(emailSuggestion)} className="font-semibold text-[#5B50C7] underline underline-offset-2">{emailSuggestion} — {isRtl ? "استخدمه" : "Use it"}</button> {isRtl ? "لتصحيح البريد الإلكتروني." : "to correct your email address."}</p>}</div>
+                <div><div className="mb-1.5 flex items-center gap-2"><label className="text-[15px] font-bold leading-[22px] text-[#334155]">{isRtl ? "البريد الإلكتروني" : "Email"} </label><FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة البريد الإلكتروني" : "Email help"} text={isRtl ? "يُرسل كود التفعيل إلى هذا البريد، ويصبح بريد الدخول. إذا بدا العنوان مكتوبًا بخطأ (gmail.con أو hotmial.com...) يظهر تحته سطر «هل تقصد»؛ اضغط «استخدمه» لتصحيحه." : "Your activation code is sent to this email, and it becomes your login email. If the address looks mistyped (gmail.con or hotmial.com...), a “Did you mean” suggestion appears below; click “Use it” to correct it."} /></div><div className="relative"><Mail className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input type="email" name="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className={inputClass + (isRtl ? " pr-10" : " pl-10")} /></div>{emailSuggestion && emailSuggestion !== cleanEmail && <p className="mt-2 text-xs text-slate-500">{isRtl ? "هل تقصد" : "Did you mean"} <button type="button" onClick={() => setEmail(emailSuggestion)} className="font-semibold text-[#5B50C7] underline underline-offset-2">{emailSuggestion} — {isRtl ? "استخدمه" : "Use it"}</button> {isRtl ? "لتصحيح البريد الإلكتروني." : "to correct your email address."}</p>}</div>
                 <div>
                   <div className="mb-1.5 flex items-center gap-2">
                     <label className={labelClass}>{isRtl ? "رقم الموبايل" : "Mobile number"} </label>
