@@ -231,8 +231,30 @@ function SignupPageContent() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-6xl justify-center px-4 py-8 sm:py-10">
-        <section className="w-full max-w-[440px]">
+      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col lg:flex-row items-stretch px-4 py-8 sm:py-10" dir={isRtl ? "rtl" : "ltr"}>
+        <section className="hidden lg:flex lg:w-1/2 relative min-h-[680px] overflow-hidden rounded-[2rem] bg-slate-900 items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-[#4F46BA] opacity-95" />
+          <div className="relative z-10 flex w-full max-w-lg flex-col items-center justify-center p-10 text-center text-white">
+            <Link href="/" className="mb-10 transition-transform hover:scale-105">
+              <img src="/logo.png" alt="Prime Physio" className="h-24 w-24 object-contain drop-shadow-2xl brightness-0 invert" />
+            </Link>
+            <h2 className="mb-6 text-4xl font-bold leading-tight">
+              {isRtl ? "مستقبل إدارة عيادات" : "The Future of Clinic"}<br />
+              <span className="text-indigo-400">{isRtl ? "العلاج الطبيعي" : "Management"}</span>
+            </h2>
+            <p className="mb-12 text-lg leading-relaxed text-slate-300">
+              {isRtl
+                ? "نظام متكامل يجمع بين السجلات الطبية، الإدارة المالية، وجدولة المواعيد في منصة واحدة سهلة الاستخدام."
+                : "An integrated system combining EMR, billing, and scheduling in one easy-to-use platform."}
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <div className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium backdrop-blur">{isRtl ? "سجلات طبية" : "EMR"}</div>
+              <div className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium backdrop-blur">{isRtl ? "فواتير" : "Billing"}</div>
+              <div className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium backdrop-blur">{isRtl ? "مواعيد" : "Calendar"}</div>
+            </div>
+          </div>
+        </section>
+        <section className="flex w-full items-center justify-center lg:w-1/2">
           <div className="mb-[22px] text-center">
             <span className="mb-3 inline-flex rounded-full bg-[#5B50C7]/10 px-3 py-1 text-xs font-bold text-[#5B50C7]">{isRtl ? "ابدأ مع Prime Physio" : "GET STARTED WITH PRIME PHYSIO"}</span>
             <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{isRtl ? "أنشئ حسابك" : "Create your account"}</h1>
