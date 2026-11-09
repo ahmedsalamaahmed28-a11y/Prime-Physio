@@ -2,13 +2,13 @@
 
 import React from "react";
 import Link from "next/link";
-import { FileText, ShieldCheck, UserRound, Database, CreditCard, Scale } from "lucide-react";
+import { FileText, ShieldCheck, User, Database, CreditCard } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import PublicLayout from "@/components/PublicLayout";
 
 const sections = [
   {
-    icon: UserRound,
+    icon: User,
     titleAr: "1. نطاق الاتفاقية وقبولها",
     titleEn: "1. Scope and Acceptance",
     bodyAr: "تنظم هذه الشروط استخدام موقع Prime Physio ومنصة إدارة العيادات والحسابات ومساحات العمل والميزات المرتبطة بها (ويشار إليها مجتمعة باسم «الخدمة»). بإنشاء حساب أو استخدام الخدمة، فإنك تقر بأنك قرأت هذه الشروط وسياسة الخصوصية وتوافق عليهما. إذا كنت تنشئ الحساب نيابة عن عيادة أو مؤسسة، فإنك تقر بأن لديك الصلاحية اللازمة لتمثيلها.",
@@ -17,7 +17,7 @@ const sections = [
     bulletsEn: ["Acceptance of these Terms and the Privacy Policy is required to create a new owner account.", "The version published at the time of acceptance applies, subject to any notice or renewed consent required for later changes."]
   },
   {
-    icon: UserRound,
+    icon: User,
     titleAr: "2. الحساب والتسجيل والأمان",
     titleEn: "2. Account, Registration, and Security",
     bodyAr: "يجب تقديم بيانات صحيحة وحديثة عند التسجيل والمحافظة على تحديثها. قد يتطلب إنشاء الحساب التحقق من البريد الإلكتروني. أنت مسؤول عن سرية كلمة المرور وعن الأنشطة التي تتم من خلال حسابك، وعن إدارة صلاحيات العاملين وإلغاء وصول من لم يعد مخولًا باستخدام المنصة.",
@@ -89,7 +89,7 @@ const sections = [
     bulletsEn: []
   },
   {
-    icon: Scale,
+    icon: ShieldCheck,
     titleAr: "10. تعليق الحساب أو إنهاؤه",
     titleEn: "10. Suspension or Termination",
     bodyAr: "يجوز تقييد الوصول أو تعليق الحساب عند الاشتباه في استخدام غير مشروع أو تهديد أمني أو مخالفة جوهرية لهذه الشروط أو عدم سداد رسوم مستحقة، وذلك بالقدر اللازم والمتناسب ومع الإخطار متى كان ذلك ممكنًا أو مطلوبًا قانونًا. ولا يؤثر الإنهاء على الحقوق والالتزامات التي نشأت قبل تاريخ الإنهاء.",
@@ -98,7 +98,7 @@ const sections = [
     bulletsEn: []
   },
   {
-    icon: Scale,
+    icon: ShieldCheck,
     titleAr: "11. القانون الواجب التطبيق وتسوية النزاعات",
     titleEn: "11. Governing Law and Disputes",
     bodyAr: "تُفسر هذه الشروط وتُطبق وفق قوانين جمهورية مصر العربية، مع مراعاة قواعد الاختصاص القضائي الإلزامية وأي حقوق لا يجوز التنازل عنها بموجب القانون. ويسعى الطرفان أولًا إلى حل أي خلاف متعلق بالخدمة وديًا عبر قنوات التواصل والدعم قبل اتخاذ الإجراءات القانونية.",
