@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 
 const menu = [
   { label: "نظرة عامة", en: "Overview", href: "/center-management", icon: LayoutDashboard },
-  { label: "مراكزي", en: "My Centers", href: "/my-centers", icon: Building },
+  { label: "مراكزي", en: "My Centers", href: "/center-management", icon: Building },
   { label: "التصدير الكامل للبيانات", en: "Full data export", href: "/center-management#export", icon: Download },
   { label: "الحساب والاشتراك", en: "Account & subscription", href: "/subscription", icon: User },
   { label: "الباقات", en: "Plans", href: "/packages", icon: CreditCard },
