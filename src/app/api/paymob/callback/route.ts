@@ -219,8 +219,10 @@ export async function GET(req: NextRequest) {
     search.get("integration_id") === String(process.env.PAYMOB_INTEGRATION_ID || "");
 
   if (valid && successful) {
-    const successTarget = new URL("/signup", base);
-    successTarget.searchParams.set("payment", "success");
+    // The browser return is navigation only; the signed webhook remains the sole
+    // authority that activates the subscription. Send the user back to the app.
+    const successTarget = new URL("/home", base);
+    successTarget.searchParams.set("payment", "processing");
     return safeRedirectPage(successTarget);
   }
 
