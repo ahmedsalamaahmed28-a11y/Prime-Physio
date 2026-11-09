@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
-  Bell, Building2, CircleHelp, CreditCard, Download, Globe,
+  Bell, Building, HelpCircle, CreditCard, Download, Globe,
   LayoutDashboard, RefreshCw, Sparkles, UserRound, Menu as MenuIcon, X
 } from "lucide-react";
 import { useState } from "react";
 
 const menu = [
   { label: "نظرة عامة", en: "Overview", href: "/center-management", icon: LayoutDashboard },
-  { label: "مراكزي", en: "My Centers", href: "/my-centers", icon: Building2 },
+  { label: "مراكزي", en: "My Centers", href: "/my-centers", icon: Building },
   { label: "التصدير الكامل للبيانات", en: "Full data export", href: "/center-management#export", icon: Download },
   { label: "الحساب والاشتراك", en: "Account & subscription", href: "/subscription", icon: UserRound },
   { label: "الباقات", en: "Plans", href: "/packages", icon: CreditCard },
@@ -37,7 +37,7 @@ export default function CenterManagementPage() {
     <>
       <Link href="/home.php" onClick={() => setMobileMenuOpen(false)} className="mb-[26px] flex h-[42px] w-full items-center justify-start gap-[9px] px-[2px]">
         <span className="text-[21px] font-black tracking-tight text-[#153B60]">Prime<span className="text-[#1769AA]">Physio</span></span>
-        <span className="flex h-[35px] w-[35px] items-center justify-center rounded-[9px] bg-[#1769AA] text-white"><Building2 className="h-[21px] w-[21px]" /></span>
+        <span className="flex h-[35px] w-[35px] items-center justify-center rounded-[9px] bg-[#1769AA] text-white"><Building className="h-[21px] w-[21px]" /></span>
       </Link>
       <nav className="space-y-[2px]">
         {menu.map((item, index) => {
@@ -53,7 +53,7 @@ export default function CenterManagementPage() {
       </nav>
       <div className="mt-auto space-y-[2px] border-t border-[#EEF0F2] pt-[15px]">
         <Link href="/support" onClick={() => setMobileMenuOpen(false)} className="flex h-[42px] items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold text-[#737B85] hover:bg-[#F7F9FB]">
-          <CircleHelp className="h-[18px] w-[18px]" strokeWidth={1.9} /><span>{isRtl ? "مركز المساعدة" : "Help Center"}</span>
+          <HelpCircle className="h-[18px] w-[18px]" strokeWidth={1.9} /><span>{isRtl ? "مركز المساعدة" : "Help Center"}</span>
         </Link>
         <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="flex h-[42px] items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold text-[#737B85] hover:bg-[#F7F9FB]">
           <Sparkles className="h-[18px] w-[18px]" strokeWidth={1.9} /><span>{isRtl ? "الجديد" : "What's New"}</span>
@@ -101,7 +101,7 @@ export default function CenterManagementPage() {
             <div className="mb-[24px] flex min-h-[75px] items-center justify-between gap-5 max-sm:flex-col max-sm:items-stretch">
               <div className="order-2 flex items-center gap-[13px] max-sm:order-2">
                 <Link href="/my-centers" className="inline-flex h-[40px] items-center gap-[8px] rounded-full bg-[#1769AA] px-[17px] text-[14px] font-bold text-white shadow-[0_4px_12px_rgba(23,105,170,.18)] transition hover:bg-[#12598F]">
-                  {isRtl ? "مراكزي" : "My Centers"}<Building2 className="h-[17px] w-[17px]" />
+                  {isRtl ? "مراكزي" : "My Centers"}<Building className="h-[17px] w-[17px]" />
                 </Link>
                 <span className="h-[8px] w-[8px] rounded-full bg-[#D9E4F0]" />
                 <button onClick={() => window.location.reload()} className="inline-flex h-[40px] items-center gap-[8px] rounded-full border border-[#E7EBEF] bg-white px-[16px] text-[14px] font-semibold text-[#69727D] transition hover:bg-slate-50">
@@ -115,7 +115,7 @@ export default function CenterManagementPage() {
             </div>
 
             <section className="flex min-h-[328px] w-full flex-col items-center justify-center rounded-[19px] border border-dashed border-[#E6E9ED] bg-white px-5 py-10 text-center">
-              <Building2 className="mb-[15px] h-[43px] w-[43px] text-[#245B91]" strokeWidth={2.1} />
+              <Building className="mb-[15px] h-[43px] w-[43px] text-[#245B91]" strokeWidth={2.1} />
               <h2 className="text-[21px] font-extrabold leading-[1.5] text-[#303846]">{isRtl ? "جهز مركزك الأول" : "Set up your first center"}</h2>
               <p className="mt-[4px] max-w-[440px] text-[15px] leading-[29px] text-[#9299A2]">{isRtl ? "بعد إنشاء مركزك ستُعرض في هذه الصفحة كل فروعك، الجلسات والحضور والإيرادات والفريق." : "Once you create a center, this page will show all your branches, sessions, attendance, revenue and team."}</p>
               <button onClick={startSetup} className="mt-[16px] inline-flex h-[46px] items-center justify-center rounded-full bg-[#1769AA] px-[27px] text-[14px] font-extrabold text-white shadow-[0_5px_14px_rgba(23,105,170,.2)] transition hover:bg-[#12598F]">{isRtl ? "اختر باقة أولاً" : "Choose a plan first"}</button>
