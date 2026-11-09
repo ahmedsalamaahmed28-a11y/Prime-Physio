@@ -350,10 +350,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Allow unauthenticated access to /[slug] branded login pages
-      const knownPages = new Set(["home","admin","setup","login","manage","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup","center-management","home.php","rgstr.php","center-management.php"]);
+      const knownPages = new Set(["home","admin","setup","login","manage","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup","center-management","create-center","home.php","rgstr.php","center-management.php"]);
       const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname) && !knownPages.has(pathname.replace("/", ""));
       if (isSlugPage) return;
-      if (pathname === "/create-center" || pathname === "/center-management") return;
       if (pathname.startsWith("/setup") || pathname === "/plans" || pathname === "/center_setup") { window.location.replace("/center-management"); return; }
       if (!user && status !== "authenticated") {
         // Legal documents are public and must remain accessible without an account.
@@ -370,6 +369,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         }
         return;
       }
+      if (pathname === "/create-center" || pathname === "/center-management") return;
       if (pathname === "/signup" || pathname === "/rgstr.php") return;
       if (pathname.startsWith("/manage")) return;
       // Redirect only after enrichment has confirmed that the account has no clinic.
@@ -404,7 +404,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setIsEnriching(false);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/home" : "/center-management.php";
+    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/home" : "/center-management";
   };
 
   const loginWithCredentials = async (email: string, name: string, _role: string) => {
