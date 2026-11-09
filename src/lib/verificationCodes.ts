@@ -115,7 +115,11 @@ export async function allowOtpSendFromIp(
     p_email: bucketEmail,
     p_ip_hash: ipHash,
   });
-  return !error && data === true;
+  if (error) {
+    console.error("[OTP] Rate-limit check failed:", { purpose, error });
+    throw new Error("OTP_RATE_LIMIT_CHECK_FAILED");
+  }
+  return data === true;
 }
 
 export async function allowPaymentOrderFromIp(
