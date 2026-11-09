@@ -14,7 +14,8 @@ const sections = [
     introAr: "قد نجمع المعلومات التالية بحسب طريقة استخدامك للمنصة والخدمات التي يفعّلها مركزك:",
     introEn: "Depending on how you use the platform and which features your clinic enables, we may collect:",
     itemsAr: [
-      "بيانات الحساب والتواصل: الاسم، البريد الإلكتروني، رقم الهاتف، وبيانات تسجيل الدخول اللازمة لإنشاء الحساب وإدارته. تُخزن كلمات المرور بصيغة تجزئة آمنة ولا تُحفظ كنص مقروء.",\n      "سجل الموافقات: قبول شروط الاستخدام وسياسة الخصوصية، ورقم إصدار كل وثيقة، وتاريخ ووقت القبول، وقد يُسجل عنوان IP ومعلومات المتصفح لأغراض إثبات الموافقة والأمان.",
+      "بيانات الحساب والتواصل: الاسم، البريد الإلكتروني، رقم الهاتف، وبيانات تسجيل الدخول اللازمة لإنشاء الحساب وإدارته. تُخزن كلمات المرور بصيغة تجزئة آمنة ولا تُحفظ كنص مقروء.",
+      "سجل الموافقات: قبول شروط الاستخدام وسياسة الخصوصية، ورقم إصدار كل وثيقة، وتاريخ ووقت القبول، وقد يُسجل عنوان IP ومعلومات المتصفح لأغراض إثبات الموافقة والأمان.",
       "بيانات العيادة: اسم المركز وفروعه وعنوانه وبيانات العاملين والأدوار والصلاحيات والاشتراك.",
       "بيانات المرضى والسجلات الصحية: البيانات التعريفية وبيانات التواصل والتاريخ المرضي والتقييمات والتشخيصات والخطط العلاجية وملاحظات الجلسات والتقارير التي يُدخلها المركز.",
       "بيانات التشغيل والمعاملات: المواعيد والحجوزات والفواتير والمدفوعات والمستحقات وسجلات الاستخدام والدعم الفني.",
@@ -22,7 +23,8 @@ const sections = [
       "المراسلات: المعلومات التي ترسلها إلينا عند طلب الدعم أو التواصل معنا."
     ],
     itemsEn: [
-      "Account and contact details: name, email address, phone number, and credentials needed to create and manage an account. Passwords are stored as secure hashes, not readable text.",\n      "Consent records: acceptance of the Terms of Use and Privacy Policy, the version of each document, the date and time of acceptance, and potentially IP address and browser information to evidence consent and support security.",
+      "Account and contact details: name, email address, phone number, and credentials needed to create and manage an account. Passwords are stored as secure hashes, not readable text.",
+      "Consent records: acceptance of the Terms of Use and Privacy Policy, the version of each document, the date and time of acceptance, and potentially IP address and browser information to evidence consent and support security.",
       "Clinic information: clinic and branch names, addresses, staff details, roles, permissions, and subscription information.",
       "Patient and health records: identity and contact details, medical history, assessments, diagnoses, treatment plans, session notes, and reports entered by the clinic.",
       "Operational and transaction data: appointments, bookings, invoices, payments, balances, usage records, and support requests.",
@@ -127,13 +129,15 @@ const sections = [
     introEn: "We retain information for as long as needed to provide the service and fulfill the purposes described in this policy, or for the period required by law or necessary to resolve disputes and protect rights. Retention periods vary depending on the type of information, clinic-account settings, and legal obligations.",
     itemsAr: [
       "يمكن للعيادة طلب تصدير أو حذف البيانات التي تديرها، مع مراعاة القيود القانونية والفنية والالتزامات المتعلقة بالاحتفاظ بالسجلات.",
-      "قد تبقى نسخ احتياطية أو سجلات أمنية لفترة محدودة وفق دورة الاحتفاظ الفنية، ثم تُحذف أو تُعزل وفق الإجراءات المتبعة.",\n      "قد نحتفظ بسجل الموافقة على الشروط وسياسة الخصوصية للمدة اللازمة لإثبات الامتثال وحماية الحقوق أو حسبما يقتضيه القانون.",
+      "قد تبقى نسخ احتياطية أو سجلات أمنية لفترة محدودة وفق دورة الاحتفاظ الفنية، ثم تُحذف أو تُعزل وفق الإجراءات المتبعة.",
+      "قد نحتفظ بسجل الموافقة على الشروط وسياسة الخصوصية للمدة اللازمة لإثبات الامتثال وحماية الحقوق أو حسبما يقتضيه القانون.",
       "حذف حساب المستخدم لا يعني بالضرورة حذف سجلات العيادة أو ملفات المرضى؛ يجب تنسيق طلبات هذه البيانات مع مسؤول العيادة.",
       "قد نحتفظ بقدر محدود من المعلومات إذا كان ذلك لازمًا للامتثال للقانون أو منع الاحتيال أو إثبات المعاملات أو حماية الحقوق."
     ],
     itemsEn: [
       "A clinic may request export or deletion of data it manages, subject to legal, technical, and record-retention requirements.",
-      "Backups or security logs may remain for a limited period under technical retention cycles before deletion or isolation under applicable procedures.",\n      "We may retain records of acceptance of the Terms and Privacy Policy for as long as needed to evidence compliance, protect rights, or meet legal requirements.",
+      "Backups or security logs may remain for a limited period under technical retention cycles before deletion or isolation under applicable procedures.",
+      "We may retain records of acceptance of the Terms and Privacy Policy for as long as needed to evidence compliance, protect rights, or meet legal requirements.",
       "Deleting an individual user account does not necessarily delete clinic records or patient files; requests concerning those records should be coordinated with the clinic administrator.",
       "We may retain limited information where necessary to comply with law, prevent fraud, evidence transactions, or protect rights."
     ]
