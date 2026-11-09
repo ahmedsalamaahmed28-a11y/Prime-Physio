@@ -21,7 +21,7 @@ function FieldHelp({ text, label, isRtl }: { text: string; label: string; isRtl:
       </summary>
       <div
         role="tooltip"
-        className={`absolute top-7 z-30 w-64 rounded-lg border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-xl ${isRtl ? "right-0 text-right" : "left-0 text-left"}`}
+        className={`absolute top-7 z-30 hidden w-64 rounded-lg border border-slate-200 bg-white p-3 text-xs font-normal leading-5 text-slate-600 shadow-xl group-open:block ${isRtl ? "right-0 text-right" : "left-0 text-left"}`}
       >
         {text}
       </div>
