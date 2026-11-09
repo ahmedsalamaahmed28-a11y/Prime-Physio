@@ -231,7 +231,7 @@ function SignupPageContent() {
         setConfirmPassword("");
         return;
       }
-      window.location.href = "/manage?onboard=1";
+      window.location.href = "/center-management";
     } catch (err) {
       setError(err instanceof Error ? err.message : (isRtl ? "حدث خطأ غير متوقع." : "Something went wrong."));
     } finally {
