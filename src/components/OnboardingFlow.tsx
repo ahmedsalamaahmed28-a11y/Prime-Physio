@@ -209,6 +209,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
           email: user?.email || sessionEmail || "",
           name: user?.name || sessionName || "Clinic Admin",
           centers: centersPayload,
+          planId: selectedPlan,
           code: centerOtpCode.trim()
         }),
       });
