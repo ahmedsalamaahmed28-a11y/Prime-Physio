@@ -280,7 +280,14 @@ function SignupPageContent() {
                   <div className="flex h-[46px] min-h-[46px] min-w-0 items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
                     <div className="relative flex h-full w-[54px] shrink-0 items-center justify-center border-r border-slate-200 bg-slate-50">
                       <label htmlFor="signup-country" className="sr-only">{isRtl ? "الدولة ومفتاح الاتصال" : "Country and calling code"}</label>
-                      <span className="pointer-events-none text-[20px] leading-none" aria-hidden="true">{selectedCountry.flag}</span>
+                      <img
+                        src={`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png`}
+                        alt=""
+                        aria-hidden="true"
+                        width="28"
+                        height="20"
+                        className="pointer-events-none h-5 w-7 object-contain"
+                      />
                       <select
                         id="signup-country"
                         value={countryCode}
@@ -288,7 +295,7 @@ function SignupPageContent() {
                         aria-label={isRtl ? "اختر الدولة" : "Select country"}
                         className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                       >
-                        {SIGNUP_COUNTRIES.map((country) => <option key={country.code} value={country.code}>{country.flag} +{country.dial} · {isRtl ? country.ar : country.en}</option>)}
+                        {SIGNUP_COUNTRIES.map((country) => <option key={country.code} value={country.code}>+{country.dial} · {isRtl ? country.ar : country.en}</option>)}
                       </select>
                     </div>
                     <input
