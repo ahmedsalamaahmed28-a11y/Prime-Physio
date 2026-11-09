@@ -120,7 +120,7 @@ function SignupPageContent() {
   const hasLength = password.length >= 8;
   const passwordReady = hasLength;
 
-  const isValidPhone = (value: string) => /^\\+[1-9]\\d{6,14}$/.test(value);
+  const isValidPhone = (value: string) => /^\+[1-9]\d{6,14}$/.test(value);
 
   const requestCode = async () => {
     setError("");
@@ -260,7 +260,7 @@ function SignupPageContent() {
                     </div>
                     <div className="flex h-12 min-w-0 items-center overflow-hidden rounded-lg border border-slate-300 bg-white transition focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
                       <span className="flex h-full shrink-0 items-center border-r border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">+{selectedCountry.dial}</span>
-                      <input type="tel" inputMode="tel" autoComplete="tel-national" required value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9\\s().-]/g, ""))} placeholder={selectedCountry.example} aria-label={isRtl ? "رقم الهاتف بدون مفتاح الدولة" : "Phone number without country code"} className="h-full min-w-0 w-full bg-transparent px-3 text-sm text-slate-800 outline-none placeholder:text-slate-400" />
+                      <input type="tel" inputMode="tel" autoComplete="tel-national" required value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))} placeholder={selectedCountry.example} aria-label={isRtl ? "رقم الهاتف بدون مفتاح الدولة" : "Phone number without country code"} className="h-full min-w-0 w-full bg-transparent px-3 text-sm text-slate-800 outline-none placeholder:text-slate-400" />
                     </div>
                   </div>
                   <p className="mt-2 text-xs text-slate-500" dir={isRtl ? "rtl" : "ltr"}>{isRtl ? "مفتاح الدولة المحدد: " : "Selected calling code: "}<b dir="ltr" className="inline-block text-slate-700">+{selectedCountry.dial}</b></p>
