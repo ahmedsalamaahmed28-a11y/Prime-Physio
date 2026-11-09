@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase-admin";
-import { requireRole } from "../../utils/auth";
+import { requireAuthOnly } from "../../utils/auth";
 import { hashVerificationCode, allowOtpSendFromIp } from "@/lib/verificationCodes";
 
 export const runtime = "nodejs";
@@ -9,8 +9,9 @@ export const revalidate = 0;
 
 export async function POST(req: NextRequest) {
   try {
-    // Identity and role are resolved server-side. Never use the email or role sent by the browser.
-    const session = await requireRole(req, ["admin"]);
+    // First-time signups do not have a staff row yet. Require a verified server-side
+    // identity here; the one-time email OTP is consumed inside the database transaction.
+    const session = await requireAuthOnly(req);
     const body = await req.json().catch(() => null);
 
     const code = typeof body?.code === "string" ? body.code.trim() : "";
