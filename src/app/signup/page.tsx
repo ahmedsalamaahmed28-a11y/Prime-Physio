@@ -232,9 +232,9 @@ function SignupPageContent() {
       </header>
 
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col lg:flex-row items-stretch px-4 py-8 sm:py-10" dir={isRtl ? "rtl" : "ltr"}>
-        <section className="hidden lg:flex lg:w-1/2 relative min-h-[680px] overflow-hidden rounded-[2rem] bg-slate-900 items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-[#4F46BA] opacity-95" />
-          <div className="relative z-10 flex w-full max-w-lg flex-col items-center justify-center p-10 text-center text-white">
+        <section className="hidden lg:flex lg:w-1/2 relative bg-slate-900 overflow-hidden items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-[#4F46BA] opacity-90" />
+          <div className="relative z-10 flex flex-col items-center justify-center p-12 text-center text-white w-full max-w-lg">
             <Link href="/" className="mb-10 transition-transform hover:scale-105">
               <img src="/logo.png" alt="Prime Physio" className="h-24 w-24 object-contain drop-shadow-2xl brightness-0 invert" />
             </Link>
@@ -254,7 +254,8 @@ function SignupPageContent() {
             </div>
           </div>
         </section>
-        <section className="flex w-full items-center justify-center lg:w-1/2">
+        <section className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 bg-white relative" dir={isRtl ? "rtl" : "ltr"}>
+          <div className="w-full max-w-[440px]">
           <div className="mb-[22px] text-center">
             <span className="mb-3 inline-flex rounded-full bg-[#5B50C7]/10 px-3 py-1 text-xs font-bold text-[#5B50C7]">{isRtl ? "ابدأ مع Prime Physio" : "GET STARTED WITH PRIME PHYSIO"}</span>
             <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{isRtl ? "أنشئ حسابك" : "Create your account"}</h1>
@@ -329,6 +330,7 @@ function SignupPageContent() {
             )}
           </div>
           <p className="mt-6 text-center text-sm text-slate-500">{isRtl ? "لديك حساب بالفعل؟" : "Already have an account?"} <Link href="/manage" className="font-bold text-[#5B50C7] hover:underline">{isRtl ? "دخول المالك" : "Owner login"}</Link></p>
+          </div>
         </section>
       </div>
       <footer className="border-t border-slate-200 bg-white py-5 text-center text-xs text-slate-400">© {new Date().getFullYear()} Prime Physio. {isRtl ? "جميع الحقوق محفوظة." : "All rights reserved."}</footer>
