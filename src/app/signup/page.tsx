@@ -278,7 +278,7 @@ function SignupPageContent() {
                     <FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة رقم الموبايل" : "Mobile number help"} text={isRtl ? "اختر الدولة أولًا، وسيظهر مفتاح الاتصال تلقائيًا. اكتب رقمك المحلي بدون مفتاح الدولة؛ سنحفظه بالصيغة الدولية." : "Choose your country first and its calling code will be added automatically. Enter your local number without the country code; we’ll save it in international format."} />
                   </div>
                   <div className="flex h-[46px] min-h-[46px] min-w-0 items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
-                    <div className="relative flex h-full w-[54px] shrink-0 items-center justify-center border-r border-slate-200 bg-slate-50">
+                    <div className="relative flex h-full w-[82px] shrink-0 items-center justify-center gap-2 bg-transparent">
                       <label htmlFor="signup-country" className="sr-only">{isRtl ? "الدولة ومفتاح الاتصال" : "Country and calling code"}</label>
                       <img
                         src={`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png`}
@@ -286,8 +286,9 @@ function SignupPageContent() {
                         aria-hidden="true"
                         width="28"
                         height="20"
-                        className="pointer-events-none h-5 w-7 object-contain"
+                        className="pointer-events-none h-3.5 w-5 object-contain"
                       />
+                      <span className="pointer-events-none text-[13px] font-semibold leading-none text-slate-700" aria-hidden="true">+{selectedCountry.dial}</span>
                       <select
                         id="signup-country"
                         value={countryCode}
