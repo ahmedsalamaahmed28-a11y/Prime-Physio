@@ -27,10 +27,16 @@ export async function GET() {
     }
 
     const email = session.user.email.toLowerCase().trim();
-    const nextAuthExpiresAt = Math.floor(new Date(session.expires).getTime() / 1000);
-    if (!Number.isFinite(nextAuthExpiresAt) || nextAuthExpiresAt <= Math.floor(Date.now() / 1000)) {
-      return NextResponse.json({ error: "Authentication session expired" }, { status: 401, headers: { "Cache-Control": "no-store, private" } });
-    }
+    // getServerSession has already verified the signed NextAuth session and its JWT expiry.
+    // Do not reject an otherwise authenticated session based on a missing or differently
+    // serialized presentation-layer `expires` value. Use its expiry when valid; otherwise
+    // bound the shadow-session metadata to the configured 8-hour NextAuth lifetime.
+    const parsedSessionExpiry = Date.parse(session.expires || "");
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const nextAuthExpiresAt =
+      Number.isFinite(parsedSessionExpiry) && parsedSessionExpiry > Date.now()
+        ? Math.floor(parsedSessionExpiry / 1000)
+        : nowSeconds + 8 * 60 * 60;
     const secret = process.env.NEXTAUTH_SECRET;
     if (!secret || secret.length < 32) {
       return NextResponse.json({ error: "Authentication is not configured securely" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
