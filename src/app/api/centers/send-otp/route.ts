@@ -13,6 +13,15 @@ export async function POST(req: NextRequest) {
     const session = await requireAuthOnly(req);
     const email = session.email.toLowerCase().trim();
     const admin = getAdminClient();
+    const { data: managerAccount, error: managerError } = await admin
+      .from("auth_accounts")
+      .select("role, verified")
+      .eq("email", email)
+      .maybeSingle();
+    if (managerError || !managerAccount?.verified || managerAccount.role !== "admin") {
+      return NextResponse.json({ error: "هذه العملية متاحة لمدير الحساب فقط." }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
+    }
+
     const clientIp = req.headers.get("x-real-ip")
       || req.headers.get("x-forwarded-for")?.split(",").pop()?.trim()
       || "unknown";
