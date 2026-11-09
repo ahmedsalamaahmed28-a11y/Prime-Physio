@@ -29,7 +29,9 @@ export default function CenterManagementPage() {
   const [centersError, setCentersError] = useState("");
 
   useEffect(() => {
+    if (isLoading || isEnriching || !user?.email) return;
     let active = true;
+    setCentersLoading(true);
     fetch("/api/center-management/centers", { cache: "no-store" })
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
@@ -43,7 +45,7 @@ export default function CenterManagementPage() {
         if (active) setCentersLoading(false);
       });
     return () => { active = false; };
-  }, []);
+  }, [user?.email, isLoading, isEnriching]);
   const isRtl = language === "ar";
   const displayName = user?.name?.replace(/^د\\.\\s*/, "").trim() || user?.email?.split("@")[0] || (isRtl ? "صاحب الحساب" : "Account owner");
   const monthLabel = new Intl.DateTimeFormat(isRtl ? "ar-EG" : "en-US", { month: "long", year: "numeric" }).format(new Date());
