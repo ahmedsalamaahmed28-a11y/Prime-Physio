@@ -37,7 +37,7 @@ export default function BrandedLoginPage() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
 
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const { user } = useAuth();
   const activationStarted = useRef(false);
 
