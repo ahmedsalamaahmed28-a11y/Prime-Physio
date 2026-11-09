@@ -313,7 +313,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           window.location.href = "/platform";
         } else if (enriched.clinicId && typeof window !== "undefined" && window.location.pathname !== "/home") {
           window.location.href = "/home";
-        } else if (enriched.clinicId === null && typeof window !== "undefined" && !window.location.pathname.startsWith("/setup") && window.location.pathname !== "/center-management" && window.location.pathname !== "/center-management.php" && pathname !== "/create-center" && !/^\\/[a-z][a-z0-9-]+$/.test(pathname)) {
+        } else if (enriched.clinicId === null && typeof window !== "undefined" && !window.location.pathname.startsWith("/setup") && window.location.pathname !== "/center-management" && window.location.pathname !== "/center-management.php" && window.location.pathname !== "/create-center" && !/^\/[a-z][a-z0-9-]+$/.test(window.location.pathname)) {
           window.location.href = "/center-management";
         }
 
