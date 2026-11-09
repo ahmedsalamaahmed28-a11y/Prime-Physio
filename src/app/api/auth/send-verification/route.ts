@@ -25,7 +25,9 @@ export async function POST(req: NextRequest) {
     }
 
     const admin = getAdminClient();
-    const clientIp = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",").pop()?.trim() || "unknown";
+    const forwardedFor = req.headers.get("x-forwarded-for");
+    const forwardedIp = forwardedFor?.split(",").map((value) => value.trim()).find(Boolean);
+    const clientIp = req.headers.get("x-real-ip")?.trim() || forwardedIp || "unknown";
     if (!(await allowOtpSendFromIp(admin, clientIp, "signup"))) {
       return NextResponse.json(
         { error: "تم تجاوز عدد محاولات إرسال رمز التحقق. انتظر قليلًا ثم حاول مرة أخرى." },
