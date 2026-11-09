@@ -207,7 +207,7 @@ function SignupPageContent() {
   const handleVerify = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
-    if (!/^\\d{6}$/.test(code)) {
+    if (!/^\d{6}$/.test(code)) {
       setError(isRtl ? "أدخل رمز التفعيل المكوّن من 6 أرقام." : "Enter the 6-digit activation code.");
       return;
     }
@@ -231,7 +231,7 @@ function SignupPageContent() {
         setConfirmPassword("");
         return;
       }
-      window.location.href = "/center-management";
+      window.location.href = "/center-management.php";
     } catch (err) {
       setError(err instanceof Error ? err.message : (isRtl ? "حدث خطأ غير متوقع." : "Something went wrong."));
     } finally {
