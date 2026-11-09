@@ -31,11 +31,6 @@ export async function POST(req: NextRequest) {
     }
 
     const admin = getAdminClient();
-    const clientIp = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",").pop()?.trim() || "unknown";
-    if (!(await allowOtpSendFromIp(admin, clientIp, "center_creation"))) {
-      return NextResponse.json({ error: "تجاوزت عدد محاولات التحقق. حاول لاحقًا." }, { status: 429 });
-    }
-
     const codeHash = hashVerificationCode(email, "center_creation", code);
     const { data, error } = await admin.rpc("create_independent_center_verified", {
       p_email: email,
