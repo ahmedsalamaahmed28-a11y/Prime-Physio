@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase-admin";
 import { requireAuthOnly } from "../../utils/auth";
-import { allowOtpSendFromIp, hashVerificationCode } from "@/lib/verificationCodes";
+import { hashVerificationCode } from "@/lib/verificationCodes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
