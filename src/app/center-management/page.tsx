@@ -34,7 +34,7 @@ export default function CenterManagementPage() {
   const startSetup = () => router.push("/manage?onboard=1");
 
   return (
-    <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-[#F7F8FC] text-slate-800" style={{ fontFamily: "Cairo, system-ui, sans-serif" }}>
+    <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-[#F7F8FC] font-sans text-slate-800">
       <div className="flex min-h-screen">
         <aside className="hidden w-[270px] shrink-0 flex-col border-l border-slate-200 bg-white px-5 py-6 lg:flex">
           <Link href="/" className="mb-10 flex items-center gap-3 px-2">
