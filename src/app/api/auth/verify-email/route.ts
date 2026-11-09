@@ -84,12 +84,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "فشل إنشاء الحساب. يمكنك طلب رمز تحقق جديد والمحاولة مرة أخرى." }, { status: 500 });
     }
 
+    // Keep the owner's personal contact number outside the clinic-wide staff table.
     const { error: staffError } = await admin.from("staff").insert({
       email,
       name: accountName,
       role: "admin",
       status: "نشط",
-      phone,
+      phone: null,
       clinic_id: null,
     });
 
@@ -97,6 +98,18 @@ export async function POST(req: NextRequest) {
       console.error("[VerifyEmail] Staff insert failed:", staffError);
       await admin.from("auth_accounts").delete().eq("id", authRecord.id);
       return NextResponse.json({ error: "فشل إكمال إنشاء الحساب. يمكنك طلب رمز تحقق جديد والمحاولة مرة أخرى." }, { status: 500 });
+    }
+
+    const { error: contactError } = await admin.rpc("store_clinic_owner_contact", {
+      p_email: email,
+      p_phone: phone,
+    });
+
+    if (contactError) {
+      console.error("[VerifyEmail] Owner contact storage failed:", contactError);
+      await admin.from("staff").delete().eq("email", email).is("clinic_id", null);
+      await admin.from("auth_accounts").delete().eq("id", authRecord.id);
+      return NextResponse.json({ error: "فشل حفظ بيانات التواصل بشكل آمن. يمكنك طلب رمز تحقق جديد والمحاولة مرة أخرى." }, { status: 500 });
     }
 
     return NextResponse.json({ success: true, id: authRecord.id });
