@@ -278,8 +278,8 @@ function SignupPageContent() {
                     <FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة رقم الموبايل" : "Mobile number help"} text={isRtl ? "اختر الدولة أولًا، وسيظهر مفتاح الاتصال تلقائيًا. اكتب رقمك المحلي بدون مفتاح الدولة؛ سنحفظه بالصيغة الدولية." : "Choose your country first and its calling code will be added automatically. Enter your local number without the country code; we’ll save it in international format."} />
                   </div>
                   <div className="flex h-[46px] min-h-[46px] min-w-0 items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
-                    <div className="relative flex h-full w-[82px] shrink-0 items-center justify-center gap-2 bg-transparent">
-                      <label htmlFor="signup-country" className="sr-only">{isRtl ? "الدولة ومفتاح الاتصال" : "Country and calling code"}</label>
+                    <div className="relative flex h-full w-[64px] shrink-0 items-center justify-center gap-2 bg-transparent">
+                      <label htmlFor="signup-country" className="sr-only">{isRtl ? "اختيار الدولة" : "Select country"}</label>
                       <img
                         src={`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png`}
                         alt=""
@@ -289,7 +289,6 @@ function SignupPageContent() {
                         className="pointer-events-none h-3.5 w-5 object-contain"
                       />
                       <ChevronDown className="pointer-events-none h-3 w-3 shrink-0 text-slate-500" aria-hidden="true" />
-                      <span className="pointer-events-none text-[13px] font-semibold leading-none text-slate-700" aria-hidden="true">+{selectedCountry.dial}</span>
                       <select
                         id="signup-country"
                         value={countryCode}
@@ -300,17 +299,20 @@ function SignupPageContent() {
                         {SIGNUP_COUNTRIES.map((country) => <option key={country.code} value={country.code}>+{country.dial} · {isRtl ? country.ar : country.en}</option>)}
                       </select>
                     </div>
-                    <input
-                      type="tel"
-                      inputMode="tel"
-                      autoComplete="tel-national"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))}
-                      placeholder={selectedCountry.example}
-                      aria-label={isRtl ? "رقم الهاتف بدون مفتاح الدولة" : "Phone number without country code"}
-                      className="h-full min-w-0 w-full bg-transparent px-3 font-normal text-[16px] leading-[24px] text-slate-800 outline-none placeholder:text-slate-400"
-                    />
+                    <div className="flex h-full min-w-0 flex-1 items-center pl-3">
+                      <span className="mr-3 shrink-0 whitespace-nowrap text-[16px] font-normal leading-[24px] text-slate-800" aria-label={isRtl ? "مفتاح الدولة" : "Country calling code"}>+{selectedCountry.dial}</span>
+                      <input
+                        type="tel"
+                        inputMode="tel"
+                        autoComplete="tel-national"
+                        required
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))}
+                        placeholder={selectedCountry.example}
+                        aria-label={isRtl ? "رقم الهاتف" : "Phone number"}
+                        className="h-full min-w-0 w-full bg-transparent py-0 pr-3 font-normal text-[16px] leading-[24px] text-slate-800 outline-none placeholder:text-slate-400"
+                      />
+                    </div>
                   </div>
                 </div>
                 <div><div className="mb-1.5 flex items-center gap-2"><label className="text-[15px] font-bold leading-[22px] text-[#334155]">{isRtl ? "كلمة المرور" : "Password"} <span className="text-red-500">*</span></label><FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة كلمة المرور" : "Password help"} text={isRtl ? "8 أحرف على الأقل وليست كلمة مرور شائعة (مثل 12345678 أو password1). لا يُشترط حرف كبير أو رمز — الأطول أكثر أمانًا: بضع كلمات معًا سهلة التذكر وصعبة التخمين." : "At least 8 characters and not a common password (such as 12345678 or password1). No uppercase letter or symbol is required. Longer is safer: a few words together are easy to remember and hard to guess."} /></div><div className="relative"><input type={showPassword ? "text" : "password"} autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={isRtl ? "إظهار كلمة المرور" : "Show password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>
