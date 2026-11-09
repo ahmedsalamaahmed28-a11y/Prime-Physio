@@ -356,6 +356,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           !pathname.startsWith("/manage") &&
           pathname !== "/signup" &&
           pathname !== "/rgstr.php" &&
+          pathname !== "/home.php" &&
           pathname !== "/" &&
           pathname !== "/privacy" &&
           pathname !== "/terms"
