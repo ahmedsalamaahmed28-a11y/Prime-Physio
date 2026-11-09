@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   experimental: { globalNotFound: true },
   async redirects() {
-    return [{ source: "/login", destination: "/manage", permanent: true }];
+    return [\n      { source: "/", destination: "/home.php", permanent: true },\n      { source: "/login", destination: "/manage", permanent: true },\n    ];
   },
   allowedDevOrigins: [
     "localhost:3000",
