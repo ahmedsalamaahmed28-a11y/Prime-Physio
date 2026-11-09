@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
 import { setAppValue } from "@/lib/appStorage";
 import { Loader } from "@/components/Loader";
-import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, HelpCircle, Eye, EyeOff, Mail, Phone, ShieldCheck, User } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, ChevronDown, HelpCircle, Eye, EyeOff, Mail, Phone, ShieldCheck, User } from "lucide-react";
 
 
 function FieldHelp({ text, label, isRtl }: { text: string; label: string; isRtl: boolean }) {
@@ -288,6 +288,7 @@ function SignupPageContent() {
                         height="20"
                         className="pointer-events-none h-3.5 w-5 object-contain"
                       />
+                      <ChevronDown className="pointer-events-none h-3 w-3 shrink-0 text-slate-500" aria-hidden="true" />
                       <span className="pointer-events-none text-[13px] font-semibold leading-none text-slate-700" aria-hidden="true">+{selectedCountry.dial}</span>
                       <select
                         id="signup-country"
