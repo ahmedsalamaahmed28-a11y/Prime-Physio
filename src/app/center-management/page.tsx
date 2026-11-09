@@ -80,24 +80,9 @@ export default function CenterManagementPage() {
         )}
 
         <section className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <header dir="ltr" className="sticky top-0 z-20 flex h-[68px] shrink-0 items-center justify-between border-b border-[#E8EBEF] bg-white px-[32px]">
-            <div className="flex items-center gap-[15px]">
-              <button onClick={() => logout()} className="flex items-center gap-[9px] rounded-full py-1 text-start hover:opacity-80" aria-label={isRtl ? "تسجيل الخروج" : "Log out"}>
-                <span className="text-[14px] font-semibold text-[#3E4650]">{displayName}</span>
-                <span className="flex h-[36px] w-[36px] items-center justify-center rounded-full bg-[#1769AA] text-[14px] font-extrabold text-white">{displayName.slice(0, 1)}</span>
-              </button>
-              <button aria-label={isRtl ? "الإشعارات" : "Notifications"} onClick={() => router.push("/notifications")} className="relative rounded-full p-[5px] text-[#68717C] hover:bg-slate-100">
-                <Bell className="h-[21px] w-[21px]" strokeWidth={1.9} />
-                <span className="absolute bottom-[2px] left-[1px] h-[7px] w-[7px] rounded-full bg-[#C5CBD2]" />
-              </button>
-              <button onClick={toggleLanguage} className="flex items-center gap-[7px] rounded-lg px-1 py-2 text-[12px] font-semibold text-[#5E6670] hover:bg-slate-50">
-                <span>{isRtl ? "English" : "العربية"}</span><Globe className="h-[17px] w-[17px]" strokeWidth={1.8} />
-              </button>
-            </div>
-            <button onClick={() => setMobileMenuOpen(true)} className="rounded-lg p-2 text-[#1769AA] hover:bg-slate-50 lg:hidden" aria-label={isRtl ? "فتح القائمة" : "Open menu"}><MenuIcon className="h-5 w-5" /></button>
-          </header>
-
-          <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col px-[32px] pb-[26px] pt-[40px] max-sm:px-4 max-sm:pt-7">
+          <header className="flex h-[48px] shrink-0 items-center justify-end px-4 lg:hidden">
+            <button onClick={() => setMobileMenuOpen(true)} className="rounded-lg p-2 text-[#1769AA] hover:bg-slate-50" aria-label={isRtl ? "فتح القائمة" : "Open menu"}><MenuIcon className="h-5 w-5" /></button>
+          </header>          <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col px-[32px] pb-[26px] pt-[40px] max-sm:px-4 max-sm:pt-7">
             <div className="mb-[24px] flex min-h-[75px] items-center justify-between gap-5 max-sm:flex-col max-sm:items-stretch">
               <div className="order-2 flex items-center gap-[13px] max-sm:order-2">
                 <Link href="/my-centers" className="inline-flex h-[40px] items-center gap-[8px] rounded-full bg-[#1769AA] px-[17px] text-[14px] font-bold text-white shadow-[0_4px_12px_rgba(23,105,170,.18)] transition hover:bg-[#12598F]">
