@@ -309,7 +309,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           window.location.href = "/platform";
         } else if (enriched.clinicId && typeof window !== "undefined" && window.location.pathname !== "/home") {
           window.location.href = "/home";
-        } else if (enriched.clinicId === null && typeof window !== "undefined" && !window.location.pathname.startsWith("/setup") && window.location.pathname !== "/center-management") {
+        } else if (enriched.clinicId === null && typeof window !== "undefined" && !window.location.pathname.startsWith("/setup") && window.location.pathname !== "/center-management" && window.location.pathname !== "/center-management.php") {
           window.location.href = "/setup";
         }
 
@@ -346,7 +346,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Allow unauthenticated access to /[slug] branded login pages
-      const knownPages = new Set(["home","admin","setup","login","manage","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup","center-management"]);
+      const knownPages = new Set(["home","admin","setup","login","manage","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup","center-management","home.php","rgstr.php","center-management.php"]);
       const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname) && !knownPages.has(pathname.replace("/", ""));
       if (isSlugPage) return;
       if (pathname.startsWith("/setup") || pathname === "/plans" || pathname === "/center_setup") { if (user?.clinicId && !isEnriching) { window.location.href = user?.roleKey === "platform_admin" ? "/platform" : "/home"; } return; }
@@ -354,7 +354,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         // Legal documents are public and must remain accessible without an account.
         if (
           !pathname.startsWith("/manage") &&
-          pathname !== "/signup" &&
+          pathname !== "/signup" &&\n          pathname !== "/rgstr.php" &&
           pathname !== "/" &&
           pathname !== "/privacy" &&
           pathname !== "/terms"
@@ -363,14 +363,14 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         }
         return;
       }
-      if (pathname === "/signup") return;
+      if (pathname === "/signup" || pathname === "/rgstr.php") return;
       if (pathname.startsWith("/manage")) return;
       // Redirect only after enrichment has confirmed that the account has no clinic.
       // undefined means the lookup is unresolved and must not trigger an onboarding redirect.
       if (user?.clinicId === null && !user?.isPlatformAdmin && user?.email && !isEnriching) {
-        const setupPaths = ["/manage", "/signup", "/setup", "/setup/center", "/plans", "/center_setup", "/center-management"];
+        const setupPaths = ["/manage", "/signup", "/setup", "/setup/center", "/plans", "/center_setup", "/center-management", "/center-management.php"];
         if (!setupPaths.includes(pathname)) {
-          window.location.href = "/center-management";
+          window.location.href = "/center-management.php";
         }
       }
     }
@@ -397,7 +397,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setIsEnriching(false);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/home" : "/center-management";
+    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/home" : "/center-management.php";
   };
 
   const loginWithCredentials = async (email: string, name: string, _role: string) => {
