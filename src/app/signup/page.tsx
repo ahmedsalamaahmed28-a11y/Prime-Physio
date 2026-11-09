@@ -29,6 +29,48 @@ function FieldHelp({ text, label, isRtl }: { text: string; label: string; isRtl:
   );
 }
 
+
+type SignupCountry = { code: string; dial: string; flag: string; ar: string; en: string; example: string };
+
+const SIGNUP_COUNTRIES: SignupCountry[] = [
+  { code: "EG", dial: "20", flag: "🇪🇬", ar: "مصر", en: "Egypt", example: "10 1234 5678" },
+  { code: "SA", dial: "966", flag: "🇸🇦", ar: "السعودية", en: "Saudi Arabia", example: "5X XXX XXXX" },
+  { code: "AE", dial: "971", flag: "🇦🇪", ar: "الإمارات", en: "United Arab Emirates", example: "50 123 4567" },
+  { code: "KW", dial: "965", flag: "🇰🇼", ar: "الكويت", en: "Kuwait", example: "5XXX XXXX" },
+  { code: "QA", dial: "974", flag: "🇶🇦", ar: "قطر", en: "Qatar", example: "33XX XXXX" },
+  { code: "BH", dial: "973", flag: "🇧🇭", ar: "البحرين", en: "Bahrain", example: "3XXX XXXX" },
+  { code: "OM", dial: "968", flag: "🇴🇲", ar: "عُمان", en: "Oman", example: "9XXX XXXX" },
+  { code: "JO", dial: "962", flag: "🇯🇴", ar: "الأردن", en: "Jordan", example: "7X XXX XXXX" },
+  { code: "LB", dial: "961", flag: "🇱🇧", ar: "لبنان", en: "Lebanon", example: "XX XXX XXX" },
+  { code: "IQ", dial: "964", flag: "🇮🇶", ar: "العراق", en: "Iraq", example: "7XX XXX XXXX" },
+  { code: "PS", dial: "970", flag: "🇵🇸", ar: "فلسطين", en: "Palestine", example: "59 XXX XXXX" },
+  { code: "YE", dial: "967", flag: "🇾🇪", ar: "اليمن", en: "Yemen", example: "7XX XXX XXX" },
+  { code: "MA", dial: "212", flag: "🇲🇦", ar: "المغرب", en: "Morocco", example: "6XX XXX XXX" },
+  { code: "DZ", dial: "213", flag: "🇩🇿", ar: "الجزائر", en: "Algeria", example: "5XX XX XX XX" },
+  { code: "TN", dial: "216", flag: "🇹🇳", ar: "تونس", en: "Tunisia", example: "XX XXX XXX" },
+  { code: "LY", dial: "218", flag: "🇱🇾", ar: "ليبيا", en: "Libya", example: "91 XXX XXXX" },
+  { code: "SD", dial: "249", flag: "🇸🇩", ar: "السودان", en: "Sudan", example: "9X XXX XXXX" },
+  { code: "US", dial: "1", flag: "🇺🇸", ar: "الولايات المتحدة", en: "United States", example: "201 555 0123" },
+  { code: "CA", dial: "1", flag: "🇨🇦", ar: "كندا", en: "Canada", example: "204 234 5678" },
+  { code: "GB", dial: "44", flag: "🇬🇧", ar: "المملكة المتحدة", en: "United Kingdom", example: "7XXX XXXXXX" },
+  { code: "DE", dial: "49", flag: "🇩🇪", ar: "ألمانيا", en: "Germany", example: "1512 3456789" },
+  { code: "FR", dial: "33", flag: "🇫🇷", ar: "فرنسا", en: "France", example: "6 12 34 56 78" },
+  { code: "IT", dial: "39", flag: "🇮🇹", ar: "إيطاليا", en: "Italy", example: "312 345 6789" },
+  { code: "ES", dial: "34", flag: "🇪🇸", ar: "إسبانيا", en: "Spain", example: "612 345 678" },
+  { code: "TR", dial: "90", flag: "🇹🇷", ar: "تركيا", en: "Türkiye", example: "501 234 5678" },
+  { code: "IN", dial: "91", flag: "🇮🇳", ar: "الهند", en: "India", example: "98765 43210" },
+  { code: "PK", dial: "92", flag: "🇵🇰", ar: "باكستان", en: "Pakistan", example: "301 2345678" },
+  { code: "BD", dial: "880", flag: "🇧🇩", ar: "بنغلاديش", en: "Bangladesh", example: "1812 345678" },
+  { code: "MY", dial: "60", flag: "🇲🇾", ar: "ماليزيا", en: "Malaysia", example: "12 345 6789" },
+  { code: "ID", dial: "62", flag: "🇮🇩", ar: "إندونيسيا", en: "Indonesia", example: "812 3456 7890" },
+  { code: "AU", dial: "61", flag: "🇦🇺", ar: "أستراليا", en: "Australia", example: "4XX XXX XXX" },
+  { code: "ZA", dial: "27", flag: "🇿🇦", ar: "جنوب أفريقيا", en: "South Africa", example: "XX XXX XXXX" },
+  { code: "BR", dial: "55", flag: "🇧🇷", ar: "البرازيل", en: "Brazil", example: "11 91234 5678" },
+  { code: "JP", dial: "81", flag: "🇯🇵", ar: "اليابان", en: "Japan", example: "90 1234 5678" },
+  { code: "CN", dial: "86", flag: "🇨🇳", ar: "الصين", en: "China", example: "131 2345 6789" },
+  { code: "RU", dial: "7", flag: "🇷🇺", ar: "روسيا", en: "Russia", example: "912 345-67-89" },
+];
+
 function SignupPageContent() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
@@ -37,6 +79,8 @@ function SignupPageContent() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("EG");
+  const selectedCountry = SIGNUP_COUNTRIES.find((country) => country.code === countryCode) ?? SIGNUP_COUNTRIES[0];
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [code, setCode] = useState("");
@@ -47,7 +91,10 @@ function SignupPageContent() {
   const [notice, setNotice] = useState("");
 
   const cleanEmail = useMemo(() => email.trim().toLowerCase(), [email]);
-  const cleanPhone = useMemo(() => phone.trim(), [phone]);
+  const cleanPhone = useMemo(() => {
+    const localDigits = phone.replace(/[^0-9]/g, "").replace(/^0+/, "");
+    return localDigits ? `+${selectedCountry.dial}${localDigits}` : "";
+  }, [phone, selectedCountry.dial]);
   const emailSuggestion = useMemo(() => {
     const value = email.trim();
     const at = value.lastIndexOf("@");
@@ -73,10 +120,7 @@ function SignupPageContent() {
   const hasLength = password.length >= 8;
   const passwordReady = hasLength;
 
-  const isValidPhone = (value: string) => {
-    const digits = value.replace(/\\D/g, "");
-    return /^\\+?[0-9][0-9\\s().-]*$/.test(value) && digits.length >= 7 && digits.length <= 15;
-  };
+  const isValidPhone = (value: string) => /^\\+[1-9]\\d{6,14}$/.test(value);
 
   const requestCode = async () => {
     setError("");
@@ -202,7 +246,25 @@ function SignupPageContent() {
                   <div><div className="mb-2 flex items-center gap-2"><label className="text-sm font-semibold text-slate-700">{isRtl ? "اسم العائلة" : "Last name"} <span className="text-red-500">*</span></label></div><input autoComplete="family-name" required value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} /></div>
                 </div>
                 <div><div className="mb-2 flex items-center gap-2"><label className="text-sm font-semibold text-slate-700">{isRtl ? "البريد الإلكتروني" : "Email"} <span className="text-red-500">*</span></label><FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة البريد الإلكتروني" : "Email help"} text={isRtl ? "يُرسل كود التفعيل إلى هذا البريد، ويصبح بريد الدخول. إذا بدا العنوان مكتوبًا بخطأ (gmail.con أو hotmial.com...) يظهر تحته سطر «هل تقصد»؛ اضغط «استخدمه» لتصحيحه." : "Your activation code is sent to this email, and it becomes your login email. If the address looks mistyped (gmail.con or hotmial.com...), a “Did you mean” suggestion appears below; click “Use it” to correct it."} /></div><div className="relative"><Mail className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className={inputClass + (isRtl ? " pr-10" : " pl-10")} /></div>{emailSuggestion && emailSuggestion !== cleanEmail && <p className="mt-2 text-xs text-slate-500">{isRtl ? "هل تقصد" : "Did you mean"} <button type="button" onClick={() => setEmail(emailSuggestion)} className="font-semibold text-[#5B50C7] underline underline-offset-2">{emailSuggestion} — {isRtl ? "استخدمه" : "Use it"}</button> {isRtl ? "لتصحيح البريد الإلكتروني." : "to correct your email address."}</p>}</div>
-                <div><div className="mb-2 flex items-center gap-2"><label className="text-sm font-semibold text-slate-700">{isRtl ? "رقم الموبايل" : "Mobile number"} <span className="text-red-500">*</span></label><FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة رقم الموبايل" : "Mobile number help"} text={isRtl ? "رقم هاتفك المحمول مع مفتاح الدولة. نستخدمه للتواصل معك بخصوص حسابك ولمساعدتك في تجهيز مركزك. أدخل رقمًا صحيحًا يمكنك استقبال المكالمات أو الرسائل عليه." : "Your mobile number including its country code. We use it to contact you about your account and help set up your clinic. Enter a valid number where you can receive calls or messages."} /></div><div className="relative"><Phone className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input type="tel" inputMode="tel" autoComplete="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+20 10 1234 5678" className={inputClass + (isRtl ? " pr-10" : " pl-10")} dir="ltr" /></div></div>
+                <div>
+                  <div className="mb-2 flex items-center gap-2">
+                    <label className="text-sm font-semibold text-slate-700">{isRtl ? "رقم الموبايل" : "Mobile number"} <span className="text-red-500">*</span></label>
+                    <FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة رقم الموبايل" : "Mobile number help"} text={isRtl ? "اختر الدولة أولًا، وسيظهر مفتاح الاتصال تلقائيًا. اكتب رقمك المحلي بدون مفتاح الدولة؛ سنحفظه بالصيغة الدولية." : "Choose your country first and its calling code will be added automatically. Enter your local number without the country code; we’ll save it in international format."} />
+                  </div>
+                  <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)] gap-2">
+                    <div className="relative">
+                      <label htmlFor="signup-country" className="sr-only">{isRtl ? "الدولة" : "Country"}</label>
+                      <select id="signup-country" value={countryCode} onChange={(e) => setCountryCode(e.target.value)} className="h-12 w-full appearance-none rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-800 outline-none transition focus:border-[#5B50C7] focus:ring-4 focus:ring-[#5B50C7]/10">
+                        {SIGNUP_COUNTRIES.map((country) => <option key={country.code} value={country.code}>{country.flag} {isRtl ? country.ar : country.en}</option>)}
+                      </select>
+                    </div>
+                    <div className="flex h-12 min-w-0 items-center overflow-hidden rounded-lg border border-slate-300 bg-white transition focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
+                      <span className="flex h-full shrink-0 items-center border-r border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">+{selectedCountry.dial}</span>
+                      <input type="tel" inputMode="tel" autoComplete="tel-national" required value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9\\s().-]/g, ""))} placeholder={selectedCountry.example} aria-label={isRtl ? "رقم الهاتف بدون مفتاح الدولة" : "Phone number without country code"} className="h-full min-w-0 w-full bg-transparent px-3 text-sm text-slate-800 outline-none placeholder:text-slate-400" />
+                    </div>
+                  </div>
+                  <p className="mt-2 text-xs text-slate-500" dir={isRtl ? "rtl" : "ltr"}>{isRtl ? "مفتاح الدولة المحدد: " : "Selected calling code: "}<b dir="ltr" className="inline-block text-slate-700">+{selectedCountry.dial}</b></p>
+                </div>
                 <div><div className="mb-2 flex items-center gap-2"><label className="text-sm font-semibold text-slate-700">{isRtl ? "كلمة المرور" : "Password"} <span className="text-red-500">*</span></label><FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة كلمة المرور" : "Password help"} text={isRtl ? "8 أحرف على الأقل وليست كلمة مرور شائعة (مثل 12345678 أو password1). لا يُشترط حرف كبير أو رمز — الأطول أكثر أمانًا: بضع كلمات معًا سهلة التذكر وصعبة التخمين." : "At least 8 characters and not a common password (such as 12345678 or password1). No uppercase letter or symbol is required. Longer is safer: a few words together are easy to remember and hard to guess."} /></div><div className="relative"><input type={showPassword ? "text" : "password"} autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={isRtl ? "إظهار كلمة المرور" : "Show password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>
                   <ul className="mt-2 space-y-1.5 text-xs text-slate-500">
                     <li className={hasLength ? "text-emerald-600" : ""}>{hasLength ? "✓" : "•"} {isRtl ? "8 أحرف أو أكثر" : "At least 8 characters"}</li>
