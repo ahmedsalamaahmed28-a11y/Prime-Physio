@@ -263,9 +263,9 @@ function SignupPageContent() {
                         {SIGNUP_COUNTRIES.map((country) => <option key={country.code} value={country.code}>{country.flag} {isRtl ? country.ar : country.en}</option>)}
                       </select>
                     </div>
-                    <div className="flex min-h-[46px] min-w-0 items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
+                    <div className="flex h-[46px] min-w-0 items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
                       <span className="flex h-full shrink-0 items-center border-r border-slate-200 bg-slate-50 px-3 text-sm font-semibold text-slate-600">+{selectedCountry.dial}</span>
-                      <input type="tel" inputMode="tel" autoComplete="tel-national" required value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))} placeholder={selectedCountry.example} aria-label={isRtl ? "رقم الهاتف بدون مفتاح الدولة" : "Phone number without country code"} className="h-full min-w-0 w-full bg-transparent px-3 text-sm text-slate-800 outline-none placeholder:text-slate-400" />
+                      <input type="tel" inputMode="tel" autoComplete="tel-national" required value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))} placeholder={selectedCountry.example} aria-label={isRtl ? "رقم الهاتف بدون مفتاح الدولة" : "Phone number without country code"} className="h-full min-w-0 w-full bg-transparent px-3 text-base text-slate-800 outline-none placeholder:text-slate-400" />
                     </div>
                   </div>
                   <p className="mt-2 text-xs text-slate-500" dir={isRtl ? "rtl" : "ltr"}>{isRtl ? "مفتاح الدولة المحدد: " : "Selected calling code: "}<b dir="ltr" className="inline-block text-slate-700">+{selectedCountry.dial}</b></p>
