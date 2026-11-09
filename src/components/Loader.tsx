@@ -1,32 +1,27 @@
-"use client"
+"use client";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 interface LoaderProps {
-  size?: number
-  color?: string
-  className?: string
+  size?: number;
+  color?: string;
+  className?: string;
 }
 
+/**
+ * Lightweight shimmer placeholder used in compact loading states
+ * (for example, inside buttons and small inline actions).
+ */
 export function Loader({ size = 24, color, className }: LoaderProps) {
-  const height = Math.round(size * 31.25 / 50)
+  const height = Math.max(8, Math.round(size * 31.25 / 50));
 
   return (
-    <svg
-      className={cn("loader-svg", className)}
-      x="0px" y="0px"
-      viewBox="0 0 50 31.25"
-      height={height}
-      width={size}
-      preserveAspectRatio="xMidYMid meet"
-      color={color}
-    >
-      <path className="loader-track" strokeWidth="4" fill="none" pathLength="100"
-        d="M0.625 21.5 h10.25 l3.75 -5.875 l7.375 15 l9.75 -30 l7.375 20.875 v0 h10.25"
-      />
-      <path className="loader-car" strokeWidth="4" fill="none" pathLength="100"
-        d="M0.625 21.5 h10.25 l3.75 -5.875 l7.375 15 l9.75 -30 l7.375 20.875 v0 h10.25"
-      />
-    </svg>
-  )
+    <span
+      role="presentation"
+      aria-hidden="true"
+      data-loader-color={color}
+      className={cn("shimmer-skeleton inline-block shrink-0 rounded-md align-middle", className)}
+      style={{ width: size, height }}
+    />
+  );
 }
