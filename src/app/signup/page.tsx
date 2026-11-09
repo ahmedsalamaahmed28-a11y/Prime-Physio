@@ -15,7 +15,7 @@ function FieldHelp({ text, label, isRtl }: { text: string; label: string; isRtl:
       <summary
         aria-label={label}
         title={label}
-        className="flex h-[17px] w-[17px] cursor-pointer list-none items-center justify-center rounded-full bg-[#5B50C7] text-[11px] font-extrabold leading-none text-white shadow-sm transition hover:bg-[#493EAA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B50C7] focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden"
+        className="flex h-[17px] w-[17px] cursor-pointer list-none items-center justify-center rounded-full bg-[#F1EFFF] text-[11px] font-extrabold leading-none text-[#756BCB] transition hover:bg-[#EAE6FF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#C9C2F2] focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden"
       >
         <span aria-hidden="true">?</span>
       </summary>
