@@ -121,18 +121,17 @@ function SignupPageContent() {
   const hasLength = password.length >= 8;
   const commonPasswords = new Set(["12345678", "password", "password1", "qwerty123", "123456789", "admin123"]);
   const passwordIsCommon = commonPasswords.has(password.toLowerCase());
-  const passwordVariety = [
-    /[a-z]/.test(password),
-    /[A-Z]/.test(password),
-    /[0-9]/.test(password),
-    /[^A-Za-z0-9]/.test(password),
-  ].filter(Boolean).length;
+  const hasLowercase = /[a-z]/.test(password);
+  const hasUppercase = /[A-Z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSymbol = /[^A-Za-z0-9]/.test(password);
+  const passwordVariety = [hasLowercase, hasUppercase, hasNumber, hasSymbol].filter(Boolean).length;
+  const passwordIsStrong = hasLength && passwordVariety === 4 && !passwordIsCommon;
   const passwordStrength = !password
     ? 0
     : passwordIsCommon
       ? 1
-      : Math.min(4, (hasLength ? 1 : 0) + (password.length >= 12 ? 1 : 0) + (passwordVariety >= 2 ? 1 : 0) + (password.length >= 16 && passwordVariety >= 3 ? 1 : 0));
-  const passwordIsStrong = passwordStrength >= 3 && !passwordIsCommon;
+      : Math.min(4, passwordVariety);
   const passwordStrengthLabel = passwordStrength <= 1
     ? (isRtl ? "ضعيفة" : "Weak")
     : passwordStrength === 2
@@ -337,7 +336,7 @@ function SignupPageContent() {
                     </div>
                   </div>
                 </div>
-                <div><div className="mb-1.5 flex items-center gap-2"><label className="text-[15px] font-bold leading-[22px] text-[#334155]">{isRtl ? "كلمة المرور" : "Password"} <span className="text-red-500">*</span></label><FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة كلمة المرور" : "Password help"} text={isRtl ? "8 أحرف على الأقل وليست كلمة مرور شائعة (مثل 12345678 أو password1). لا يُشترط حرف كبير أو رمز — الأطول أكثر أمانًا: بضع كلمات معًا سهلة التذكر وصعبة التخمين." : "At least 8 characters and not a common password (such as 12345678 or password1). No uppercase letter or symbol is required. Longer is safer: a few words together are easy to remember and hard to guess."} /></div><div className="relative"><input type={showPassword ? "text" : "password"} autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={isRtl ? "إظهار كلمة المرور" : "Show password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>
+                <div><div className="mb-1.5 flex items-center gap-2"><label className="text-[15px] font-bold leading-[22px] text-[#334155]">{isRtl ? "كلمة المرور" : "Password"} <span className="text-red-500">*</span></label><FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة كلمة المرور" : "Password help"} text={isRtl ? "استخدم 8 أحرف على الأقل، مع حرف صغير وحرف كبير ورقم ورمز. عند اجتماع الأنواع الأربعة معًا تصبح كلمة المرور قوية." : "Use at least 8 characters, including a lowercase letter, an uppercase letter, a number, and a symbol. Combining all four makes the password strong."} /></div><div className="relative"><input type={showPassword ? "text" : "password"} autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={isRtl ? "إظهار كلمة المرور" : "Show password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>
                   <div className="mt-3 space-y-2.5">
                     <div className="flex items-center justify-between gap-3 text-xs">
                       <span className="font-semibold text-slate-600">{isRtl ? "قوة كلمة المرور" : "Password strength"}</span>
@@ -356,7 +355,7 @@ function SignupPageContent() {
                         {isRtl ? "كلمة مرور قوية" : "Strong password"}
                       </span>
                     </div>
-                    <p className="text-xs leading-5 text-slate-500">{isRtl ? "استخدم كلمة أطول ومتنوعة، وتجنب كلمات المرور الشائعة. لا يلزم استخدام رمز أو حرف كبير تحديدًا." : "Use a longer, varied password and avoid common passwords. A symbol or uppercase letter is not specifically required."}</p>
+                    <p className="text-xs leading-5 text-slate-500">{isRtl ? "للوصول إلى كلمة مرور قوية، اجمع بين حرف صغير وحرف كبير ورقم ورمز، مع 8 أحرف على الأقل." : "For a strong password, include lowercase and uppercase letters, a number, and a symbol, with at least 8 characters."}</p>
                   </div>
                 </div>
                 <div><div className="mb-1.5 flex items-center gap-2"><label className="text-[15px] font-bold leading-[22px] text-[#334155]">{isRtl ? "تأكيد كلمة المرور" : "Confirm password"} <span className="text-red-500">*</span></label></div><div className="relative"><input type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={isRtl ? "إظهار تأكيد كلمة المرور" : "Show confirm password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></div>
