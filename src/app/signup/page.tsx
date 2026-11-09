@@ -89,6 +89,7 @@ function SignupPageContent() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
 
   const cleanEmail = useMemo(() => email.trim().toLowerCase(), [email]);
   const cleanPhone = useMemo(() => {
@@ -125,6 +126,10 @@ function SignupPageContent() {
   const requestCode = async () => {
     setError("");
     setNotice("");
+    if (!acceptedLegal) {
+      setError(isRtl ? "يجب الموافقة على شروط الاستخدام وسياسة الخصوصية للمتابعة." : "You must accept the Terms of Use and Privacy Policy to continue.");
+      return;
+    }
     if (!firstName.trim() || !lastName.trim() || !cleanEmail || !cleanPhone) {
       setError(isRtl ? "يرجى إدخال الاسم الأول واسم العائلة والبريد الإلكتروني ورقم الموبايل." : "Please enter your first name, last name, email and mobile number.");
       return;
@@ -183,7 +188,7 @@ function SignupPageContent() {
       const response = await fetch("/api/auth/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail, phone: cleanPhone, code, name: fullName, password }),
+        body: JSON.stringify({ email: cleanEmail, phone: cleanPhone, code, name: fullName, password, acceptedLegal }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || (isRtl ? "تعذر تفعيل الحساب." : "Could not activate the account."));
@@ -272,6 +277,10 @@ function SignupPageContent() {
                   </ul>
                 </div>
                 <div><div className="mb-2 flex items-center gap-2"><label className="text-sm font-semibold text-slate-700">{isRtl ? "تأكيد كلمة المرور" : "Confirm password"} <span className="text-red-500">*</span></label></div><div className="relative"><input type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={isRtl ? "إظهار تأكيد كلمة المرور" : "Show confirm password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></div>
+                <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4 text-sm leading-7 text-slate-600 transition hover:border-[#5B50C7]/40">
+                  <input type="checkbox" checked={acceptedLegal} onChange={(e) => setAcceptedLegal(e.target.checked)} required className="mt-1 h-4 w-4 shrink-0 accent-[#5B50C7]" />
+                  <span>{isRtl ? <>أوافق على <Link href="/terms" target="_blank" className="font-bold text-[#5B50C7] underline underline-offset-2">شروط الاستخدام</Link> وأقر بأنني قرأت <Link href="/privacy" target="_blank" className="font-bold text-[#5B50C7] underline underline-offset-2">سياسة الخصوصية</Link> الخاصة بـ Prime Physio.</> : <>I agree to the <Link href="/terms" target="_blank" className="font-bold text-[#5B50C7] underline underline-offset-2">Terms of Use</Link> and acknowledge that I have read the Prime Physio <Link href="/privacy" target="_blank" className="font-bold text-[#5B50C7] underline underline-offset-2">Privacy Policy</Link>.</>}</span>
+                </label>
                 <button type="submit" disabled={loading} className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#5146B8] to-[#7657D5] px-5 text-sm font-bold text-white shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60">{loading ? <Loader size={18} /> : <>{isRtl ? "إنشاء الحساب" : "Create account"} {isRtl ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}</>}</button>
               </form>
             ) : (
