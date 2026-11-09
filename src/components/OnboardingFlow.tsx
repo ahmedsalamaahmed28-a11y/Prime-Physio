@@ -562,6 +562,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
                     </span>
                   )}
                   <input id={`logo-${center.id}`} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
+                    onClick={(e) => e.stopPropagation()}
                     disabled={compressingLogoId === center.id}
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
