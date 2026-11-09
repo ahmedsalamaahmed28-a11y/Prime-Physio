@@ -269,7 +269,11 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
         // Sync NextAuth session to Supabase so RLS policies work!
         try {
-          const res = await fetch("/api/auth/supabase-session");
+          const preferredClinicId = typeof window !== "undefined" ? sessionStorage.getItem("preferred_clinic_id") : null;
+          const sessionUrl = preferredClinicId
+            ? `/api/auth/supabase-session?clinic_id=${encodeURIComponent(preferredClinicId)}`
+            : "/api/auth/supabase-session";
+          const res = await fetch(sessionUrl);
           if (res.ok) {
             const { session: supaSession } = await res.json();
             if (supaSession && active) {
@@ -310,7 +314,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         } else if (enriched.clinicId && typeof window !== "undefined" && window.location.pathname !== "/home") {
           window.location.href = "/home";
         } else if (enriched.clinicId === null && typeof window !== "undefined" && !window.location.pathname.startsWith("/setup") && window.location.pathname !== "/center-management" && window.location.pathname !== "/center-management.php") {
-          window.location.href = "/setup";
+          window.location.href = "/center-management";
         }
 
       };
@@ -349,7 +353,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       const knownPages = new Set(["home","admin","setup","login","manage","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup","center-management","home.php","rgstr.php","center-management.php"]);
       const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname) && !knownPages.has(pathname.replace("/", ""));
       if (isSlugPage) return;
-      if (pathname.startsWith("/setup") || pathname === "/plans" || pathname === "/center_setup") { if (user?.clinicId && !isEnriching) { window.location.href = user?.roleKey === "platform_admin" ? "/platform" : "/home"; } return; }
+      if (pathname === "/create-center" || pathname === "/center-management") return;
+      if (pathname.startsWith("/setup") || pathname === "/plans" || pathname === "/center_setup") { window.location.replace("/center-management"); return; }
       if (!user && status !== "authenticated") {
         // Legal documents are public and must remain accessible without an account.
         if (
@@ -370,9 +375,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       // Redirect only after enrichment has confirmed that the account has no clinic.
       // undefined means the lookup is unresolved and must not trigger an onboarding redirect.
       if (user?.clinicId === null && !user?.isPlatformAdmin && user?.email && !isEnriching) {
-        const setupPaths = ["/manage", "/signup", "/setup", "/setup/center", "/plans", "/center_setup", "/center-management", "/center-management.php"];
+        const setupPaths = ["/manage", "/signup", "/rgstr.php", "/setup", "/setup/center", "/plans", "/center_setup", "/center-management", "/center-management.php", "/create-center"];
         if (!setupPaths.includes(pathname)) {
-          window.location.href = "/center-management.php";
+          window.location.href = "/center-management";
         }
       }
     }
