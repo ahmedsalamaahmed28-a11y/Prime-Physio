@@ -119,6 +119,13 @@ async function enrichUserWithClinic(user: User): Promise<User> {
         if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
         return user;
       }
+      // A successful server-side lookup with no membership is authoritative.
+      // Do not fall through to browser queries that may fail because of RLS/session sync.
+      if (!data.clinicId && !data.roleKey && !preferredClinicId) {
+        user.clinicId = null;
+        user.isPlatformAdmin = false;
+        return user;
+      }
       if (preferredClinicId) {
         // The server confirmed that the signed-in identity has no membership in this tenant.
         if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
