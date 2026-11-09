@@ -15,7 +15,10 @@ export async function POST(req: NextRequest) {
     const password = typeof body?.password === "string" ? body.password : "";
     const name = typeof body?.name === "string" ? body.name.trim().slice(0, 120) : "";
 
-    if (!email || !/^\d{6}$/.test(code) || phone.length > 32 || password.length < 12 || password.length > 128 || !name) {
+    const phoneDigits = phone.replace(/\D/g, "");
+    const validPhone = /^\+?[0-9][0-9\s().-]*$/.test(phone) && phoneDigits.length >= 7 && phoneDigits.length <= 15;
+
+    if (!email || !/^\d{6}$/.test(code) || !validPhone || phone.length > 32 || password.length < 8 || password.length > 128 || !name) {
       return NextResponse.json({ error: "يرجى مراجعة جميع الحقول المطلوبة" }, { status: 400 });
     }
 
