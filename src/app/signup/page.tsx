@@ -278,19 +278,18 @@ function SignupPageContent() {
                     <FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة رقم الموبايل" : "Mobile number help"} text={isRtl ? "اختر الدولة أولًا، وسيظهر مفتاح الاتصال تلقائيًا. اكتب رقمك المحلي بدون مفتاح الدولة؛ سنحفظه بالصيغة الدولية." : "Choose your country first and its calling code will be added automatically. Enter your local number without the country code; we’ll save it in international format."} />
                   </div>
                   <div className="flex h-[46px] min-h-[46px] min-w-0 items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
-                    <div className="relative flex h-full shrink-0 items-center border-r border-slate-200 bg-slate-50">
+                    <div className="relative flex h-full w-[54px] shrink-0 items-center justify-center border-r border-slate-200 bg-slate-50">
                       <label htmlFor="signup-country" className="sr-only">{isRtl ? "الدولة ومفتاح الاتصال" : "Country and calling code"}</label>
-                      <span className="pointer-events-none absolute left-3 z-10 text-[17px] leading-none" aria-hidden="true">{selectedCountry.flag}</span>
+                      <span className="pointer-events-none text-[20px] leading-none" aria-hidden="true">{selectedCountry.flag}</span>
                       <select
                         id="signup-country"
                         value={countryCode}
                         onChange={(e) => setCountryCode(e.target.value)}
                         aria-label={isRtl ? "اختر الدولة" : "Select country"}
-                        className="h-full w-[112px] cursor-pointer appearance-none bg-transparent pl-9 pr-7 text-[14px] font-semibold text-slate-700 outline-none"
+                        className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
                       >
                         {SIGNUP_COUNTRIES.map((country) => <option key={country.code} value={country.code}>{country.flag} +{country.dial} · {isRtl ? country.ar : country.en}</option>)}
                       </select>
-                      <span className="pointer-events-none absolute right-2.5 text-slate-500" aria-hidden="true"><svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="currentColor"><path fillRule="evenodd" d="M5.22 7.47a.75.75 0 0 1 1.06 0L10 11.19l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" /></svg></span>
                     </div>
                     <input
                       type="tel"
