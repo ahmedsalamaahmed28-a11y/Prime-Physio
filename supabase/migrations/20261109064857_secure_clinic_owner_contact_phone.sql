@@ -38,9 +38,20 @@ returns void
 language plpgsql
 security definer
 set search_path = pg_catalog, private
-as $$
+as $
+declare
+  request_role text;
+  request_claims text;
 begin
-  if coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
+  request_role := nullif(current_setting('request.jwt.claim.role', true), '');
+  if request_role is null then
+    request_claims := nullif(current_setting('request.jwt.claims', true), '');
+    if request_claims is not null then
+      request_role := request_claims::jsonb ->> 'role';
+    end if;
+  end if;
+
+  if coalesce(request_role, '') <> 'service_role' then
     raise exception 'not authorized' using errcode = '42501';
   end if;
   if p_email is null or lower(btrim(p_email)) = '' or p_phone is null
