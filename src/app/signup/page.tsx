@@ -215,7 +215,7 @@ function SignupPageContent() {
   const labelClass = "block text-[15px] font-bold leading-[22px] text-[#334155]";
 
   return (
-    <main className="min-h-screen bg-[#f8f9fc] font-sans text-slate-800 [font-family:Cairo,system-ui,-apple-system,Segoe_UI,Tahoma,Arial,sans-serif]" dir={isRtl ? "rtl" : "ltr"}>
+    <main className="min-h-screen flex flex-col bg-[#f8f9fc] font-sans text-slate-800 [font-family:Cairo,system-ui,-apple-system,Segoe_UI,Tahoma,Arial,sans-serif]" dir={isRtl ? "rtl" : "ltr"}>
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex min-h-[76px] max-w-6xl items-center justify-between gap-5 px-5">
           <Link href="/" className="flex shrink-0 items-center gap-2.5">
@@ -231,7 +231,7 @@ function SignupPageContent() {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col lg:flex-row items-stretch px-4 py-8 sm:py-10" dir={isRtl ? "rtl" : "ltr"}>
+      <div className="flex w-full flex-1 min-h-[calc(100vh-76px)] flex-col lg:flex-row items-stretch" dir={isRtl ? "rtl" : "ltr"}>
         <section className="hidden lg:flex lg:w-1/2 relative bg-slate-900 overflow-hidden items-center justify-center">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-[#4F46BA] opacity-90" />
           <div className="relative z-10 flex flex-col items-center justify-center p-12 text-center text-white w-full max-w-lg">
