@@ -9,20 +9,38 @@ import { useAuth } from "@/lib/auth";
 export default function HomePage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
-  const { user } = useAuth();
+  const { user, isEnriching } = useAuth();
   const clinicId = user?.clinicId;
 
   const [appointments, setAppointments] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [todayIncome, setTodayIncome] = useState(0);
   const [totalPatients, setTotalPatients] = useState(0);
   const [trialInfo, setTrialInfo] = useState<{ isTrial: boolean; endDate: string | null }>({ isTrial: false, endDate: null });
 
   useEffect(() => {
-    if (clinicId === undefined) return;
+    if (clinicId === undefined) {
+      if (isEnriching) {
+        setIsLoading(true);
+        return;
+      }
+      setLoadError("تعذر التحقق من ارتباط حسابك بالعيادة. أعد تحميل الصفحة، وإذا استمرت المشكلة تواصل مع مسؤول المنصة.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (clinicId === null) {
+      setLoadError("هذا الحساب غير مرتبط بعيادة حتى الآن. أكمل إعداد العيادة أولاً.");
+      setIsLoading(false);
+      return;
+    }
+
+    let cancelled = false;
     async function fetchData() {
       try {
         setIsLoading(true);
+        setLoadError(null);
         let totalPatientsCount = 0;
         const qb = supabase.from("patients");
         const q = clinicId ? qb.select("*", { count: "exact", head: true }).eq("clinic_id", clinicId) : qb.select("*", { count: "exact", head: true });
@@ -72,6 +90,7 @@ export default function HomePage() {
         }
       } catch {
         setTodayIncome(0); setAppointments([]);
+        if (!cancelled) setLoadError("تعذر تحميل بعض بيانات الصفحة. تحقق من اتصال الإنترنت ثم أعد المحاولة.");
       }
 
       try {
@@ -87,14 +106,45 @@ export default function HomePage() {
             setTrialInfo({ isTrial: true, endDate: subData[0].end_date });
           }
         }
-      } catch {}
+      } catch {
+        if (!cancelled) setLoadError("تعذر تحميل بيانات الاشتراك حالياً.");
+      }
 
-      setIsLoading(false);
+      if (!cancelled) setIsLoading(false);
     }
     fetchData();
-  }, [clinicId]);
+    return () => { cancelled = true; };
+  }, [clinicId, isEnriching, user?.email]);
 
-  if (isLoading) return null;
+  if (isLoading) {
+    return (
+      <div className="space-y-6 animate-pulse" aria-label={isRtl ? "جاري تحميل الصفحة" : "Loading page"} aria-busy="true">
+        <div className="h-7 w-48 rounded-lg shimmer-skeleton" />
+        <div className="h-4 w-64 rounded shimmer-skeleton" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map((item) => <div key={item} className="h-28 rounded-xl shimmer-skeleton" />)}
+        </div>
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+          <div className="h-56 rounded-xl shimmer-skeleton" />
+          <div className="h-56 rounded-xl shimmer-skeleton" />
+        </div>
+        <div className="h-64 rounded-xl shimmer-skeleton" />
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="min-h-[320px] flex items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-white p-8 text-center shadow-sm" dir={isRtl ? "rtl" : "ltr"}>
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600 text-xl">!</div>
+          <h1 className="text-lg font-bold text-slate-800">{isRtl ? "تعذر تحميل الصفحة" : "Unable to load Home"}</h1>
+          <p className="mt-2 text-sm leading-7 text-slate-600">{isRtl ? loadError : "We could not resolve your clinic or load the dashboard data. Please reload and try again."}</p>
+          <button onClick={() => window.location.reload()} className="mt-5 rounded-lg bg-[#4F46BA] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#433aa3]">{isRtl ? "إعادة المحاولة" : "Try again"}</button>
+        </div>
+      </div>
+    );
+  }
 
   const totalSessions = appointments.length;
   const completedSessions = appointments.filter((a) => a.status === "منتهي").length;
