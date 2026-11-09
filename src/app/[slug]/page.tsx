@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
 import { useAuth } from "@/lib/auth";
+import { supabase } from "@/lib/supabase";
 import { Mail, Lock, Eye, EyeClosed, ArrowRight } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Loader } from "@/components/Loader";
@@ -38,15 +39,34 @@ export default function BrandedLoginPage() {
 
   const { data: session, status } = useSession();
   const { user } = useAuth();
+  const activationStarted = useRef(false);
 
   useEffect(() => {
-    if ((status === "authenticated" || user) && branch) {
-      if (branch.clinic_id) {
-        sessionStorage.setItem("preferred_clinic_id", branch.clinic_id);
+    if ((status !== "authenticated" && !user) || !branch?.clinic_id || activationStarted.current) return;
+    activationStarted.current = true;
+    sessionStorage.setItem("preferred_clinic_id", branch.clinic_id);
+
+    (async () => {
+      try {
+        const response = await fetch(`/api/auth/supabase-session?clinic_id=${encodeURIComponent(branch.clinic_id)}`, { cache: "no-store" });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || !payload.session?.access_token || !payload.session?.refresh_token) {
+          throw new Error(payload.error || "Could not activate this center session");
+        }
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: payload.session.access_token,
+          refresh_token: payload.session.refresh_token,
+        });
+        if (sessionError) throw sessionError;
+        sessionStorage.removeItem("preferred_clinic_id");
+        window.location.replace("/home");
+      } catch (activationError) {
+        activationStarted.current = false;
+        setLoginError(isRtl ? "تعذر تفعيل جلسة هذا المركز. يرجى تسجيل الدخول مرة أخرى." : "Could not activate this center session. Please sign in again.");
+        console.error("[CenterLogin] Tenant activation failed:", activationError);
       }
-      window.location.href = "/home";
-    }
-  }, [status, user, branch]);
+    })();
+  }, [status, user, branch, isRtl]);
 
   useEffect(() => {
     if (!slug) return;
@@ -89,7 +109,7 @@ export default function BrandedLoginPage() {
         sessionStorage.setItem("preferred_clinic_id", branch.clinic_id);
       }
 
-      window.location.href = "/home";
+      // The authenticated-session effect above activates the selected center before redirecting.
     } catch {
       setLoginError(isRtl ? "حدث خطأ في الاتصال" : "Connection error");
       setLoginLoading(false);
