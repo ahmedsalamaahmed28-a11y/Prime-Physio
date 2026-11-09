@@ -123,7 +123,8 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
   const clinicId = resolvedClinicId || propClinicId
 
   // Clinic form
-  const [isUploading, setIsUploading] = useState(false)\n  const [compressingLogoId, setCompressingLogoId] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [compressingLogoId, setCompressingLogoId] = useState<string | null>(null)
   const [centers, setCenters] = useState<Array<{
     id: string;
     shortName: string;
