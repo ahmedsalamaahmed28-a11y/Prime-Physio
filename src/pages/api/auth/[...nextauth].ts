@@ -102,15 +102,12 @@ export const authOptions: NextAuthOptions = {
             if (platformAdminError) return null;
 
             if (!platformAdmin) {
-              const { data: membership, error: membershipError } = await admin
-                .from("staff")
-                .select("clinic_id")
-                .eq("email", email)
-                .eq("clinic_id", requestedClinic.id)
-                .limit(1)
-                .maybeSingle();
+              const [{ data: staffMembership, error: staffMembershipError }, { data: ownerMembership, error: ownerMembershipError }] = await Promise.all([
+                admin.from("staff").select("clinic_id").eq("email", email).eq("clinic_id", requestedClinic.id).limit(1).maybeSingle(),
+                admin.from("clinic_owners").select("clinic_id").eq("owner_email", email).eq("clinic_id", requestedClinic.id).limit(1).maybeSingle(),
+              ]);
 
-              if (membershipError || !membership) return null;
+              if (staffMembershipError || ownerMembershipError || (!staffMembership && !ownerMembership)) return null;
             }
             clinicId = requestedClinic.id;
           }
