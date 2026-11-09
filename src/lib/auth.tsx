@@ -369,7 +369,14 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       if (isSlugPage) return;
       if (pathname.startsWith("/setup") || pathname === "/plans" || pathname === "/center_setup") { if (user?.clinicId && !isEnriching) { window.location.href = user?.roleKey === "platform_admin" ? "/platform" : "/home"; } return; }
       if (!user && status !== "authenticated") {
-        if (!pathname.startsWith("/manage") && pathname !== "/signup" && pathname !== "/") {
+        // Legal documents are public and must remain accessible without an account.
+        if (
+          !pathname.startsWith("/manage") &&
+          pathname !== "/signup" &&
+          pathname !== "/" &&
+          pathname !== "/privacy" &&
+          pathname !== "/terms"
+        ) {
           window.location.href = "/manage";
         }
         return;
