@@ -42,7 +42,7 @@ export default function CreateCenterPage() {
     }
     setSendingOtp(true);
     try {
-      const response = await fetch("/api/setup/send-center-otp", { method: "POST", headers: { "Content-Type": "application/json" } });
+      const response = await fetch("/api/centers/send-otp", { method: "POST", headers: { "Content-Type": "application/json" } });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "Could not send verification code");
       setOtpSent(true);
