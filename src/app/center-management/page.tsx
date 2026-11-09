@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
-  Bell, Building, HelpCircle, CreditCard, Download, Globe,
+  Bell, Building, HelpCircle, CreditCard, Download, Globe, Search, Wifi,
   LayoutDashboard, RefreshCw, Sparkles, User, Menu as MenuIcon, X
 } from "lucide-react";
 import { useState } from "react";
@@ -21,7 +21,7 @@ const menu = [
 
 export default function CenterManagementPage() {
   const { user, isLoading, isEnriching, logout } = useAuth();
-  const { language } = useLanguage();
+  const { language, toggleLanguage } = useLanguage();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isRtl = language === "ar";
@@ -80,8 +80,54 @@ export default function CenterManagementPage() {
         )}
 
         <section className="flex min-h-screen min-w-0 flex-1 flex-col">
-          <header className="flex h-[48px] shrink-0 items-center justify-end px-4 lg:hidden">
-            <button onClick={() => setMobileMenuOpen(true)} className="rounded-lg p-2 text-[#1769AA] hover:bg-slate-50" aria-label={isRtl ? "فتح القائمة" : "Open menu"}><MenuIcon className="h-5 w-5" /></button>
+          <header className="sticky top-0 z-30 flex min-h-[68px] shrink-0 items-center justify-between gap-3 border-b border-[#E8EBEF] bg-white px-4 sm:px-6" dir={isRtl ? "rtl" : "ltr"}>
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <button onClick={() => setMobileMenuOpen(true)} className="rounded-lg p-2 text-[#1769AA] transition hover:bg-[#EFF5FC] lg:hidden" aria-label={isRtl ? "فتح القائمة" : "Open menu"}>
+                <MenuIcon className="h-5 w-5" />
+              </button>
+              <div className="hidden max-w-[340px] flex-1 items-center gap-2 rounded-xl border border-[#E5EAF0] bg-[#F8FAFC] px-3 py-2 sm:flex">
+                <Search className="h-4 w-4 shrink-0 text-[#8A929C]" />
+                <input
+                  type="search"
+                  placeholder={isRtl ? "ابحث عن مركز أو مريض..." : "Search centers or patients..."}
+                  aria-label={isRtl ? "بحث" : "Search"}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" && event.currentTarget.value.trim()) {
+                      router.push(`/patients?search=${encodeURIComponent(event.currentTarget.value.trim())}`);
+                    }
+                  }}
+                  className={`w-full bg-transparent text-[13px] text-[#303846] outline-none placeholder:text-[#A0A7B0] ${isRtl ? "text-right" : "text-left"}`}
+                />
+              </div>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <span className="hidden items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-[12px] font-semibold text-emerald-700 sm:inline-flex">
+                <Wifi className="h-3.5 w-3.5" />
+                {isRtl ? "متصل" : "Online"}
+              </span>
+              <button
+                onClick={toggleLanguage}
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#1769AA]/20 bg-[#EFF5FC] px-3 text-[12px] font-bold text-[#1769AA] transition hover:bg-[#1769AA] hover:text-white"
+                aria-label={isRtl ? "Switch to English" : "التبديل إلى العربية"}
+              >
+                <Globe className="h-4 w-4" />
+                {isRtl ? "ENG" : "عربي"}
+              </button>
+              <Link href="/notifications" aria-label={isRtl ? "الإشعارات" : "Notifications"} className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#1769AA]/20 bg-white text-[#1769AA] transition hover:bg-[#1769AA] hover:text-white">
+                <Bell className="h-[18px] w-[18px]" />
+              </Link>
+              <Link href="/profile" className="flex max-w-[190px] items-center gap-2 rounded-lg border border-[#E8EBEF] bg-white px-2 py-1.5 transition hover:border-[#1769AA]/40 hover:bg-[#EFF5FC]">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1769AA] text-[12px] font-bold text-white">
+                  {(displayName.trim().charAt(0) || "A").toUpperCase()}
+                </span>
+                <span className="hidden min-w-0 text-start sm:block">
+                  <span className="block truncate text-[12px] font-bold text-[#303846]">{displayName}</span>
+                  <span className="block text-[10px] text-[#8A929C]">{isRtl ? "صاحب الحساب" : "Account owner"}</span>
+                </span>
+                <User className="hidden h-4 w-4 text-[#1769AA] sm:block" />
+              </Link>
+            </div>
           </header>
 
           <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col px-[32px] pb-[26px] pt-[40px] max-sm:px-4 max-sm:pt-7">
