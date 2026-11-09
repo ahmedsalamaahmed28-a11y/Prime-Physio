@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
 import { setAppValue } from "@/lib/appStorage";
 import { Loader } from "@/components/Loader";
-import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, CircleHelp, Eye, EyeOff, Mail, Phone, ShieldCheck, User } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, HelpCircle, Eye, EyeOff, Mail, Phone, ShieldCheck, User } from "lucide-react";
 
 
 function FieldHelp({ text, label, isRtl }: { text: string; label: string; isRtl: boolean }) {
@@ -17,7 +17,7 @@ function FieldHelp({ text, label, isRtl }: { text: string; label: string; isRtl:
         title={label}
         className="flex h-5 w-5 cursor-pointer list-none items-center justify-center rounded-full text-slate-400 transition hover:bg-[#5B50C7]/10 hover:text-[#5B50C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B50C7] [&::-webkit-details-marker]:hidden"
       >
-        <CircleHelp className="h-4 w-4" strokeWidth={1.8} />
+        <HelpCircle className="h-4 w-4" strokeWidth={1.8} />
       </summary>
       <div
         role="tooltip"
