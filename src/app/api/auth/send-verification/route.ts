@@ -15,10 +15,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "البريد الإلكتروني غير صحيح" }, { status: 400 });
     }
 
+    // Do not report a successful send when the IP limiter cannot run.
+    if (!process.env.NEXTAUTH_SECRET || process.env.NEXTAUTH_SECRET.length < 32) {
+      console.error("[SendVerification] NEXTAUTH_SECRET is missing or too short.");
+      return NextResponse.json(
+        { error: "خدمة إرسال رموز التحقق غير متاحة حاليًا. يرجى المحاولة لاحقًا." },
+        { status: 503, headers: { "Cache-Control": "no-store, private" } }
+      );
+    }
+
     const admin = getAdminClient();
     const clientIp = req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for")?.split(",").pop()?.trim() || "unknown";
     if (!(await allowOtpSendFromIp(admin, clientIp, "signup"))) {
-      return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." }, { headers: { "Cache-Control": "no-store, private" } });
+      return NextResponse.json(
+        { error: "تم تجاوز عدد محاولات إرسال رمز التحقق. انتظر قليلًا ثم حاول مرة أخرى." },
+        { status: 429, headers: { "Cache-Control": "no-store, private" } }
+      );
     }
     const { data: existing, error: lookupError } = await admin
       .from("auth_accounts")
@@ -53,7 +65,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error) {
     if (error instanceof Error && error.message === "OTP_RATE_LIMIT") {
-      return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." });
+      return NextResponse.json(
+        { error: "تم تجاوز عدد محاولات إرسال رمز التحقق لهذا البريد. انتظر قليلًا ثم أعد المحاولة." },
+        { status: 429, headers: { "Cache-Control": "no-store, private" } }
+      );
     }
     console.error("[SendVerification] Error:", error);
     return NextResponse.json({ error: "تعذر معالجة الطلب حاليًا" }, { status: 500 });
