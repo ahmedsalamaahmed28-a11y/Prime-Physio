@@ -6,7 +6,7 @@ import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
   Bell, Building, HelpCircle, CreditCard, Download, Globe,
-  LayoutDashboard, RefreshCw, Sparkles, UserRound, Menu as MenuIcon, X
+  LayoutDashboard, RefreshCw, Sparkles, User, Menu as MenuIcon, X
 } from "lucide-react";
 import { useState } from "react";
 
@@ -14,7 +14,7 @@ const menu = [
   { label: "نظرة عامة", en: "Overview", href: "/center-management", icon: LayoutDashboard },
   { label: "مراكزي", en: "My Centers", href: "/my-centers", icon: Building },
   { label: "التصدير الكامل للبيانات", en: "Full data export", href: "/center-management#export", icon: Download },
-  { label: "الحساب والاشتراك", en: "Account & subscription", href: "/subscription", icon: UserRound },
+  { label: "الحساب والاشتراك", en: "Account & subscription", href: "/subscription", icon: User },
   { label: "الباقات", en: "Plans", href: "/packages", icon: CreditCard },
   { label: "الإشعارات", en: "Notifications", href: "/notifications", icon: Bell },
 ];
