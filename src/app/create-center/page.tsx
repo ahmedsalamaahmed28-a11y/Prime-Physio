@@ -17,7 +17,7 @@ export default function CreateCenterPage() {
   const { user, isLoading, isEnriching } = useAuth();
   const { language } = useLanguage();
   const isRtl = language === "ar";
-  const [planId, setPlanId] = useState("basic");
+  const [planId, setPlanId] = useState("");
   const [shortName, setShortName] = useState("");
   const [fullName, setFullName] = useState("");
   const [slug, setSlug] = useState("");
@@ -73,6 +73,10 @@ export default function CreateCenterPage() {
     setNotice("");
     if (!user?.email) {
       setError(isRtl ? "يرجى تسجيل الدخول أولاً." : "Please sign in first.");
+      return;
+    }
+    if (!planId) {
+      setError(isRtl ? "اختر باقة الاشتراك قبل إنشاء المركز." : "Choose a subscription plan before creating the center.");
       return;
     }
     if (!/^\d{6}$/.test(otp.trim())) {
@@ -235,7 +239,7 @@ export default function CreateCenterPage() {
           {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
           {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</p>}
 
-          <button type="submit" disabled={creating || !otpSent} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#1769AA] px-6 text-sm font-extrabold text-white transition hover:bg-[#12598F] disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="submit" disabled={creating || !otpSent || !planId} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#1769AA] px-6 text-sm font-extrabold text-white transition hover:bg-[#12598F] disabled:cursor-not-allowed disabled:opacity-50">
             {creating && <Loader2 className="h-4 w-4 animate-spin" />}
             {isRtl ? "إنشاء المركز" : "Create center"}
           </button>
