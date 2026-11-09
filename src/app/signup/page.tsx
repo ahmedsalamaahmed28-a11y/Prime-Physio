@@ -256,13 +256,11 @@ function SignupPageContent() {
         </section>
         <section className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 sm:p-12 bg-white relative" dir={isRtl ? "rtl" : "ltr"}>
           <div className="w-full max-w-[440px]">
-          <div className="mb-[22px] text-center">
-            <span className="mb-3 inline-flex rounded-full bg-[#5B50C7]/10 px-3 py-1 text-xs font-bold text-[#5B50C7]">{isRtl ? "ابدأ مع Prime Physio" : "GET STARTED WITH PRIME PHYSIO"}</span>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{isRtl ? "أنشئ حسابك" : "Create your account"}</h1>
-            <p className="mt-3 text-sm leading-6 text-slate-500">{step === "details" ? (isRtl ? "أنشئ حساب مالك المركز وابدأ في تجهيز عيادتك." : "Create your clinic owner account and get your practice ready.") : (isRtl ? "الخطوة 2 من 2 · فعّل بريدك الإلكتروني للمتابعة." : "Step 2 of 2 · Verify your email to continue.")}</p>
-          </div>
-
           <div className="rounded-3xl border border-slate-200 bg-white p-[clamp(22px,4vw,36px)] shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+            <div className="mb-6 text-center">
+              <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl">{isRtl ? "أنشئ حسابك" : "Create your account"}</h1>
+              <p className="mt-3 text-sm leading-6 text-slate-500">{step === "details" ? (isRtl ? "الخطوة 1 من 2 · ثم فعّله بالكود الذي نرسله لبريدك." : "Step 1 of 2 · Then verify it with the code we send to your email.") : (isRtl ? "الخطوة 2 من 2 · فعّل بريدك الإلكتروني للمتابعة." : "Step 2 of 2 · Verify your email to continue.")}</p>
+            </div>
             {step === "verify" && <div className="mb-6 flex items-center gap-3"><div className="h-1.5 flex-1 rounded-full bg-emerald-400" /><div className="h-1.5 flex-1 rounded-full bg-[#5B50C7]" /></div>}
             {error && <div role="alert" className="mb-5 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm leading-5 text-red-700"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" /><span>{error}</span></div>}
             {notice && <div role="status" className="mb-5 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm leading-5 text-emerald-800"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /><span>{notice}</span></div>}
