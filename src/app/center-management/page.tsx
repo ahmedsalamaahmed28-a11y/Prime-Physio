@@ -8,7 +8,7 @@ import {
   Bell, Building, HelpCircle, CreditCard, Download, Globe, Search, Wifi,
   LayoutDashboard, RefreshCw, Sparkles, User, Menu as MenuIcon, X
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const menu = [
   { label: "نظرة عامة", en: "Overview", href: "/center-management", icon: LayoutDashboard },
