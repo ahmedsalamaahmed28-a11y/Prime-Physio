@@ -47,6 +47,63 @@ const PLANS = (isRtl: boolean) => [
   },
 ]
 
+const LOGO_TARGET_BYTES = 900 * 1024;
+const LOGO_MAX_DIMENSION = 1200;
+
+async function compressLogoImage(file: File): Promise<File> {
+  if (!["image/png", "image/jpeg", "image/webp"].includes(file.type.toLowerCase())) {
+    throw new Error("Please choose a PNG, JPG, or WebP image.");
+  }
+
+  if (typeof createImageBitmap !== "function") {
+    throw new Error("Your browser cannot process this image. Please try another browser.");
+  }
+
+  const bitmap = await createImageBitmap(file);
+  try {
+    let scale = Math.min(1, LOGO_MAX_DIMENSION / Math.max(bitmap.width, bitmap.height));
+    let quality = 0.82;
+    let blob: Blob | null = null;
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    if (!context) throw new Error("Could not prepare the image for compression.");
+
+    for (let attempt = 0; attempt < 10; attempt++) {
+      canvas.width = Math.max(1, Math.round(bitmap.width * scale));
+      canvas.height = Math.max(1, Math.round(bitmap.height * scale));
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+      blob = await new Promise<Blob | null>((resolve) => {
+        canvas.toBlob(resolve, "image/webp", quality);
+      });
+
+      if (!blob) throw new Error("Image compression failed. Please try another image.");
+      if (blob.size <= LOGO_TARGET_BYTES) break;
+
+      if (quality > 0.5) {
+        quality = Math.max(0.5, quality - 0.1);
+      } else {
+        scale *= 0.82;
+        quality = 0.72;
+      }
+    }
+
+    if (!blob || blob.size > 5 * 1024 * 1024) {
+      throw new Error("This image is too large to process. Please choose a smaller image.");
+    }
+
+    const baseName = file.name.replace(/\\.[^.]+$/, "") || "center-logo";
+    return new File([blob], `${baseName}.webp`, {
+      type: "image/webp",
+      lastModified: Date.now(),
+    });
+  } finally {
+    bitmap.close();
+  }
+}
+
 interface Props {
   step: "plan" | "clinic" | "done"
   setStep: (s: "plan" | "clinic" | "done") => void
@@ -66,7 +123,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
   const clinicId = resolvedClinicId || propClinicId
 
   // Clinic form
-  const [isUploading, setIsUploading] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)\n  const [compressingLogoId, setCompressingLogoId] = useState<string | null>(null)
   const [centers, setCenters] = useState<Array<{
     id: string;
     shortName: string;
@@ -495,18 +552,33 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
                     <div className="flex flex-col items-center gap-2">
                       <Upload className="w-8 h-8 text-slate-300" />
                       <span className="text-xs text-slate-400">{isRtl ? "اضغط لرفع شعار المركز" : "Click to upload clinic logo"}</span>
-                      <span className="text-[10px] text-slate-300">{isRtl ? "PNG, JPG — حد أقصى 2 ميجابايت" : "PNG, JPG — Max 2MB"}</span>
+                      <span className="text-[10px] text-slate-300">{isRtl ? "PNG أو JPG أو WebP — سيتم ضغط الصورة تلقائياً مهما كان حجمها المعتاد" : "PNG, JPG or WebP — automatically compressed on selection"}</span>
                     </div>
                   )}
-                  <input id={`logo-${center.id}`} type="file" accept="image/*" className="hidden"
-                    onChange={(e) => {
+                  {compressingLogoId === center.id && (
+                    <span className="mt-2 block text-[11px] font-medium text-[#4F46BA]">
+                      {isRtl ? "جاري تجهيز وضغط الصورة..." : "Preparing and compressing image..."}
+                    </span>
+                  )}
+                  <input id={`logo-${center.id}`} type="file" accept="image/png,image/jpeg,image/webp" className="hidden"
+                    disabled={compressingLogoId === center.id}
+                    onChange={async (e) => {
                       const file = e.target.files?.[0];
+                      e.target.value = "";
                       if (!file) return;
-                      if (!file.type.startsWith("image/")) { setError(isRtl ? "الرجاء اختيار صورة" : "Please select an image"); return; }
-                      if (file.size > 2 * 1024 * 1024) { setError(isRtl ? "حجم الصورة يجب أن لا يتجاوز 2 ميجابايت" : "Image must be under 2MB"); return; }
-                      updateCenter(center.id, "logoFile", file);
-                      updateCenter(center.id, "logoPreview", URL.createObjectURL(file));
+
                       setError("");
+                      setCompressingLogoId(center.id);
+                      try {
+                        const compressedFile = await compressLogoImage(file);
+                        if (center.logoPreview.startsWith("blob:")) URL.revokeObjectURL(center.logoPreview);
+                        updateCenter(center.id, "logoFile", compressedFile);
+                        updateCenter(center.id, "logoPreview", URL.createObjectURL(compressedFile));
+                      } catch (compressionError: any) {
+                        setError(compressionError?.message || (isRtl ? "تعذر ضغط الصورة. جرب صورة أخرى." : "Could not compress this image. Please try another one."));
+                      } finally {
+                        setCompressingLogoId(null);
+                      }
                     }}
                   />
                 </div>
