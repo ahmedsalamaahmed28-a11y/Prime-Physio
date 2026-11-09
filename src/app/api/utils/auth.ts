@@ -12,6 +12,7 @@ export interface AuthUser {
 function mapStaffRoleToRoleKey(role: string): "admin" | "doctor" | "receptionist" | "unknown" {
   switch (role) {
     case "admin":
+    case "clinic_admin":
     case "مدير العياده":
     case "مدير العيادة":
       return "admin";
@@ -28,75 +29,110 @@ function mapStaffRoleToRoleKey(role: string): "admin" | "doctor" | "receptionist
   }
 }
 
+function parseAuthCookie(req: NextRequest): string | null {
+  const cookies = req.cookies.getAll();
+  const tokenCookies = cookies.filter((cookie) => cookie.name.startsWith("sb-") && cookie.name.includes("-auth-token"));
+  const grouped: Record<string, typeof cookies> = {};
+  for (const cookie of tokenCookies) {
+    const base = cookie.name.replace(/\.\d+$/, "");
+    if (!grouped[base]) grouped[base] = [];
+    grouped[base].push(cookie);
+  }
+  for (const base of Object.keys(grouped)) {
+    const group = grouped[base].sort((a, b) => a.name.localeCompare(b.name));
+    let raw = group.map((cookie) => cookie.value).join("");
+    try {
+      if (raw.startsWith("base64-")) raw = Buffer.from(raw.slice(7), "base64").toString("utf-8");
+      const parsed = JSON.parse(raw);
+      if (typeof parsed?.access_token === "string") return parsed.access_token;
+    } catch {
+      // Ignore malformed cookie values.
+    }
+  }
+  return null;
+}
+
 export async function requireAuth(req: NextRequest): Promise<AuthUser> {
-  // 1. Try NextAuth session (Google OAuth users)
   try {
     const session = await getServerSession(authOptions);
     if (session?.user?.email) {
-      return { email: session.user.email.trim().toLowerCase(), userId: undefined };
+      return {
+        email: session.user.email.trim().toLowerCase(),
+        userId: typeof session.user.id === "string" ? session.user.id : undefined,
+        clinicId: typeof (session.user as any).clinicId === "string" ? (session.user as any).clinicId : undefined,
+      };
     }
   } catch (err) {
     console.error("[auth] NextAuth session error:", err);
   }
 
-  // 2. Try Supabase session cookie (email/password users)
-  try {
-    const cookies = req.cookies.getAll();
-    const tokenCookies = cookies.filter(c => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
-    const groupedCookies: Record<string, typeof cookies> = {};
-
-    for (const cookie of tokenCookies) {
-      const baseName = cookie.name.replace(/\.\d+$/, "");
-      if (!groupedCookies[baseName]) groupedCookies[baseName] = [];
-      groupedCookies[baseName].push(cookie);
-    }
-
-    for (const baseName in groupedCookies) {
-      const group = groupedCookies[baseName].sort((a, b) => a.name.localeCompare(b.name));
-      let tokenValue = group.map(c => c.value).join("");
-
-      try {
-        if (tokenValue.startsWith("base64-")) {
-          tokenValue = Buffer.from(tokenValue.slice("base64-".length), "base64").toString("utf-8");
-        }
-        const parsed = JSON.parse(tokenValue);
-        if (typeof parsed?.access_token !== "string") continue;
-
-        const { data: { user }, error } = await getAdminClient().auth.getUser(parsed.access_token);
-        if (
-          !error &&
-          user?.email &&
-          (user.email_confirmed_at || user.confirmed_at) &&
-          user.app_metadata?.auth_source !== "nextauth-shadow"
-        ) {
-          return { email: user.email.trim().toLowerCase(), userId: user.id };
-        }
-      } catch {
-        // Ignore malformed cookie groups and continue checking other supported sessions.
+  const admin = getAdminClient();
+  const cookieToken = parseAuthCookie(req);
+  if (cookieToken) {
+    try {
+      const { data: { user }, error } = await admin.auth.getUser(cookieToken);
+      if (!error && user?.email && (user.email_confirmed_at || user.confirmed_at) && user.app_metadata?.auth_source !== "nextauth-shadow") {
+        return {
+          email: user.email.trim().toLowerCase(),
+          userId: user.id,
+          clinicId: typeof user.app_metadata?.active_clinic_id === "string" ? user.app_metadata.active_clinic_id : undefined,
+        };
       }
+    } catch {
+      // Continue to supported bearer-token authentication.
     }
-  } catch (err) {
-    console.error("[auth] Supabase cookie error:", err);
   }
 
-  // 3. Try Authorization header (programmatic access)
   const authHeader = req.headers.get("authorization");
   if (authHeader?.startsWith("Bearer ")) {
     const token = authHeader.slice(7).trim();
     if (token) {
-      const { data: { user }, error } = await getAdminClient().auth.getUser(token);
-      if (
-        !error &&
-        user?.email &&
-        (user.email_confirmed_at || user.confirmed_at) &&
-        user.app_metadata?.auth_source !== "nextauth-shadow"
-      ) {
-        return { email: user.email.trim().toLowerCase(), userId: user.id };
+      const { data: { user }, error } = await admin.auth.getUser(token);
+      if (!error && user?.email && (user.email_confirmed_at || user.confirmed_at) && user.app_metadata?.auth_source !== "nextauth-shadow") {
+        return {
+          email: user.email.trim().toLowerCase(),
+          userId: user.id,
+          clinicId: typeof user.app_metadata?.active_clinic_id === "string" ? user.app_metadata.active_clinic_id : undefined,
+        };
       }
     }
   }
 
   throw new Error("Unauthorized");
+}
+
+async function resolveActiveClinicId(req: NextRequest, authed: AuthUser, admin: ReturnType<typeof getAdminClient>) {
+  let clinicId = authed.clinicId || null;
+  const token = parseAuthCookie(req);
+  if (token) {
+    const { data: { user }, error } = await admin.auth.getUser(token);
+    if (!error && user?.email?.toLowerCase() === authed.email.toLowerCase()) {
+      const claim = user.app_metadata?.active_clinic_id;
+      if (typeof claim === "string") clinicId = claim;
+    }
+  }
+  if (clinicId) return clinicId;
+
+  const { data: owners, error: ownerError } = await admin
+    .from("clinic_owners")
+    .select("clinic_id")
+    .eq("owner_email", authed.email);
+  if (ownerError) throw new Error("Unable to verify center ownership");
+  const ownerIds = [...new Set((owners || []).map((row) => row.clinic_id).filter(Boolean))];
+  if (ownerIds.length === 1) return ownerIds[0];
+  if (ownerIds.length > 1) throw new Error("Select a center before continuing");
+
+  const { data: staffRows, error: staffError } = await admin
+    .from("staff")
+    .select("clinic_id")
+    .eq("email", authed.email)
+    .not("clinic_id", "is", null)
+    .not("status", "in", '("محذوف","deleted","inactive","غير نشط")');
+  if (staffError) throw new Error("Unable to verify staff membership");
+  const staffIds = [...new Set((staffRows || []).map((row) => row.clinic_id).filter(Boolean))];
+  if (staffIds.length === 1) return staffIds[0];
+  if (staffIds.length > 1) throw new Error("Select a center before continuing");
+  return null;
 }
 
 export async function requireRole(
@@ -119,30 +155,41 @@ export async function requireRole(
       console.error("[auth] Platform-admin lookup failed:", platformAdminError);
       throw new Error("Unable to verify account permissions");
     }
+    if (platformAdmin) return { ...authed, roleKey: "platform_admin" };
+  }
 
-    if (platformAdmin) {
-      return { ...authed, roleKey: "platform_admin" };
-    }
+  const clinicId = await resolveActiveClinicId(req, authed, admin);
+  if (!clinicId) throw new Error("يجب اختيار مركز قبل متابعة العملية");
+
+  const { data: ownerMembership, error: ownerError } = await admin
+    .from("clinic_owners")
+    .select("clinic_id")
+    .eq("owner_email", email)
+    .eq("clinic_id", clinicId)
+    .maybeSingle();
+
+  if (ownerError) {
+    console.error("[auth] Owner membership lookup failed:", ownerError);
+    throw new Error("Unable to verify account permissions");
+  }
+  if (ownerMembership) {
+    if (!allowedRoles.includes("admin")) throw new Error("غير مصرح — صلاحية غير كافية");
+    return { ...authed, roleKey: "admin", clinicId };
   }
 
   const { data: staff, error: staffError } = await admin
     .from("staff")
     .select("role, clinic_id, status")
     .eq("email", email)
-    .limit(1)
+    .eq("clinic_id", clinicId)
     .maybeSingle();
 
-  // Fail closed: a database error must never be treated as a missing/valid membership.
   if (staffError) {
     console.error("[auth] Staff-role lookup failed:", staffError);
     throw new Error("Unable to verify account permissions");
   }
-
-  if (!staff || ["محذوف", "deleted"].includes(String(staff.status || "").trim().toLowerCase())) {
-    if (allowedRoles.includes("platform_admin")) {
-      throw new Error("Unauthorized — you are not a platform admin");
-    }
-    throw new Error("لم يتم العثور على حساب موظف نشط");
+  if (!staff || ["محذوف", "deleted", "inactive", "غير نشط"].includes(String(staff.status || "").trim().toLowerCase())) {
+    throw new Error("لم يتم العثور على عضوية نشطة لهذا المركز");
   }
 
   const roleKey = mapStaffRoleToRoleKey(staff.role);
@@ -150,7 +197,7 @@ export async function requireRole(
     throw new Error("غير مصرح — صلاحية غير كافية");
   }
 
-  return { ...authed, roleKey, clinicId: staff.clinic_id };
+  return { ...authed, roleKey, clinicId };
 }
 
 export async function requireAuthOnly(req: NextRequest): Promise<AuthUser> {
