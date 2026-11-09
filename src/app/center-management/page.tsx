@@ -21,7 +21,7 @@ const menu = [
 
 export default function CenterManagementPage() {
   const { user, isLoading, isEnriching, logout } = useAuth();
-  const { language, toggleLanguage } = useLanguage();
+  const { language } = useLanguage();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const isRtl = language === "ar";
@@ -82,7 +82,9 @@ export default function CenterManagementPage() {
         <section className="flex min-h-screen min-w-0 flex-1 flex-col">
           <header className="flex h-[48px] shrink-0 items-center justify-end px-4 lg:hidden">
             <button onClick={() => setMobileMenuOpen(true)} className="rounded-lg p-2 text-[#1769AA] hover:bg-slate-50" aria-label={isRtl ? "فتح القائمة" : "Open menu"}><MenuIcon className="h-5 w-5" /></button>
-          </header>          <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col px-[32px] pb-[26px] pt-[40px] max-sm:px-4 max-sm:pt-7">
+          </header>
+
+          <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col px-[32px] pb-[26px] pt-[40px] max-sm:px-4 max-sm:pt-7">
             <div className="mb-[24px] flex min-h-[75px] items-center justify-between gap-5 max-sm:flex-col max-sm:items-stretch">
               <div className="order-2 flex items-center gap-[13px] max-sm:order-2">
                 <Link href="/my-centers" className="inline-flex h-[40px] items-center gap-[8px] rounded-full bg-[#1769AA] px-[17px] text-[14px] font-bold text-white shadow-[0_4px_12px_rgba(23,105,170,.18)] transition hover:bg-[#12598F]">
