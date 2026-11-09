@@ -269,7 +269,7 @@ function SignupPageContent() {
 
             {step === "details" ? (
               <form onSubmit={handleDetails} className="mt-[22px] grid gap-4">
-                <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-2 gap-4">
                   <div><div className="mb-1.5 flex items-center gap-2"><label className={labelClass}>{isRtl ? "الاسم الأول" : "First name"} <span className="text-red-500">*</span></label></div><div className="relative"><User className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input autoComplete="given-name" required value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass + (isRtl ? " pr-10" : " pl-10")} /></div></div>
                   <div><div className="mb-1.5 flex items-center gap-2"><label className="text-sm font-semibold leading-5 text-[#334155]">{isRtl ? "اسم العائلة" : "Last name"} <span className="text-red-500">*</span></label></div><input autoComplete="family-name" required value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} /></div>
                 </div>
