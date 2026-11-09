@@ -44,7 +44,10 @@ export async function POST(req: NextRequest) {
       } catch (cleanupError) {
         console.error("[SendVerification] Failed to clear unsent code:", cleanupError);
       }
-      return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." });
+      return NextResponse.json(
+        { error: "تعذر إرسال رمز التفعيل إلى بريدك حاليًا. لم يتم إرسال الرسالة؛ يرجى المحاولة لاحقًا." },
+        { status: 502, headers: { "Cache-Control": "no-store, private" } }
+      );
     }
 
     return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." }, { headers: { "Cache-Control": "no-store, private" } });
