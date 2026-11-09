@@ -7,7 +7,6 @@ import { signIn } from "next-auth/react";
 import { setAppValue } from "@/lib/appStorage";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
-import OnboardingFlow from "@/components/OnboardingFlow";
 
 import { cn } from "@/lib/utils"
 import { GradientCheckbox } from "@/components/ui/checkbox"
@@ -44,8 +43,6 @@ function ManageContent() {
   const searchParams = useSearchParams();
   const clinicSlug = (searchParams?.get("clinic_slug") || "").trim().toLowerCase();
   const { user, isLoading: authLoading, isEnriching } = useAuth();
-  const isOnboarding = searchParams?.get("onboard") === "1";
-  const [onboardStep, setOnboardStep] = useState<"plan" | "clinic" | "done">("plan");
 
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -255,10 +252,6 @@ function ManageContent() {
       setIsLoading(false);
     }
   };
-
-  if (isOnboarding) {
-    return <OnboardingFlow step={onboardStep} setStep={setOnboardStep} clinicId={user?.clinicId} isRtl={isRtl} />;
-  }
 
   return (
     <>
