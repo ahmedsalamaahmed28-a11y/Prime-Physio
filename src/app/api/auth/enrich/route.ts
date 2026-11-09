@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
-      return NextResponse.json({ clinicId: null, role: null }, { headers: { "Cache-Control": "no-store, private" } });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: { "Cache-Control": "no-store, private" } });
     }
 
     const { searchParams } = new URL(req.url);
