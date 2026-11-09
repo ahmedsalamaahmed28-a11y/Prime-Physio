@@ -24,6 +24,26 @@ export default function CenterManagementPage() {
   const { language, toggleLanguage } = useLanguage();
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [centers, setCenters] = useState<Array<{id:string;name:string;slug:string|null;loginUrl:string|null;status:string;logoUrl:string|null;planName:string|null;subscriptionStatus:string}>>([]);
+  const [centersLoading, setCentersLoading] = useState(true);
+  const [centersError, setCentersError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/center-management/centers", { cache: "no-store" })
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "Could not load centers");
+        if (active) setCenters(Array.isArray(data.centers) ? data.centers : []);
+      })
+      .catch((error) => {
+        if (active) setCentersError(error instanceof Error ? error.message : "Could not load centers");
+      })
+      .finally(() => {
+        if (active) setCentersLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
   const isRtl = language === "ar";
   const displayName = user?.name?.replace(/^د\\.\\s*/, "").trim() || user?.email?.split("@")[0] || (isRtl ? "صاحب الحساب" : "Account owner");
   const monthLabel = new Intl.DateTimeFormat(isRtl ? "ar-EG" : "en-US", { month: "long", year: "numeric" }).format(new Date());
@@ -32,7 +52,7 @@ export default function CenterManagementPage() {
     return <main className="flex min-h-screen items-center justify-center bg-white"><div className="h-9 w-9 animate-spin rounded-full border-4 border-[#1769AA] border-t-transparent" /></main>;
   }
 
-  const startSetup = () => router.push("/manage?onboard=1");
+  const startSetup = () => router.push("/create-center");
   const sidebar = (
     <>
       <Link href="/home.php" onClick={() => setMobileMenuOpen(false)} className="mb-[26px] flex h-[42px] w-full items-center justify-start gap-[9px] px-[2px]">
@@ -147,11 +167,47 @@ export default function CenterManagementPage() {
               </div>
             </div>
 
-            <section className="flex min-h-[328px] w-full flex-col items-center justify-center rounded-[19px] border border-dashed border-[#E6E9ED] bg-white px-5 py-10 text-center">
-              <Building className="mb-[15px] h-[43px] w-[43px] text-[#245B91]" strokeWidth={2.1} />
-              <h2 className="text-[21px] font-extrabold leading-[1.5] text-[#303846]">{isRtl ? "جهز مركزك الأول" : "Set up your first center"}</h2>
-              <p className="mt-[4px] max-w-[440px] text-[15px] leading-[29px] text-[#9299A2]">{isRtl ? "بعد إنشاء مركزك ستُعرض في هذه الصفحة كل فروعك، الجلسات والحضور والإيرادات والفريق." : "Once you create a center, this page will show all your branches, sessions, attendance, revenue and team."}</p>
-              <button onClick={startSetup} className="mt-[16px] inline-flex h-[46px] items-center justify-center rounded-full bg-[#1769AA] px-[27px] text-[14px] font-extrabold text-white shadow-[0_5px_14px_rgba(23,105,170,.2)] transition hover:bg-[#12598F]">{isRtl ? "اختر باقة أولاً" : "Choose a plan first"}</button>
+            <section className="w-full">
+              <div className="mb-5 flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-[20px] font-extrabold text-[#202B38]">{isRtl ? "المراكز التابعة لحسابك" : "Your independent centers"}</h2>
+                  <p className="mt-1 text-[13px] text-[#9299A2]">{isRtl ? "كل مركز له رابط دخول وبيانات واشتراك مستقل." : "Each center has its own login URL, data and subscription."}</p>
+                </div>
+                <button onClick={startSetup} className="inline-flex h-[42px] shrink-0 items-center justify-center rounded-full bg-[#1769AA] px-5 text-[13px] font-extrabold text-white transition hover:bg-[#12598F]">{isRtl ? "+ إنشاء مركز" : "+ Create center"}</button>
+              </div>
+              {centersLoading ? (
+                <div className="flex min-h-[220px] items-center justify-center rounded-[18px] border border-[#E8EBEF] bg-white">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1769AA] border-t-transparent" />
+                </div>
+              ) : centersError ? (
+                <div className="rounded-[18px] border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">{centersError}</div>
+              ) : centers.length === 0 ? (
+                <div className="flex min-h-[300px] w-full flex-col items-center justify-center rounded-[19px] border border-dashed border-[#E6E9ED] bg-white px-5 py-10 text-center">
+                  <Building className="mb-[15px] h-[43px] w-[43px] text-[#245B91]" strokeWidth={2.1} />
+                  <h3 className="text-[21px] font-extrabold leading-[1.5] text-[#303846]">{isRtl ? "لم تنشئ أي مركز بعد" : "You haven't created a center yet"}</h3>
+                  <p className="mt-[4px] max-w-[440px] text-[15px] leading-[29px] text-[#9299A2]">{isRtl ? "اختر الباقة المناسبة ثم أنشئ مركزك الأول. ستظهر روابط جميع مراكزك هنا." : "Choose a plan and create your first center. All your center links will appear here."}</p>
+                  <button onClick={startSetup} className="mt-[16px] inline-flex h-[46px] items-center justify-center rounded-full bg-[#1769AA] px-[27px] text-[14px] font-extrabold text-white shadow-[0_5px_14px_rgba(23,105,170,.2)] transition hover:bg-[#12598F]">{isRtl ? "اختر باقة وأنشئ مركزك" : "Choose a plan and create a center"}</button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {centers.map((center) => (
+                    <article key={center.id} className="rounded-[18px] border border-[#E8EBEF] bg-white p-5 shadow-[0_2px_10px_rgba(20,45,70,.03)]">
+                      <div className="flex items-center gap-3">
+                        {center.logoUrl ? <img src={center.logoUrl} alt="" className="h-12 w-12 rounded-xl border border-[#E8EBEF] object-contain" /> : <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#EFF5FC] text-[#1769AA]"><Building className="h-6 w-6" /></div>}
+                        <div className="min-w-0 flex-1">
+                          <h3 className="truncate text-[16px] font-extrabold text-[#263442]">{center.name}</h3>
+                          <p className="mt-1 truncate text-[12px] text-[#8A929C]">{center.slug ? `primephysio.vercel.app/${center.slug}` : "URL not assigned"}</p>
+                        </div>
+                      </div>
+                      <div className="mt-4 flex items-center justify-between border-t border-[#F0F2F4] pt-3 text-[12px]">
+                        <span className="text-[#7B8490]">{isRtl ? "الباقة" : "Plan"}: <strong className="text-[#303846]">{center.planName || (isRtl ? "لم تُفعّل بعد" : "Not activated")}</strong></span>
+                        <span className={center.subscriptionStatus === "active" ? "font-bold text-emerald-700" : "font-bold text-amber-700"}>{center.subscriptionStatus === "active" ? (isRtl ? "نشط" : "Active") : (isRtl ? "قيد التفعيل" : "Pending")}</span>
+                      </div>
+                      {center.loginUrl && <Link href={center.loginUrl} className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-full bg-[#1769AA] text-[13px] font-bold text-white transition hover:bg-[#12598F]">{isRtl ? "فتح المركز" : "Open center"}</Link>}
+                    </article>
+                  ))}
+                </div>
+              )}
             </section>
           </div>
 
