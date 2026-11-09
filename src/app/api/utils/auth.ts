@@ -56,10 +56,21 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
   try {
     const session = await getServerSession(authOptions);
     if (session?.user?.email) {
+      const email = session.user.email.trim().toLowerCase();
+      let clinicId = typeof (session.user as any).clinicId === "string" ? (session.user as any).clinicId : undefined;
+      const shadowToken = parseAuthCookie(req);
+      if (shadowToken) {
+        const { data: { user }, error } = await getAdminClient().auth.getUser(shadowToken);
+        if (!error && user?.email?.toLowerCase() === email && user.app_metadata?.auth_source === "nextauth-shadow") {
+          const activeClinicId = user.app_metadata?.active_clinic_id;
+          if (typeof activeClinicId === "string") clinicId = activeClinicId;
+          else if (activeClinicId === null) clinicId = undefined;
+        }
+      }
       return {
-        email: session.user.email.trim().toLowerCase(),
+        email,
         userId: typeof session.user.id === "string" ? session.user.id : undefined,
-        clinicId: typeof (session.user as any).clinicId === "string" ? (session.user as any).clinicId : undefined,
+        clinicId,
       };
     }
   } catch (err) {
