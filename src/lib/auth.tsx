@@ -106,7 +106,7 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     }
     if (res.ok) {
       const data = await res.json();
-      if (data.clinicId || data.roleKey === "platform_admin") {
+      if (data.clinicId || data.roleKey) {
         user.clinicId = data.clinicId;
         user.roleKey = data.roleKey as User["roleKey"];
         user.role = data.roleAr;
@@ -313,7 +313,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           window.location.href = "/platform";
         } else if (enriched.clinicId && typeof window !== "undefined" && window.location.pathname !== "/home") {
           window.location.href = "/home";
-        } else if (enriched.clinicId === null && typeof window !== "undefined" && !window.location.pathname.startsWith("/setup") && window.location.pathname !== "/center-management" && window.location.pathname !== "/center-management.php") {
+        } else if (enriched.clinicId === null && typeof window !== "undefined" && !window.location.pathname.startsWith("/setup") && window.location.pathname !== "/center-management" && window.location.pathname !== "/center-management.php" && pathname !== "/create-center") {
           window.location.href = "/center-management";
         }
 
