@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
     const code = typeof body?.code === "string" ? body.code.trim() : "";
     const name = typeof body?.name === "string" ? body.name.trim().slice(0, 160) : "";
     const centers = Array.isArray(body?.centers) ? body.centers : null;
+    const planId = typeof body?.planId === "string" ? body.planId.trim().toLowerCase() : null;
 
     if (!/^\d{6}$/.test(code) || !name || !centers || centers.length < 1 || centers.length > 5) {
       return NextResponse.json(
@@ -36,6 +37,7 @@ export async function POST(req: NextRequest) {
       p_email: email,
       p_name: name,
       p_centers: centers,
+      p_plan_id: planId,
       p_code_hash: codeHash,
     });
 
