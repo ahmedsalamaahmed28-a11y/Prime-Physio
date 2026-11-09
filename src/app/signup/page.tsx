@@ -119,7 +119,29 @@ function SignupPageContent() {
   }, [email]);
   const fullName = useMemo(() => (firstName.trim() + " " + lastName.trim()).trim(), [firstName, lastName]);
   const hasLength = password.length >= 8;
-  const passwordReady = hasLength;
+  const commonPasswords = new Set(["12345678", "password", "password1", "qwerty123", "123456789", "admin123"]);
+  const passwordIsCommon = commonPasswords.has(password.toLowerCase());
+  const passwordVariety = [
+    /[a-z]/.test(password),
+    /[A-Z]/.test(password),
+    /[0-9]/.test(password),
+    /[^A-Za-z0-9]/.test(password),
+  ].filter(Boolean).length;
+  const passwordStrength = !password
+    ? 0
+    : passwordIsCommon
+      ? 1
+      : Math.min(4, (hasLength ? 1 : 0) + (password.length >= 12 ? 1 : 0) + (passwordVariety >= 2 ? 1 : 0) + (password.length >= 16 && passwordVariety >= 3 ? 1 : 0));
+  const passwordIsStrong = passwordStrength >= 3 && !passwordIsCommon;
+  const passwordStrengthLabel = passwordStrength <= 1
+    ? (isRtl ? "ضعيفة" : "Weak")
+    : passwordStrength === 2
+      ? (isRtl ? "متوسطة" : "Fair")
+      : passwordStrength === 3
+        ? (isRtl ? "جيدة" : "Good")
+        : (isRtl ? "قوية" : "Strong");
+  const passwordStrengthColor = passwordStrength <= 1 ? "bg-red-500" : passwordStrength === 2 ? "bg-amber-500" : passwordStrength === 3 ? "bg-lime-500" : "bg-emerald-500";
+  const passwordReady = hasLength && !passwordIsCommon;
 
   const isValidPhone = (value: string) => /^\+[1-9]\d{6,14}$/.test(value);
 
@@ -278,7 +300,7 @@ function SignupPageContent() {
                     <FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة رقم الموبايل" : "Mobile number help"} text={isRtl ? "اختر الدولة أولًا، وسيظهر مفتاح الاتصال تلقائيًا. اكتب رقمك المحلي بدون مفتاح الدولة؛ سنحفظه بالصيغة الدولية." : "Choose your country first and its calling code will be added automatically. Enter your local number without the country code; we’ll save it in international format."} />
                   </div>
                   <div className="flex h-[46px] min-h-[46px] min-w-0 items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
-                    <div className="relative flex h-full w-[64px] shrink-0 items-center justify-center gap-2 bg-transparent">
+                    <div className="relative flex h-full w-[60px] shrink-0 items-center justify-center gap-1 bg-transparent">
                       <label htmlFor="signup-country" className="sr-only">{isRtl ? "اختيار الدولة" : "Select country"}</label>
                       <img
                         src={`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png`}
@@ -299,8 +321,8 @@ function SignupPageContent() {
                         {SIGNUP_COUNTRIES.map((country) => <option key={country.code} value={country.code}>+{country.dial} · {isRtl ? country.ar : country.en}</option>)}
                       </select>
                     </div>
-                    <div className="flex h-full min-w-0 flex-1 items-center pl-3">
-                      <span className="mr-3 shrink-0 whitespace-nowrap text-[16px] font-normal leading-[24px] text-slate-800" aria-label={isRtl ? "مفتاح الدولة" : "Country calling code"}>+{selectedCountry.dial}</span>
+                    <div className="flex h-full min-w-0 flex-1 items-center pl-1">
+                      <span className="mr-2 shrink-0 whitespace-nowrap text-[16px] font-normal leading-[24px] text-slate-800" aria-label={isRtl ? "مفتاح الدولة" : "Country calling code"}>+{selectedCountry.dial}</span>
                       <input
                         type="tel"
                         inputMode="tel"
@@ -316,10 +338,26 @@ function SignupPageContent() {
                   </div>
                 </div>
                 <div><div className="mb-1.5 flex items-center gap-2"><label className="text-[15px] font-bold leading-[22px] text-[#334155]">{isRtl ? "كلمة المرور" : "Password"} <span className="text-red-500">*</span></label><FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة كلمة المرور" : "Password help"} text={isRtl ? "8 أحرف على الأقل وليست كلمة مرور شائعة (مثل 12345678 أو password1). لا يُشترط حرف كبير أو رمز — الأطول أكثر أمانًا: بضع كلمات معًا سهلة التذكر وصعبة التخمين." : "At least 8 characters and not a common password (such as 12345678 or password1). No uppercase letter or symbol is required. Longer is safer: a few words together are easy to remember and hard to guess."} /></div><div className="relative"><input type={showPassword ? "text" : "password"} autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={isRtl ? "إظهار كلمة المرور" : "Show password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>
-                  <ul className="mt-2 space-y-1.5 text-xs text-slate-500">
-                    <li className={hasLength ? "text-emerald-600" : ""}>{hasLength ? "✓" : "•"} {isRtl ? "8 أحرف أو أكثر" : "At least 8 characters"}</li>
-                    <li>{isRtl ? "تُرفض كلمات المرور الشائعة أو التي ظهرت في تسريبات سابقة." : "Common or previously breached passwords are rejected."}</li>
-                  </ul>
+                  <div className="mt-3 space-y-2.5">
+                    <div className="flex items-center justify-between gap-3 text-xs">
+                      <span className="font-semibold text-slate-600">{isRtl ? "قوة كلمة المرور" : "Password strength"}</span>
+                      <span className={passwordStrength <= 1 ? "font-semibold text-red-600" : passwordStrength === 2 ? "font-semibold text-amber-600" : passwordStrength === 3 ? "font-semibold text-lime-700" : "font-semibold text-emerald-600"}>{password ? passwordStrengthLabel : (isRtl ? "لم تُدخل بعد" : "Not entered")}</span>
+                    </div>
+                    <div className="grid grid-cols-4 gap-1.5" role="meter" aria-label={isRtl ? "مؤشر قوة كلمة المرور" : "Password strength meter"} aria-valuemin={0} aria-valuemax={4} aria-valuenow={passwordStrength}>
+                      {[1, 2, 3, 4].map((level) => <span key={level} className={`h-1.5 rounded-full transition-colors ${passwordStrength >= level ? passwordStrengthColor : "bg-slate-200"}`} />)}
+                    </div>
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-500">
+                      <span className={`inline-flex items-center gap-1.5 ${hasLength ? "font-medium text-emerald-600" : ""}`}>
+                        <span className={`flex h-4 w-4 items-center justify-center rounded-full border ${hasLength ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-300 bg-white text-transparent"}`}><CheckCircle2 className="h-3 w-3" /></span>
+                        {isRtl ? "8 أحرف على الأقل" : "At least 8 characters"}
+                      </span>
+                      <span className={`inline-flex items-center gap-1.5 ${passwordIsStrong ? "font-medium text-emerald-600" : ""}`}>
+                        <span className={`flex h-4 w-4 items-center justify-center rounded-full border ${passwordIsStrong ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-300 bg-white text-transparent"}`}><CheckCircle2 className="h-3 w-3" /></span>
+                        {isRtl ? "كلمة مرور قوية" : "Strong password"}
+                      </span>
+                    </div>
+                    <p className="text-xs leading-5 text-slate-500">{isRtl ? "استخدم كلمة أطول ومتنوعة، وتجنب كلمات المرور الشائعة. لا يلزم استخدام رمز أو حرف كبير تحديدًا." : "Use a longer, varied password and avoid common passwords. A symbol or uppercase letter is not specifically required."}</p>
+                  </div>
                 </div>
                 <div><div className="mb-1.5 flex items-center gap-2"><label className="text-[15px] font-bold leading-[22px] text-[#334155]">{isRtl ? "تأكيد كلمة المرور" : "Confirm password"} <span className="text-red-500">*</span></label></div><div className="relative"><input type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={isRtl ? "إظهار تأكيد كلمة المرور" : "Show confirm password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></div>
                 <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-[#E2E8F0] bg-white p-4 text-sm leading-7 text-[#475569] transition duration-200 hover:border-[#B8C5D3] hover:bg-[#F8FAFC]">
