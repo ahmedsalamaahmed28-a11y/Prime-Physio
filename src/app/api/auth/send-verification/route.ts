@@ -43,9 +43,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "تعذر معالجة الطلب حاليًا" }, { status: 503 });
     }
 
-    // Avoid revealing whether an email is already registered.
+    // Do not advance the signup flow when no message was sent.
+    // Keep the response generic so it does not reveal whether the email is registered.
     if (existing) {
-      return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." }, { headers: { "Cache-Control": "no-store, private" } });
+      return NextResponse.json(
+        { success: false, sent: false, error: "تعذر إرسال رمز التفعيل لهذا البريد. إذا كان لديك حساب بالفعل، انتقل إلى تسجيل الدخول." },
+        { status: 409, headers: { "Cache-Control": "no-store, private" } }
+      );
     }
 
     const code = await issueVerificationCode(admin, cleanEmail, "signup");
@@ -62,7 +66,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ success: true, message: "إذا كان البريد مؤهلًا للتسجيل فسيصلك رمز التحقق." }, { headers: { "Cache-Control": "no-store, private" } });
+    return NextResponse.json(
+      { success: true, sent: true, message: "قبل خادم البريد إرسال رسالة التفعيل. تحقق من الوارد والرسائل غير المرغوب فيها." },
+      { headers: { "Cache-Control": "no-store, private" } }
+    );
   } catch (error) {
     if (error instanceof Error && error.message === "OTP_RATE_LIMIT") {
       return NextResponse.json(
