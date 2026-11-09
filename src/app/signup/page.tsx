@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
 import { setAppValue } from "@/lib/appStorage";
 import { Loader } from "@/components/Loader";
-import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Eye, EyeOff, Mail, ShieldCheck, User } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, CheckCircle2, Eye, EyeOff, Mail, Phone, ShieldCheck, User } from "lucide-react";
 
 function SignupPageContent() {
   const { language } = useLanguage();
@@ -15,6 +15,7 @@ function SignupPageContent() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [code, setCode] = useState("");
@@ -25,25 +26,33 @@ function SignupPageContent() {
   const [notice, setNotice] = useState("");
 
   const cleanEmail = useMemo(() => email.trim().toLowerCase(), [email]);
+  const cleanPhone = useMemo(() => phone.trim(), [phone]);
   const fullName = useMemo(() => (firstName.trim() + " " + lastName.trim()).trim(), [firstName, lastName]);
-  const hasLength = password.length >= 12;
-  const hasComplexity = /[A-Z]/.test(password) && /[a-z]/.test(password) && /\d/.test(password) && /[^A-Za-z0-9]/.test(password);
-  const hasNoSpaces = !/\s/.test(password);
-  const passwordReady = hasLength && hasComplexity && hasNoSpaces;
+  const hasLength = password.length >= 8;
+  const passwordReady = hasLength;
+
+  const isValidPhone = (value: string) => {
+    const digits = value.replace(/\\D/g, "");
+    return /^\\+?[0-9][0-9\\s().-]*$/.test(value) && digits.length >= 7 && digits.length <= 15;
+  };
 
   const requestCode = async () => {
     setError("");
     setNotice("");
-    if (!firstName.trim() || !lastName.trim() || !cleanEmail) {
-      setError(isRtl ? "يرجى إدخال الاسم الأول واسم العائلة والبريد الإلكتروني." : "Please enter your first name, last name and email.");
+    if (!firstName.trim() || !lastName.trim() || !cleanEmail || !cleanPhone) {
+      setError(isRtl ? "يرجى إدخال الاسم الأول واسم العائلة والبريد الإلكتروني ورقم الموبايل." : "Please enter your first name, last name, email and mobile number.");
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(cleanEmail)) {
       setError(isRtl ? "البريد الإلكتروني غير صحيح." : "Enter a valid email address.");
       return;
     }
+    if (!isValidPhone(cleanPhone)) {
+      setError(isRtl ? "أدخل رقم موبايل صحيحًا مع مفتاح الدولة عند الحاجة." : "Enter a valid mobile number, including the country code when needed.");
+      return;
+    }
     if (!passwordReady) {
-      setError(isRtl ? "كلمة المرور يجب أن تتكون من 12 حرفًا على الأقل، وتشمل حرفًا كبيرًا وصغيرًا ورقمًا ورمزًا، دون مسافات." : "Use at least 12 characters, including uppercase, lowercase, a number and a special character, with no spaces.");
+      setError(isRtl ? "كلمة المرور يجب أن تتكون من 8 أحرف على الأقل، ويجب ألا تكون كلمة مرور شائعة أو سهلة التخمين." : "Use at least 8 characters and avoid common or easily guessed passwords.");
       return;
     }
     if (password !== confirmPassword) {
@@ -79,7 +88,7 @@ function SignupPageContent() {
   const handleVerify = async (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
-    if (!/^\d{6}$/.test(code)) {
+    if (!/^\\d{6}$/.test(code)) {
       setError(isRtl ? "أدخل رمز التفعيل المكوّن من 6 أرقام." : "Enter the 6-digit activation code.");
       return;
     }
@@ -88,7 +97,7 @@ function SignupPageContent() {
       const response = await fetch("/api/auth/verify-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: cleanEmail, code, name: fullName, password }),
+        body: JSON.stringify({ email: cleanEmail, phone: cleanPhone, code, name: fullName, password }),
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || (isRtl ? "تعذر تفعيل الحساب." : "Could not activate the account."));
@@ -151,21 +160,20 @@ function SignupPageContent() {
                   <div><label className={labelClass}>{isRtl ? "اسم العائلة" : "Last name"} <span className="text-red-500">*</span></label><input autoComplete="family-name" required value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} /></div>
                 </div>
                 <div><label className={labelClass}>{isRtl ? "البريد الإلكتروني" : "Email"} <span className="text-red-500">*</span></label><div className="relative"><Mail className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className={inputClass + (isRtl ? " pr-10" : " pl-10")} /></div></div>
+                <div><label className={labelClass}>{isRtl ? "رقم الموبايل" : "Mobile number"} <span className="text-red-500">*</span></label><div className="relative"><Phone className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input type="tel" inputMode="tel" autoComplete="tel" required value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+20 10 1234 5678" className={inputClass + (isRtl ? " pr-10" : " pl-10")} dir="ltr" /></div></div>
                 <div><label className={labelClass}>{isRtl ? "كلمة المرور" : "Password"} <span className="text-red-500">*</span></label><div className="relative"><input type={showPassword ? "text" : "password"} autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={isRtl ? "إظهار كلمة المرور" : "Show password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>
                   <ul className="mt-2 space-y-1.5 text-xs text-slate-500">
-                    <li className={hasLength ? "text-emerald-600" : ""}>{hasLength ? "✓" : "•"} {isRtl ? "12 حرفًا أو أكثر" : "At least 12 characters"}</li>
-                    <li className={hasComplexity ? "text-emerald-600" : ""}>{hasComplexity ? "✓" : "•"} {isRtl ? "حرف كبير وحرف صغير ورقم ورمز خاص" : "Uppercase, lowercase, number and special character"}</li>
-                    <li className={hasNoSpaces ? "text-emerald-600" : "text-red-500"}>{hasNoSpaces ? "✓" : "•"} {isRtl ? "بدون مسافات" : "No spaces"}</li>
-                    <li>{isRtl ? "يتم رفض كلمات المرور الشائعة أو التي ظهرت في تسريبات." : "Common or previously breached passwords are rejected."}</li>
+                    <li className={hasLength ? "text-emerald-600" : ""}>{hasLength ? "✓" : "•"} {isRtl ? "8 أحرف أو أكثر" : "At least 8 characters"}</li>
+                    <li>{isRtl ? "تُرفض كلمات المرور الشائعة أو التي ظهرت في تسريبات سابقة." : "Common or previously breached passwords are rejected."}</li>
                   </ul>
                 </div>
-                <div><label className={labelClass}>{isRtl ? "أعد كتابة كلمة المرور" : "Re-type password"} <span className="text-red-500">*</span></label><div className="relative"><input type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={isRtl ? "إظهار تأكيد كلمة المرور" : "Show confirm password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></div>
+                <div><label className={labelClass}>{isRtl ? "تأكيد كلمة المرور" : "Confirm password"} <span className="text-red-500">*</span></label><div className="relative"><input type={showConfirmPassword ? "text" : "password"} autoComplete="new-password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} aria-label={isRtl ? "إظهار تأكيد كلمة المرور" : "Show confirm password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div></div>
                 <button type="submit" disabled={loading} className="flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#5146B8] to-[#7657D5] px-5 text-sm font-bold text-white shadow-sm transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-60">{loading ? <Loader size={18} /> : <>{isRtl ? "إنشاء الحساب" : "Create account"} {isRtl ? <ArrowLeft className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}</>}</button>
               </form>
             ) : (
               <form onSubmit={handleVerify} className="space-y-5">
                 <div className="text-center"><div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#5B50C7]/10 text-[#5B50C7]"><ShieldCheck className="h-7 w-7" /></div><h2 className="text-xl font-bold text-slate-900">{isRtl ? "تحقق من بريدك الإلكتروني" : "Verify your email"}</h2><p className="mt-2 text-sm leading-6 text-slate-500">{isRtl ? "أدخل رمز التفعيل المكوّن من 6 أرقام المرسل إلى" : "Enter the 6-digit activation code sent to"} <b dir="ltr" className="inline-block text-slate-800">{cleanEmail}</b></p></div>
-                <input aria-label={isRtl ? "رمز التفعيل" : "Activation code"} autoComplete="one-time-code" inputMode="numeric" maxLength={6} required value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))} className="h-14 w-full rounded-lg border border-slate-300 bg-slate-50 text-center text-2xl font-bold tracking-[0.5em] text-slate-800 outline-none focus:border-[#5B50C7] focus:ring-4 focus:ring-[#5B50C7]/10" dir="ltr" placeholder="••••••" />
+                <input aria-label={isRtl ? "رمز التفعيل" : "Activation code"} autoComplete="one-time-code" inputMode="numeric" maxLength={6} required value={code} onChange={(e) => setCode(e.target.value.replace(/\\D/g, "").slice(0, 6))} className="h-14 w-full rounded-lg border border-slate-300 bg-slate-50 text-center text-2xl font-bold tracking-[0.5em] text-slate-800 outline-none focus:border-[#5B50C7] focus:ring-4 focus:ring-[#5B50C7]/10" dir="ltr" placeholder="••••••" />
                 <button type="submit" disabled={loading || code.length !== 6} className="flex h-12 w-full items-center justify-center rounded-lg bg-gradient-to-r from-[#5146B8] to-[#7657D5] text-sm font-bold text-white disabled:opacity-60">{loading ? <Loader size={18} /> : isRtl ? "تأكيد وإنشاء الحساب" : "Verify and create account"}</button>
                 <div className="flex items-center justify-between text-xs"><button type="button" onClick={() => { setStep("details"); setError(""); setNotice(""); }} className="font-semibold text-slate-500 hover:text-slate-800">{isRtl ? "العودة وتعديل البيانات" : "Back to edit details"}</button><button type="button" disabled={loading} onClick={requestCode} className="font-bold text-[#5B50C7] hover:underline disabled:opacity-50">{isRtl ? "إعادة إرسال الكود" : "Resend code"}</button></div>
               </form>
