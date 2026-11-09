@@ -95,6 +95,7 @@ export default function BrandedLoginPage() {
       const result = await signIn("credentials", {
         email: email.trim().toLowerCase(),
         password,
+        clinicSlug: slug,
         redirect: false,
       });
 
