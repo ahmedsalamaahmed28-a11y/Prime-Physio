@@ -136,7 +136,7 @@ export default function TermsPage() {
           <p className="mt-4 text-xs text-slate-400">{isRtl ? "الإصدار 1.0 · تاريخ السريان: 9 نوفمبر 2026" : "Version 1.0 · Effective: November 9, 2026"}</p>
         </header>
         <div className="mb-8 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-7 text-amber-900 sm:p-5 sm:text-sm">
-          {isRtl ? "تنبيه: هذه صياغة تشغيلية أولية مخصصة لطبيعة Prime Physio، وليست نسخة من شروط PTset. يجب مراجعتها قانونيًا قبل اعتمادها النهائي، والتأكد من مطابقتها لممارسات المنصة الفعلية ومزودي الخدمات." : "Notice: These are preliminary operational terms tailored to Prime Physio, not a copy of PTset's terms. They should be reviewed by qualified counsel and checked against the platform's actual practices and service providers before final adoption."}
+          {isRtl ? "تنبيه: هذه صياغة تشغيلية أولية مخصصة لطبيعة Prime Physio. يجب مراجعتها قانونيًا قبل اعتمادها النهائي، والتأكد من مطابقتها لممارسات المنصة الفعلية ومزودي الخدمات." : "Notice: These are preliminary operational terms tailored to Prime Physio. They should be reviewed by qualified counsel and checked against the platform's actual practices and service providers before final adoption."}
         </div>
         <div className="space-y-4">
           {sections.map((section, index) => {
