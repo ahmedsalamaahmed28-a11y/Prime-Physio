@@ -7,7 +7,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import {
   Activity, Bell, Building, ChevronLeft, HelpCircle, CreditCard,
   Download, Globe, LayoutDashboard, LogOut, Plus, RefreshCw,
-  Sparkles, User, CreditCard
+  Sparkles, User
 } from "lucide-react";
 
 const menu = [
