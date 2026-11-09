@@ -6,7 +6,7 @@ import {
   clearVerificationCode,
   issueVerificationCode,
 } from "@/lib/verificationCodes";
-import { requireRole } from "../../utils/auth";
+import { requireAuthOnly } from "../../utils/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,9 +14,9 @@ export const revalidate = 0;
 
 export async function POST(req: NextRequest) {
   try {
-    // Only an authenticated, active clinic admin can request this OTP.
-    // The destination email always comes from the verified server-side session.
-    const session = await requireRole(req, ["admin"]);
+    // First-time signups do not have a staff row yet. The OTP is sent only to the
+    // email from the verified server-side session, then required by setup/submit.
+    const session = await requireAuthOnly(req);
     const email = session.email.toLowerCase().trim();
     const admin = getAdminClient();
     const clientIp =
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     const message = error instanceof Error ? error.message : "";
     if (/unauthorized|غير مصرح|صلاحية غير كافية|not found/i.test(message)) {
       return NextResponse.json(
-        { error: "يجب تسجيل الدخول بحساب مدير نشط لإرسال رمز إنشاء المركز." },
+        { error: "يجب تسجيل الدخول بحساب موثّق لإرسال رمز إنشاء المركز." },
         { status: 403, headers: { "Cache-Control": "no-store, private" } }
       );
     }
