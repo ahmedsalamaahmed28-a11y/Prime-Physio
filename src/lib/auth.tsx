@@ -354,7 +354,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         // Legal documents are public and must remain accessible without an account.
         if (
           !pathname.startsWith("/manage") &&
-          pathname !== "/signup" &&\n          pathname !== "/rgstr.php" &&
+          pathname !== "/signup" &&
+          pathname !== "/rgstr.php" &&
           pathname !== "/" &&
           pathname !== "/privacy" &&
           pathname !== "/terms"
