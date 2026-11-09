@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase-admin";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
@@ -19,7 +19,7 @@ async function findAuthUserByEmail(admin: ReturnType<typeof getAdminClient>, ema
   throw new Error("Could not safely resolve existing Supabase identity");
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -43,6 +43,22 @@ export async function GET() {
     }
 
     const admin = getAdminClient();
+    const requestedClinicId = new URL(req.url).searchParams.get("clinic_id")
+      || (typeof (session.user as any).clinicId === "string" ? (session.user as any).clinicId : null);
+
+    if (requestedClinicId) {
+      const [{ data: ownerMembership, error: ownerError }, { data: staffMembership, error: staffError }] = await Promise.all([
+        admin.from("clinic_owners").select("clinic_id").eq("clinic_id", requestedClinicId).eq("owner_email", email).maybeSingle(),
+        admin.from("staff").select("clinic_id").eq("clinic_id", requestedClinicId).eq("email", email).not("status", "in", '("محذوف","deleted","inactive","غير نشط")').maybeSingle(),
+      ]);
+      if (ownerError || staffError) {
+        return NextResponse.json({ error: "Unable to verify clinic membership" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
+      }
+      if (!ownerMembership && !staffMembership) {
+        return NextResponse.json({ error: "Access denied" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
+      }
+    }
+
     const shadowPassword = createHmac("sha256", secret)
       .update(`${email}:prime-physio-shadow-user`)
       .digest("hex");
@@ -112,15 +128,18 @@ export async function GET() {
 
     const currentAppMetadata = authResult.data.user.app_metadata || {};
     const storedNextAuthExpiry = Number(currentAppMetadata.nextauth_expires_at || 0);
+    const storedActiveClinicId = typeof currentAppMetadata.active_clinic_id === "string" ? currentAppMetadata.active_clinic_id : null;
     if (
       currentAppMetadata.auth_source !== "nextauth-shadow" ||
-      storedNextAuthExpiry !== nextAuthExpiresAt
+      storedNextAuthExpiry !== nextAuthExpiresAt ||
+      storedActiveClinicId !== requestedClinicId
     ) {
       const { error: metadataError } = await admin.auth.admin.updateUserById(authResult.data.user.id, {
         app_metadata: {
           ...currentAppMetadata,
           auth_source: "nextauth-shadow",
           nextauth_expires_at: nextAuthExpiresAt,
+          active_clinic_id: requestedClinicId,
         },
       });
       if (metadataError) throw metadataError;
