@@ -94,7 +94,7 @@ async function compressLogoImage(file: File): Promise<File> {
       throw new Error("This image is too large to process. Please choose a smaller image.");
     }
 
-    const baseName = file.name.replace(/\\.[^.]+$/, "") || "center-logo";
+    const baseName = file.name.replace(/\.[^.]+$/, "") || "center-logo";
     return new File([blob], `${baseName}.webp`, {
       type: "image/webp",
       lastModified: Date.now(),
