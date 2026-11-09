@@ -178,30 +178,9 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     return user;
   }
 
-  // If we reach here, no staff record was found.
-  // Auto-provision for new Google users
-  const pendingGoogleSignup = typeof window !== 'undefined'
-    ? await getAppValue<string>("pending_google_signup", "").catch(() => "")
-    : "";
-  if (pendingGoogleSignup === "true" && user.email) {
-    try {
-      const provisionRes = await fetch("/api/auth/auto-provision", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: user.email, name: user.name }),
-      });
-      if (provisionRes.ok) {
-        const provisionData = await provisionRes.json();
-        if (provisionData.clinicId) {
-          user.clinicId = provisionData.clinicId;
-          user.roleKey = "admin";
-          user.role = "مدير العيادة";
-          user.roleEn = "Clinic Admin";
-        }
-      }
-    } catch (e) {
-      console.error("[enrichUserWithClinic] Auto-provision failed:", e);
-    }
+  // No membership means this is a first-time onboarding account.
+  // Do not create a clinic here: the user must choose a plan and submit clinic details first.
+  if (typeof window !== "undefined") {
     await setAppValue("pending_google_signup", "").catch(() => {});
   }
 
@@ -278,7 +257,6 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       const loadRoleState = async () => {
         const currentUser = session.user!;
         const email = currentUser.email || "";
-        const pendingSignup = await getAppValue<string>("pending_google_signup", "").catch(() => "");
         // Never trust a role stored in localStorage. enrichUserWithClinic resolves it from the server-side staff record.
         const finalRoleKey = "doctor" as const;
 
@@ -320,17 +298,14 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         // Do not keep stale clinic data from an earlier enrichment attempt.
         setUser(enriched);
         setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-        // Consume the one-time Google-signup marker after a clinic has been
-        // successfully resolved. Sending a user with clinicId to /setup/center
-        // conflicts with the setup guard, which redirects them back to /home.
-        if (enriched.clinicId && pendingSignup === "true") {
-          await setAppValue("pending_google_signup", "").catch(() => {});
-          if (typeof window !== "undefined" && window.location.pathname !== "/home") {
-            window.location.href = "/home";
-          }
-        } else if (enriched.roleKey === "platform_admin" && typeof window !== "undefined" && (window.location.pathname === "/home" || window.location.pathname === "/setup" || window.location.pathname.startsWith("/manage") || window.location.pathname === "/signup")) {
+        if (enriched.roleKey === "platform_admin" && typeof window !== "undefined" && (window.location.pathname === "/home" || window.location.pathname === "/setup" || window.location.pathname.startsWith("/manage") || window.location.pathname === "/signup")) {
           window.location.href = "/platform";
+        } else if (enriched.clinicId && typeof window !== "undefined" && window.location.pathname !== "/home") {
+          window.location.href = "/home";
+        } else if (enriched.clinicId === null && typeof window !== "undefined" && !window.location.pathname.startsWith("/setup")) {
+          window.location.href = "/setup";
         }
+
       };
 
       loadRoleState();
@@ -415,7 +390,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setIsEnriching(false);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : "/home";
+    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/home" : "/setup";
   };
 
   const loginWithCredentials = async (email: string, name: string, _role: string) => {
