@@ -74,10 +74,10 @@
 
   @keyframes shimmer {
     from {
-      backgroundPosition: 200% 0;
+      background-position: 200% 0;
     }
     to {
-      backgroundPosition: -200% 0;
+      background-position: -200% 0;
     }
   }
 }
@@ -495,3 +495,30 @@ details.ob2More[open]>summary h2::after{content:"–"}
 .pp-stat-roll-37.is-rolling { transform: translateY(-39.96em); }
 .pp-stat-roll-38.is-rolling { transform: translateY(-41.04em); }
 .pp-stat-roll-39.is-rolling { transform: translateY(-42.12em); }
+
+
+/* Shared shimmer skeletons for all page and compact loading states. */
+.shimmer-skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: #e8edf3;
+  background-image: linear-gradient(
+    100deg,
+    #e8edf3 20%,
+    #f8fafc 42%,
+    #e8edf3 64%
+  );
+  background-size: 220% 100%;
+  animation: prime-physio-shimmer 1.45s ease-in-out infinite;
+}
+@keyframes prime-physio-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -120% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .shimmer-skeleton {
+    animation: none;
+    background-image: none;
+    background-color: #e8edf3;
+  }
+}
