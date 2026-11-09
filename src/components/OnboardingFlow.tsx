@@ -282,6 +282,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || "فشل تفعيل الخطة")
         setStep("done")
+        window.setTimeout(() => window.location.replace("/home"), 1800)
       } catch (e: any) {
         setError(e?.message || "حدث خطأ أثناء التفعيل")
       }
