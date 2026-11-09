@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
     if (requestedClinicId) {
       const [{ data: ownerMembership, error: ownerError }, { data: staffMembership, error: staffError }] = await Promise.all([
         admin.from("clinic_owners").select("clinic_id").eq("clinic_id", requestedClinicId).eq("owner_email", email).maybeSingle(),
-        admin.from("staff").select("clinic_id").eq("clinic_id", requestedClinicId).eq("email", email).not("status", "in", '("محذوف","deleted","inactive","غير نشط")').maybeSingle(),
+        admin.from("staff").select("clinic_id").eq("clinic_id", requestedClinicId).eq("email", email).neq("status", "محذوف").neq("status", "deleted").neq("status", "inactive").neq("status", "غير نشط").maybeSingle(),
       ]);
       if (ownerError || staffError) {
         return NextResponse.json({ error: "Unable to verify clinic membership" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
