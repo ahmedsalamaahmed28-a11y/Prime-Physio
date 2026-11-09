@@ -15,9 +15,9 @@ function FieldHelp({ text, label, isRtl }: { text: string; label: string; isRtl:
       <summary
         aria-label={label}
         title={label}
-        className="flex h-5 w-5 cursor-pointer list-none items-center justify-center rounded-full text-slate-400 transition hover:bg-[#5B50C7]/10 hover:text-[#5B50C7] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B50C7] [&::-webkit-details-marker]:hidden"
+        className="flex h-[17px] w-[17px] cursor-pointer list-none items-center justify-center rounded-full bg-[#5B50C7] text-[11px] font-extrabold leading-none text-white shadow-sm transition hover:bg-[#493EAA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5B50C7] focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden"
       >
-        <HelpCircle className="h-4 w-4" strokeWidth={1.8} />
+        <span aria-hidden="true">?</span>
       </summary>
       <div
         role="tooltip"
@@ -247,28 +247,42 @@ function SignupPageContent() {
             {step === "details" ? (
               <form onSubmit={handleDetails} className="mt-[22px] grid gap-4">
                 <div className="grid grid-cols-1 gap-4">
-                  <div><div className="mb-1.5 flex items-center gap-2"><label className="text-sm font-semibold leading-5 text-[#334155]">{isRtl ? "الاسم الأول" : "First name"} <span className="text-red-500">*</span></label></div><div className="relative"><User className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input autoComplete="given-name" required value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass + (isRtl ? " pr-10" : " pl-10")} /></div></div>
+                  <div><div className="mb-1.5 flex items-center gap-2"><label className={labelClass}>{isRtl ? "الاسم الأول" : "First name"} <span className="text-red-500">*</span></label></div><div className="relative"><User className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input autoComplete="given-name" required value={firstName} onChange={(e) => setFirstName(e.target.value)} className={inputClass + (isRtl ? " pr-10" : " pl-10")} /></div></div>
                   <div><div className="mb-1.5 flex items-center gap-2"><label className="text-sm font-semibold leading-5 text-[#334155]">{isRtl ? "اسم العائلة" : "Last name"} <span className="text-red-500">*</span></label></div><input autoComplete="family-name" required value={lastName} onChange={(e) => setLastName(e.target.value)} className={inputClass} /></div>
                 </div>
                 <div><div className="mb-1.5 flex items-center gap-2"><label className="text-sm font-semibold leading-5 text-[#334155]">{isRtl ? "البريد الإلكتروني" : "Email"} <span className="text-red-500">*</span></label><FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة البريد الإلكتروني" : "Email help"} text={isRtl ? "يُرسل كود التفعيل إلى هذا البريد، ويصبح بريد الدخول. إذا بدا العنوان مكتوبًا بخطأ (gmail.con أو hotmial.com...) يظهر تحته سطر «هل تقصد»؛ اضغط «استخدمه» لتصحيحه." : "Your activation code is sent to this email, and it becomes your login email. If the address looks mistyped (gmail.con or hotmial.com...), a “Did you mean” suggestion appears below; click “Use it” to correct it."} /></div><div className="relative"><Mail className={"absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 " + (isRtl ? "right-3" : "left-3")} /><input type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@example.com" className={inputClass + (isRtl ? " pr-10" : " pl-10")} /></div>{emailSuggestion && emailSuggestion !== cleanEmail && <p className="mt-2 text-xs text-slate-500">{isRtl ? "هل تقصد" : "Did you mean"} <button type="button" onClick={() => setEmail(emailSuggestion)} className="font-semibold text-[#5B50C7] underline underline-offset-2">{emailSuggestion} — {isRtl ? "استخدمه" : "Use it"}</button> {isRtl ? "لتصحيح البريد الإلكتروني." : "to correct your email address."}</p>}</div>
                 <div>
                   <div className="mb-1.5 flex items-center gap-2">
-                    <label className="text-sm font-semibold text-slate-700">{isRtl ? "رقم الموبايل" : "Mobile number"} <span className="text-red-500">*</span></label>
+                    <label className={labelClass}>{isRtl ? "رقم الموبايل" : "Mobile number"} <span className="text-red-500">*</span></label>
                     <FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة رقم الموبايل" : "Mobile number help"} text={isRtl ? "اختر الدولة أولًا، وسيظهر مفتاح الاتصال تلقائيًا. اكتب رقمك المحلي بدون مفتاح الدولة؛ سنحفظه بالصيغة الدولية." : "Choose your country first and its calling code will be added automatically. Enter your local number without the country code; we’ll save it in international format."} />
                   </div>
-                  <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(0,1.4fr)] gap-2">
-                    <div className="relative">
-                      <label htmlFor="signup-country" className="sr-only">{isRtl ? "الدولة" : "Country"}</label>
-                      <select id="signup-country" value={countryCode} onChange={(e) => setCountryCode(e.target.value)} className="h-[46px] min-h-[46px] w-full appearance-none rounded-xl border-[1.5px] border-[#D9E1EA] bg-white px-3.5 py-[10px] font-[400] text-[16px] leading-[24px] text-[#263445] shadow-[0_1px_2px_rgba(15,23,42,0.03)] outline-none transition duration-200 hover:border-[#B8C5D3] focus:border-[#5B50C7] focus:ring-4 focus:ring-[#5B50C7]/10">
-                        {SIGNUP_COUNTRIES.map((country) => <option key={country.code} value={country.code}>{country.flag} {isRtl ? country.ar : country.en}</option>)}
+                  <div className="flex h-[46px] min-h-[46px] min-w-0 items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
+                    <div className="relative flex h-full shrink-0 items-center border-r border-slate-200 bg-slate-50">
+                      <label htmlFor="signup-country" className="sr-only">{isRtl ? "الدولة ومفتاح الاتصال" : "Country and calling code"}</label>
+                      <span className="pointer-events-none absolute left-3 z-10 text-[17px] leading-none" aria-hidden="true">{selectedCountry.flag}</span>
+                      <select
+                        id="signup-country"
+                        value={countryCode}
+                        onChange={(e) => setCountryCode(e.target.value)}
+                        aria-label={isRtl ? "اختر الدولة" : "Select country"}
+                        className="h-full w-[112px] cursor-pointer appearance-none bg-transparent pl-9 pr-7 text-[14px] font-semibold text-slate-700 outline-none"
+                      >
+                        {SIGNUP_COUNTRIES.map((country) => <option key={country.code} value={country.code}>{country.flag} +{country.dial} · {isRtl ? country.ar : country.en}</option>)}
                       </select>
+                      <span className="pointer-events-none absolute right-2.5 text-slate-500" aria-hidden="true"><svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="currentColor"><path fillRule="evenodd" d="M5.22 7.47a.75.75 0 0 1 1.06 0L10 11.19l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 8.53a.75.75 0 0 1 0-1.06Z" clipRule="evenodd" /></svg></span>
                     </div>
-                    <div className="flex h-[46px] min-w-0 items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
-                      <span className="flex h-full shrink-0 items-center border-r border-slate-200 bg-slate-50 px-3 text-[15px] font-bold text-slate-600">+{selectedCountry.dial}</span>
-                      <input type="tel" inputMode="tel" autoComplete="tel-national" required value={phone} onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))} placeholder={selectedCountry.example} aria-label={isRtl ? "رقم الهاتف بدون مفتاح الدولة" : "Phone number without country code"} className="h-full min-w-0 w-full bg-transparent px-3 font-[400] text-[16px] leading-[24px] text-slate-800 outline-none placeholder:text-slate-400" />
-                    </div>
+                    <input
+                      type="tel"
+                      inputMode="tel"
+                      autoComplete="tel-national"
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))}
+                      placeholder={selectedCountry.example}
+                      aria-label={isRtl ? "رقم الهاتف بدون مفتاح الدولة" : "Phone number without country code"}
+                      className="h-full min-w-0 w-full bg-transparent px-3 font-normal text-[16px] leading-[24px] text-slate-800 outline-none placeholder:text-slate-400"
+                    />
                   </div>
-                  <p className="mt-2 text-xs text-slate-500" dir={isRtl ? "rtl" : "ltr"}>{isRtl ? "مفتاح الدولة المحدد: " : "Selected calling code: "}<b dir="ltr" className="inline-block text-slate-700">+{selectedCountry.dial}</b></p>
                 </div>
                 <div><div className="mb-1.5 flex items-center gap-2"><label className="text-sm font-semibold leading-5 text-[#334155]">{isRtl ? "كلمة المرور" : "Password"} <span className="text-red-500">*</span></label><FieldHelp isRtl={isRtl} label={isRtl ? "مساعدة كلمة المرور" : "Password help"} text={isRtl ? "8 أحرف على الأقل وليست كلمة مرور شائعة (مثل 12345678 أو password1). لا يُشترط حرف كبير أو رمز — الأطول أكثر أمانًا: بضع كلمات معًا سهلة التذكر وصعبة التخمين." : "At least 8 characters and not a common password (such as 12345678 or password1). No uppercase letter or symbol is required. Longer is safer: a few words together are easy to remember and hard to guess."} /></div><div className="relative"><input type={showPassword ? "text" : "password"} autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClass + (isRtl ? " pl-12" : " pr-12")} /><button type="button" onClick={() => setShowPassword(!showPassword)} aria-label={isRtl ? "إظهار كلمة المرور" : "Show password"} className={"absolute top-1/2 -translate-y-1/2 p-2 text-slate-400 " + (isRtl ? "left-2" : "right-2")}>{showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button></div>
                   <ul className="mt-2 space-y-1.5 text-xs text-slate-500">
