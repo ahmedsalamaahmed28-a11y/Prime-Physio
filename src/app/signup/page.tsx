@@ -182,7 +182,9 @@ function SignupPageContent() {
         body: JSON.stringify({ email: submittedEmail }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || (isRtl ? "تعذر إرسال رمز التحقق." : "Could not send the verification code."));
+      if (!response.ok || data.sent !== true) {
+        throw new Error(data.error || (isRtl ? "لم يتم تأكيد إرسال رمز التحقق؛ لم ننتقل إلى الخطوة التالية." : "The verification email was not confirmed as sent. Please try again."));
+      }
       setStep("verify");
       setNotice(isRtl
         ? "إذا كان البريد مؤهلًا للتسجيل، فسيصلك رمز التفعيل. تحقق أيضًا من مجلد الرسائل غير المرغوب فيها."
