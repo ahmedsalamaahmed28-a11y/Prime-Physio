@@ -341,7 +341,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
         const data = await res.json()
         if (!res.ok) throw new Error(data.error || "فشل تفعيل الخطة")
         setStep("done")
-        window.setTimeout(() => window.location.replace("/home"), 1800)
+        window.setTimeout(() => window.location.replace("/dashboard"), 1800)
       } catch (e: any) {
         setError(e?.message || "حدث خطأ أثناء التفعيل")
       }
@@ -649,7 +649,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
                 if (createdCenterSlug) {
                   window.location.href = `/${createdCenterSlug}`;
                 } else {
-                  window.location.href = "/home";
+                  window.location.href = "/dashboard";
                 }
               }}
             className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white font-bold py-3 rounded-2xl text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 shadow-md"
@@ -668,7 +668,7 @@ export default function OnboardingFlow({ step, setStep, clinicId: propClinicId, 
                 if (createdCenterSlug) {
                   window.location.href = `/${createdCenterSlug}`;
                 } else {
-                  window.location.href = "/home";
+                  window.location.href = "/dashboard";
                 }
               }, 2000);
             }}
