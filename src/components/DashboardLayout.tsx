@@ -304,9 +304,32 @@ export default function DashboardLayout({
     return <LoadingSpinner />;
   }
 
-  // Wait for enrichUserWithClinic to set clinicId before rendering pages
+  // Wait only while authentication/enrichment is actively running.
+  // If the server cannot resolve clinic membership, do not leave the user
+  // trapped on an endless shimmer: show a recoverable error instead.
   if (activeAccount && activeAccount.clinicId === undefined) {
-    return <LoadingSpinner />;
+    if (isLoading || isEnriching) return <LoadingSpinner />;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6" dir={language === "ar" ? "rtl" : "ltr"}>
+        <div className="w-full max-w-lg rounded-2xl border border-amber-200 bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600 text-xl">!</div>
+          <h1 className="text-lg font-bold text-slate-800">
+            {language === "ar" ? "تعذر التحقق من بيانات المركز" : "Unable to verify your center"}
+          </h1>
+          <p className="mt-2 text-sm leading-7 text-slate-600">
+            {language === "ar"
+              ? "تم تسجيل دخولك، لكن تعذر إكمال التحقق من ارتباط الحساب بالمركز. لم نفتح أي بيانات قبل التأكد من الصلاحيات. أعد المحاولة."
+              : "You are signed in, but we could not confirm your center membership. No clinic data was opened. Please try again."}
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-5 rounded-lg bg-[#4F46BA] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#433aa3]"
+          >
+            {language === "ar" ? "إعادة المحاولة" : "Try again"}
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!activeAccount) {
