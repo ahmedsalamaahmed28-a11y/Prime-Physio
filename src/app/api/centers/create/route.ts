@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { getAdminClient } from "@/lib/supabase-admin";
 import { requireAuthOnly } from "../../utils/auth";
-import { hashVerificationCode } from "@/lib/verificationCodes";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,7 +17,6 @@ export async function POST(req: NextRequest) {
     const shortName = typeof body?.shortName === "string" ? body.shortName.trim().slice(0, 120) : "";
     const fullName = typeof body?.fullName === "string" ? body.fullName.trim().slice(0, 200) : "";
     const slug = typeof body?.slug === "string" ? body.slug.trim().toLowerCase() : "";
-    const code = typeof body?.code === "string" ? body.code.trim() : "";
     const logoUrl = typeof body?.logoUrl === "string" ? body.logoUrl.trim().slice(0, 1000) : null;
     const logoPath = typeof body?.logoPath === "string" ? body.logoPath.trim().slice(0, 500) : "";
 
@@ -27,9 +25,6 @@ export async function POST(req: NextRequest) {
     }
     if (!shortName || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 50) {
       return NextResponse.json({ error: "يرجى إدخال اسم المركز ورابط صالح من أحرف إنجليزية وأرقام وشرطات." }, { status: 400 });
-    }
-    if (!/^\d{6}$/.test(code)) {
-      return NextResponse.json({ error: "أدخل رمز التحقق المكوّن من 6 أرقام." }, { status: 400 });
     }
 
     const admin = getAdminClient();
@@ -50,14 +45,16 @@ export async function POST(req: NextRequest) {
       const { error: cleanupError } = await admin.storage.from("branch-logos").remove([logoPath]);
       if (cleanupError) console.error("[IndependentCenter] Failed to clean up unlinked logo:", cleanupError);
     };
-    const codeHash = hashVerificationCode(email, "center_creation", code);
-    const { data, error } = await admin.rpc("create_independent_center_verified", {
+    const phone = typeof body?.phone === "string" ? body.phone.trim().slice(0, 32) : "";
+    const address = typeof body?.address === "string" ? body.address.trim().slice(0, 250) : "";
+    if (!phone || !address) return NextResponse.json({ error: "يرجى إدخال رقم هاتف المركز وعنوانه." }, { status: 400 });
+
+    const { data, error } = await admin.rpc("create_independent_center", {
       p_email: email,
       p_plan_id: planId,
       p_short_name: shortName,
       p_full_name: fullName,
       p_slug: slug,
-      p_code_hash: codeHash,
       p_logo_url: logoUrl,
       p_specializations: [],
     });
@@ -75,6 +72,12 @@ export async function POST(req: NextRequest) {
           ? "رمز التحقق غير صحيح أو منتهي الصلاحية أو تم استخدامه."
           : data?.error || "تعذر إنشاء المركز.",
       }, { status });
+    }
+
+    const { error: detailsError } = await admin.from("clinics").update({ phone, address }).eq("id", data.clinicId).eq("admin_email", email);
+    if (detailsError) {
+      console.error("[IndependentCenter] Contact details update failed:", detailsError);
+      return NextResponse.json({ error: "تم إنشاء المركز لكن تعذر حفظ الهاتف والعنوان. تواصل مع الدعم قبل إعادة المحاولة.", clinicCreated: true, clinicId: data.clinicId }, { status: 500 });
     }
 
     return NextResponse.json(data, { headers: { "Cache-Control": "no-store, private" } });
