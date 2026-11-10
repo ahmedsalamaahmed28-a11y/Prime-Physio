@@ -87,7 +87,7 @@ async function enrichUserWithClinic(user: User): Promise<User> {
   try {
     const t = Date.now();
     const queryParams = preferredClinicId ? `?preferred_clinic_id=${preferredClinicId}&t=${t}` : `?t=${t}`;
-    const res = await fetch(`/api/auth/enrich${queryParams}`);
+    const res = await fetch(`/api/auth/enrich${queryParams}`, { signal: AbortSignal.timeout(12000) });
     // A denied clinic selection is a confirmed membership failure; never fall back
     // to an unscoped browser query after the server rejects the requested tenant.
     if (res.status === 403) {
@@ -141,14 +141,14 @@ async function enrichUserWithClinic(user: User): Promise<User> {
       }
     }
   } catch {
-    // Do not let a network failure bypass tenant verification through an unscoped
-    // browser-side staff query. The selected clinic must be confirmed server-side.
-    if (preferredClinicId) {
-      if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+    // A timeout or network failure must not trigger unscoped browser-side lookups.
+    // Leave clinicId unresolved so the UI can show a retryable error instead of
+    // waiting forever or risking cross-clinic access.
+    if (preferredClinicId && typeof window !== "undefined") {
+      sessionStorage.removeItem("preferred_clinic_id");
       user.clinicId = null;
-      return user;
     }
-    // Non-tenant login may still use the supported Supabase-auth fallback.
+    return user;
   }
 
   try {
@@ -280,7 +280,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           const sessionUrl = preferredClinicId
             ? `/api/auth/supabase-session?clinic_id=${encodeURIComponent(preferredClinicId)}`
             : "/api/auth/supabase-session";
-          const res = await fetch(sessionUrl);
+          const res = await fetch(sessionUrl, { signal: AbortSignal.timeout(10000) });
           if (res.ok) {
             const { session: supaSession } = await res.json();
             if (supaSession && active) {
