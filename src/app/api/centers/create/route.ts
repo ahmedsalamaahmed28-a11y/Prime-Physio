@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { getAdminClient } from "@/lib/supabase-admin";
 import { requireAuthOnly } from "../../utils/auth";
 import { hashVerificationCode } from "@/lib/verificationCodes";
@@ -19,6 +20,7 @@ export async function POST(req: NextRequest) {
     const slug = typeof body?.slug === "string" ? body.slug.trim().toLowerCase() : "";
     const code = typeof body?.code === "string" ? body.code.trim() : "";
     const logoUrl = typeof body?.logoUrl === "string" ? body.logoUrl.trim().slice(0, 1000) : null;
+    const logoPath = typeof body?.logoPath === "string" ? body.logoPath.trim().slice(0, 500) : "";
 
     if (!["basic", "silver", "gold"].includes(planId)) {
       return NextResponse.json({ error: "يرجى اختيار باقة صالحة أولاً." }, { status: 400 });
@@ -31,6 +33,23 @@ export async function POST(req: NextRequest) {
     }
 
     const admin = getAdminClient();
+    if (logoPath) {
+      const ownerFolder = createHash("sha256").update(email).digest("hex");
+      if (!logoPath.startsWith(`onboarding/${ownerFolder}/`) || !logoUrl) {
+        return NextResponse.json({ error: "صورة المركز غير صالحة. أعد اختيار الصورة." }, { status: 400 });
+      }
+      const expectedLogoUrl = admin.storage.from("branch-logos").getPublicUrl(logoPath).data.publicUrl;
+      if (logoUrl !== expectedLogoUrl) {
+        return NextResponse.json({ error: "رابط صورة المركز غير صالح." }, { status: 400 });
+      }
+    } else if (logoUrl) {
+      return NextResponse.json({ error: "تعذر التحقق من مصدر صورة المركز." }, { status: 400 });
+    }
+    const cleanupLogo = async () => {
+      if (!logoPath) return;
+      const { error: cleanupError } = await admin.storage.from("branch-logos").remove([logoPath]);
+      if (cleanupError) console.error("[IndependentCenter] Failed to clean up unlinked logo:", cleanupError);
+    };
     const codeHash = hashVerificationCode(email, "center_creation", code);
     const { data, error } = await admin.rpc("create_independent_center_verified", {
       p_email: email,
@@ -44,10 +63,12 @@ export async function POST(req: NextRequest) {
     });
 
     if (error) {
+      await cleanupLogo();
       console.error("[IndependentCenter] Provisioning RPC failed:", error);
       return NextResponse.json({ error: "تعذر إنشاء المركز حاليًا. حاول مرة أخرى." }, { status: 500 });
     }
     if (!data || data.error) {
+      await cleanupLogo();
       const status = data?.error === "OTP_INVALID" ? 400 : data?.code === "SLUG_TAKEN" ? 409 : 400;
       return NextResponse.json({
         error: data?.error === "OTP_INVALID"
