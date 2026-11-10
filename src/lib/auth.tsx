@@ -322,7 +322,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         if (enriched.roleKey === "platform_admin" && typeof window !== "undefined" && (currentPath === "/dashboard" || currentPath === "/home" || currentPath === "/setup" || currentPath.startsWith("/manage") || currentPath === "/signup" || currentPath === "/rgstr.php")) {
           window.location.href = "/platform";
         } else if (enriched.clinicId && typeof window !== "undefined" && isAuthEntryPath && !isClinicLandingPage) {
-          window.location.href = "/home";
+          window.location.href = "/dashboard";
         } else if (enriched.clinicId === null && typeof window !== "undefined" && !currentPath.startsWith("/setup") && currentPath !== "/center-management" && currentPath !== "/center-management.php" && currentPath !== "/create-center" && !/^\/[a-z][a-z0-9-]+$/.test(currentPath) && !isClinicLandingPage) {
           window.location.href = "/center-management";
         }
