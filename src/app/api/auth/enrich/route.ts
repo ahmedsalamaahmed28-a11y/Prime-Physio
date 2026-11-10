@@ -44,6 +44,14 @@ export async function GET(req: NextRequest) {
 
     const preferredClinicId = new URL(req.url).searchParams.get("preferred_clinic_id");
     const admin = getAdminClient();
+    const { data: profile } = await admin
+      .from("staff")
+      .select("name")
+      .eq("email", email)
+      .not("name", "is", null)
+      .limit(1)
+      .maybeSingle();
+    const displayName = typeof profile?.name === "string" ? profile.name.trim() : "";
 
     const { data: platformAdmin, error: platformAdminError } = await admin
       .from("platform_admins")
@@ -104,6 +112,7 @@ export async function GET(req: NextRequest) {
       const presentation = await clinicPresentation(admin, preferredClinicId);
       return NextResponse.json({
         clinicId: preferredClinicId,
+        displayName,
         role: staff?.role || "admin",
         roleKey,
         ...labels,
@@ -122,6 +131,7 @@ export async function GET(req: NextRequest) {
     if ((ownedCenters || []).length > 0) {
       return NextResponse.json({
         clinicId: null,
+        displayName,
         role: "مدير المراكز",
         roleKey: "admin",
         roleAr: "مدير المراكز",
@@ -151,6 +161,7 @@ export async function GET(req: NextRequest) {
       const presentation = await clinicPresentation(admin, clinicIds[0]);
       return NextResponse.json({
         clinicId: clinicIds[0],
+        displayName,
         role: staff?.role || "",
         roleKey,
         ...labels,
@@ -161,6 +172,7 @@ export async function GET(req: NextRequest) {
     if (clinicIds.length > 1) {
       return NextResponse.json({
         clinicId: null,
+        displayName,
         role: "مدير المراكز",
         roleKey: "admin",
         roleAr: "مدير المراكز",
