@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useMemo, useState } from "react";
+import React, { Suspense, useMemo, useRef, useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -84,6 +84,23 @@ function SignupPageContent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [code, setCode] = useState("");
+  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const updateOtpDigit = (index: number, value: string) => {
+    const digit = value.replace(/\\D/g, "").slice(-1);
+    const next = code.split("");
+    if (digit) next[index] = digit;
+    else next[index] = "";
+    const nextCode = next.join("").slice(0, 6);
+    setCode(nextCode);
+    if (digit && index < 5) otpRefs.current[index + 1]?.focus();
+  };
+  const handleOtpPaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    const pasted = event.clipboardData.getData("text").replace(/\\D/g, "").slice(0, 6);
+    if (!pasted) return;
+    setCode(pasted);
+    otpRefs.current[Math.min(pasted.length, 5)]?.focus();
+  };
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -375,7 +392,50 @@ function SignupPageContent() {
             ) : (
               <form onSubmit={handleVerify} className="space-y-5">
                 <div className="text-center"><div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#5B50C7]/10 text-[#5B50C7]"><ShieldCheck className="h-7 w-7" /></div><h2 className="text-xl font-bold text-slate-900">{isRtl ? "تحقق من بريدك الإلكتروني" : "Verify your email"}</h2><p className="mt-2 text-sm leading-6 text-slate-500">{isRtl ? "أدخل رمز التفعيل المكوّن من 6 أرقام المرسل إلى" : "Enter the 6-digit activation code sent to"} <b dir="ltr" className="inline-block text-slate-800">{cleanEmail}</b></p></div>
-                <input aria-label={isRtl ? "رمز التفعيل" : "Activation code"} autoComplete="one-time-code" inputMode="numeric" maxLength={6} required value={code} onChange={(e) => setCode(e.target.value.replace(/\\D/g, "").slice(0, 6))} className="h-14 w-full rounded-xl border border-[#D9E1EA] bg-white text-center text-2xl font-bold tracking-[0.5em] text-[#263445] shadow-[0_1px_2px_rgba(15,23,42,0.03)] outline-none transition duration-200 placeholder:text-[#94A3B8] focus:border-[#5B50C7] focus:ring-4 focus:ring-[#5B50C7]/10" dir="ltr" placeholder="••••••" />
+                <div className="relative">
+                  <div className="mb-3 flex items-center justify-center gap-2.5 sm:gap-3" dir="ltr" role="group" aria-label={isRtl ? "رمز التفعيل المكوّن من 6 أرقام" : "6-digit verification code"}>
+                    {Array.from({ length: 6 }, (_, index) => (
+                      <input
+                        key={`${index}-${code[index] || "empty"}`}
+                        ref={(element) => { otpRefs.current[index] = element; }}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        autoComplete={index === 0 ? "one-time-code" : "off"}
+                        aria-label={isRtl ? `الخانة ${index + 1} من 6` : `Digit ${index + 1} of 6`}
+                        value={code[index] || ""}
+                        onChange={(event) => updateOtpDigit(index, event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Backspace" && !code[index] && index > 0) {
+                            otpRefs.current[index - 1]?.focus();
+                          } else if (event.key === "ArrowLeft" && index > 0) {
+                            event.preventDefault();
+                            otpRefs.current[index - 1]?.focus();
+                          } else if (event.key === "ArrowRight" && index < 5) {
+                            event.preventDefault();
+                            otpRefs.current[index + 1]?.focus();
+                          }
+                        }}
+                        onPaste={handleOtpPaste}
+                        required={index === 0}
+                        className={`otp-digit h-[58px] w-full min-w-0 max-w-[54px] rounded-2xl border-2 bg-white text-center text-2xl font-extrabold tabular-nums text-[#29234F] outline-none transition-all duration-200 ease-out hover:-translate-y-0.5 hover:border-[#A69BEA] focus:-translate-y-1 focus:scale-[1.04] focus:border-[#6556D9] focus:ring-4 focus:ring-[#6556D9]/15 sm:h-16 sm:max-w-[58px] sm:text-[27px] ${code[index] ? "border-[#7668DB] bg-gradient-to-b from-[#F5F3FF] to-white shadow-[0_5px_16px_rgba(91,80,199,0.15)]" : "border-[#E1E3F0] shadow-[0_2px_6px_rgba(24,24,60,0.04)]"}`}
+                        dir="ltr"
+                      />
+                    ))}
+                  </div>
+                  <p className="text-center text-[11px] font-medium tracking-wide text-slate-400">{isRtl ? "أدخل الأرقام الستة — يمكنك لصق الرمز كاملًا مرة واحدة" : "Enter all six digits — you can paste the full code at once"}</p>
+                  <style jsx global>{`
+                    @keyframes otpDigitIn {
+                      0% { opacity: 0; transform: translateY(7px) scale(.88); }
+                      65% { opacity: 1; transform: translateY(-2px) scale(1.06); }
+                      100% { opacity: 1; transform: translateY(0) scale(1); }
+                    }
+                    .otp-digit { animation: otpDigitIn 260ms cubic-bezier(.2,.8,.2,1) both; caret-color: #6556D9; }
+                    @media (prefers-reduced-motion: reduce) {
+                      .otp-digit { animation: none !important; transition: none !important; }
+                    }
+                  `}</style>
+                </div>
                 <button type="submit" disabled={loading || code.length !== 6} className="flex min-h-[46px] w-full items-center justify-center rounded-full bg-gradient-to-r from-[#5146B8] to-[#7657D5] text-sm font-bold text-white transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#5B50C7]/20 disabled:opacity-60">{loading ? <Loader size={18} /> : isRtl ? "تأكيد وإنشاء الحساب" : "Verify and create account"}</button>
                 <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-500">{isRtl ? "لم يصلك الكود؟ انتظر دقيقة، وافحص مجلد الرسائل غير المرغوب فيها (Spam/Junk)، ثم أعد الإرسال. يمكنك الرجوع لتصحيح البريد الإلكتروني إذا لزم الأمر." : "Didn’t get the code? Wait a minute, check your Spam/Junk folder, then resend it. You can go back and correct your email address if needed."}</p><div className="flex items-center justify-between text-xs"><button type="button" onClick={() => { setStep("details"); setError(""); setNotice(""); }} className="font-semibold text-slate-500 hover:text-slate-800">{isRtl ? "العودة وتعديل البيانات" : "Back to edit details"}</button><button type="button" disabled={loading} onClick={() => requestCode()} className="font-bold text-[#5B50C7] hover:underline disabled:opacity-50">{isRtl ? "إعادة إرسال الكود" : "Resend code"}</button></div>
               </form>
