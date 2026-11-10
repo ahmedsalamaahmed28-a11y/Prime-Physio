@@ -59,7 +59,7 @@ export default function BrandedLoginPage() {
         });
         if (sessionError) throw sessionError;
         // Keep the selected center in sessionStorage until the dashboard auth provider re-enriches the user after navigation.
-        window.location.replace("/home");
+        window.location.replace("/dashboard");
       } catch (activationError) {
         activationStarted.current = false;
         setLoginError(isRtl ? "تعذر تفعيل جلسة هذا المركز. يرجى تسجيل الدخول مرة أخرى." : "Could not activate this center session. Please sign in again.");
