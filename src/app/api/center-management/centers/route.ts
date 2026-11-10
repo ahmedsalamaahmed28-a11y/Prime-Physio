@@ -40,8 +40,8 @@ export async function GET(req: NextRequest) {
       return {
         id: clinic.id,
         name: clinic.name,
-        slug: branch?.slug || clinic.slug,
-        loginUrl: branch?.slug || clinic.slug ? `/clinic/${branch?.slug || clinic.slug}` : null,
+        slug: clinic.slug,
+        loginUrl: clinic.slug ? `/clinic/${clinic.slug}` : null,
         status: clinic.status,
         createdAt: clinic.created_at,
         logoUrl: branch?.logo_url || null,
