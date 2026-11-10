@@ -146,6 +146,16 @@ export default function HomePage() {
     );
   }
 
+  const greetingName = (isRtl ? user?.name : (user?.nameEn || user?.name)) || "";
+  const cleanGreetingName = greetingName.replace(/^(د\.?\s*|د\/\s*|Dr\.\s*)/i, "").trim();
+  const greetingParts = cleanGreetingName.split(/\s+/).filter(Boolean);
+  const firstAndLastName = greetingParts.length > 1
+    ? `${greetingParts[0]} ${greetingParts[greetingParts.length - 1]}`
+    : (greetingParts[0] || "");
+  const greeting = firstAndLastName
+    ? (isRtl ? `مرحباً د. ${firstAndLastName}` : `Welcome Dr. ${firstAndLastName}`)
+    : (isRtl ? "مرحباً بعودتك!" : "Welcome back!");
+
   const totalSessions = appointments.length;
   const completedSessions = appointments.filter((a) => a.status === "منتهي").length;
 
@@ -154,7 +164,7 @@ export default function HomePage() {
         <div className="flex justify-between items-center mb-8 flex-col sm:flex-row gap-4 sm:gap-0">
           <div>
             <h1 className="text-xl font-bold text-gray-800">
-              {isRtl ? "مرحباً بعودتك!" : "Welcome back!"}
+              {greeting}
             </h1>
             <p className="text-sm text-zinc-500 font-semibold mt-1">
               {isRtl ? "نظرة عامة على نشاط العيادة اليوم" : "Clinic activity overview"}
