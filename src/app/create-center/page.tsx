@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
-import { Building2, CheckCircle2, ArrowLeft, Loader2, Mail, ShieldCheck } from "lucide-react";
+import { Building, CheckCircle2, ArrowLeft, Loader2, Mail, ShieldCheck } from "lucide-react";
 
 const plans = [
   { id: "basic", nameAr: "الأساسية", nameEn: "Basic", price: "0", priceLabelAr: "مجانًا", priceLabelEn: "Free", descriptionAr: "للمراكز التي تبدأ عملها", descriptionEn: "For centers getting started" },
@@ -170,7 +170,7 @@ export default function CreateCenterPage() {
       <div className="mx-auto max-w-4xl">
         <Link href="/center-management" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#1769AA]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         <div className="mb-7">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1769AA] text-white"><Building2 className="h-6 w-6" /></div>
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1769AA] text-white"><Building className="h-6 w-6" /></div>
           <h1 className="text-2xl font-extrabold text-[#202B38]">{isRtl ? "إنشاء مركز مستقل جديد" : "Create a new independent center"}</h1>
           <p className="mt-2 text-sm text-[#7C8794]">{isRtl ? "كل مركز يحصل على رابط دخول وبيانات واشتراك منفصل." : "Every center gets its own login URL, data and subscription."}</p>
         </div>
