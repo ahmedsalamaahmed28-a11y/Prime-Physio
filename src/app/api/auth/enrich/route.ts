@@ -44,14 +44,14 @@ export async function GET(req: NextRequest) {
 
     const preferredClinicId = new URL(req.url).searchParams.get("preferred_clinic_id");
     const admin = getAdminClient();
-    const { data: profile } = await admin
-      .from("staff")
-      .select("name")
-      .eq("email", email)
-      .not("name", "is", null)
-      .limit(1)
-      .maybeSingle();
-    const displayName = typeof profile?.name === "string" ? profile.name.trim() : "";
+    const [{ data: profile }, { data: accountProfile }] = await Promise.all([
+      admin.from("staff").select("name").eq("email", email).not("name", "is", null).limit(1).maybeSingle(),
+      admin.from("auth_accounts").select("name").eq("email", email).maybeSingle(),
+    ]);
+    const displayName =
+      (typeof profile?.name === "string" && profile.name.trim()) ||
+      (typeof accountProfile?.name === "string" && accountProfile.name.trim()) ||
+      "";
 
     const { data: platformAdmin, error: platformAdminError } = await admin
       .from("platform_admins")
@@ -67,6 +67,7 @@ export async function GET(req: NextRequest) {
     if (platformAdmin) {
       return NextResponse.json({
         clinicId: null,
+        displayName,
         role: "مدير المنصة",
         roleKey: "platform_admin",
         roleAr: "مدير المنصة",
@@ -182,7 +183,7 @@ export async function GET(req: NextRequest) {
       }, { headers: { "Cache-Control": "no-store, private" } });
     }
 
-    return NextResponse.json({ clinicId: null, role: null }, { headers: { "Cache-Control": "no-store, private" } });
+    return NextResponse.json({ clinicId: null, role: null, displayName }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error) {
     console.error("[AuthEnrich] Membership lookup failed:", error);
     return NextResponse.json({ error: "Clinic membership lookup failed" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
