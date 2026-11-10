@@ -182,7 +182,7 @@ export default function SubscribePage() {
         </div>
 
         <p className="text-xs text-slate-400">
-          <Link href="/home" className="text-[#4F46BA] hover:underline">
+          <Link href="/dashboard" className="text-[#4F46BA] hover:underline">
             {isRtl ? "سأفعل ذلك لاحقاً" : "I'll do this later"}
           </Link>
         </p>
