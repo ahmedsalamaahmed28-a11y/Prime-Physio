@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
-import { Building, CheckCircle2, ArrowLeft, Loader2, Mail, ShieldCheck } from "lucide-react";
+import { Building, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
 
 const plans = [
   { id: "basic", nameAr: "الأساسية", nameEn: "Basic", price: "0", priceLabelAr: "مجانًا", priceLabelEn: "Free", descriptionAr: "للمراكز التي تبدأ عملها", descriptionEn: "For centers getting started" },
@@ -18,15 +18,15 @@ export default function CreateCenterPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const [planId, setPlanId] = useState("");
+  const [step, setStep] = useState<"plan" | "details">("plan");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [shortName, setShortName] = useState("");
   const [fullName, setFullName] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState("");
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [slug, setSlug] = useState("");
-  const [otp, setOtp] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [sendingOtp, setSendingOtp] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -39,27 +39,6 @@ export default function CreateCenterPage() {
 
   const normalizeSlug = (value: string) =>
     value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-
-  const sendOtp = async () => {
-    setError("");
-    setNotice("");
-    if (!shortName.trim() || !slug.trim()) {
-      setError(isRtl ? "أدخل اسم المركز والرابط أولاً." : "Enter the center name and URL first.");
-      return;
-    }
-    setSendingOtp(true);
-    try {
-      const response = await fetch("/api/centers/send-otp", { method: "POST", headers: { "Content-Type": "application/json" } });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "Could not send verification code");
-      setOtpSent(true);
-      setNotice(isRtl ? "تم إرسال رمز التحقق إلى بريد حسابك." : "A verification code was sent to your account email.");
-    } catch (sendError) {
-      setError(sendError instanceof Error ? sendError.message : "Could not send verification code");
-    } finally {
-      setSendingOtp(false);
-    }
-  };
 
   const activateCenterSession = async (clinicId: string) => {
     const response = await fetch(`/api/auth/supabase-session?clinic_id=${encodeURIComponent(clinicId)}`, { cache: "no-store" });
@@ -86,10 +65,6 @@ export default function CreateCenterPage() {
       setError(isRtl ? "اختر باقة الاشتراك قبل إنشاء المركز." : "Choose a subscription plan before creating the center.");
       return;
     }
-    if (!/^\d{6}$/.test(otp.trim())) {
-      setError(isRtl ? "أدخل رمز التحقق المكوّن من 6 أرقام." : "Enter the 6-digit verification code.");
-      return;
-    }
     setCreating(true);
     try {
       let uploadedLogo: { url: string; path: string } | null = null;
@@ -113,7 +88,8 @@ export default function CreateCenterPage() {
           shortName: shortName.trim(),
           fullName: fullName.trim(),
           slug: normalizeSlug(slug),
-          code: otp.trim(),
+          phone: phone.trim(),
+          address: address.trim(),
           logoUrl: uploadedLogo?.url || null,
           logoPath: uploadedLogo?.path || null,
         }),
@@ -189,7 +165,7 @@ export default function CreateCenterPage() {
   }
 
   if (centerCreated && createdSlug) {
-    const centerUrl = `${typeof window !== "undefined" ? window.location.origin : "https://primephysio.vercel.app"}/clinic/${createdSlug}`;
+    const centerUrl = `${typeof window !== "undefined" ? window.location.origin : "https://primephysio.vercel.app"}/${createdSlug}`;
     return (
       <main dir={isRtl ? "rtl" : "ltr"} className="flex min-h-screen items-center justify-center bg-[#F7F9FC] px-4 py-10">
         <section className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-7 text-center shadow-sm sm:p-9">
@@ -242,6 +218,7 @@ export default function CreateCenterPage() {
         </div>
 
         <form onSubmit={createCenter} className="space-y-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+          {step === "plan" && <>
           <section>
             <h2 className="mb-3 text-base font-extrabold text-slate-800">{isRtl ? "1. اختر الباقة" : "1. Choose a plan"}</h2>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
@@ -258,6 +235,11 @@ export default function CreateCenterPage() {
             </div>
           </section>
 
+
+            <button type="button" disabled={!planId} onClick={() => { setError(""); setStep("details"); }} className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#5B50C7] px-6 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">{isRtl ? "متابعة إلى بيانات المركز" : "Continue to center details"}</button>
+          </>}
+          {step === "details" && <>
+            <button type="button" onClick={() => setStep("plan")} className="inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة لاختيار الباقة" : "Back to plan selection"}</button>
           <section className="border-t border-slate-100 pt-6">
             <h2 className="mb-4 text-base font-extrabold text-slate-800">{isRtl ? "2. بيانات المركز" : "2. Center details"}</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -273,7 +255,7 @@ export default function CreateCenterPage() {
             <label className="mt-4 block text-sm font-semibold text-slate-700">
               {isRtl ? "رابط المركز الخاص" : "Unique center URL"}
               <div className="mt-2 flex overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#5B50C7]" dir="ltr">
-                <span className="flex items-center bg-slate-50 px-3 text-xs text-slate-500">primephysio.vercel.app/clinic/</span>
+                <span className="flex items-center bg-slate-50 px-3 text-xs text-slate-500">primephysio.vercel.app/</span>
                 <input value={slug} onChange={(e) => setSlug(normalizeSlug(e.target.value))} required maxLength={50} pattern="[a-z0-9]+(-[a-z0-9]+)*" className="h-11 min-w-0 flex-1 px-3 outline-none" placeholder="my-center" />
               </div>
               <span className="mt-1 block text-xs font-normal text-slate-400">{isRtl ? "استخدم أحرفًا إنجليزية صغيرة وأرقامًا وشرطة فقط." : "Use lowercase English letters, numbers and hyphens only."}</span>
@@ -318,36 +300,22 @@ export default function CreateCenterPage() {
           </div>
           </section>
 
-          <section className="border-t border-slate-100 pt-6">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-base font-extrabold text-slate-800">{isRtl ? "3. تأكيد البريد الإلكتروني" : "3. Verify your email"}</h2>
-                <p className="mt-1 text-xs text-slate-500">{user.email}</p>
-              </div>
-              <Mail className="h-5 w-5 text-[#5B50C7]" />
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <label className="block text-sm font-semibold text-slate-700">{isRtl ? "رقم هاتف المركز" : "Center phone"}
+                <input value={phone} onChange={(e) => setPhone(e.target.value)} required maxLength={32} type="tel" className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder="+20 10 1234 5678" />
+              </label>
+              <label className="block text-sm font-semibold text-slate-700">{isRtl ? "عنوان المركز" : "Center address"}
+                <input value={address} onChange={(e) => setAddress(e.target.value)} required maxLength={250} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "المحافظة، المنطقة، الشارع" : "City, area, street"} />
+              </label>
             </div>
-            {!otpSent ? (
-              <button type="button" onClick={sendOtp} disabled={sendingOtp} className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#5B50C7] px-5 text-sm font-bold text-[#5B50C7] disabled:opacity-50">
-                {sendingOtp ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
-                {isRtl ? "إرسال رمز التحقق" : "Send verification code"}
-              </button>
-            ) : (
-              <div className="max-w-xs">
-                <label className="text-sm font-semibold text-slate-700">{isRtl ? "رمز التحقق (6 أرقام)" : "Verification code (6 digits)"}
-                  <input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" required className="mt-2 h-12 w-full rounded-xl border border-slate-200 px-3 text-center text-xl tracking-[.4em] outline-none focus:border-[#5B50C7]" />
-                </label>
-              </div>
-            )}
-          </section>
-
-          {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-          {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</p>}
-
-          <button type="submit" disabled={creating || uploadingLogo || !otpSent || !planId} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#5B50C7] px-6 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">
-            {(creating || uploadingLogo) && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isRtl ? "إنشاء المركز" : "Create center"}
-          </button>
-          <p className="text-center text-[11px] leading-5 text-slate-400">{isRtl ? "سيتم إنشاء مركز مستقل. لا يمكن للمراكز الأخرى الوصول إلى مرضاه أو سجلاته." : "A separate tenant will be created. Other centers cannot access its patients or records."}</p>
+            {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+            {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</p>}
+            <button type="submit" disabled={creating || uploadingLogo} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#5B50C7] px-6 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">
+              {(creating || uploadingLogo) && <Loader2 className="h-4 w-4 animate-spin" />}
+              {isRtl ? "إنشاء المركز وفتح لوحة التحكم" : "Create center and open dashboard"}
+            </button>
+            <p className="text-center text-[11px] leading-5 text-slate-400">{isRtl ? "سيتم إنشاء مركز مستقل. لا يمكن للمراكز الأخرى الوصول إلى مرضاه أو سجلاته." : "A separate tenant will be created. Other centers cannot access its patients or records."}</p>
+          </>}
         </form>
           </div>
         </section>
