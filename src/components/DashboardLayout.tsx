@@ -65,7 +65,7 @@ interface SidebarItem {
 }
 
 const SIDEBAR_ITEMS: SidebarItem[] = [
-  { nameKey: "nav_home", href: "/home", icon: Home },
+  { nameKey: "nav_home", href: "/dashboard", icon: Home },
   { nameKey: "nav_patients", href: "/patients", icon: Users },
   { nameKey: "nav_library", href: "/clinical-library", icon: BookOpen },
   { nameKey: "nav_nutrition", href: "/clinical-nutrition", icon: Apple },
@@ -287,7 +287,7 @@ export default function DashboardLayout({
     })();
   }, [user?.clinicId, activeBranchId, user?.logoUrl, user?.shortName]);
 
-    const knownDashboardPages = new Set(["home","hr","admin","patients","doctors","calendar","billing","reports","chat","ai-assistant","ai-planner","staff","settings","subscription","permissions","security","profile","analytics","packages","clinic-settings","clinical-library","clinical-nutrition","protocols","medical-reports","red-flags","users-permissions","notifications"]);
+    const knownDashboardPages = new Set(["home","dashboard","hr","admin","patients","doctors","calendar","billing","reports","chat","ai-assistant","ai-planner","staff","settings","subscription","permissions","security","profile","analytics","packages","clinic-settings","clinical-library","clinical-nutrition","protocols","medical-reports","red-flags","users-permissions","notifications"]);
     const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname || "") && !knownDashboardPages.has((pathname || "").replace("/", ""));
     const p = pathname || "";
     const isCenterManagementPage = (pathname || "").split("/").some(
@@ -354,7 +354,7 @@ export default function DashboardLayout({
 
   const isActive = (href: string) => {
     if (!pathname) return false;
-    if (href === "/home") return pathname === "/home";
+    if (href === "/dashboard") return pathname === "/dashboard";
     return pathname.startsWith(href);
   };
 
@@ -418,7 +418,7 @@ export default function DashboardLayout({
               return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
             }
             if (role === "receptionist") {
-              return ["/home", "/patients", "/billing", "/calendar", "/ai-assistant", "/logout"].includes(item.href);
+              return ["/dashboard", "/patients", "/billing", "/calendar", "/ai-assistant", "/logout"].includes(item.href);
             }
             return true;
           }).map((item) => {
@@ -713,7 +713,7 @@ export default function DashboardLayout({
                     return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
                   }
                   if (role === "receptionist") {
-                    return ["/home", "/patients", "/billing", "/calendar", "/chat", "/logout"].includes(item.href);
+                    return ["/dashboard", "/patients", "/billing", "/calendar", "/chat", "/logout"].includes(item.href);
                   }
                   return true;
                 }).map((item) => {
