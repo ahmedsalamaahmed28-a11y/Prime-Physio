@@ -318,9 +318,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
         const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
         const isClinicLandingPage = currentPath.startsWith("/clinic/");
-        if (enriched.roleKey === "platform_admin" && typeof window !== "undefined" && (currentPath === "/home" || currentPath === "/setup" || currentPath.startsWith("/manage") || currentPath === "/signup")) {
+        if (enriched.roleKey === "platform_admin" && typeof window !== "undefined" && (currentPath === "/dashboard" || currentPath === "/home" || currentPath === "/setup" || currentPath.startsWith("/manage") || currentPath === "/signup")) {
           window.location.href = "/platform";
-        } else if (enriched.clinicId && typeof window !== "undefined" && currentPath !== "/home" && !isClinicLandingPage) {
+        } else if (enriched.clinicId && typeof window !== "undefined" && currentPath !== "/dashboard" && currentPath !== "/home" && !isClinicLandingPage) {
           window.location.href = "/home";
         } else if (enriched.clinicId === null && typeof window !== "undefined" && !currentPath.startsWith("/setup") && currentPath !== "/center-management" && currentPath !== "/center-management.php" && currentPath !== "/create-center" && !/^\/[a-z][a-z0-9-]+$/.test(currentPath) && !isClinicLandingPage) {
           window.location.href = "/center-management";
@@ -359,7 +359,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Allow unauthenticated access to /[slug] branded login pages
-      const knownPages = new Set(["home","admin","setup","login","manage","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup","center-management","create-center","home.php","rgstr.php","center-management.php"]);
+      const knownPages = new Set(["home","dashboard","admin","setup","login","manage","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup","center-management","create-center","home.php","rgstr.php","center-management.php"]);
       const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname) && !knownPages.has(pathname.replace("/", ""));
       if (isSlugPage) return;
       if (pathname.startsWith("/setup") || pathname === "/plans" || pathname === "/center_setup") { window.location.replace("/center-management"); return; }
@@ -413,7 +413,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setIsEnriching(false);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/home" : "/center-management";
+    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/dashboard" : "/center-management";
   };
 
   const loginWithCredentials = async (email: string, name: string, _role: string) => {
@@ -438,7 +438,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setIsEnriching(false);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/home" : "/center-management";
+    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/dashboard" : "/center-management";
   };
 
   const registerWithSupabase = async (email: string, pass: string, meta: any) => {
