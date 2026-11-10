@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -20,6 +20,9 @@ export default function CreateCenterPage() {
   const [planId, setPlanId] = useState("");
   const [shortName, setShortName] = useState("");
   const [fullName, setFullName] = useState("");
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState("");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
   const [slug, setSlug] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -29,6 +32,8 @@ export default function CreateCenterPage() {
   const [notice, setNotice] = useState("");
   const [paymentUrl, setPaymentUrl] = useState("");
   const [createdSlug, setCreatedSlug] = useState("");
+
+  useEffect(() => () => { if (logoPreview) URL.revokeObjectURL(logoPreview); }, [logoPreview]);
 
   const normalizeSlug = (value: string) =>
     value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
@@ -85,6 +90,19 @@ export default function CreateCenterPage() {
     }
     setCreating(true);
     try {
+      let uploadedLogo: { url: string; path: string } | null = null;
+      if (logoFile) {
+        setUploadingLogo(true);
+        const formData = new FormData();
+        formData.append("file", logoFile);
+        const uploadResponse = await fetch("/api/centers/upload-logo", { method: "POST", body: formData });
+        const uploadData = await uploadResponse.json().catch(() => ({}));
+        if (!uploadResponse.ok || !uploadData.success || !uploadData.url || !uploadData.path) {
+          throw new Error(uploadData.error || (isRtl ? "تعذر رفع صورة المركز." : "Could not upload center logo."));
+        }
+        uploadedLogo = { url: uploadData.url, path: uploadData.path };
+        setUploadingLogo(false);
+      }
       const response = await fetch("/api/centers/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -94,6 +112,8 @@ export default function CreateCenterPage() {
           fullName: fullName.trim(),
           slug: normalizeSlug(slug),
           code: otp.trim(),
+          logoUrl: uploadedLogo?.url || null,
+          logoPath: uploadedLogo?.path || null,
         }),
       });
       const data = await response.json().catch(() => ({}));
@@ -138,6 +158,7 @@ export default function CreateCenterPage() {
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : "Center creation failed");
     } finally {
+      setUploadingLogo(false);
       setCreating(false);
     }
   };
@@ -235,6 +256,44 @@ export default function CreateCenterPage() {
               </div>
               <span className="mt-1 block text-xs font-normal text-slate-400">{isRtl ? "استخدم أحرفًا إنجليزية صغيرة وأرقامًا وشرطة فقط." : "Use lowercase English letters, numbers and hyphens only."}</span>
             </label>
+          <div className="mt-5">
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              {isRtl ? "شعار أو صورة المركز (اختياري)" : "Center logo or image (optional)"}
+            </label>
+            <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 sm:flex-row sm:items-center">
+              {logoPreview ? (
+                <img src={logoPreview} alt={isRtl ? "معاينة شعار المركز" : "Center logo preview"} className="h-24 w-24 rounded-xl border border-slate-200 bg-white object-contain p-2" />
+              ) : (
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-white text-[#5B50C7]"><Building className="h-9 w-9" /></div>
+              )}
+              <div className="flex-1">
+                <p className="text-sm font-semibold text-slate-700">{isRtl ? "أضف شعار المركز ليظهر في صفحته" : "Add a logo to display on your center page"}</p>
+                <p className="mt-1 text-xs text-slate-500">{isRtl ? "PNG أو JPG أو WebP — بحد أقصى 5 ميجابايت." : "PNG, JPG or WebP — up to 5 MB."}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <label className="inline-flex h-9 cursor-pointer items-center justify-center rounded-full bg-[#5B50C7] px-4 text-xs font-bold text-white hover:bg-[#4338A8]">
+                    {isRtl ? (logoFile ? "تغيير الصورة" : "اختيار صورة") : (logoFile ? "Change image" : "Choose image")}
+                    <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      event.target.value = "";
+                      if (!file) return;
+                      if (!["image/png", "image/jpeg", "image/webp"].includes(file.type.toLowerCase())) {
+                        setError(isRtl ? "اختر صورة PNG أو JPG أو WebP." : "Choose a PNG, JPG, or WebP image.");
+                        return;
+                      }
+                      if (file.size > 5 * 1024 * 1024) {
+                        setError(isRtl ? "حجم الصورة يجب ألا يتجاوز 5 ميجابايت." : "Image size must not exceed 5 MB.");
+                        return;
+                      }
+                      setError("");
+                      setLogoFile(file);
+                      setLogoPreview(URL.createObjectURL(file));
+                    }} />
+                  </label>
+                  {logoFile && <button type="button" onClick={() => { setLogoFile(null); setLogoPreview(""); }} className="h-9 rounded-full border border-slate-300 px-4 text-xs font-bold text-slate-600">{isRtl ? "إزالة الصورة" : "Remove image"}</button>}
+                </div>
+              </div>
+            </div>
+          </div>
           </section>
 
           <section className="border-t border-slate-100 pt-6">
@@ -262,8 +321,8 @@ export default function CreateCenterPage() {
           {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
           {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</p>}
 
-          <button type="submit" disabled={creating || !otpSent || !planId} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#5B50C7] px-6 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">
-            {creating && <Loader2 className="h-4 w-4 animate-spin" />}
+          <button type="submit" disabled={creating || uploadingLogo || !otpSent || !planId} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#5B50C7] px-6 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">
+            {(creating || uploadingLogo) && <Loader2 className="h-4 w-4 animate-spin" />}
             {isRtl ? "إنشاء المركز" : "Create center"}
           </button>
           <p className="text-center text-[11px] leading-5 text-slate-400">{isRtl ? "سيتم إنشاء مركز مستقل. لا يمكن للمراكز الأخرى الوصول إلى مرضاه أو سجلاته." : "A separate tenant will be created. Other centers cannot access its patients or records."}</p>
