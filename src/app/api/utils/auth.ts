@@ -69,7 +69,7 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
       }
       return {
         email,
-        userId: typeof session.user.id === "string" ? session.user.id : undefined,
+        userId: typeof (session.user as { id?: string }).id === "string" ? (session.user as { id?: string }).id : undefined,
         clinicId,
       };
     }
