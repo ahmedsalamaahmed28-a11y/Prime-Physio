@@ -55,7 +55,7 @@ export const authOptions: NextAuthOptions = {
 
           const { data, error } = await admin
             .from("auth_accounts")
-            .select("id, email, password_hash, verified")
+            .select("id, email, name, password_hash, verified")
             .eq("email", email)
             .maybeSingle();
 
@@ -115,7 +115,7 @@ export const authOptions: NextAuthOptions = {
           return {
             id: data.id,
             email: data.email,
-            name: data.email.split("@")[0],
+            name: typeof data.name === "string" && data.name.trim() ? data.name.trim() : data.email.split("@")[0],
             clinicId,
           };
         } catch (error) {
