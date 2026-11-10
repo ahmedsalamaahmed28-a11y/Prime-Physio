@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase-admin";
-import { requireRole } from "../utils/auth";
+import { requireAuthOnly } from "../utils/auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,12 +8,12 @@ export const revalidate = 0;
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await requireRole(req, ["admin"]);
+    const user = await requireAuthOnly(req);
     const body = await req.json().catch(() => null);
-    const requestedClinicId = typeof body?.clinicId === "string" ? body.clinicId : "";
+    const requestedClinicId = typeof body?.clinicId === "string" ? body.clinicId.trim() : "";
 
-    if (!user.clinicId || (requestedClinicId && requestedClinicId !== user.clinicId)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    if (!requestedClinicId) {
+      return NextResponse.json({ error: "A center must be selected" }, { status: 400 });
     }
 
     // This endpoint is only for the free plan. Paid plans are activated exclusively
@@ -26,17 +26,28 @@ export async function POST(req: NextRequest) {
     }
 
     const email = user.email.toLowerCase().trim();
-    const clinicId = user.clinicId;
+    const clinicId = requestedClinicId;
     const admin = getAdminClient();
 
     const { data: clinic, error: clinicError } = await admin
       .from("clinics")
-      .select("id, status, admin_email")
+      .select("id, status, is_active, admin_email")
       .eq("id", clinicId)
       .maybeSingle();
 
-    if (clinicError || !clinic || clinic.status !== "active" || clinic.admin_email?.toLowerCase().trim() !== email) {
+    if (clinicError || !clinic || clinic.status !== "active" || clinic.is_active !== true || clinic.admin_email?.toLowerCase().trim() !== email) {
       return NextResponse.json({ error: "Clinic ownership could not be verified" }, { status: 403 });
+    }
+
+    const { data: ownerMembership, error: ownerError } = await admin
+      .from("clinic_owners")
+      .select("clinic_id")
+      .eq("clinic_id", clinicId)
+      .eq("owner_email", email)
+      .maybeSingle();
+
+    if (ownerError || !ownerMembership) {
+      return NextResponse.json({ error: "Only the verified center owner can activate the free plan" }, { status: 403 });
     }
 
     const { data: existingSubscription, error: existingError } = await admin
