@@ -103,7 +103,7 @@ export const authOptions: NextAuthOptions = {
 
             if (!platformAdmin) {
               const [{ data: staffMembership, error: staffMembershipError }, { data: ownerMembership, error: ownerMembershipError }] = await Promise.all([
-                admin.from("staff").select("clinic_id").eq("email", email).eq("clinic_id", requestedClinic.id).limit(1).maybeSingle(),
+                admin.from("staff").select("clinic_id").eq("email", email).eq("clinic_id", requestedClinic.id).neq("status", "محذوف").neq("status", "deleted").neq("status", "inactive").neq("status", "غير نشط").limit(1).maybeSingle(),
                 admin.from("clinic_owners").select("clinic_id").eq("owner_email", email).eq("clinic_id", requestedClinic.id).limit(1).maybeSingle(),
               ]);
 
