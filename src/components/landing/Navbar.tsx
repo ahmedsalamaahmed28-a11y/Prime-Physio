@@ -98,7 +98,7 @@ export default function Navbar() {
 
           {user ? (
             <Link
-              href={user?.roleKey === "platform_admin" ? "/platform" : "/home"}
+              href={user?.roleKey === "platform_admin" ? "/platform" : "/dashboard"}
               className="pp-button pp-button-primary pp-nav-cta"
               onClick={closeMenu}
             >
