@@ -32,6 +32,8 @@ export default function CreateCenterPage() {
   const [notice, setNotice] = useState("");
   const [paymentUrl, setPaymentUrl] = useState("");
   const [createdSlug, setCreatedSlug] = useState("");
+  const [centerCreated, setCenterCreated] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => () => { if (logoPreview) URL.revokeObjectURL(logoPreview); }, [logoPreview]);
 
@@ -128,7 +130,8 @@ export default function CreateCenterPage() {
         const subscribeData = await subscribeResponse.json().catch(() => ({}));
         if (!subscribeResponse.ok) throw new Error(subscribeData.error || "The center was created, but the free plan could not be activated.");
         await activateCenterSession(data.clinicId);
-        window.location.replace(`/${data.slug}`);
+        setCreatedSlug(data.slug);
+        setCenterCreated(true);
         return;
       }
 
@@ -178,9 +181,28 @@ export default function CreateCenterPage() {
           <iframe src={paymentUrl} title="Paymob payment" className="h-[620px] w-full border-0" allow="payment" />
           <div className="p-5">
             <p className="mb-4 text-xs leading-6 text-slate-500">{isRtl ? "بعد نجاح الدفع، قد يستغرق تحديث حالة الاشتراك لحظات. يمكنك فتح المركز ومراجعة حالة الاشتراك." : "After successful payment, subscription status may take a short moment to update. You can open the center and review its subscription status."}</p>
-            <Link href={`/${createdSlug}`} className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#5B50C7] text-sm font-bold text-white">{isRtl ? "الانتقال إلى المركز" : "Open center"}</Link>
+            <Link href={`/clinic/${createdSlug}`} className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#5B50C7] text-sm font-bold text-white">{isRtl ? "الانتقال إلى المركز" : "Open center"}</Link>
           </div>
         </div>
+      </main>
+    );
+  }
+
+  if (centerCreated && createdSlug) {
+    const centerUrl = `${typeof window !== "undefined" ? window.location.origin : "https://primephysio.vercel.app"}/clinic/${createdSlug}`;
+    return (
+      <main dir={isRtl ? "rtl" : "ltr"} className="flex min-h-screen items-center justify-center bg-[#F7F9FC] px-4 py-10">
+        <section className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-7 text-center shadow-sm sm:p-9">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"><CheckCircle2 className="h-9 w-9" /></div>
+          <h1 className="text-2xl font-extrabold text-slate-900">{isRtl ? "تم إنشاء المركز بنجاح" : "Center created successfully"}</h1>
+          <p className="mt-2 text-sm leading-6 text-slate-500">{isRtl ? "أصبح للمركز رابط مستقل يمكنك مشاركته مع فريق العمل." : "Your center now has its own link that you can share with your team."}</p>
+          <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-3 text-left" dir="ltr">
+            <p className="break-all text-sm font-semibold text-[#4F46BA]">{centerUrl}</p>
+          </div>
+          <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(centerUrl); setLinkCopied(true); } catch { setLinkCopied(false); } }} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-[#5B50C7] font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{linkCopied ? (isRtl ? "تم نسخ الرابط" : "Link copied") : (isRtl ? "نسخ رابط المركز" : "Copy center link")}</button>
+          <Link href={`/clinic/${createdSlug}`} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#5B50C7] font-bold text-white transition hover:bg-[#4338A8]">{isRtl ? "فتح صفحة المركز" : "Open center page"}</Link>
+          <Link href="/center-management" className="mt-4 inline-block text-sm font-semibold text-slate-500 hover:text-[#5B50C7]">{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
+        </section>
       </main>
     );
   }
@@ -251,7 +273,7 @@ export default function CreateCenterPage() {
             <label className="mt-4 block text-sm font-semibold text-slate-700">
               {isRtl ? "رابط المركز الخاص" : "Unique center URL"}
               <div className="mt-2 flex overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#5B50C7]" dir="ltr">
-                <span className="flex items-center bg-slate-50 px-3 text-xs text-slate-500">primephysio.vercel.app/</span>
+                <span className="flex items-center bg-slate-50 px-3 text-xs text-slate-500">primephysio.vercel.app/clinic/</span>
                 <input value={slug} onChange={(e) => setSlug(normalizeSlug(e.target.value))} required maxLength={50} pattern="[a-z0-9]+(-[a-z0-9]+)*" className="h-11 min-w-0 flex-1 px-3 outline-none" placeholder="my-center" />
               </div>
               <span className="mt-1 block text-xs font-normal text-slate-400">{isRtl ? "استخدم أحرفًا إنجليزية صغيرة وأرقامًا وشرطة فقط." : "Use lowercase English letters, numbers and hyphens only."}</span>
