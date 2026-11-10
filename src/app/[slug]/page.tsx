@@ -18,6 +18,7 @@ interface BranchData {
   slug: string;
   logo_url: string | null;
   clinic_id: string;
+  clinic_slug: string;
 }
 
 export default function BrandedLoginPage() {
@@ -95,7 +96,7 @@ export default function BrandedLoginPage() {
       const result = await signIn("credentials", {
         email: email.trim().toLowerCase(),
         password,
-        clinicSlug: slug,
+        clinicSlug: branch?.clinic_slug || slug,
         redirect: false,
       });
 
