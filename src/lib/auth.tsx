@@ -317,12 +317,12 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         setUser(enriched);
         setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
         const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
-        const isClinicLandingPage = /^\\/clinic\\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(currentPath);
+        const isClinicLandingPage = currentPath.startsWith("/clinic/");
         if (enriched.roleKey === "platform_admin" && typeof window !== "undefined" && (currentPath === "/home" || currentPath === "/setup" || currentPath.startsWith("/manage") || currentPath === "/signup")) {
           window.location.href = "/platform";
         } else if (enriched.clinicId && typeof window !== "undefined" && currentPath !== "/home" && !isClinicLandingPage) {
           window.location.href = "/home";
-        } else if (enriched.clinicId === null && typeof window !== "undefined" && !currentPath.startsWith("/setup") && currentPath !== "/center-management" && currentPath !== "/center-management.php" && currentPath !== "/create-center" && !/^\\/[a-z][a-z0-9-]+$/.test(currentPath) && !isClinicLandingPage) {
+        } else if (enriched.clinicId === null && typeof window !== "undefined" && !currentPath.startsWith("/setup") && currentPath !== "/center-management" && currentPath !== "/center-management.php" && currentPath !== "/create-center" && !/^\/[a-z][a-z0-9-]+$/.test(currentPath) && !isClinicLandingPage) {
           window.location.href = "/center-management";
         }
 
@@ -348,7 +348,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       if (!pathname) return;
 
       // Landing page and independent center landing pages are public.
-      if (pathname === "/" || /^\\/clinic\\/[a-z0-9]+(?:-[a-z0-9]+)*$/.test(pathname)) return;
+      if (pathname === "/" || pathname.startsWith("/clinic/")) return;
 
       // Force platform_admin isolation
       if (user?.roleKey === "platform_admin") {
