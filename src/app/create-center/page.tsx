@@ -41,6 +41,7 @@ export default function CreateCenterPage() {
     value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
   const activateCenterSession = async (clinicId: string) => {
+    sessionStorage.setItem("preferred_clinic_id", clinicId);
     const response = await fetch(`/api/auth/supabase-session?clinic_id=${encodeURIComponent(clinicId)}`, { cache: "no-store" });
     const data = await response.json().catch(() => ({}));
     if (!response.ok || !data.session?.access_token || !data.session?.refresh_token) {
