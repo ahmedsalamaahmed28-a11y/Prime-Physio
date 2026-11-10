@@ -106,16 +106,16 @@ async function enrichUserWithClinic(user: User): Promise<User> {
     }
     if (res.ok) {
       const data = await res.json();
+      if (typeof data.displayName === "string" && data.displayName.trim()) {
+        const cleanName = data.displayName.trim();
+        user.name = prefixArabicName(cleanName, user.roleKey);
+        user.nameEn = prefixEnglishName(cleanName, user.roleKey);
+        user.initials = cleanName.substring(0, 2).toUpperCase();
+        user.initialsEn = cleanName.substring(0, 2).toUpperCase();
+      }
       if (data.clinicId || data.roleKey) {
         user.clinicId = data.clinicId;
         user.roleKey = data.roleKey as User["roleKey"];
-        if (typeof data.displayName === "string" && data.displayName.trim()) {
-          const cleanName = data.displayName.trim();
-          user.name = prefixArabicName(cleanName, user.roleKey);
-          user.nameEn = prefixEnglishName(cleanName, user.roleKey);
-          user.initials = cleanName.substring(0, 2).toUpperCase();
-          user.initialsEn = cleanName.substring(0, 2).toUpperCase();
-        }
         user.role = data.roleAr;
         user.roleEn = data.roleEn;
         user.shortName = data.shortName || null;
