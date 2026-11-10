@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
     const { data: clinic, error: clinicError } = await admin
       .from("clinics")
-      .select("id")
+      .select("id, slug")
       .eq("id", branch.clinic_id)
       .eq("is_active", true)
       .eq("status", "active")
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Center is unavailable" }, { status: 404 });
     }
 
-    return NextResponse.json({ branch }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ branch: { ...branch, clinic_slug: clinic.slug } }, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Internal server error" },
