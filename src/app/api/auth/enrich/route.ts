@@ -81,7 +81,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ clinicId: null, role: null, error: "Access denied" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
       }
 
-      const roleKey = ownerMembership ? "admin" : mapStaffRoleToRoleKey(staff.role);
+      const roleKey = ownerMembership ? "admin" : mapStaffRoleToRoleKey(staff?.role || "");
       if (roleKey === "unknown") {
         return NextResponse.json({ error: "Unrecognized staff role" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
       }
