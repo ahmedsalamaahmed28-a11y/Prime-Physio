@@ -47,6 +47,18 @@ export async function GET(req: NextRequest) {
       || (typeof (session.user as any).clinicId === "string" ? (session.user as any).clinicId : null);
 
     if (requestedClinicId) {
+      const { data: activeClinic, error: clinicError } = await admin
+        .from("clinics")
+        .select("id")
+        .eq("id", requestedClinicId)
+        .eq("is_active", true)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (clinicError || !activeClinic) {
+        return NextResponse.json({ error: "Center is unavailable" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
+      }
+
       const [{ data: ownerMembership, error: ownerError }, { data: staffMembership, error: staffError }] = await Promise.all([
         admin.from("clinic_owners").select("clinic_id").eq("clinic_id", requestedClinicId).eq("owner_email", email).maybeSingle(),
         admin.from("staff").select("clinic_id").eq("clinic_id", requestedClinicId).eq("email", email).neq("status", "محذوف").neq("status", "deleted").neq("status", "inactive").neq("status", "غير نشط").maybeSingle(),
