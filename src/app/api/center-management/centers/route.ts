@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
         id: clinic.id,
         name: clinic.name,
         slug: branch?.slug || clinic.slug,
-        loginUrl: branch?.slug || clinic.slug ? `/${branch?.slug || clinic.slug}` : null,
+        loginUrl: branch?.slug || clinic.slug ? `/clinic/${branch?.slug || clinic.slug}` : null,
         status: clinic.status,
         createdAt: clinic.created_at,
         logoUrl: branch?.logo_url || null,
