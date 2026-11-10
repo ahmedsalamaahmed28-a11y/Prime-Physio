@@ -143,7 +143,7 @@ export default function CreateCenterPage() {
   };
 
   if (isLoading || isEnriching || !user) {
-    return <main className="flex min-h-screen items-center justify-center bg-[#F7F9FC]"><Loader2 className="h-8 w-8 animate-spin text-[#1769AA]" /></main>;
+    return <main className="flex min-h-screen items-center justify-center bg-[#F7F9FC]"><Loader2 className="h-8 w-8 animate-spin text-[#5B50C7]" /></main>;
   }
 
   if (paymentUrl) {
@@ -157,7 +157,7 @@ export default function CreateCenterPage() {
           <iframe src={paymentUrl} title="Paymob payment" className="h-[620px] w-full border-0" allow="payment" />
           <div className="p-5">
             <p className="mb-4 text-xs leading-6 text-slate-500">{isRtl ? "بعد نجاح الدفع، قد يستغرق تحديث حالة الاشتراك لحظات. يمكنك فتح المركز ومراجعة حالة الاشتراك." : "After successful payment, subscription status may take a short moment to update. You can open the center and review its subscription status."}</p>
-            <Link href={`/${createdSlug}`} className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#1769AA] text-sm font-bold text-white">{isRtl ? "الانتقال إلى المركز" : "Open center"}</Link>
+            <Link href={`/${createdSlug}`} className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#5B50C7] text-sm font-bold text-white">{isRtl ? "الانتقال إلى المركز" : "Open center"}</Link>
           </div>
         </div>
       </main>
@@ -165,11 +165,35 @@ export default function CreateCenterPage() {
   }
 
   return (
-    <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-[#F7F9FC] px-4 py-8 sm:px-6">
-      <div className="mx-auto max-w-4xl">
-        <Link href="/center-management" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#1769AA]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
+    <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-white font-sans text-slate-800">
+      <div className="flex min-h-screen w-full flex-col lg:flex-row" dir={isRtl ? "rtl" : "ltr"}>
+        <section className="relative hidden overflow-hidden bg-slate-900 lg:flex lg:w-1/2 items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-[#4F46BA] opacity-95" />
+          <div className="relative z-10 flex w-full max-w-lg flex-col items-center justify-center p-12 text-center text-white">
+            <Link href="/" className="mb-10 transition-transform hover:scale-105">
+              <img src="/logo.png" alt="Prime Physio" className="h-24 w-24 object-contain drop-shadow-2xl brightness-0 invert" />
+            </Link>
+            <h2 className="mb-6 text-4xl font-bold leading-tight">
+              {isRtl ? "مستقبل إدارة عيادات" : "The Future of Clinic"}<br />
+              <span className="text-indigo-400">{isRtl ? "العلاج الطبيعي" : "Management"}</span>
+            </h2>
+            <p className="mb-12 text-lg leading-relaxed text-slate-300">
+              {isRtl
+                ? "نظام متكامل يجمع بين السجلات الطبية، الإدارة المالية، وجدولة المواعيد في منصة واحدة سهلة الاستخدام."
+                : "An integrated system combining EMR, billing, and scheduling in one easy-to-use platform."}
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <div className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium backdrop-blur">{isRtl ? "سجلات طبية" : "EMR"}</div>
+              <div className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium backdrop-blur">{isRtl ? "إدارة المراكز" : "Center management"}</div>
+              <div className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium backdrop-blur">{isRtl ? "مواعيد" : "Scheduling"}</div>
+            </div>
+          </div>
+        </section>
+        <section className="flex w-full flex-col items-center justify-center bg-[#F7F9FC] px-4 py-8 sm:px-6 lg:w-1/2">
+          <div className="mx-auto w-full max-w-4xl">
+        <Link href="/center-management" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         <div className="mb-7">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#1769AA] text-white"><Building className="h-6 w-6" /></div>
+          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5B50C7] text-white"><Building className="h-6 w-6" /></div>
           <h1 className="text-2xl font-extrabold text-[#202B38]">{isRtl ? "إنشاء مركز مستقل جديد" : "Create a new independent center"}</h1>
           <p className="mt-2 text-sm text-[#7C8794]">{isRtl ? "كل مركز يحصل على رابط دخول وبيانات واشتراك منفصل." : "Every center gets its own login URL, data and subscription."}</p>
         </div>
@@ -179,12 +203,12 @@ export default function CreateCenterPage() {
             <h2 className="mb-3 text-base font-extrabold text-slate-800">{isRtl ? "1. اختر الباقة" : "1. Choose a plan"}</h2>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {plans.map((plan) => (
-                <button key={plan.id} type="button" onClick={() => setPlanId(plan.id)} className={`rounded-2xl border p-4 text-start transition ${planId === plan.id ? "border-[#1769AA] bg-[#EFF5FC] ring-2 ring-[#1769AA]/15" : "border-slate-200 bg-white hover:border-slate-300"}`}>
+                <button key={plan.id} type="button" onClick={() => setPlanId(plan.id)} className={`rounded-2xl border p-4 text-start transition ${planId === plan.id ? "border-[#5B50C7] bg-[#F1EFFF] ring-2 ring-[#5B50C7]/15" : "border-slate-200 bg-white hover:border-slate-300"}`}>
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-extrabold text-slate-800">{isRtl ? plan.nameAr : plan.nameEn}</span>
-                    {planId === plan.id && <CheckCircle2 className="h-5 w-5 text-[#1769AA]" />}
+                    {planId === plan.id && <CheckCircle2 className="h-5 w-5 text-[#5B50C7]" />}
                   </div>
-                  <div className="mt-3 text-lg font-extrabold text-[#1769AA]">{isRtl ? plan.priceLabelAr : plan.priceLabelEn}</div>
+                  <div className="mt-3 text-lg font-extrabold text-[#5B50C7]">{isRtl ? plan.priceLabelAr : plan.priceLabelEn}</div>
                   <p className="mt-1 text-xs text-slate-500">{isRtl ? plan.descriptionAr : plan.descriptionEn}</p>
                 </button>
               ))}
@@ -196,16 +220,16 @@ export default function CreateCenterPage() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <label className="block text-sm font-semibold text-slate-700">
                 {isRtl ? "اسم المركز" : "Center name"}
-                <input value={shortName} onChange={(e) => setShortName(e.target.value)} required maxLength={120} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#1769AA]" placeholder={isRtl ? "مثال: مركز برايم للعلاج الطبيعي" : "e.g. Prime Physiotherapy Center"} />
+                <input value={shortName} onChange={(e) => setShortName(e.target.value)} required maxLength={120} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "مثال: مركز برايم للعلاج الطبيعي" : "e.g. Prime Physiotherapy Center"} />
               </label>
               <label className="block text-sm font-semibold text-slate-700">
                 {isRtl ? "الاسم الكامل (اختياري)" : "Full name (optional)"}
-                <input value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={200} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#1769AA]" placeholder={isRtl ? "الاسم الظاهر في صفحة الدخول" : "Name shown on the login page"} />
+                <input value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={200} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "الاسم الظاهر في صفحة الدخول" : "Name shown on the login page"} />
               </label>
             </div>
             <label className="mt-4 block text-sm font-semibold text-slate-700">
               {isRtl ? "رابط المركز الخاص" : "Unique center URL"}
-              <div className="mt-2 flex overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#1769AA]" dir="ltr">
+              <div className="mt-2 flex overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#5B50C7]" dir="ltr">
                 <span className="flex items-center bg-slate-50 px-3 text-xs text-slate-500">primephysio.vercel.app/</span>
                 <input value={slug} onChange={(e) => setSlug(normalizeSlug(e.target.value))} required maxLength={50} pattern="[a-z0-9]+(-[a-z0-9]+)*" className="h-11 min-w-0 flex-1 px-3 outline-none" placeholder="my-center" />
               </div>
@@ -219,17 +243,17 @@ export default function CreateCenterPage() {
                 <h2 className="text-base font-extrabold text-slate-800">{isRtl ? "3. تأكيد البريد الإلكتروني" : "3. Verify your email"}</h2>
                 <p className="mt-1 text-xs text-slate-500">{user.email}</p>
               </div>
-              <Mail className="h-5 w-5 text-[#1769AA]" />
+              <Mail className="h-5 w-5 text-[#5B50C7]" />
             </div>
             {!otpSent ? (
-              <button type="button" onClick={sendOtp} disabled={sendingOtp} className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#1769AA] px-5 text-sm font-bold text-[#1769AA] disabled:opacity-50">
+              <button type="button" onClick={sendOtp} disabled={sendingOtp} className="inline-flex h-11 items-center justify-center gap-2 rounded-full border border-[#5B50C7] px-5 text-sm font-bold text-[#5B50C7] disabled:opacity-50">
                 {sendingOtp ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
                 {isRtl ? "إرسال رمز التحقق" : "Send verification code"}
               </button>
             ) : (
               <div className="max-w-xs">
                 <label className="text-sm font-semibold text-slate-700">{isRtl ? "رمز التحقق (6 أرقام)" : "Verification code (6 digits)"}
-                  <input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" required className="mt-2 h-12 w-full rounded-xl border border-slate-200 px-3 text-center text-xl tracking-[.4em] outline-none focus:border-[#1769AA]" />
+                  <input value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" required className="mt-2 h-12 w-full rounded-xl border border-slate-200 px-3 text-center text-xl tracking-[.4em] outline-none focus:border-[#5B50C7]" />
                 </label>
               </div>
             )}
@@ -238,12 +262,14 @@ export default function CreateCenterPage() {
           {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
           {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</p>}
 
-          <button type="submit" disabled={creating || !otpSent || !planId} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#1769AA] px-6 text-sm font-extrabold text-white transition hover:bg-[#12598F] disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="submit" disabled={creating || !otpSent || !planId} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#5B50C7] px-6 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">
             {creating && <Loader2 className="h-4 w-4 animate-spin" />}
             {isRtl ? "إنشاء المركز" : "Create center"}
           </button>
           <p className="text-center text-[11px] leading-5 text-slate-400">{isRtl ? "سيتم إنشاء مركز مستقل. لا يمكن للمراكز الأخرى الوصول إلى مرضاه أو سجلاته." : "A separate tenant will be created. Other centers cannot access its patients or records."}</p>
         </form>
+          </div>
+        </section>
       </div>
     </main>
   );
