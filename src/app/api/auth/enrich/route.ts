@@ -44,10 +44,19 @@ export async function GET(req: NextRequest) {
 
     const preferredClinicId = new URL(req.url).searchParams.get("preferred_clinic_id");
     const admin = getAdminClient();
-    const [{ data: profile }, { data: accountProfile }] = await Promise.all([
+    const [
+      { data: profile, error: profileResultError },
+      { data: accountProfile, error: accountProfileResultError },
+    ] = await Promise.all([
       admin.from("staff").select("name").eq("email", email).not("name", "is", null).limit(1).maybeSingle(),
       admin.from("auth_accounts").select("name").eq("email", email).maybeSingle(),
     ]);
+    if (profileResultError || accountProfileResultError) {
+      console.warn("[AuthEnrich] Optional profile lookup failed", {
+        staffProfileCode: profileResultError?.code || null,
+        accountProfileCode: accountProfileResultError?.code || null,
+      });
+    }
     const displayName =
       (typeof profile?.name === "string" && profile.name.trim()) ||
       (typeof accountProfile?.name === "string" && accountProfile.name.trim()) ||
@@ -61,6 +70,7 @@ export async function GET(req: NextRequest) {
       .maybeSingle();
 
     if (platformAdminError) {
+      console.error("[AuthEnrich] Platform-admin lookup failed", { code: platformAdminError.code, message: platformAdminError.message });
       return NextResponse.json({ error: "Unable to verify account role" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
     }
 
@@ -87,6 +97,7 @@ export async function GET(req: NextRequest) {
         .maybeSingle();
 
       if (clinicError) {
+        console.error("[AuthEnrich] Preferred-center status lookup failed", { code: clinicError.code, message: clinicError.message });
         return NextResponse.json({ error: "Unable to verify center status" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
       }
       if (!activeClinic) {
@@ -99,6 +110,12 @@ export async function GET(req: NextRequest) {
       ]);
 
       if (ownerError || staffError) {
+        console.error("[AuthEnrich] Preferred-center membership lookup failed", {
+          ownerCode: ownerError?.code || null,
+          ownerMessage: ownerError?.message || null,
+          staffCode: staffError?.code || null,
+          staffMessage: staffError?.message || null,
+        });
         return NextResponse.json({ error: "Unable to verify clinic membership" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
       }
       if (!ownerMembership && (!staff || ["محذوف", "deleted", "inactive", "غير نشط"].includes(String(staff.status || "").toLowerCase()))) {
@@ -127,6 +144,7 @@ export async function GET(req: NextRequest) {
       .select("clinic_id")
       .eq("owner_email", email);
     if (ownershipError) {
+      console.error("[AuthEnrich] Center ownership lookup failed", { code: ownershipError.code, message: ownershipError.message });
       return NextResponse.json({ error: "Unable to load center ownership" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
     }
     if ((ownedCenters || []).length > 0) {
@@ -149,6 +167,7 @@ export async function GET(req: NextRequest) {
       .not("clinic_id", "is", null);
 
     if (staffError) {
+      console.error("[AuthEnrich] Staff membership lookup failed", { code: staffError.code, message: staffError.message });
       return NextResponse.json({ error: "Unable to load clinic membership" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
     }
 
@@ -183,6 +202,7 @@ export async function GET(req: NextRequest) {
       }, { headers: { "Cache-Control": "no-store, private" } });
     }
 
+    console.info("[AuthEnrich] No clinic membership confirmed; onboarding required");
     return NextResponse.json({ clinicId: null, role: null, displayName }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error) {
     console.error("[AuthEnrich] Membership lookup failed:", error);
