@@ -65,22 +65,8 @@ function ManageContent() {
   
   const forgotOtpRefs = [useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null), useRef<HTMLInputElement>(null)];
 
-  React.useEffect(() => {
-    if (!clinicSlug || !user || authLoading || isEnriching) return;
-    if (user.roleKey === "platform_admin") {
-      window.location.replace("/platform");
-      return;
-    }
-    if (user.clinicId) {
-      window.location.replace("/home");
-      return;
-    }
-    if (user.clinicId === null) {
-      setError(isRtl
-        ? "هذا الحساب غير مرتبط بعضوية نشطة في هذا المركز. تأكد من استخدام حساب تابع للمركز."
-        : "This account does not have an active membership in this clinic. Use an account that belongs to this clinic.");
-    }
-  }, [clinicSlug, user, authLoading, isEnriching, isRtl]);
+  // Do not display a clinic-membership error before the user submits credentials.
+  // Membership is verified by the server during sign-in against the requested clinic slug.
 
   const handleForgotSendOtp = async () => {
     setForgotError("");
@@ -185,6 +171,28 @@ function ManageContent() {
 
     await setAppValue("current_user", null);
     await setAppValue("pending_role", "doctor");
+
+    // Resolve the center before authentication so the auth-enrichment flow knows
+    // which tenant to activate for this login. The server still independently
+    // verifies ownership/staff membership in the credentials provider.
+    if (clinicSlug) {
+      try {
+        const clinicResponse = await fetch(`/api/public/clinics?slug=${encodeURIComponent(clinicSlug)}`, { cache: "no-store" });
+        const clinicPayload = await clinicResponse.json();
+        if (!clinicResponse.ok || !clinicPayload?.clinic?.id) {
+          throw new Error(isRtl ? "رابط المركز غير صالح أو أن المركز غير متاح." : "This clinic link is invalid or the clinic is unavailable.");
+        }
+        sessionStorage.setItem("preferred_clinic_id", clinicPayload.clinic.id);
+      } catch (clinicError) {
+        sessionStorage.removeItem("preferred_clinic_id");
+        setError(clinicError instanceof Error ? clinicError.message : (isRtl ? "تعذر التحقق من المركز." : "Unable to verify this clinic."));
+        setIsLoading(false);
+        return;
+      }
+    } else {
+      sessionStorage.removeItem("preferred_clinic_id");
+    }
+
     const result = await signIn("credentials", {
       email: cleanEmail,
       password: cleanPassword,
@@ -193,8 +201,9 @@ function ManageContent() {
     });
 
     if (result?.error) {
+      if (clinicSlug) sessionStorage.removeItem("preferred_clinic_id");
       setError(result.error === "CredentialsSignin"
-        ? (isRtl ? "عذراً، البريد الإلكتروني أو كلمة المرور غير صحيحة. يرجى المحاولة مرة أخرى." : "Sorry, the email or password you entered is incorrect. Please try again.")
+        ? (isRtl ? "عذراً، البريد الإلكتروني أو كلمة المرور غير صحيحة أو لا توجد عضوية في هذا المركز." : "The email/password is incorrect or this account is not a member of this clinic.")
         : result.error);
       setIsLoading(false);
       return;
