@@ -8,7 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { Building, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
 
 const plans = [
-  { id: "basic", nameAr: "الأساسية", nameEn: "Basic", price: "0", priceLabelAr: "مجانًا", priceLabelEn: "Free", descriptionAr: "للمراكز التي تبدأ عملها", descriptionEn: "For centers getting started" },
+  { id: "basic", nameAr: "الأساسية", nameEn: "Basic", price: "0", priceLabelAr: "مجانًا", priceLabelEn: "Free", descriptionAr: "مجانية — لا تحتاج إلى بطاقة دفع", descriptionEn: "Free — no payment card required" },
   { id: "silver", nameAr: "الفضية", nameEn: "Silver", price: "1000", priceLabelAr: "1,000 جنيه / شهريًا", priceLabelEn: "EGP 1,000 / month", descriptionAr: "للمراكز النامية", descriptionEn: "For growing centers" },
   { id: "gold", nameAr: "الذهبية", nameEn: "Gold", price: "1500", priceLabelAr: "1,500 جنيه / شهريًا", priceLabelEn: "EGP 1,500 / month", descriptionAr: "للمراكز الكبيرة", descriptionEn: "For larger centers" },
 ];
@@ -17,7 +17,7 @@ export default function CreateCenterPage() {
   const { user, isLoading, isEnriching } = useAuth();
   const { language } = useLanguage();
   const isRtl = language === "ar";
-  const [planId, setPlanId] = useState("");
+  const [planId, setPlanId] = useState("basic");
   const [step, setStep] = useState<"plan" | "details">("plan");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -106,8 +106,7 @@ export default function CreateCenterPage() {
         const subscribeData = await subscribeResponse.json().catch(() => ({}));
         if (!subscribeResponse.ok) throw new Error(subscribeData.error || "The center was created, but the free plan could not be activated.");
         await activateCenterSession(data.clinicId);
-        setCreatedSlug(data.slug);
-        setCenterCreated(true);
+        window.location.href = "/dashboard";
         return;
       }
 
@@ -157,7 +156,7 @@ export default function CreateCenterPage() {
           <iframe src={paymentUrl} title="Paymob payment" className="h-[620px] w-full border-0" allow="payment" />
           <div className="p-5">
             <p className="mb-4 text-xs leading-6 text-slate-500">{isRtl ? "بعد نجاح الدفع، قد يستغرق تحديث حالة الاشتراك لحظات. يمكنك فتح المركز ومراجعة حالة الاشتراك." : "After successful payment, subscription status may take a short moment to update. You can open the center and review its subscription status."}</p>
-            <Link href={`/clinic/${createdSlug}`} className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#5B50C7] text-sm font-bold text-white">{isRtl ? "الانتقال إلى المركز" : "Open center"}</Link>
+            <Link href={`/${createdSlug}`} className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#5B50C7] text-sm font-bold text-white">{isRtl ? "الانتقال إلى المركز" : "Open center"}</Link>
           </div>
         </div>
       </main>
@@ -176,7 +175,7 @@ export default function CreateCenterPage() {
             <p className="break-all text-sm font-semibold text-[#4F46BA]">{centerUrl}</p>
           </div>
           <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(centerUrl); setLinkCopied(true); } catch { setLinkCopied(false); } }} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-[#5B50C7] font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{linkCopied ? (isRtl ? "تم نسخ الرابط" : "Link copied") : (isRtl ? "نسخ رابط المركز" : "Copy center link")}</button>
-          <Link href={`/clinic/${createdSlug}`} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#5B50C7] font-bold text-white transition hover:bg-[#4338A8]">{isRtl ? "فتح صفحة المركز" : "Open center page"}</Link>
+          <Link href={`/${createdSlug}`} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#5B50C7] font-bold text-white transition hover:bg-[#4338A8]">{isRtl ? "فتح صفحة المركز" : "Open center page"}</Link>
           <Link href="/center-management" className="mt-4 inline-block text-sm font-semibold text-slate-500 hover:text-[#5B50C7]">{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         </section>
       </main>
@@ -224,6 +223,7 @@ export default function CreateCenterPage() {
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {plans.map((plan) => (
                 <button key={plan.id} type="button" onClick={() => setPlanId(plan.id)} className={`rounded-2xl border p-4 text-start transition ${planId === plan.id ? "border-[#5B50C7] bg-[#F1EFFF] ring-2 ring-[#5B50C7]/15" : "border-slate-200 bg-white hover:border-slate-300"}`}>
+                  {plan.id === "basic" && <span className="mb-2 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">{isRtl ? "موصى بها — بدون بطاقة دفع" : "Recommended — no card required"}</span>}
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-extrabold text-slate-800">{isRtl ? plan.nameAr : plan.nameEn}</span>
                     {planId === plan.id && <CheckCircle2 className="h-5 w-5 text-[#5B50C7]" />}
