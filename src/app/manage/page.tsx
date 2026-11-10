@@ -210,7 +210,7 @@ function ManageContent() {
     }
 
     setIsLoading(false);
-    window.location.href = "/home";
+    window.location.href = "/dashboard";
   };
 
   const handleGoogleLogin = async () => {
@@ -246,7 +246,7 @@ function ManageContent() {
       sessionStorage.removeItem("preferred_clinic_id");
       await setAppValue("pending_role", "admin");
       await setAppValue("pending_google_signup", "true");
-      const result = await signIn("google", { callbackUrl: "/home", redirect: false });
+      const result = await signIn("google", { callbackUrl: "/dashboard", redirect: false });
       if (result?.error) {
         setError(isRtl ? "عذراً، تعذر الاتصال بحساب Google. يرجى التحقق من اتصالك والمحاولة مجدداً." : "Unable to sign in with Google. Please check your connection and try again.");
         setIsLoading(false);
