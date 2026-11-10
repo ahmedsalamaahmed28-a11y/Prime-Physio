@@ -51,22 +51,22 @@ export default function CenterManagementPage() {
   const monthLabel = new Intl.DateTimeFormat(isRtl ? "ar-EG" : "en-US", { month: "long", year: "numeric" }).format(new Date());
 
   if (isLoading || isEnriching || !user) {
-    return <main className="flex min-h-screen items-center justify-center bg-white"><div className="h-9 w-9 animate-spin rounded-full border-4 border-[#1769AA] border-t-transparent" /></main>;
+    return <main className="flex min-h-screen items-center justify-center bg-white"><div className="h-9 w-9 animate-spin rounded-full border-4 border-[#5B50C7] border-t-transparent" /></main>;
   }
 
   const startSetup = () => router.push("/create-center");
   const sidebar = (
     <>
       <Link href="/home.php" onClick={() => setMobileMenuOpen(false)} className="mb-[26px] flex h-[42px] w-full items-center justify-start gap-[9px] px-[2px]">
-        <span className="text-[21px] font-black tracking-tight text-[#153B60]">Prime<span className="text-[#1769AA]">Physio</span></span>
-        <span className="flex h-[35px] w-[35px] items-center justify-center rounded-[9px] bg-[#1769AA] text-white"><Building className="h-[21px] w-[21px]" /></span>
+        <span className="text-[21px] font-black tracking-tight text-[#153B60]">Prime<span className="text-[#5B50C7]">Physio</span></span>
+        <span className="flex h-[35px] w-[35px] items-center justify-center rounded-[9px] bg-[#5B50C7] text-white"><Building className="h-[21px] w-[21px]" /></span>
       </Link>
       <nav className="space-y-[2px]">
         {menu.map((item, index) => {
           const Icon = item.icon;
           return (
             <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)}
-              className={`flex h-[44px] w-full items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold transition-colors ${index === 0 ? "bg-[#EFF5FC] text-[#1769AA]" : "text-[#59616B] hover:bg-[#F7F9FB] hover:text-[#1769AA]"}`}>
+              className={`flex h-[44px] w-full items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold transition-colors ${index === 0 ? "bg-[#F1EFFF] text-[#5B50C7]" : "text-[#59616B] hover:bg-[#F7F9FB] hover:text-[#5B50C7]"}`}>
               <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} />
               <span className="flex-1 text-right">{isRtl ? item.label : item.en}</span>
             </Link>
@@ -104,7 +104,7 @@ export default function CenterManagementPage() {
         <section className="flex min-h-screen min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-30 flex min-h-[68px] shrink-0 items-center justify-between gap-3 border-b border-[#E8EBEF] bg-white px-4 sm:px-6" dir={isRtl ? "rtl" : "ltr"}>
             <div className="flex min-w-0 flex-1 items-center gap-3">
-              <button onClick={() => setMobileMenuOpen(true)} className="rounded-lg p-2 text-[#1769AA] transition hover:bg-[#EFF5FC] lg:hidden" aria-label={isRtl ? "فتح القائمة" : "Open menu"}>
+              <button onClick={() => setMobileMenuOpen(true)} className="rounded-lg p-2 text-[#5B50C7] transition hover:bg-[#F1EFFF] lg:hidden" aria-label={isRtl ? "فتح القائمة" : "Open menu"}>
                 <MenuIcon className="h-5 w-5" />
               </button>
               <div className="hidden max-w-[340px] flex-1 items-center gap-2 rounded-xl border border-[#E5EAF0] bg-[#F8FAFC] px-3 py-2 sm:flex">
@@ -130,24 +130,24 @@ export default function CenterManagementPage() {
               </span>
               <button
                 onClick={toggleLanguage}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#1769AA]/20 bg-[#EFF5FC] px-3 text-[12px] font-bold text-[#1769AA] transition hover:bg-[#1769AA] hover:text-white"
+                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#5B50C7]/20 bg-[#F1EFFF] px-3 text-[12px] font-bold text-[#5B50C7] transition hover:bg-[#5B50C7] hover:text-white"
                 aria-label={isRtl ? "Switch to English" : "التبديل إلى العربية"}
               >
                 <Globe className="h-4 w-4" />
                 {isRtl ? "ENG" : "عربي"}
               </button>
-              <Link href="/notifications" aria-label={isRtl ? "الإشعارات" : "Notifications"} className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#1769AA]/20 bg-white text-[#1769AA] transition hover:bg-[#1769AA] hover:text-white">
+              <Link href="/notifications" aria-label={isRtl ? "الإشعارات" : "Notifications"} className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#5B50C7]/20 bg-white text-[#5B50C7] transition hover:bg-[#5B50C7] hover:text-white">
                 <Bell className="h-[18px] w-[18px]" />
               </Link>
-              <Link href="/profile" className="flex max-w-[190px] items-center gap-2 rounded-lg border border-[#E8EBEF] bg-white px-2 py-1.5 transition hover:border-[#1769AA]/40 hover:bg-[#EFF5FC]">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#1769AA] text-[12px] font-bold text-white">
+              <Link href="/profile" className="flex max-w-[190px] items-center gap-2 rounded-lg border border-[#E8EBEF] bg-white px-2 py-1.5 transition hover:border-[#5B50C7]/40 hover:bg-[#F1EFFF]">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#5B50C7] text-[12px] font-bold text-white">
                   {(displayName.trim().charAt(0) || "A").toUpperCase()}
                 </span>
                 <span className="hidden min-w-0 text-start sm:block">
                   <span className="block truncate text-[12px] font-bold text-[#303846]">{displayName}</span>
                   <span className="block text-[10px] text-[#8A929C]">{isRtl ? "صاحب الحساب" : "Account owner"}</span>
                 </span>
-                <User className="hidden h-4 w-4 text-[#1769AA] sm:block" />
+                <User className="hidden h-4 w-4 text-[#5B50C7] sm:block" />
               </Link>
             </div>
           </header>
@@ -155,7 +155,7 @@ export default function CenterManagementPage() {
           <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col px-[32px] pb-[26px] pt-[40px] max-sm:px-4 max-sm:pt-7">
             <div className="mb-[24px] flex min-h-[75px] items-center justify-between gap-5 max-sm:flex-col max-sm:items-stretch">
               <div className="order-2 flex items-center gap-[13px] max-sm:order-2">
-                <Link href="/my-centers" className="inline-flex h-[40px] items-center gap-[8px] rounded-full bg-[#1769AA] px-[17px] text-[14px] font-bold text-white shadow-[0_4px_12px_rgba(23,105,170,.18)] transition hover:bg-[#12598F]">
+                <Link href="/my-centers" className="inline-flex h-[40px] items-center gap-[8px] rounded-full bg-[#5B50C7] px-[17px] text-[14px] font-bold text-white shadow-[0_4px_12px_rgba(91,80,199,.18)] transition hover:bg-[#4338A8]">
                   {isRtl ? "مراكزي" : "My Centers"}<Building className="h-[17px] w-[17px]" />
                 </Link>
                 <span className="h-[8px] w-[8px] rounded-full bg-[#D9E4F0]" />
@@ -175,27 +175,27 @@ export default function CenterManagementPage() {
                   <h2 className="text-[20px] font-extrabold text-[#202B38]">{isRtl ? "المراكز التابعة لحسابك" : "Your independent centers"}</h2>
                   <p className="mt-1 text-[13px] text-[#9299A2]">{isRtl ? "كل مركز له رابط دخول وبيانات واشتراك مستقل." : "Each center has its own login URL, data and subscription."}</p>
                 </div>
-                <button onClick={startSetup} className="inline-flex h-[42px] shrink-0 items-center justify-center rounded-full bg-[#1769AA] px-5 text-[13px] font-extrabold text-white transition hover:bg-[#12598F]">{isRtl ? "+ إنشاء مركز" : "+ Create center"}</button>
+                <button onClick={startSetup} className="inline-flex h-[42px] shrink-0 items-center justify-center rounded-full bg-[#5B50C7] px-5 text-[13px] font-extrabold text-white transition hover:bg-[#4338A8]">{isRtl ? "+ إنشاء مركز" : "+ Create center"}</button>
               </div>
               {centersLoading ? (
                 <div className="flex min-h-[220px] items-center justify-center rounded-[18px] border border-[#E8EBEF] bg-white">
-                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#1769AA] border-t-transparent" />
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#5B50C7] border-t-transparent" />
                 </div>
               ) : centersError ? (
                 <div className="rounded-[18px] border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">{centersError}</div>
               ) : centers.length === 0 ? (
                 <div className="flex min-h-[300px] w-full flex-col items-center justify-center rounded-[19px] border border-dashed border-[#E6E9ED] bg-white px-5 py-10 text-center">
-                  <Building className="mb-[15px] h-[43px] w-[43px] text-[#245B91]" strokeWidth={2.1} />
+                  <Building className="mb-[15px] h-[43px] w-[43px] text-[#5B50C7]" strokeWidth={2.1} />
                   <h3 className="text-[21px] font-extrabold leading-[1.5] text-[#303846]">{isRtl ? "لم تنشئ أي مركز بعد" : "You haven't created a center yet"}</h3>
                   <p className="mt-[4px] max-w-[440px] text-[15px] leading-[29px] text-[#9299A2]">{isRtl ? "اختر الباقة المناسبة ثم أنشئ مركزك الأول. ستظهر روابط جميع مراكزك هنا." : "Choose a plan and create your first center. All your center links will appear here."}</p>
-                  <button onClick={startSetup} className="mt-[16px] inline-flex h-[46px] items-center justify-center rounded-full bg-[#1769AA] px-[27px] text-[14px] font-extrabold text-white shadow-[0_5px_14px_rgba(23,105,170,.2)] transition hover:bg-[#12598F]">{isRtl ? "اختر باقة وأنشئ مركزك" : "Choose a plan and create a center"}</button>
+                  <button onClick={startSetup} className="mt-[16px] inline-flex h-[46px] items-center justify-center rounded-full bg-[#5B50C7] px-[27px] text-[14px] font-extrabold text-white shadow-[0_5px_14px_rgba(91,80,199,.2)] transition hover:bg-[#4338A8]">{isRtl ? "اختر باقة وأنشئ مركزك" : "Choose a plan and create a center"}</button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                   {centers.map((center) => (
                     <article key={center.id} className="rounded-[18px] border border-[#E8EBEF] bg-white p-5 shadow-[0_2px_10px_rgba(20,45,70,.03)]">
                       <div className="flex items-center gap-3">
-                        {center.logoUrl ? <img src={center.logoUrl} alt="" className="h-12 w-12 rounded-xl border border-[#E8EBEF] object-contain" /> : <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#EFF5FC] text-[#1769AA]"><Building className="h-6 w-6" /></div>}
+                        {center.logoUrl ? <img src={center.logoUrl} alt="" className="h-12 w-12 rounded-xl border border-[#E8EBEF] object-contain" /> : <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F1EFFF] text-[#5B50C7]"><Building className="h-6 w-6" /></div>}
                         <div className="min-w-0 flex-1">
                           <h3 className="truncate text-[16px] font-extrabold text-[#263442]">{center.name}</h3>
                           <p className="mt-1 truncate text-[12px] text-[#8A929C]">{center.slug ? `primephysio.vercel.app/${center.slug}` : "URL not assigned"}</p>
@@ -205,7 +205,7 @@ export default function CenterManagementPage() {
                         <span className="text-[#7B8490]">{isRtl ? "الباقة" : "Plan"}: <strong className="text-[#303846]">{center.planName || (isRtl ? "لم تُفعّل بعد" : "Not activated")}</strong></span>
                         <span className={center.subscriptionStatus === "active" ? "font-bold text-emerald-700" : "font-bold text-amber-700"}>{center.subscriptionStatus === "active" ? (isRtl ? "نشط" : "Active") : (isRtl ? "قيد التفعيل" : "Pending")}</span>
                       </div>
-                      {center.loginUrl && <Link href={center.loginUrl} className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-full bg-[#1769AA] text-[13px] font-bold text-white transition hover:bg-[#12598F]">{isRtl ? "فتح المركز" : "Open center"}</Link>}
+                      {center.loginUrl && <Link href={center.loginUrl} className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-full bg-[#5B50C7] text-[13px] font-bold text-white transition hover:bg-[#4338A8]">{isRtl ? "فتح المركز" : "Open center"}</Link>}
                     </article>
                   ))}
                 </div>
@@ -214,7 +214,7 @@ export default function CenterManagementPage() {
           </div>
 
           <footer className="mt-auto flex min-h-[64px] flex-wrap items-center justify-between gap-3 border-t border-[#E8EBEF] bg-white px-[32px] py-[15px] text-[12px] text-[#9AA1AA] max-sm:px-4">
-            <div className="flex flex-wrap items-center gap-[7px]"><Link href="/support" className="hover:text-[#1769AA]">{isRtl ? "مركز المساعدة" : "Help Center"}</Link><span>·</span><Link href="/terms" className="hover:text-[#1769AA]">{isRtl ? "الشروط" : "Terms"}</Link><span>·</span><Link href="/privacy" className="hover:text-[#1769AA]">{isRtl ? "الخصوصية" : "Privacy"}</Link></div>
+            <div className="flex flex-wrap items-center gap-[7px]"><Link href="/support" className="hover:text-[#5B50C7]">{isRtl ? "مركز المساعدة" : "Help Center"}</Link><span>·</span><Link href="/terms" className="hover:text-[#5B50C7]">{isRtl ? "الشروط" : "Terms"}</Link><span>·</span><Link href="/privacy" className="hover:text-[#5B50C7]">{isRtl ? "الخصوصية" : "Privacy"}</Link></div>
             <span>© Prime Physio 2026</span>
           </footer>
         </section>
