@@ -69,6 +69,21 @@ export async function GET(req: NextRequest) {
     }
 
     if (preferredClinicId) {
+      const { data: activeClinic, error: clinicError } = await admin
+        .from("clinics")
+        .select("id")
+        .eq("id", preferredClinicId)
+        .eq("is_active", true)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (clinicError) {
+        return NextResponse.json({ error: "Unable to verify center status" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
+      }
+      if (!activeClinic) {
+        return NextResponse.json({ clinicId: null, role: null, error: "Center is unavailable" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
+      }
+
       const [{ data: ownerMembership, error: ownerError }, { data: staff, error: staffError }] = await Promise.all([
         admin.from("clinic_owners").select("clinic_id").eq("owner_email", email).eq("clinic_id", preferredClinicId).maybeSingle(),
         admin.from("staff").select("clinic_id, role, status").eq("email", email).eq("clinic_id", preferredClinicId).maybeSingle(),
