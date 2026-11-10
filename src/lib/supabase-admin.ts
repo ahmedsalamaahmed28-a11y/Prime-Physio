@@ -9,7 +9,8 @@ export function getAdminClient(): SupabaseClient {
   }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  // Prefer Supabase's current server-only secret key; fall back to the legacy service-role JWT.\n  const serviceKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Prefer Supabase's current server-only secret key; fall back to the legacy service-role JWT.
+  const serviceKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !serviceKey) {
     throw new Error("Supabase server credentials are not configured");
   }
