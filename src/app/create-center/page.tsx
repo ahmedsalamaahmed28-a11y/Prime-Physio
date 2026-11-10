@@ -99,8 +99,6 @@ export default function CreateCenterPage() {
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.success || !data.clinicId) throw new Error(data.error || "Center creation failed");
 
-      await activateCenterSession(data.clinicId);
-
       if (planId === "basic") {
         const subscribeResponse = await fetch("/api/subscribe", {
           method: "POST",
@@ -109,6 +107,7 @@ export default function CreateCenterPage() {
         });
         const subscribeData = await subscribeResponse.json().catch(() => ({}));
         if (!subscribeResponse.ok) throw new Error(subscribeData.error || "The center was created, but the free plan could not be activated.");
+        await activateCenterSession(data.clinicId);
         window.location.replace(`/${data.slug}`);
         return;
       }
