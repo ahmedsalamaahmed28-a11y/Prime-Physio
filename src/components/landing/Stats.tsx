@@ -7,8 +7,8 @@ const capabilities = [
   { id: "patients", icon: ClipboardList, ar: "ملفات المرضى", en: "Patient records" },
   { id: "sessions", icon: CalendarDays, ar: "الجلسات والمواعيد", en: "Sessions & appointments" },
   { id: "team", icon: Users, ar: "إدارة فريق العمل", en: "Team management" },
-  { id: "reports", icon: ChartNoAxesCombined, ar: "التقارير والمتابعة", en: "Reports & tracking" },
-  { id: "clinic", icon: Building2, ar: "إدارة المركز", en: "Clinic management" },
+  { id: "reports", icon: Activity, ar: "التقارير والمتابعة", en: "Reports & tracking" },
+  { id: "clinic", icon: Building, ar: "إدارة المركز", en: "Clinic management" },
 ];
 
 export default function Stats() {
