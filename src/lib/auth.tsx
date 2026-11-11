@@ -219,7 +219,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   const enrichmentCountRef = useRef(0);
   const beginEnrichment = () => {
     enrichmentCountRef.current += 1;
-    beginEnrichment();
+    setIsEnriching(true);
   };
   const endEnrichment = () => {
     enrichmentCountRef.current = Math.max(0, enrichmentCountRef.current - 1);
