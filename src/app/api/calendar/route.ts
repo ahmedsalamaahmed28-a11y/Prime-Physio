@@ -27,16 +27,18 @@ export async function GET() {
   const auth = await authorize();
   if ("response" in auth) return auth.response;
   try {
-    const [patients, appointments, doctors, rooms] = await Promise.all([
-      auth.admin.from("patients").select("id,nameAr").eq("clinic_id", auth.clinicId).order("id", { ascending: true }),
+    const [patients, appointments, doctors, rooms, participants] = await Promise.all([
+      auth.admin.from("patients").select("id,nameAr,nameEn").eq("clinic_id", auth.clinicId).order("id", { ascending: true }),
       auth.admin.from("appointments").select("*, treatment_plan:treatment_plans!appointments_treatment_plan_patient_clinic_fkey(id,goals)").eq("clinic_id", auth.clinicId),
       auth.admin.from("staff").select("name,email,role").eq("clinic_id", auth.clinicId),
       auth.admin.from("appointment_rooms").select("id,name,branch_id").eq("clinic_id", auth.clinicId).eq("is_active", true).order("name"),
+      auth.admin.from("appointment_group_participants").select("appointment_id,patient_id").eq("clinic_id", auth.clinicId),
     ]);
     if (patients.error) throw patients.error;
     if (appointments.error) throw appointments.error;
     if (doctors.error) throw doctors.error;
     if (rooms.error) throw rooms.error;
+    if (participants.error) throw participants.error;
     const canReadClinicalDetails = canViewPatientHistory(auth.staff);
     const safeAppointments = (appointments.data || []).map((appointment: Record<string, unknown>) => {
       if (canReadClinicalDetails) return appointment;
@@ -57,6 +59,7 @@ export async function GET() {
       appointments: safeAppointments,
       doctors: safeDoctors,
       rooms: rooms.data || [],
+      groupParticipants: participants.data || [],
     }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error: any) {
     console.error("[Calendar API] Load failed:", error);
@@ -122,6 +125,18 @@ export async function POST(request: NextRequest) {
     }
     const start = new Date(body.startTime);
     const end = new Date(body.endTime);
+    const recurrenceMode = body.recurrenceMode === "weekly" || body.recurrenceMode === "biweekly" ? body.recurrenceMode : "none";
+    const recurrenceCount = recurrenceMode === "none" ? 1 : Number(body.recurrenceCount);
+    if (!Number.isInteger(recurrenceCount) || recurrenceCount < 2 || recurrenceCount > 12 && recurrenceMode !== "none") {
+      return NextResponse.json({ error: "عدد التكرارات يجب أن يكون بين 2 و12" }, { status: 400 });
+    }
+    const patientIds = Array.isArray(body.patientIds) ? [...new Set(body.patientIds.filter((id: unknown) => typeof id === "string" && id.trim()))] : [body.patientId];
+    if (patientIds.length < 1 || patientIds.length > 12 || (body.isGroupSession && patientIds.length < 2) || (!body.isGroupSession && patientIds.length !== 1)) {
+      return NextResponse.json({ error: "حدد مريضًا واحدًا أو من 2 إلى 12 مريضًا للجلسة الجماعية" }, { status: 400 });
+    }
+    if (body.isGroupSession && hasClinicalPayload) {
+      return NextResponse.json({ error: "يجب ربط الخطط والتفاصيل الطبية بكل مريض بشكل منفصل؛ لا يمكن مشاركة خطة طبية في جلسة جماعية" }, { status: 400 });
+    }
     if (!body.startTime || !body.endTime || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end <= start) {
       return NextResponse.json({ error: "وقت بداية ونهاية الموعد غير صالحين" }, { status: 400 });
     }
@@ -170,10 +185,14 @@ export async function POST(request: NextRequest) {
       roomId = room.id;
     }
 
-    const { data: patient, error: patientError } = await auth.admin.from("patients")
-      .select("id,nameAr").eq("id", body.patientId).eq("clinic_id", auth.clinicId).maybeSingle();
+    const { data: patientRows, error: patientError } = await auth.admin.from("patients")
+      .select("id,nameAr").eq("clinic_id", auth.clinicId).in("id", patientIds);
     if (patientError) throw patientError;
-    if (!patient) return NextResponse.json({ error: "المريض غير موجود في العيادة الحالية" }, { status: 404 });
+    const patientMap = new Map((patientRows || []).map((item: any) => [item.id, item]));
+    if (patientMap.size !== patientIds.length) return NextResponse.json({ error: "يوجد مريض غير موجود في العيادة الحالية" }, { status: 404 });
+    const patients = patientIds.map((id: string) => patientMap.get(id)!);
+    const patient = patients[0];
+    if (body.patientId !== patient.id) return NextResponse.json({ error: "المريض الأساسي لا يطابق قائمة المشاركين" }, { status: 400 });
 
     if (!body.appointmentId || !body.startTime || !body.endTime || !body.invoiceId) {
       return NextResponse.json({ error: "بيانات الموعد أو الفاتورة غير مكتملة" }, { status: 400 });
@@ -186,46 +205,80 @@ export async function POST(request: NextRequest) {
       if (!plan) return NextResponse.json({ error: "الخطة العلاجية غير نشطة أو لا تخص هذا المريض" }, { status: 400 });
     }
 
-    const { error: invoiceError } = await auth.admin.from("invoices").insert({
-      id: body.invoiceId,
-      clinic_id: auth.clinicId,
-      patient_id: patient.id,
-      patient_name: patient.nameAr,
-      description: body.invoiceDescription,
-      amount: body.invoiceAmount,
-      status: body.invoiceStatus || "انتظار",
-      payment_method: "—",
-      date: body.invoiceDate,
-      branch_id: branchId,
-    });
-    if (invoiceError) throw invoiceError;
-
-    const { error: appointmentError } = await auth.admin.from("appointments").insert({
-      id: body.appointmentId,
-      clinic_id: auth.clinicId,
-      patient_id: patient.id,
-      patient_name: patient.nameAr,
-      doctor_name: therapist.name,
-      therapist_id: therapist.id,
-      room_id: roomId,
-      branch_id: branchId,
-      appointment_type: body.visitType,
-      status: body.status || "مؤكد",
-      start_time: body.startTime,
-      end_time: body.endTime,
-      treatment_plan_id: canEditClinicalDetails ? (body.treatmentPlanId || null) : null,
-      session_intervention: canEditClinicalDetails ? (body.sessionIntervention || null) : null,
-      session_objectives: canEditClinicalDetails ? (body.sessionObjectives || null) : null,
-      target_exercises: canEditClinicalDetails ? (body.targetExercises || []) : [],
-    });
-    if (appointmentError) {
-      await auth.admin.from("invoices").delete().eq("id", body.invoiceId).eq("clinic_id", auth.clinicId);
-      if (appointmentError.code === "23P01" || /THERAPIST_TIME_CONFLICT|ROOM_TIME_CONFLICT/.test(appointmentError.message || "")) {
-        return NextResponse.json({ error: "يوجد تعارض في موعد المعالج أو الغرفة خلال هذه الفترة. اختر وقتًا آخر." }, { status: 409 });
-      }
-      throw appointmentError;
+    if (!body.appointmentId || !body.startTime || !body.endTime || !body.invoiceId) {
+      return NextResponse.json({ error: "بيانات الموعد أو الفاتورة غير مكتملة" }, { status: 400 });
     }
-    return NextResponse.json({ success: true });
+    const recurrenceId = recurrenceCount > 1 ? `SERIES-${crypto.randomUUID()}` : null;
+    const createdAppointmentIds: string[] = [];
+    const createdInvoiceIds: string[] = [];
+    try {
+      for (let index = 0; index < recurrenceCount; index += 1) {
+        const offsetDays = recurrenceMode === "weekly" ? index * 7 : recurrenceMode === "biweekly" ? index * 14 : 0;
+        const occurrenceStart = new Date(start.getTime() + offsetDays * 86400000);
+        const occurrenceEnd = new Date(end.getTime() + offsetDays * 86400000);
+        const appointmentId = index === 0 ? body.appointmentId : `AP-${crypto.randomUUID()}`;
+        const invoiceRows = patients.map((item: any, patientIndex: number) => {
+          const invoiceId = index === 0 && patientIndex === 0 ? body.invoiceId : `INV-${crypto.randomUUID()}`;
+          createdInvoiceIds.push(invoiceId);
+          return {
+            id: invoiceId,
+            clinic_id: auth.clinicId,
+            patient_id: item.id,
+            patient_name: item.nameAr,
+            description: body.isGroupSession ? (body.invoiceDescription + " - جلسة جماعية") : body.invoiceDescription,
+            amount: body.invoiceAmount,
+            status: body.invoiceStatus || "انتظار",
+            payment_method: "—",
+            date: occurrenceStart.toISOString().split("T")[0],
+            branch_id: branchId,
+          };
+        });
+        const { error: appointmentError } = await auth.admin.from("appointments").insert({
+          id: appointmentId,
+          clinic_id: auth.clinicId,
+          patient_id: patient.id,
+          patient_name: body.isGroupSession ? `جلسة جماعية (${patients.length})` : patient.nameAr,
+          doctor_name: therapist.name,
+          therapist_id: therapist.id,
+          room_id: roomId,
+          branch_id: branchId,
+          appointment_type: body.isGroupSession ? "جلسة جماعية" : body.visitType,
+          status: body.status || "مؤكد",
+          start_time: occurrenceStart.toISOString(),
+          end_time: occurrenceEnd.toISOString(),
+          treatment_plan_id: canEditClinicalDetails ? (body.treatmentPlanId || null) : null,
+          session_intervention: canEditClinicalDetails ? (body.sessionIntervention || null) : null,
+          session_objectives: canEditClinicalDetails ? (body.sessionObjectives || null) : null,
+          target_exercises: canEditClinicalDetails ? (body.targetExercises || []) : [],
+          is_group_session: Boolean(body.isGroupSession),
+          recurrence_id: recurrenceId,
+          recurrence_index: recurrenceId ? index + 1 : null,
+          recurrence_total: recurrenceId ? recurrenceCount : null,
+        });
+        if (appointmentError) throw appointmentError;
+        createdAppointmentIds.push(appointmentId);
+
+        const { error: invoiceError } = await auth.admin.from("invoices").insert(invoiceRows);
+        if (invoiceError) throw invoiceError;
+
+        const participantRows = patients.map((item: any, patientIndex: number) => ({
+          clinic_id: auth.clinicId,
+          appointment_id: appointmentId,
+          patient_id: item.id,
+          invoice_id: invoiceRows[patientIndex].id,
+        }));
+        const { error: participantError } = await auth.admin.from("appointment_group_participants").insert(participantRows);
+        if (participantError) throw participantError;
+      }
+    } catch (creationError: any) {
+      if (createdAppointmentIds.length) await auth.admin.from("appointments").delete().eq("clinic_id", auth.clinicId).in("id", createdAppointmentIds);
+      if (createdInvoiceIds.length) await auth.admin.from("invoices").delete().eq("clinic_id", auth.clinicId).in("id", createdInvoiceIds);
+      if (creationError?.code === "23P01" || /THERAPIST_TIME_CONFLICT|ROOM_TIME_CONFLICT/.test(creationError?.message || "")) {
+        return NextResponse.json({ error: "يوجد تعارض في أحد مواعيد السلسلة للمعالج أو الغرفة. لم يتم الاحتفاظ بأي موعد من هذه السلسلة." }, { status: 409 });
+      }
+      throw creationError;
+    }
+    return NextResponse.json({ success: true, createdCount: recurrenceCount, recurrenceId, groupSize: patients.length });
   } catch (error: any) {
     console.error("[Calendar API] Appointment creation failed:", error);
     return NextResponse.json({ error: error?.message || "تعذر حفظ الموعد والفاتورة" }, { status: 500 });
