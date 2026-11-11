@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck, Lock, Database, UserCog } from "lucide-react";
+import { ShieldCheck, Lock, Database, ShieldCheck } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 
 export default function Security() {
