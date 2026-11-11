@@ -58,7 +58,7 @@ export default function HowItWorks() {
 
         <div data-csp-motion="reveal" className="mt-14 flex justify-center">
           <Link
-            href="/signup"
+            href="/rgstr.php"
             className="inline-flex items-center gap-3 rounded-xl bg-gradient-to-l from-[#4F46E5] to-[#7C3AED] px-7 py-4 font-bold text-white shadow-lg shadow-indigo-200 transition hover:-translate-y-0.5 hover:from-[#4338CA] hover:to-[#6D28D9]"
           >
             أنشئ حساب مركزك الآن
