@@ -89,7 +89,7 @@ export default function LandingContent({ contentMap }: Props) {
         <Hero cmsContent={contentMap.hero} />
         <TrustedStrip /><Stats /><ComparisonSection /><BeforeAfter /><FeaturesBento /><FeaturesDetail />
         <DashboardInteractive /><WorkflowAutomations /><Integrations /><PatientJourney /><Security />
-        <TestimonialsCarousel /><CaseStudy /><Pricing cmsContent={contentMap.pricing} /><ROICalculator /><FAQ />
+        <TestimonialsCarousel /><CaseStudy /><Pricing /><ROICalculator /><FAQ />
       </main>
       <Footer />
     </div>
