@@ -27,14 +27,16 @@ export async function GET() {
   const auth = await authorize();
   if ("response" in auth) return auth.response;
   try {
-    const [patients, appointments, doctors] = await Promise.all([
+    const [patients, appointments, doctors, rooms] = await Promise.all([
       auth.admin.from("patients").select("id,nameAr").eq("clinic_id", auth.clinicId).order("id", { ascending: true }),
       auth.admin.from("appointments").select("*, treatment_plan:treatment_plans!appointments_treatment_plan_patient_clinic_fkey(id,goals)").eq("clinic_id", auth.clinicId),
       auth.admin.from("staff").select("name,email,role").eq("clinic_id", auth.clinicId),
+      auth.admin.from("appointment_rooms").select("id,name,branch_id").eq("clinic_id", auth.clinicId).eq("is_active", true).order("name"),
     ]);
     if (patients.error) throw patients.error;
     if (appointments.error) throw appointments.error;
     if (doctors.error) throw doctors.error;
+    if (rooms.error) throw rooms.error;
     const canReadClinicalDetails = canViewPatientHistory(auth.staff);
     const safeAppointments = (appointments.data || []).map((appointment: Record<string, unknown>) => {
       if (canReadClinicalDetails) return appointment;
@@ -54,6 +56,7 @@ export async function GET() {
       patients: patients.data || [],
       appointments: safeAppointments,
       doctors: safeDoctors,
+      rooms: rooms.data || [],
     }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error: any) {
     console.error("[Calendar API] Load failed:", error);
@@ -261,6 +264,17 @@ export async function PATCH(request: NextRequest) {
       updates.status = body.status;
       updates.start_time = body.startTime;
       updates.end_time = body.endTime;
+      if (body.roomId !== undefined) {
+        if (body.roomId === null || body.roomId === "") {
+          updates.room_id = null;
+        } else {
+          const { data: room, error: roomError } = await auth.admin.from("appointment_rooms")
+            .select("id,branch_id").eq("id", body.roomId).eq("clinic_id", auth.clinicId).eq("is_active", true).maybeSingle();
+          if (roomError) throw roomError;
+          if (!room) return NextResponse.json({ error: "الغرفة المختارة غير متاحة في هذه العيادة" }, { status: 400 });
+          updates.room_id = room.id;
+        }
+      }
     } else return NextResponse.json({ error: "إجراء غير معروف" }, { status: 400 });
 
     const { data, error } = await auth.admin.from("appointments").update(updates)
