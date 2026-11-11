@@ -113,6 +113,10 @@ export default function DashboardLayout({
   const [branchName, setBranchName] = useState<string | null>(null);
   const [platformBranding, setPlatformBranding] = useState<{brandName: string, sidebarTitle: string} | null>(null);
   const [isDashboardPageLoading, setIsDashboardPageLoading] = useState(true);
+
+  useEffect(() => {
+    if (pathname === "/dashboard") setIsDashboardPageLoading(true);
+  }, [pathname]);
   
   const activeAccount = user;
 
@@ -784,7 +788,7 @@ export default function DashboardLayout({
         
       </div>
       
-    </div>        </div>
+    </div>\n        </div>
       </div>
     </DashboardPageLoadingContext.Provider>
   );
