@@ -213,7 +213,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   const [isEnriching, setIsEnriching] = useState(false);
   const rawPathname = usePathname();
   // Normalize trailing slashes so /login.php and /login.php/ are treated identically.
-  const pathname = (rawPathname || "/").replace(/\\/+$/, "") || "/";
+  const pathname = (rawPathname || "/").replace(/[/]+$/, "") || "/";
   const { data: session, status } = useSession();
   const nextAuthEmailRef = useRef<string | null>(null);
   // Several auth providers can enrich the same login concurrently. Keep the
@@ -329,7 +329,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         // Do not keep stale clinic data from an earlier enrichment attempt.
         setUser(enriched);
         setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-        const currentPath = typeof window !== "undefined" ? (window.location.pathname.replace(/\\/+$/, "") || "/") : "";
+        const currentPath = typeof window !== "undefined" ? (window.location.pathname.replace(/[/]+$/, "") || "/") : "";
         const isClinicLandingPage = currentPath.startsWith("/clinic/");
         const isAuthEntryPath = currentPath === "/login.php" || currentPath === "/login" || currentPath === "/signup" || currentPath === "/rgstr.php" || currentPath === "/home" || currentPath.startsWith("/setup");
         if (enriched.roleKey === "platform_admin" && typeof window !== "undefined" && (currentPath === "/dashboard" || currentPath === "/home" || currentPath === "/setup" || currentPath === "/signup" || currentPath === "/rgstr.php")) {
