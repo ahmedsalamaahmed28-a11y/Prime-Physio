@@ -329,8 +329,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
         const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
         const isClinicLandingPage = currentPath.startsWith("/clinic/");
-        const isAuthEntryPath = currentPath === "/manage" || currentPath.startsWith("/manage/") || currentPath === "/login" || currentPath === "/signup" || currentPath === "/rgstr.php" || currentPath === "/home" || currentPath.startsWith("/setup");
-        if (enriched.roleKey === "platform_admin" && typeof window !== "undefined" && (currentPath === "/dashboard" || currentPath === "/home" || currentPath === "/setup" || currentPath.startsWith("/manage") || currentPath === "/signup" || currentPath === "/rgstr.php")) {
+        const isAuthEntryPath = currentPath === "/login.php" || currentPath === "/login" || currentPath === "/signup" || currentPath === "/rgstr.php" || currentPath === "/home" || currentPath.startsWith("/setup");
+        if (enriched.roleKey === "platform_admin" && typeof window !== "undefined" && (currentPath === "/dashboard" || currentPath === "/home" || currentPath === "/setup" || currentPath === "/signup" || currentPath === "/rgstr.php")) {
           window.location.href = "/platform";
         } else if (enriched.clinicId && typeof window !== "undefined" && isAuthEntryPath && !isClinicLandingPage) {
           window.location.href = "/dashboard";
@@ -372,14 +372,15 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Allow unauthenticated access to /[slug] branded login pages
-      const knownPages = new Set(["home","dashboard","admin","setup","login","manage","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup","center-management","create-center","home.php","rgstr.php","center-management.php"]);
+      const knownPages = new Set(["home","dashboard","admin","setup","login","login.php","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup","center-management","create-center","home.php","rgstr.php","center-management.php"]);
       const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname) && !knownPages.has(pathname.replace("/", ""));
       if (isSlugPage) return;
       if (pathname.startsWith("/setup") || pathname === "/plans" || pathname === "/center_setup") { window.location.replace("/center-management"); return; }
       if (!user && status !== "authenticated") {
         // Legal documents are public and must remain accessible without an account.
         if (
-          !pathname.startsWith("/manage") &&
+          pathname !== "/login.php" &&
+          pathname !== "/login" &&
           pathname !== "/signup" &&
           pathname !== "/rgstr.php" &&
           pathname !== "/home.php" &&
@@ -387,17 +388,16 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           pathname !== "/privacy" &&
           pathname !== "/terms"
         ) {
-          window.location.href = "/manage";
+          window.location.href = "/login.php/";
         }
         return;
       }
       if (pathname === "/create-center" || pathname === "/center-management") return;
       if (pathname === "/signup" || pathname === "/rgstr.php") return;
-      if (pathname.startsWith("/manage")) return;
       // Redirect only after enrichment has confirmed that the account has no clinic.
       // undefined means the lookup is unresolved and must not trigger an onboarding redirect.
       if (user?.clinicId === null && !user?.isPlatformAdmin && user?.email && !isEnriching) {
-        const setupPaths = ["/manage", "/signup", "/rgstr.php", "/setup", "/setup/center", "/plans", "/center_setup", "/center-management", "/center-management.php", "/create-center", "/centers/new", "/my-centers/new"];
+        const setupPaths = ["/login.php", "/login", "/signup", "/rgstr.php", "/setup", "/setup/center", "/plans", "/center_setup", "/center-management", "/center-management.php", "/create-center", "/centers/new", "/my-centers/new"];
         if (!setupPaths.includes(pathname)) {
           window.location.href = "/center-management";
         }
@@ -493,7 +493,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
     setAppValue("current_user", null).catch(() => {});
     await supabase.auth.signOut();
-    signOut({ callbackUrl: "/manage" }).catch(() => {
+    signOut({ callbackUrl: "/login.php/" }).catch(() => {
       window.location.href = "/manage";
     });
   };
