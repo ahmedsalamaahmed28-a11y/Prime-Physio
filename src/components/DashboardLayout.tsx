@@ -782,7 +782,7 @@ export default function DashboardLayout({
         )}
 
         {/* ─── MAIN CONTENT AREA ────────────────────────────────────────────── */}
-        <main className="flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto print:p-0 min-h-[500px] contain-layout">
+        <main className="pp-dashboard-content flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto print:p-0 min-h-[500px] contain-layout">
           {children}
         </main>
         
