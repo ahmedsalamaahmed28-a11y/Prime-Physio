@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
     return [
       { source: "/login.php", destination: "/login", permanent: true },
       { source: "/create-center", destination: "/my-centers/create", permanent: true },
+      { source: "/my-centers/new", destination: "/my-centers/create", permanent: false },
       // Legacy /manage links must never open a separate or obsolete management route.
       { source: "/manage", destination: "/login.php", permanent: false },
       { source: "/manage/:path*", destination: "/login.php", permanent: false },
