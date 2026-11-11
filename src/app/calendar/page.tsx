@@ -225,7 +225,8 @@ function NewAppointmentDialog({
       "جلسة علاج": "Therapy Session",
       "كشف أول": "First Exam",
       "متابعة": "Follow-up",
-      "تقييم": "Assessment"
+      "تقييم": "Assessment",
+      "جلسة جماعية": "Group Session"
     };
     return map[type] || type;
   };
@@ -543,6 +544,7 @@ function EventDetailsDialog({
       "كشف أول": "First Exam",
       "متابعة": "Follow-up",
       "تقييم": "Assessment",
+      "جلسة جماعية": "Group Session",
     };
     return map[type] || type;
   };
@@ -769,11 +771,15 @@ export default function CalendarPage() {
     const loadData = async () => {
       let dbEvents: any[] = [];
       let roomData: { id: string; name: string; branch_id: string | null }[] = [];
+      let participantData: { appointment_id: string; patient_id: string }[] = [];
+      let patientData: any[] = [];
       try {
         const response = await fetch("/api/calendar", { method: "GET", cache: "no-store" });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "تعذر تحميل بيانات التقويم");
-        setPatients(result.patients || []);
+        patientData = result.patients || [];
+        setPatients(patientData);
+        participantData = result.groupParticipants || [];
         const isDoctor = (role: string) =>
           ["admin", "clinic_admin", "doctor", "مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(role);
         setDoctorsList((result.doctors || []).filter((staff: any) => isDoctor(staff.role)));
@@ -791,17 +797,36 @@ export default function CalendarPage() {
       }
 
       const roomNames = new Map<string, string>(roomData.map((room) => [room.id, room.name]));
+      const patientNames = new Map<string, string>(patientData.map((patient: any) => [patient.id, isRtl ? patient.nameAr : (patient.nameEn || patient.nameAr)]));
+      const participantsByAppointment = new Map<string, string[]>();
+      participantData.forEach((participant) => {
+        const current = participantsByAppointment.get(participant.appointment_id) || [];
+        current.push(participant.patient_id);
+        participantsByAppointment.set(participant.appointment_id, current);
+      });
       const formatted = (dbEvents || []).map((e: any) => {
         const startValue = e.start_time || (e.date && e.time ? `${e.date}T${e.time}` : new Date().toISOString());
         const start = new Date(startValue);
         const end = e.end_time ? new Date(e.end_time) : new Date(start.getTime() + (e.duration || 45) * 60000);
+        const participantIds = participantsByAppointment.get(e.id) || [];
+        const participantNames = participantIds.map((id) => patientNames.get(id) || id);
+        const isGroupSession = Boolean(e.is_group_session || participantIds.length > 1);
+        const displayPatientName = isGroupSession
+          ? (isRtl ? `جلسة جماعية (${participantIds.length})` : `Group session (${participantIds.length})`)
+          : (patientNames.get(e.patient_id) || e.patient_name || "");
         return {
           id: e.id,
-          title: `${e.patient_name || ""} - ${e.appointment_type || e.type || ""}`,
+          title: `${displayPatientName} - ${e.appointment_type || e.type || ""}`,
           start,
           end,
-          patientName: e.patient_name,
+          patientName: displayPatientName,
           patientId: e.patient_id,
+          isGroupSession,
+          groupParticipantIds: participantIds,
+          groupParticipantNames: participantNames,
+          recurrenceId: e.recurrence_id || null,
+          recurrenceIndex: e.recurrence_index || null,
+          recurrenceTotal: e.recurrence_total || null,
           doctor: e.doctor_name || e.therapist,
           visitType: e.appointment_type || e.type,
           status: e.status,
@@ -913,12 +938,35 @@ export default function CalendarPage() {
           sessionIntervention: ev.sessionIntervention || null,
           sessionObjectives: ev.sessionObjectives || null,
           targetExercises: (ev.targetExercises || []).map((name) => ({ name })),
+          patientIds: ev.groupParticipantIds || [ev.patientId],
+          isGroupSession: Boolean(ev.isGroupSession),
+          recurrenceMode: ev.recurrenceMode || "none",
+          recurrenceCount: ev.recurrenceCount || 1,
         }),
       });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "تعذر حفظ الموعد والفاتورة");
       ev.id = newId;
-      syncEventsState([...events, ev]);
+      if (result.recurrenceId && result.createdCount > 1) {
+        const occurrences = Array.from({ length: result.createdCount }, (_, index) => {
+          const offset = ev.recurrenceMode === "weekly" ? index * 7 : ev.recurrenceMode === "biweekly" ? index * 14 : 0;
+          const start = new Date(ev.start.getTime() + offset * 86400000);
+          const end = new Date(ev.end.getTime() + offset * 86400000);
+          return {
+            ...ev,
+            id: index === 0 ? newId : `series-${result.recurrenceId}-${index + 1}`,
+            start,
+            end,
+            title: ev.title + (isRtl ? ` · ${index + 1}/${result.createdCount}` : ` · ${index + 1}/${result.createdCount}`),
+            recurrenceId: result.recurrenceId,
+            recurrenceIndex: index + 1,
+            recurrenceTotal: result.createdCount,
+          };
+        });
+        syncEventsState([...events, ...occurrences]);
+      } else {
+        syncEventsState([...events, ev]);
+      }
       setSelectedDate(null);
     } catch (err: any) {
       console.error("Failed to atomically save appointment and invoice:", err);
