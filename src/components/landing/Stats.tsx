@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, CalendarDays, ClipboardList, Users, ChartNoAxesCombined } from "lucide-react";
+import { Building, CalendarDays, ClipboardList, Users, Activity } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 
 const capabilities = [
