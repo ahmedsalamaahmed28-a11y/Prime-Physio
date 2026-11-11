@@ -1133,7 +1133,8 @@ export default function CalendarPage() {
                 "جلسة علاج": "Therapy Session",
                 "كشف أول": "First Exam",
                 "متابعة": "Follow-up",
-                "تقييم": "Assessment"
+                "تقييم": "Assessment",
+                "جلسة جماعية": "Group Session"
               };
               return map[type] || type;
             };
