@@ -23,6 +23,7 @@ import Footer from "@/components/landing/Footer";
 import BeforeAfter from "@/components/landing/BeforeAfter";
 import PatientJourney from "@/components/landing/PatientJourney";
 import LandingLocale from "@/components/landing/LandingLocale";
+import FinalCTA from "@/components/landing/FinalCTA";
 export const revalidate = 0;
 export default async function LandingPage() {
   const contentMap: Record<string, any> = {};
@@ -62,10 +63,7 @@ export default async function LandingPage() {
       <Pricing cmsContent={contentMap.pricing} />
       <ROICalculator />
       <FAQ />
-      <section className="pp-final-cta"><div className="pp-wrap pp-final-cta-inner">
-        <div><h2>ابدأ بتنظيم مركزك مع Prime Physio</h2><p>اجمع إدارة المرضى والجلسات والفريق والحسابات في مكان واحد.</p></div>
-        <div className="pp-final-actions"><a href="/rgstr.php" className="pp-button pp-button-accent">أنشئ مركزك</a><Link href="/login.php" className="pp-button pp-button-light-outline">دخول المالك</Link></div>
-      </div></section>
+      <FinalCTA />
     </main>
     <div id="contact"><Footer /></div>
   </div>;
