@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   experimental: { globalNotFound: true },
   async redirects() {
     return [
-      { source: "/login", destination: "/login.php", permanent: true },
+      { source: "/login.php", destination: "/login", permanent: true },
       // Legacy /manage links must never open a separate or obsolete management route.
       { source: "/manage", destination: "/login.php", permanent: false },
       { source: "/manage/:path*", destination: "/login.php", permanent: false },
