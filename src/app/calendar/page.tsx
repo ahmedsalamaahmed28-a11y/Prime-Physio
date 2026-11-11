@@ -46,6 +46,8 @@ interface CalendarEvent {
   sessionIntervention?: string;
   sessionObjectives?: string;
   targetExercises?: string[];
+  roomId?: string;
+  roomName?: string;
 }
 
 interface SessionOutcome {
@@ -96,7 +98,9 @@ function NewAppointmentDialog({
   selectedDate,
   patientsList,
   doctorsList,
+  roomsList,
   clinicId,
+  branchId,
   onClose,
   onSave,
 }: {
@@ -104,7 +108,9 @@ function NewAppointmentDialog({
   selectedDate: Date | null;
   patientsList: any[];
   doctorsList: { name: string }[];
+  roomsList: { id: string; name: string; branch_id: string | null }[];
   clinicId?: string;
+  branchId?: string | null;
   onClose: () => void;
   onSave: (ev: CalendarEvent) => void;
 }) {
@@ -114,7 +120,18 @@ function NewAppointmentDialog({
   const [doctor, setDoctor] = useState("");
   const [visitType, setVisitType] = useState<VisitType>("جلسة علاج");
   const [duration, setDuration] = useState(45);
+  const [startTime, setStartTime] = useState("09:00");
+  const [roomId, setRoomId] = useState("");
   const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    if (open && selectedDate) {
+      const hours = String(selectedDate.getHours()).padStart(2, "0");
+      const minutes = String(selectedDate.getMinutes()).padStart(2, "0");
+      setStartTime(hours === "00" && minutes === "00" ? "09:00" : hours + ":" + minutes);
+    }
+    if (!open) setRoomId("");
+  }, [open, selectedDate]);
   const [treatmentPlans, setTreatmentPlans] = useState<any[]>([]);
   const [treatmentPlanId, setTreatmentPlanId] = useState("");
   const [sessionIntervention, setSessionIntervention] = useState("");
@@ -189,10 +206,15 @@ function NewAppointmentDialog({
   };
 
   const handleSave = () => {
-    if (!selectedDate || patientsList.length === 0 || !patientId) return;
+    if (!selectedDate || patientsList.length === 0 || !patientId || !doctor) return;
+    const [hours, minutes] = startTime.split(":").map(Number);
+    if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59 || !Number.isFinite(duration) || duration < 15 || duration > 240) {
+      alert(isRtl ? "يرجى إدخال وقت ومدة صالحين." : "Enter a valid start time and duration.");
+      return;
+    }
     const patient = patientsList.find((p) => p.id === patientId) || patientsList[0];
     const start = new Date(selectedDate);
-    start.setHours(9, 0, 0, 0);
+    start.setHours(hours, minutes, 0, 0);
     const end = new Date(start.getTime() + duration * 60000);
     const pName = isRtl ? patient.nameAr : (patient.nameEn || patient.nameAr);
     onSave({
@@ -205,6 +227,8 @@ function NewAppointmentDialog({
       doctor,
       visitType,
       status: "مؤكد",
+      roomId: roomId || undefined,
+      roomName: roomsList.find((room) => room.id === roomId)?.name,
       notes,
       treatmentPlanId: treatmentPlanId || undefined,
       treatmentPlanTitle: treatmentPlans.find((plan) => plan.id === treatmentPlanId)?.goals || undefined,
@@ -251,6 +275,30 @@ function NewAppointmentDialog({
               searchPlaceholder={isRtl ? "بحث..." : "Search"}
               nothingFound={isRtl ? "لا يوجد نتائج" : "Nothing found."}
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>{isRtl ? "وقت البداية" : "Start time"}</Label>
+              <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>{isRtl ? "المدة (دقيقة)" : "Duration (min)"}</Label>
+              <Input type="number" min={15} max={240} step={15} value={duration}
+                onChange={(e) => setDuration(Number(e.target.value))}
+                className={isRtl ? "text-right" : "text-left"} />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>{isRtl ? "الغرفة (اختياري)" : "Room (optional)"}</Label>
+            <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={roomId} onChange={(e) => setRoomId(e.target.value)}>
+              <option value="">{isRtl ? "بدون تحديد غرفة" : "No room selected"}</option>
+              {roomsList.filter((room) => !room.branch_id || !branchId || room.branch_id === branchId).map((room) => (
+                <option key={room.id} value={room.id}>{room.name}</option>
+              ))}
+            </select>
+            {roomsList.length === 0 && <p className="text-xs text-muted-foreground">{isRtl ? "لم تتم إضافة غرف علاج بعد. يمكنك إضافتها من إعدادات المركز." : "No treatment rooms have been added yet. Add them in clinic settings."}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -604,6 +652,7 @@ export default function CalendarPage() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
   const [doctorsList, setDoctorsList] = useState<{ name: string }[]>([]);
+  const [rooms, setRooms] = useState<{ id: string; name: string; branch_id: string | null }[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
@@ -622,6 +671,7 @@ export default function CalendarPage() {
         const isDoctor = (role: string) =>
           ["admin", "clinic_admin", "doctor", "مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(role);
         setDoctorsList((result.doctors || []).filter((staff: any) => isDoctor(staff.role)));
+        setRooms(result.rooms || []);
         dbEvents = result.appointments || [];
       } catch (error: any) {
         console.error("Calendar data could not be loaded:", error);
@@ -633,6 +683,7 @@ export default function CalendarPage() {
         return;
       }
 
+      const roomNames = new Map((result.rooms || []).map((room: any) => [room.id, room.name]));
       const formatted = (dbEvents || []).map((e: any) => {
         const startValue = e.start_time || (e.date && e.time ? `${e.date}T${e.time}` : new Date().toISOString());
         const start = new Date(startValue);
@@ -653,7 +704,9 @@ export default function CalendarPage() {
           sessionObjectives: e.session_objectives || "",
           targetExercises: Array.isArray(e.target_exercises)
             ? e.target_exercises.map((item: any) => typeof item === "string" ? item : (item?.name || item?.title || "")).filter(Boolean)
-            : []
+            : [],
+          roomId: e.room_id || undefined,
+          roomName: roomNames.get(e.room_id) || undefined,
         };
       });
       setEvents(formatted);
@@ -728,6 +781,8 @@ export default function CalendarPage() {
           invoiceAmount: invoiceAmt,
           invoiceStatus: isRtl ? "انتظار" : "Pending",
           invoiceDate: ev.start.toISOString().split("T")[0],
+          roomId: ev.roomId || null,
+          branchId: activeBranchId || null,
           treatmentPlanId: ev.treatmentPlanId || null,
           sessionIntervention: ev.sessionIntervention || null,
           sessionObjectives: ev.sessionObjectives || null,
@@ -761,6 +816,7 @@ export default function CalendarPage() {
           status: updated.status,
           startTime: updated.start.toISOString(),
           endTime: updated.end.toISOString(),
+          roomId: updated.roomId ?? null,
         }),
       });
       const result = await response.json();
@@ -913,7 +969,9 @@ export default function CalendarPage() {
         selectedDate={selectedDate}
         patientsList={patients}
         doctorsList={doctorsList}
+        roomsList={rooms}
         clinicId={clinicId || undefined}
+        branchId={activeBranchId || null}
         onClose={() => setSelectedDate(null)}
         onSave={handleSaveNew}
       />
