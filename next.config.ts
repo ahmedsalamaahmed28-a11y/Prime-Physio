@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
   experimental: { globalNotFound: true },
   async redirects() {
     return [
-      { source: "/", destination: "/home.php", permanent: true },
       { source: "/login", destination: "/manage", permanent: true },
     ];
   },
