@@ -159,7 +159,7 @@ export default function Pricing({ cmsContent }: { cmsContent?: any }) {
               </ul>
               
               <Link
-                href="/signup"
+                href="/rgstr.php"
                 className={`w-full py-3 rounded-full text-center font-bold transition-all ${
                   plan.popular
                     ? "bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white shadow-lg hover:shadow-xl hover:scale-105"
