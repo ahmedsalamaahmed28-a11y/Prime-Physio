@@ -40,7 +40,7 @@ export default function Hero({ cmsContent }: { cmsContent?: any }) {
           <p className="pp-hero-lead">{description}</p>
 
           <div className="pp-hero-actions">
-            <Link href="/signup" className="pp-button pp-button-primary pp-button-large">
+            <Link href="/rgstr.php" className="pp-button pp-button-primary pp-button-large">
               {primaryButtonText}<DirectionArrow aria-hidden="true" />
             </Link>
             <Link href="/manage" className="pp-button pp-button-outline pp-button-large">
