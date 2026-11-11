@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     }
 
     const [{ data: clinics, error: clinicsError }, { data: branches, error: branchesError }, { data: subscriptions, error: subscriptionsError }] = await Promise.all([
-      admin.from("clinics").select("id, name, slug, status, created_at").in("id", clinicIds),
+      admin.from("clinics").select("id, name, slug, status, created_at, phone, address, logo_url").in("id", clinicIds),
       admin.from("branches").select("id, clinic_id, short_name, full_name, slug, logo_url, status").in("clinic_id", clinicIds),
       admin.from("subscriptions").select("clinic_id, plan_name, status, end_date, created_at").in("clinic_id", clinicIds).order("created_at", { ascending: false }),
     ]);
@@ -107,7 +107,7 @@ export async function PATCH(req: NextRequest) {
       if (error.code === "23505") return NextResponse.json({ error: "هذا الرابط مستخدم بالفعل. اختر رابطًا آخر." }, { status: 409 });
       throw error;
     }
-    await admin.from("branches").update({ short_name: name, slug }).eq("clinic_id", clinicId);
+
     return NextResponse.json({ center: { id: data.id, name: data.name, slug: data.slug, phone: data.phone, address: data.address, publicUrl: `/clinic/${data.slug}` } });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
