@@ -85,8 +85,10 @@ export default function ResetPasswordPage() {
       return;
     }
 
-    if (newPassword.length < 12 || newPassword.length > 128 || !/[a-z]/.test(newPassword) || !/[A-Z]/.test(newPassword) || !/[0-9]/.test(newPassword) || !/[^A-Za-z0-9]/.test(newPassword)) {
-      setError(isRtl ? "كلمة المرور يجب أن تكون من 12 إلى 128 حرفًا وتحتوي على حرف كبير وصغير ورقم ورمز." : "Password must be 12–128 characters and include uppercase, lowercase, a number, and a symbol.");
+    const commonPasswords = new Set(["12345678", "123456789", "1234567890", "123456", "password", "password1", "password123", "qwerty123", "qwertyui", "abcdefgh", "abc12345", "admin123", "welcome1", "iloveyou", "11111111", "00000000", "87654321", "111111111"]);
+    const passwordBytes = new TextEncoder().encode(newPassword).length;
+    if (newPassword.length < 8 || newPassword.length > 128 || passwordBytes > 72 || commonPasswords.has(newPassword.trim().toLowerCase())) {
+      setError(isRtl ? "كلمة المرور يجب أن تكون من 8 إلى 128 حرفًا، وألا تكون شائعة أو سهلة التخمين." : "Password must be 8–128 characters, must not be common or easily guessed, and must fit within 72 UTF-8 bytes.");
       return;
     }
 
