@@ -248,7 +248,7 @@ function SignupPageContent() {
         setConfirmPassword("");
         return;
       }
-      window.location.href = "/create-center";
+      window.location.href = "/my-centers/create";
     } catch (err) {
       setError(err instanceof Error ? err.message : (isRtl ? "حدث خطأ غير متوقع." : "Something went wrong."));
     } finally {
