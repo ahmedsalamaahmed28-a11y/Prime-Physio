@@ -214,6 +214,17 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { data: session, status } = useSession();
   const nextAuthEmailRef = useRef<string | null>(null);
+  // Several auth providers can enrich the same login concurrently. Keep the
+  // loading state active until every enrichment request has completed.
+  const enrichmentCountRef = useRef(0);
+  const beginEnrichment = () => {
+    enrichmentCountRef.current += 1;
+    beginEnrichment();
+  };
+  const endEnrichment = () => {
+    enrichmentCountRef.current = Math.max(0, enrichmentCountRef.current - 1);
+    setIsEnriching(enrichmentCountRef.current > 0);
+  };
 
   // Never restore an authenticated user from localStorage. Only verified server sessions
   // (NextAuth) or a live Supabase Auth session may establish identity.
@@ -242,9 +253,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           initialsEn: name.substring(0, 2).toUpperCase(),
         };
 
-        setIsEnriching(true);
+        beginEnrichment();
         const enriched = await enrichUserWithClinic(newUser);
-        setIsEnriching(false);
+        endEnrichment();
 
         // Always accept the latest authoritative enrichment result. A previous null clinicId
         // must not block a later successful lookup for the same email.
@@ -309,10 +320,10 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           initialsEn: initials,
         };
 
-        setIsEnriching(true);
+        beginEnrichment();
         const enriched = await enrichUserWithClinic(newUser);
+        endEnrichment();
         if (!active) return;
-        setIsEnriching(false);
         // Do not keep stale clinic data from an earlier enrichment attempt.
         setUser(enriched);
         setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
@@ -334,7 +345,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     } else if (status === "unauthenticated" && nextAuthEmailRef.current) {
       const expiredEmail = nextAuthEmailRef.current;
       nextAuthEmailRef.current = null;
-      setIsEnriching(false);
+      endEnrichment();
       setUser((prev) => prev?.email?.toLowerCase() === expiredEmail ? null : prev);
       setAppValue("current_user", null).catch(() => {});
       // Revoke the long-lived Supabase shadow session when its NextAuth owner expires.
@@ -409,9 +420,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       roleEn: "Certified Therapist (Google)",
       initialsEn: uppercaseName.substring(0, 2),
     };
-    setIsEnriching(true);
+    beginEnrichment();
     const enriched = await enrichUserWithClinic(newUser);
-    setIsEnriching(false);
+    endEnrichment();
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
     window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/dashboard" : "/center-management";
@@ -434,9 +445,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       roleEn: getEnglishRoleLabel(roleKey),
       initialsEn: initials,
     };
-    setIsEnriching(true);
+    beginEnrichment();
     const enriched = await enrichUserWithClinic(newUser);
-    setIsEnriching(false);
+    endEnrichment();
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
     window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/dashboard" : "/center-management";
