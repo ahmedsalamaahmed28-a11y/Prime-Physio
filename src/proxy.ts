@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const AUTH_ROUTES = ["/manage", "/signup", "/setup", "/plans", "/center_setup", "/centers", "/about", "/support"];
+// Public onboarding and authentication entry points must remain reachable
+// before a user has a session. Keep protected dashboard routes out of this list.
+const AUTH_ROUTES = ["/manage", "/signup", "/rgstr.php", "/setup", "/plans", "/center_setup", "/centers", "/about", "/support"];
 const PUBLIC_PATHS = ["/privacy", "/terms", "/_next/", "/api/auth/", "/favicon.ico", "/icon.png", "/logo.png", "/landing-hero.png", "/robots.txt", "/sitemap.xml", "/manifest.json"];
 
 const SUPABASE_PROJECT_REF = "crrhrjhftwostjomzmfj";
