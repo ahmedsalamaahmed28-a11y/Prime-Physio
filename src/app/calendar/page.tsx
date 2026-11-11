@@ -609,6 +609,17 @@ function EventDetailsDialog({
           </div>
           <Separator />
 
+          {event.isGroupSession && (
+            <div className="rounded-lg border p-3 space-y-1">
+              <p className="text-sm font-semibold">{isRtl ? "المشاركون في الجلسة الجماعية" : "Group participants"}</p>
+              <p className="text-sm text-muted-foreground">{(event.groupParticipantNames || []).join("، ") || "—"}</p>
+            </div>
+          )}
+          {event.recurrenceTotal && event.recurrenceTotal > 1 && (
+            <div className="rounded-lg border p-3 text-sm">
+              {isRtl ? `موعد متكرر: ${event.recurrenceIndex} من ${event.recurrenceTotal}` : `Recurring appointment: ${event.recurrenceIndex} of ${event.recurrenceTotal}`}
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-2">
             {[
               { label: isRtl ? "رقم الملف" : "File Number", value: event.patientId, icon: "📁" },
@@ -954,7 +965,7 @@ export default function CalendarPage() {
           const end = new Date(ev.end.getTime() + offset * 86400000);
           return {
             ...ev,
-            id: index === 0 ? newId : `series-${result.recurrenceId}-${index + 1}`,
+            id: result.appointmentIds?.[index] || (index === 0 ? newId : `series-${result.recurrenceId}-${index + 1}`),
             start,
             end,
             title: ev.title + (isRtl ? ` · ${index + 1}/${result.createdCount}` : ` · ${index + 1}/${result.createdCount}`),
