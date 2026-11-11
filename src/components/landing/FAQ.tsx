@@ -2,62 +2,77 @@
 
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import { useLanguage } from "@/lib/LanguageContext";
 
 export default function FAQ() {
+  const { language } = useLanguage();
+  const isEnglish = language === "en";
   const [openIndex, setOpenIndex] = useState<number | null>(0);
-
   const faqs = [
     {
-      question: "هل أحتاج إلى خبرة تقنية سابقة لاستخدام المنصة؟",
-      answer: "لا أبداً. قمنا بتصميم Prime Physio ليكون بديهياً وسهل الاستخدام للجميع، بغض النظر عن خلفيتهم التقنية. واجهة المستخدم بسيطة ومباشرة، ونوفر مقاطع فيديو تعليمية قصيرة ودعم فني دائم.",
+      question: isEnglish ? "Do I need technical experience to use Prime Physio?" : "هل أحتاج إلى خبرة تقنية لاستخدام Prime Physio؟",
+      answer: isEnglish
+        ? "The platform is designed to help clinic teams organize patient records, appointments, treatment sessions, and day-to-day clinic information in one workspace."
+        : "صُممت المنصة لمساعدة فريق المركز على تنظيم ملفات المرضى والمواعيد والجلسات العلاجية ومعلومات العمل اليومية من مساحة واحدة.",
     },
     {
-      question: "هل بيانات المرضى آمنة على النظام؟",
-      answer: "بالتأكيد. أمان البيانات هو أولويتنا القصوى. نستخدم معايير تشفير متقدمة (AES 256) لحماية جميع البيانات، ونقوم بنسخ احتياطي يومي على خوادم سحابية آمنة، مع تطبيق معايير الخصوصية الصارمة.",
+      question: isEnglish ? "How do I create a clinic account?" : "كيف أنشئ حسابًا للمركز؟",
+      answer: isEnglish
+        ? "Create an owner account, verify the email address using the code sent to your inbox, then sign in and complete the clinic setup."
+        : "أنشئ حساب المالك، ثم فعّل البريد الإلكتروني باستخدام الرمز المرسل إلى بريدك، وبعدها سجّل الدخول وأكمل إعداد المركز.",
     },
     {
-      question: "هل يمكنني ربط فروع عيادتي المختلفة في حساب واحد؟",
-      answer: "نعم! إذا كنت تمتلك أكثر من فرع (باقة Enterprise)، يمكنك إدارتها جميعاً من نفس الحساب. ستتمكن من استخراج تقارير منفصلة لكل فرع، وتخصيص صلاحيات للموظفين بناءً على الفرع الذي يعملون به.",
+      question: isEnglish ? "Does the platform have a free plan?" : "هل توجد باقة مجانية؟",
+      answer: isEnglish
+        ? "Yes. The active Basic plan is free and currently allows up to 50 patients and 100 sessions per month. Paid plans have higher limits."
+        : "نعم. باقة Basic مجانية حاليًا، وتسمح بإدارة حتى 50 مريضًا و100 جلسة شهريًا. وتوفر الباقات المدفوعة حدودًا أعلى.",
     },
     {
-      question: "ما هي طرق الدفع المدعومة؟",
-      answer: "نحن ندعم الدفع الإلكتروني عبر بطاقات الفيزا والماستركارد المحلية والدولية، بالإضافة إلى طرق الدفع المحلية الأخرى مثل المحافظ الإلكترونية.",
+      question: isEnglish ? "How is access to clinic records restricted?" : "كيف يتم تقييد الوصول إلى بيانات المركز؟",
+      answer: isEnglish
+        ? "Clinic records are associated with a clinic identifier and access is restricted through role checks and database row-level security policies. Access isolation should be tested as part of account and permission management."
+        : "ترتبط سجلات المركز بمعرّف خاص به، ويُقيّد الوصول من خلال فحص الأدوار وسياسات Row Level Security. ويجب اختبار عزل الوصول ضمن إدارة الحسابات والصلاحيات.",
     },
     {
-      question: "هل أستطيع نقل بياناتي القديمة إلى Prime Physio؟",
-      answer: "نعم، يوفر فريق الدعم الفني لدينا خدمة مجانية لنقل بياناتك القديمة (مثل قوائم المرضى من ملفات Excel) إلى نظامنا بسرعة وبدون أخطاء.",
+      question: isEnglish ? "Can I manage multiple branches under one subscription?" : "هل يمكنني إدارة عدة فروع ضمن اشتراك واحد؟",
+      answer: isEnglish
+        ? "Multi-branch management is not listed among the currently active Basic, Silver, or Gold plan features. Contact the team before relying on a multi-branch workflow."
+        : "إدارة الفروع المتعددة ليست مدرجة ضمن مميزات الباقات النشطة Basic وSilver وGold حاليًا. يُرجى التواصل مع الفريق قبل الاعتماد على هذا الاستخدام.",
+    },
+    {
+      question: isEnglish ? "Which payment methods are available?" : "ما طرق الدفع المتاحة؟",
+      answer: isEnglish
+        ? "Payment options depend on the current subscription and billing setup. Please contact the Prime Physio team to confirm the available method before making a payment."
+        : "تعتمد طرق الدفع على إعدادات الاشتراك والفوترة الحالية. يُرجى التواصل مع فريق Prime Physio لتأكيد طريقة الدفع المتاحة قبل السداد.",
     },
   ];
 
   return (
-    <section id="faq" className="py-24 bg-white">
-      <div className="max-w-4xl mx-auto px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl font-black text-slate-900 sm:text-4xl">الأسئلة الشائعة</h2>
-          <p className="mt-4 text-lg text-slate-600 font-medium">
-            كل ما تحتاج معرفته عن Prime Physio
+    <section id="faq" className="bg-white py-24" dir={isEnglish ? "ltr" : "rtl"}>
+      <div className="mx-auto max-w-4xl px-6 lg:px-8">
+        <div className="mb-16 text-center">
+          <h2 className="text-3xl font-black text-slate-900 sm:text-4xl">{isEnglish ? "Frequently asked questions" : "الأسئلة الشائعة"}</h2>
+          <p className="mt-4 text-lg font-medium text-slate-600">
+            {isEnglish ? "Clear answers about accounts, plans, and clinic access." : "إجابات واضحة حول الحسابات والباقات والوصول إلى بيانات المركز."}
           </p>
         </div>
-
         <div className="space-y-4">
           {faqs.map((faq, index) => (
-            <div key={index} data-csp-motion="reveal" className="border border-slate-200 rounded-2xl overflow-hidden bg-white">
+            <div key={faq.question} data-csp-motion="reveal" className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
               <button
+                type="button"
                 onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="flex items-center justify-between w-full p-6 text-right focus:outline-none"
+                aria-expanded={openIndex === index}
+                className="flex w-full items-center justify-between p-6 text-start focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
               >
-                <span className="font-bold text-slate-900 pr-4">{faq.question}</span>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition-colors ${openIndex === index ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-50 text-slate-400'}`}>
-                   <ChevronDown className={`w-5 h-5 transition-transform duration-300 ${openIndex === index ? 'rotate-180' : ''}`} />
-                </div>
+                <span className="pr-4 font-bold text-slate-900">{faq.question}</span>
+                <span className={"flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors " + (openIndex === index ? "bg-indigo-100 text-indigo-700" : "bg-slate-50 text-slate-400")}>
+                  <ChevronDown className={"h-5 w-5 transition-transform duration-300 " + (openIndex === index ? "rotate-180" : "")} />
+                </span>
               </button>
-              
-                {openIndex === index && (
-                  <div data-csp-motion="reveal" className="px-6 pb-6 pt-0 text-slate-600 font-medium leading-relaxed border-t border-slate-100 mt-2 pt-4">
-                      {faq.answer}
-                  </div>
-                )}
-              
+              {openIndex === index && (
+                <div className="mt-2 border-t border-slate-100 px-6 pb-6 pt-4 font-medium leading-relaxed text-slate-600">{faq.answer}</div>
+              )}
             </div>
           ))}
         </div>
