@@ -3,172 +3,116 @@
 import { useState } from "react";
 import { Check, Star } from "lucide-react";
 import Link from "next/link";
+import { useLanguage } from "@/lib/LanguageContext";
 
-export default function Pricing({ cmsContent }: { cmsContent?: any }) {
+export default function Pricing() {
+  const { language } = useLanguage();
+  const isEnglish = language === "en";
   const [isAnnual, setIsAnnual] = useState(false);
-
-  const defaultPlans = [
+  // These prices and limits match the active public.subscription_plans records.
+  const plans = [
     {
-      name: "الأساسية (Starter)",
-      description: "مثالية للعيادات الصغيرة والناشئة.",
-      priceMonthly: "0",
-      priceYearly: "0",
+      id: "basic",
+      name: isEnglish ? "Basic" : "الأساسية (Basic)",
+      description: isEnglish ? "A free starting point for a small clinic." : "بداية مجانية لتنظيم مركزك.",
+      monthly: 0,
+      yearly: 0,
       features: [
-        "إدارة حتى 50 مريض",
-        "100 جلسة شهرياً",
-        "20 حساب للأخصائيين",
-        "إدارة مركز واحد",
-        "دعم فني عبر البريد",
+        isEnglish ? "Up to 50 patients" : "إدارة حتى 50 مريضًا",
+        isEnglish ? "Up to 100 sessions per month" : "حتى 100 جلسة شهريًا",
+        isEnglish ? "Patient records management" : "إدارة ملفات المرضى",
+        isEnglish ? "Appointment scheduling" : "جدولة المواعيد",
+        isEnglish ? "Basic reports" : "تقارير أساسية",
       ],
-      cta: "ابدأ مجانًا",
       popular: false,
     },
     {
-      name: "الفضية (Silver)",
-      description: "للمراكز المتنامية التي تحتاج لأدوات احترافية.",
-      priceMonthly: "1000",
-      priceYearly: "9600",
+      id: "silver",
+      name: isEnglish ? "Silver" : "الفضية (Silver)",
+      description: isEnglish ? "For clinics that need more capacity and tools." : "للمراكز التي تحتاج إلى سعة وأدوات إضافية.",
+      monthly: 1000,
+      yearly: 9600,
       features: [
-        "إدارة حتى 200 مريض",
-        "500 جلسة شهرياً",
-        "50 حساب للأخصائيين",
-        "التقارير والتحليلات والتغذية العلاجية",
-        "دعم فني هاتفي",
+        isEnglish ? "Up to 200 patients" : "إدارة حتى 200 مريض",
+        isEnglish ? "Up to 500 sessions per month" : "حتى 500 جلسة شهريًا",
+        isEnglish ? "Treatment session management" : "إدارة الجلسات العلاجية",
+        isEnglish ? "Financial reports" : "تقارير مالية",
+        isEnglish ? "Technical support" : "دعم فني",
+        isEnglish ? "Includes Basic plan features" : "تشمل مميزات الباقة الأساسية",
       ],
-      cta: "ابدأ الإصدار الفضي",
       popular: true,
     },
     {
-      name: "الذهبية (Gold)",
-      description: "للمستشفيات وسلاسل المراكز المتعددة.",
-      priceMonthly: "1500",
-      priceYearly: "14400",
+      id: "gold",
+      name: isEnglish ? "Gold" : "الذهبية (Gold)",
+      description: isEnglish ? "For clinics that need higher operating capacity." : "للمراكز التي تحتاج إلى سعة تشغيلية أكبر.",
+      monthly: 1500,
+      yearly: 14400,
       features: [
-        "عدد لا محدود من المرضى والجلسات",
-        "حسابات غير محدودة للأخصائيين",
-        "المكتبة العلاجية ورسائل التذكير",
-        "إدارة فروع متعددة (حتى مركزين)",
-        "دعم VIP على مدار الساعة",
+        isEnglish ? "Unlimited patients" : "عدد غير محدود من المرضى",
+        isEnglish ? "Unlimited sessions per month" : "عدد غير محدود من الجلسات شهريًا",
+        isEnglish ? "Exercise management" : "إدارة التمارين الرياضية",
+        isEnglish ? "Treatment prescriptions" : "روشتات علاجية",
+        isEnglish ? "Includes Silver plan features" : "تشمل مميزات الباقة الفضية",
       ],
-      cta: "ابدأ الإصدار الذهبي",
       popular: false,
     },
   ];
-
-  // Try to parse plans from cmsContent if it exists
-  let plans = defaultPlans;
-  if (cmsContent && cmsContent.plans && Array.isArray(cmsContent.plans)) {
-    // Map the new CMS format to the old UI format
-    plans = cmsContent.plans.map((p: any) => ({
-      name: p.name,
-      description: p.description,
-      priceMonthly: p.price.replace(/,/g, ''), // Convert CMS string to UI string
-      priceYearly: Math.round(parseFloat(p.price.replace(/,/g, '')) * 12 * 0.8).toString(), // apply the displayed 20% annual discount
-      features: p.features,
-      cta: p.isPopular ? "ابدأ الإصدار المميز" : "اشترك الآن",
-      popular: p.isPopular || false,
-    }));
-  }
-
+  const formatPrice = (price: number) => new Intl.NumberFormat(isEnglish ? "en-EG" : "ar-EG").format(price);
 
   return (
-    <section id="pricing" className="py-24 bg-white relative">
+    <section id="pricing" className="relative bg-white py-24">
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-[0.02]" />
-      
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <h2 className="text-3xl font-black text-slate-900 sm:text-4xl">أسعار شفافة وبسيطة</h2>
-          <p className="mt-4 text-lg text-slate-600 font-medium">
-            اختر الباقة التي تناسب حجم وطموح مركزك. يمكنك الترقية أو الإلغاء في أي وقت.
+      <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto mb-16 max-w-2xl text-center">
+          <h2 className="text-3xl font-black text-slate-900 sm:text-4xl">{isEnglish ? "Simple, transparent pricing" : "أسعار واضحة وبسيطة"}</h2>
+          <p className="mt-4 text-lg font-medium text-slate-600">
+            {isEnglish ? "Choose the plan that fits your clinic. Published prices and limits are shown below." : "اختر الباقة المناسبة لمركزك. الأسعار والحدود المعروضة أدناه مطابقة للباقات النشطة."}
           </p>
-          
-          <div className="mt-8 flex justify-center items-center gap-4">
-            <div className="relative flex p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-full border border-slate-200 shadow-inner">
-              <button
-                onClick={() => setIsAnnual(false)}
-                className={`relative z-10 w-28 py-2.5 text-sm font-bold rounded-full transition-colors ${
-                  !isAnnual ? "text-white" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                {!isAnnual && (
-                  <div data-csp-motion="reveal"
-                    className="absolute inset-0 z-[-1] bg-gradient-to-r from-[#4F46E5] to-[#6366F1] rounded-full shadow-md"
-                  />
-                )}
-                شهري
+          <div className="mt-8 flex items-center justify-center gap-4">
+            <div className="relative flex rounded-full border border-slate-200 bg-slate-100/80 p-1.5 shadow-inner">
+              <button type="button" onClick={() => setIsAnnual(false)} aria-pressed={!isAnnual} className={"relative z-10 w-28 rounded-full py-2.5 text-sm font-bold transition-colors " + (!isAnnual ? "text-white" : "text-slate-600 hover:text-slate-900")}>
+                {!isAnnual && <span className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#6366F1] shadow-md" />}
+                {isEnglish ? "Monthly" : "شهري"}
               </button>
-              
-              <button
-                onClick={() => setIsAnnual(true)}
-                className={`relative z-10 w-32 py-2.5 text-sm font-bold rounded-full transition-colors flex items-center justify-center gap-2 ${
-                  isAnnual ? "text-white" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                {isAnnual && (
-                  <div data-csp-motion="reveal"
-                    className="absolute inset-0 z-[-1] bg-gradient-to-r from-[#4F46E5] to-[#6366F1] rounded-full shadow-md"
-                  />
-                )}
-                سنوي
+              <button type="button" onClick={() => setIsAnnual(true)} aria-pressed={isAnnual} className={"relative z-10 w-32 rounded-full py-2.5 text-sm font-bold transition-colors " + (isAnnual ? "text-white" : "text-slate-600 hover:text-slate-900")}>
+                {isAnnual && <span className="absolute inset-0 -z-10 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#6366F1] shadow-md" />}
+                {isEnglish ? "Yearly" : "سنوي"}
               </button>
             </div>
-            
-            <div className="hidden sm:block">
-              <span className="px-3 py-1.5 rounded-full bg-emerald-100/80 text-emerald-700 text-xs font-bold border border-emerald-200 shadow-sm inline-flex items-center gap-1 animate-bounce">
-                خصم 20% 🚀
-              </span>
-            </div>
+            <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-100/80 px-3 py-1.5 text-xs font-bold text-emerald-700">
+              {isEnglish ? "Save 20%" : "خصم 20%"}
+            </span>
           </div>
         </div>
-
-        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {plans.map((plan, i) => (
-            <div data-csp-motion="reveal"
-              key={i}
-              className={`relative flex flex-col rounded-3xl bg-white p-8 xl:p-10 ${
-                plan.popular 
-                  ? "border-2 border-[#4F46E5] shadow-2xl shadow-indigo-500/10 scale-105 z-10" 
-                  : "border border-slate-200 shadow-sm mt-4 mb-4"
-              }`}
-            >
+        <div className="mx-auto grid max-w-6xl gap-8 md:grid-cols-3">
+          {plans.map((plan) => (
+            <article key={plan.id} data-csp-motion="reveal" className={"relative flex flex-col rounded-3xl bg-white p-8 xl:p-10 " + (plan.popular ? "z-10 scale-105 border-2 border-[#4F46E5] shadow-2xl shadow-indigo-500/10" : "my-4 border border-slate-200 shadow-sm")}>
               {plan.popular && (
-                <div className="absolute -top-4 left-0 right-0 mx-auto w-32 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-3 py-1 text-center text-xs font-bold text-white flex items-center justify-center gap-1">
-                  <Star className="w-3 h-3 fill-white" /> الأكثر طلباً
+                <div className="absolute -top-4 left-0 right-0 mx-auto flex w-36 items-center justify-center gap-1 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-3 py-1 text-center text-xs font-bold text-white">
+                  <Star className="h-3 w-3 fill-white" />{isEnglish ? "Most popular" : "الأكثر طلبًا"}
                 </div>
               )}
-              
               <div className="mb-6">
                 <h3 className="text-xl font-bold text-slate-900">{plan.name}</h3>
-                <p className="text-sm text-slate-500 mt-2">{plan.description}</p>
+                <p className="mt-2 text-sm text-slate-500">{plan.description}</p>
               </div>
-              
               <div className="mb-8 flex items-baseline gap-1">
-                <span className="text-4xl font-black text-slate-900">
-                  {isAnnual ? plan.priceYearly : plan.priceMonthly}
-                </span>
-                <span className="text-sm font-semibold text-slate-500">ج.م / {isAnnual ? "سنوياً" : "شهرياً"}</span>
+                <span className="text-4xl font-black text-slate-900">{formatPrice(isAnnual ? plan.yearly : plan.monthly)}</span>
+                <span className="text-sm font-semibold text-slate-500">{isEnglish ? "EGP" : "ج.م"} / {isAnnual ? (isEnglish ? "year" : "سنويًا") : (isEnglish ? "month" : "شهريًا")}</span>
               </div>
-              
-              <ul className="flex-1 space-y-4 mb-8">
-                {plan.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-3">
-                    <Check className={`w-5 h-5 shrink-0 ${plan.popular ? "text-[#4F46E5]" : "text-slate-400"}`} />
+              <ul className="mb-8 flex-1 space-y-4">
+                {plan.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-3">
+                    <Check className={"h-5 w-5 shrink-0 " + (plan.popular ? "text-[#4F46E5]" : "text-slate-400")} />
                     <span className="text-sm font-medium text-slate-700">{feature}</span>
                   </li>
                 ))}
               </ul>
-              
-              <a
-                href="/rgstr.php"
-                className={`w-full py-3 rounded-full text-center font-bold transition-all ${
-                  plan.popular
-                    ? "bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white shadow-lg hover:shadow-xl hover:scale-105"
-                    : "bg-slate-100 text-slate-900 hover:bg-slate-200"
-                }`}
-              >
-                {plan.cta}
-              </a>
-            </div>
+              <Link href="/rgstr.php" className={"w-full rounded-full py-3 text-center font-bold transition-all " + (plan.popular ? "bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white shadow-lg hover:scale-[1.02] hover:shadow-xl" : "bg-slate-100 text-slate-900 hover:bg-slate-200")}>
+                {isEnglish ? (plan.id === "basic" ? "Start for free" : "Choose " + plan.name) : (plan.id === "basic" ? "ابدأ مجانًا" : "اختر باقة " + plan.name)}
+              </Link>
+            </article>
           ))}
         </div>
       </div>
