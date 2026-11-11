@@ -158,7 +158,7 @@ export default function Pricing({ cmsContent }: { cmsContent?: any }) {
                 ))}
               </ul>
               
-              <Link
+              <a
                 href="/rgstr.php"
                 className={`w-full py-3 rounded-full text-center font-bold transition-all ${
                   plan.popular
@@ -167,7 +167,7 @@ export default function Pricing({ cmsContent }: { cmsContent?: any }) {
                 }`}
               >
                 {plan.cta}
-              </Link>
+              </a>
             </div>
           ))}
         </div>
