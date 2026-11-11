@@ -48,6 +48,14 @@ interface CalendarEvent {
   targetExercises?: string[];
   roomId?: string;
   roomName?: string;
+  isGroupSession?: boolean;
+  groupParticipantIds?: string[];
+  groupParticipantNames?: string[];
+  recurrenceId?: string | null;
+  recurrenceIndex?: number | null;
+  recurrenceTotal?: number | null;
+  recurrenceMode?: "none" | "weekly" | "biweekly";
+  recurrenceCount?: number;
 }
 
 interface SessionOutcome {
@@ -60,18 +68,19 @@ interface SessionOutcome {
   notes: string;
 }
 
-type VisitType = "جلسة علاج" | "كشف أول" | "متابعة" | "تقييم";
+type VisitType = "جلسة علاج" | "كشف أول" | "متابعة" | "تقييم" | "جلسة جماعية";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 
 const PATIENTS: any[] = [];
-const VISIT_TYPES: VisitType[] = ["جلسة علاج", "كشف أول", "متابعة", "تقييم"];
+const VISIT_TYPES: VisitType[] = ["جلسة علاج", "كشف أول", "متابعة", "تقييم", "جلسة جماعية"];
 
 const VISIT_COLOR_CLASSES: Record<VisitType, string> = {
   "جلسة علاج": "bg-[#4F46BA]",
   "كشف أول": "bg-violet-600",
   "متابعة": "bg-cyan-600",
   "تقييم": "bg-amber-600",
+  "جلسة جماعية": "bg-fuchsia-600",
 };
 
 const STATUS_STYLES: Record<string, string> = {
@@ -123,6 +132,10 @@ function NewAppointmentDialog({
   const [patientId, setPatientId] = useState("");
   const [doctor, setDoctor] = useState("");
   const [visitType, setVisitType] = useState<VisitType>("جلسة علاج");
+  const [isGroupSession, setIsGroupSession] = useState(false);
+  const [groupPatientIds, setGroupPatientIds] = useState<string[]>([]);
+  const [recurrenceMode, setRecurrenceMode] = useState<"none" | "weekly" | "biweekly">("none");
+  const [recurrenceCount, setRecurrenceCount] = useState(4);
   const [duration, setDuration] = useState(45);
   const [startTime, setStartTime] = useState("09:00");
   const [roomId, setRoomId] = useState("");
@@ -146,7 +159,13 @@ function NewAppointmentDialog({
   const [plansLoading, setPlansLoading] = useState(false);
 
   useEffect(() => {
-    if (open && patientsList.length > 0) setPatientId(patientsList[0].id);
+    if (open && patientsList.length > 0) {
+      setPatientId(patientsList[0].id);
+      setGroupPatientIds([patientsList[0].id]);
+      setIsGroupSession(false);
+      setVisitType("جلسة علاج");
+      setRecurrenceMode("none");
+    }
   }, [open, patientsList]);
 
   useEffect(() => {
@@ -213,6 +232,15 @@ function NewAppointmentDialog({
 
   const handleSave = () => {
     if (!selectedDate || patientsList.length === 0 || !patientId || !doctor) return;
+    const selectedPatientIds = isGroupSession ? groupPatientIds : [patientId];
+    if (isGroupSession && selectedPatientIds.length < 2) {
+      alert(isRtl ? "اختر مريضين على الأقل للجلسة الجماعية." : "Select at least two patients for a group session.");
+      return;
+    }
+    if (recurrenceMode !== "none" && (!Number.isInteger(recurrenceCount) || recurrenceCount < 2 || recurrenceCount > 12)) {
+      alert(isRtl ? "عدد التكرارات يجب أن يكون بين 2 و12." : "Choose between 2 and 12 occurrences.");
+      return;
+    }
     const [hours, minutes] = startTime.split(":").map(Number);
     if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours < 0 || hours > 23 || minutes < 0 || minutes > 59 || !Number.isFinite(duration) || duration < 15 || duration > 240) {
       alert(isRtl ? "يرجى إدخال وقت ومدة صالحين." : "Enter a valid start time and duration.");
@@ -225,16 +253,24 @@ function NewAppointmentDialog({
     const pName = isRtl ? patient.nameAr : (patient.nameEn || patient.nameAr);
     onSave({
       id: "E-" + Date.now(),
-      title: pName + " — " + visitType,
+      title: (isGroupSession ? (isRtl ? "جلسة جماعية (" + selectedPatientIds.length + ")" : "Group session (" + selectedPatientIds.length + ")") : pName) + " — " + visitType,
       start,
       end,
-      patientName: pName,
+      patientName: isGroupSession ? (isRtl ? "جلسة جماعية (" + selectedPatientIds.length + ")" : "Group session (" + selectedPatientIds.length + ")") : pName,
       patientId: patient.id,
       doctor,
       visitType,
       status: "مؤكد",
       roomId: roomId || undefined,
       roomName: roomsList.find((room) => room.id === roomId)?.name,
+      isGroupSession,
+      groupParticipantIds: selectedPatientIds,
+      groupParticipantNames: selectedPatientIds.map((id) => {
+        const member = patientsList.find((item) => item.id === id);
+        return member ? (isRtl ? member.nameAr : (member.nameEn || member.nameAr)) : id;
+      }),
+      recurrenceMode,
+      recurrenceCount: recurrenceMode === "none" ? 1 : recurrenceCount,
       notes,
       treatmentPlanId: treatmentPlanId || undefined,
       treatmentPlanTitle: treatmentPlans.find((plan) => plan.id === treatmentPlanId)?.goals || undefined,
@@ -264,11 +300,48 @@ function NewAppointmentDialog({
             <SelectMenu
               items={patientsList.map((p) => ({ value: p.id, label: (isRtl ? p.nameAr : (p.nameEn || p.nameAr)) + " (" + p.id + ")" }))}
               value={patientId}
-              onValueChange={setPatientId}
+              onValueChange={(value) => {
+                setPatientId(value);
+                if (isGroupSession) setGroupPatientIds((current) => current.includes(value) ? current : [value, ...current]);
+              }}
               placeholder={isRtl ? "اختر مريض..." : "Select patient..."}
               searchPlaceholder={isRtl ? "بحث..." : "Search"}
               nothingFound={isRtl ? "لا يوجد نتائج" : "Nothing found."}
             />
+          </div>
+
+          <div className="rounded-lg border p-3 space-y-2">
+            <label className="flex items-center gap-2 text-sm font-semibold cursor-pointer">
+              <input type="checkbox" checked={isGroupSession} onChange={(e) => {
+                const enabled = e.target.checked;
+                setIsGroupSession(enabled);
+                setVisitType(enabled ? "جلسة جماعية" : "جلسة علاج");
+                setGroupPatientIds(enabled ? [patientId].filter(Boolean) : [patientId].filter(Boolean));
+                if (enabled) {
+                  setTreatmentPlanId("");
+                  setSessionIntervention("");
+                  setSessionObjectives("");
+                  setTargetExercisesText("");
+                }
+              }} />
+              {isRtl ? "حجز جلسة جماعية لعدة مرضى" : "Book a group session for multiple patients"}
+            </label>
+            {isGroupSession && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-40 overflow-y-auto">
+                {patientsList.map((member) => (
+                  <label key={member.id} className="flex items-center gap-2 rounded-md bg-muted/40 px-2 py-1.5 text-sm">
+                    <input type="checkbox" checked={groupPatientIds.includes(member.id)} onChange={(e) => {
+                      const next = e.target.checked ? [...groupPatientIds, member.id] : groupPatientIds.filter((id) => id !== member.id);
+                      if (next.length === 0) return;
+                      setGroupPatientIds(next);
+                      if (!next.includes(patientId)) setPatientId(next[0]);
+                    }} />
+                    <span>{isRtl ? member.nameAr : (member.nameEn || member.nameAr)}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+            {isGroupSession && <p className="text-xs text-muted-foreground">{isRtl ? "سيتم إنشاء فاتورة مستقلة لكل مريض. لا تُشارك الخطط أو التفاصيل الطبية بين المرضى." : "Each patient receives a separate invoice. Individual treatment plans and clinical notes are not shared."}</p>}
           </div>
 
           <div className="space-y-1.5">
@@ -325,9 +398,10 @@ function NewAppointmentDialog({
               <select
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 value={visitType}
+                disabled={isGroupSession}
                 onChange={(e) => setVisitType(e.target.value as VisitType)}
               >
-                {VISIT_TYPES.map((t) => <option key={t} value={t}>{tVisitType(t)}</option>)}
+                {VISIT_TYPES.filter((type) => type !== "جلسة جماعية").map((t) => <option key={t} value={t}>{tVisitType(t)}</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
@@ -339,6 +413,19 @@ function NewAppointmentDialog({
           </div>
 
           <div className="rounded-lg border p-3 space-y-3">
+            <Label className="font-bold">{isRtl ? "تكرار الموعد" : "Appointment recurrence"}</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={recurrenceMode} onChange={(e) => setRecurrenceMode(e.target.value as "none" | "weekly" | "biweekly")}>
+                <option value="none">{isRtl ? "بدون تكرار" : "Does not repeat"}</option>
+                <option value="weekly">{isRtl ? "أسبوعيًا" : "Weekly"}</option>
+                <option value="biweekly">{isRtl ? "كل أسبوعين" : "Every 2 weeks"}</option>
+              </select>
+              {recurrenceMode !== "none" && <Input type="number" min={2} max={12} value={recurrenceCount} onChange={(e) => setRecurrenceCount(Number(e.target.value))} />}
+            </div>
+            {recurrenceMode !== "none" && <p className="text-xs text-muted-foreground">{isRtl ? "عدد المواعيد الإجمالي، من 2 إلى 12، شاملًا الموعد الأول." : "Total occurrences, 2–12, including the first appointment."}</p>}
+          </div>
+
+          {!isGroupSession && <div className="rounded-lg border p-3 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <Label className="font-bold">{isRtl ? "ربط الخطة العلاجية بالجلسة" : "Link treatment plan to this session"}</Label>
               {plansLoading && <span className="text-xs text-muted-foreground">{isRtl ? "جارٍ التحميل..." : "Loading..."}</span>}
@@ -384,7 +471,7 @@ function NewAppointmentDialog({
               <Textarea rows={3} value={targetExercisesText} onChange={(e) => setTargetExercisesText(e.target.value)}
                 placeholder={isRtl ? "اكتب التمارين التي سيؤديها المريض" : "List the exercises prescribed for this session"} />
             </div>
-          </div>
+          </div>}
 
           <div className={"flex items-center gap-2 p-3 rounded-lg bg-muted/50 " + (isRtl ? "" : "flex-row-reverse")}>
             <div className={`w-4 h-4 rounded-full flex-shrink-0 ${VISIT_COLOR_CLASSES[visitType]}`} />
