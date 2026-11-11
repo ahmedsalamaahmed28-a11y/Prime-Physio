@@ -6,7 +6,8 @@ import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
   Bell, Building, HelpCircle, CreditCard, Download, Globe, Search, Wifi,
-  LayoutDashboard, RefreshCw, Sparkles, User, Menu as MenuIcon, X
+  LayoutDashboard, RefreshCw, Sparkles, User, Menu as MenuIcon, X,
+  Copy, QrCode, Pencil, Check, Printer, Users, CalendarDays, Activity
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -27,6 +28,49 @@ export default function CenterManagementPage() {
   const [centers, setCenters] = useState<Array<{id:string;name:string;slug:string|null;loginUrl:string|null;status:string;logoUrl:string|null;planName:string|null;subscriptionStatus:string}>>([]);
   const [centersLoading, setCentersLoading] = useState(true);
   const [centersError, setCentersError] = useState("");
+  const [qrCenter, setQrCenter] = useState<any>(null);
+  const [editCenter, setEditCenter] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ name: "", slug: "", phone: "", address: "" });
+  const [editLoading, setEditLoading] = useState(false);
+  const [actionMessage, setActionMessage] = useState("");
+  const publicUrl = (slug: string) => `${window.location.origin}/clinic/${slug}`;
+  const copyCenterUrl = async (slug: string) => {
+    try {
+      await navigator.clipboard.writeText(publicUrl(slug));
+      setActionMessage(isRtl ? "تم نسخ رابط المركز العام" : "Public center link copied");
+      window.setTimeout(() => setActionMessage(""), 2500);
+    } catch {
+      setActionMessage(isRtl ? "تعذر النسخ تلقائيًا. انسخ الرابط يدويًا." : "Copy failed. Please copy the link manually.");
+    }
+  };
+  const downloadCenterExport = (centerId: string) => {
+    window.location.href = `/api/center-management/export?clinicId=${encodeURIComponent(centerId)}`;
+  };
+  const openEdit = (center: any) => {
+    setEditCenter(center);
+    setEditForm({ name: center.name || "", slug: center.slug || "", phone: center.phone || "", address: center.address || "" });
+  };
+  const saveCenterEdit = async () => {
+    if (!editCenter) return;
+    setEditLoading(true);
+    setActionMessage("");
+    try {
+      const response = await fetch("/api/center-management/centers", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clinicId: editCenter.id, ...editForm }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "تعذر حفظ التعديلات");
+      setCenters((items) => items.map((item) => item.id === editCenter.id ? { ...item, ...data.center } : item));
+      setEditCenter(null);
+      setActionMessage(isRtl ? "تم حفظ بيانات المركز" : "Center details saved");
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : "تعذر حفظ التعديلات");
+    } finally {
+      setEditLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (isLoading || isEnriching || !user?.email) return;
@@ -191,28 +235,87 @@ export default function CenterManagementPage() {
                   <button onClick={startSetup} className="mt-[16px] inline-flex h-[46px] items-center justify-center rounded-full bg-[#5B50C7] px-[27px] text-[14px] font-extrabold text-white shadow-[0_5px_14px_rgba(91,80,199,.2)] transition hover:bg-[#4338A8]">{isRtl ? "اختر باقة وأنشئ مركزك" : "Choose a plan and create a center"}</button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {centers.map((center) => (
-                    <article key={center.id} className="rounded-[18px] border border-[#E8EBEF] bg-white p-5 shadow-[0_2px_10px_rgba(20,45,70,.03)]">
-                      <div className="flex items-center gap-3">
-                        {center.logoUrl ? <img src={center.logoUrl} alt="" className="h-12 w-12 rounded-xl border border-[#E8EBEF] object-contain" /> : <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#F1EFFF] text-[#5B50C7]"><Building className="h-6 w-6" /></div>}
-                        <div className="min-w-0 flex-1">
-                          <h3 className="truncate text-[16px] font-extrabold text-[#263442]">{center.name}</h3>
-                          <p className="mt-1 truncate text-[12px] text-[#8A929C]">{center.slug ? `primephysio.vercel.app/${center.slug}` : "URL not assigned"}</p>
+                <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+                  {centers.map((center) => {
+                    const shareUrl = center.slug ? `/clinic/${center.slug}` : "";
+                    const setupSteps = center.setupProgress || { completed: 0, total: 7 };
+                    return (
+                      <article key={center.id} className="overflow-hidden rounded-[20px] border border-[#E5EAF2] bg-white shadow-[0_8px_28px_rgba(25,48,75,.06)]">
+                        <div className="p-5 sm:p-6">
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#E8EBEF] bg-[#F5F6FF]">
+                              {center.logoUrl ? <img src={center.logoUrl} alt="" className="h-full w-full object-contain" /> : <img src="/logo.png" alt="Prime Physio" className="h-9 w-9 object-contain" />}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h3 className="text-[17px] font-extrabold leading-7 text-[#24364A]">{center.name}</h3>
+                              <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[#66758A]">
+                                <span>{isRtl ? `التجهيز ${setupSteps.completed}/${setupSteps.total}` : `Setup ${setupSteps.completed}/${setupSteps.total}`}</span>
+                                <div className="h-1.5 w-24 overflow-hidden rounded-full bg-[#E9EDF5]"><div className="h-full rounded-full bg-[#5B50C7]" style={{ width: `${Math.round((setupSteps.completed / setupSteps.total) * 100)}%` }} /></div>
+                                <span className="rounded-full bg-[#F1EFFF] px-2 py-1 text-[#5B50C7]">{center.planName || (isRtl ? "الخطة الأساسية" : "Basic plan")}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="mt-5 flex items-center gap-2 rounded-xl border border-[#E7EAF1] bg-[#F8FAFD] p-2.5">
+                            <span className="min-w-0 flex-1 truncate text-left text-[12px] font-medium text-[#52647A]" dir="ltr">{center.slug ? `${typeof window !== "undefined" ? window.location.host : "primephysio.vercel.app"}${shareUrl}` : "—"}</span>
+                            <button type="button" disabled={!center.slug} onClick={() => center.slug && copyCenterUrl(center.slug)} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-[#EDF0FF] px-3 text-xs font-bold text-[#5147B8] hover:bg-[#E2E6FF] disabled:opacity-40"><Copy className="h-4 w-4" />{isRtl ? "نسخ" : "Copy"}</button>
+                          </div>
+
+                          <div className="mt-4 grid grid-cols-3 divide-x divide-x-reverse divide-[#EDF0F4] rounded-xl border border-[#EDF0F4] bg-white py-3 text-center">
+                            <div className="px-2"><CalendarDays className="mx-auto mb-1 h-4 w-4 text-[#5B50C7]" /><strong className="block text-xl font-extrabold tabular-nums text-[#24364A]">{center.todayAppointments ?? 0}</strong><span className="text-[11px] text-[#8792A0]">{isRtl ? "جلسات اليوم" : "Today"}</span></div>
+                            <div className="border-x border-[#EDF0F4] px-2"><Activity className="mx-auto mb-1 h-4 w-4 text-[#5B50C7]" /><strong className="block text-xl font-extrabold tabular-nums text-[#24364A]">{center.monthAppointments ?? 0}</strong><span className="text-[11px] text-[#8792A0]">{isRtl ? "هذا الشهر" : "This month"}</span></div>
+                            <div className="px-2"><Users className="mx-auto mb-1 h-4 w-4 text-[#5B50C7]" /><strong className="block text-xl font-extrabold tabular-nums text-[#24364A]">{center.activeUsers ?? 0}</strong><span className="text-[11px] text-[#8792A0]">{isRtl ? "مستخدمون نشطون" : "Active users"}</span></div>
+                          </div>
+
+                          <div className="mt-4 flex gap-2">
+                            <Link href={`/center-management/open/${center.id}`} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#5147B8] text-sm font-extrabold text-white shadow-sm transition hover:bg-[#40369F]"><Building className="h-4 w-4" />{isRtl ? "فتح" : "Open"}</Link>
+                            <button type="button" disabled={!center.slug} onClick={() => setQrCenter(center)} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[#DCE2F0] bg-white text-sm font-bold text-[#4E5D72] hover:bg-[#F7F8FC] disabled:opacity-40"><QrCode className="h-4 w-4" />{isRtl ? "ملصق QR" : "QR sticker"}</button>
+                          </div>
+                          <div className="mt-2 flex gap-2">
+                            <button type="button" onClick={() => openEdit(center)} className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[#E3E8F0] text-sm font-bold text-[#536276] hover:bg-slate-50"><Pencil className="h-4 w-4" />{isRtl ? "تعديل" : "Edit"}</button>
+                            <button type="button" onClick={() => downloadCenterExport(center.id)} className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[#E3E8F0] text-sm font-bold text-[#536276] hover:bg-slate-50"><Download className="h-4 w-4" />{isRtl ? "التصدير الكامل" : "Full export"}</button>
+                          </div>
+                          <div className="mt-4 flex items-start gap-2 border-t border-[#F0F2F6] pt-3 text-[11px] leading-6 text-[#8994A2]"><HelpCircle className="mt-1 h-4 w-4 shrink-0 text-[#5B50C7]" /><span>{isRtl ? "انسخ الرابط لإرساله على واتساب، أو اطبع ملصق QR لمكتب الاستقبال." : "Copy the link to share on WhatsApp, or print the QR sticker for reception."}</span></div>
+                          <div className="mt-2 rounded-lg bg-[#F4F5F7] px-3 py-2 text-[11px] text-[#7B8490]">{isRtl ? "٦ · اضغط «فتح» لتدخل مركزك" : "6 · Press Open to enter your center"}</div>
+                          <div className="mt-3 flex items-center justify-between border-t border-[#F0F2F6] pt-3 text-xs">
+                            <span className="text-[#7B8490]">{isRtl ? "الاشتراك" : "Subscription"}: <strong className="text-[#303846]">{center.subscriptionStatus === "active" ? (isRtl ? "نشط" : "Active") : (isRtl ? "قيد التفعيل" : "Pending")}</strong></span>
+                            <span className="text-[#7B8490]">{center.status || ""}</span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="mt-4 flex items-center justify-between border-t border-[#F0F2F4] pt-3 text-[12px]">
-                        <span className="text-[#7B8490]">{isRtl ? "الباقة" : "Plan"}: <strong className="text-[#303846]">{center.planName || (isRtl ? "لم تُفعّل بعد" : "Not activated")}</strong></span>
-                        <span className={center.subscriptionStatus === "active" ? "font-bold text-emerald-700" : "font-bold text-amber-700"}>{center.subscriptionStatus === "active" ? (isRtl ? "نشط" : "Active") : (isRtl ? "قيد التفعيل" : "Pending")}</span>
-                      </div>
-                      {center.loginUrl && <Link href={center.loginUrl} className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-full bg-[#5B50C7] text-[13px] font-bold text-white transition hover:bg-[#4338A8]">{isRtl ? "فتح المركز" : "Open center"}</Link>}
-                    </article>
-                  ))}
+                      </article>
+                    );
+                  })}
                 </div>
               )}
             </section>
           </div>
 
+          {actionMessage && <div role="status" className="fixed bottom-5 left-5 z-[70] rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-xl">{actionMessage}</div>}
+          {qrCenter && (
+            <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4" role="dialog" aria-modal="true" aria-label={isRtl ? "ملصق QR للمركز" : "Center QR sticker"}>
+              <div className="w-full max-w-sm rounded-2xl bg-white p-6 text-center shadow-2xl" dir={isRtl ? "rtl" : "ltr"}>
+                <div className="flex items-center justify-between"><h3 className="text-lg font-extrabold text-[#24364A]">{isRtl ? "ملصق QR للمركز" : "Center QR sticker"}</h3><button onClick={() => setQrCenter(null)} aria-label="Close" className="rounded-lg p-2 hover:bg-slate-100"><X className="h-5 w-5" /></button></div>
+                <p className="mt-1 text-sm text-slate-500">{qrCenter.name}</p>
+                <img className="mx-auto my-5 h-56 w-56" alt="Center public QR code" src={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=20&data=${encodeURIComponent(publicUrl(qrCenter.slug))}`} />
+                <p className="break-all text-xs text-slate-500" dir="ltr">{publicUrl(qrCenter.slug)}</p>
+                <button onClick={() => window.print()} className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#5147B8] text-sm font-bold text-white"><Printer className="h-4 w-4" />{isRtl ? "طباعة الملصق" : "Print sticker"}</button>
+              </div>
+            </div>
+          )}
+          {editCenter && (
+            <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 p-4" role="dialog" aria-modal="true" aria-label={isRtl ? "تعديل بيانات المركز" : "Edit center"}>
+              <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl" dir={isRtl ? "rtl" : "ltr"}>
+                <div className="flex items-center justify-between"><h3 className="text-lg font-extrabold text-[#24364A]">{isRtl ? "تعديل بيانات المركز" : "Edit center details"}</h3><button onClick={() => setEditCenter(null)} aria-label="Close" className="rounded-lg p-2 hover:bg-slate-100"><X className="h-5 w-5" /></button></div>
+                <div className="mt-5 space-y-3">
+                  <label className="block text-sm font-semibold text-slate-600">{isRtl ? "اسم المركز" : "Center name"}<input value={editForm.name} onChange={e=>setEditForm(v=>({...v,name:e.target.value}))} className="mt-1 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-[#5B50C7]" /></label>
+                  <label className="block text-sm font-semibold text-slate-600">{isRtl ? "الرابط المختصر" : "URL slug"}<input value={editForm.slug} onChange={e=>setEditForm(v=>({...v,slug:e.target.value.toLowerCase().replace(/[^a-z0-9-]/g,"-")}))} dir="ltr" className="mt-1 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-[#5B50C7]" /><span className="mt-1 block text-xs text-slate-400">{isRtl ? "تغيير الرابط قد يؤثر على الروابط القديمة." : "Changing this affects previously shared links."}</span></label>
+                  <label className="block text-sm font-semibold text-slate-600">{isRtl ? "الهاتف" : "Phone"}<input value={editForm.phone} onChange={e=>setEditForm(v=>({...v,phone:e.target.value}))} dir="ltr" className="mt-1 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-[#5B50C7]" /></label>
+                  <label className="block text-sm font-semibold text-slate-600">{isRtl ? "العنوان" : "Address"}<input value={editForm.address} onChange={e=>setEditForm(v=>({...v,address:e.target.value}))} className="mt-1 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-[#5B50C7]" /></label>
+                </div>
+                <button disabled={editLoading} onClick={saveCenterEdit} className="mt-5 h-11 w-full rounded-xl bg-[#5147B8] text-sm font-extrabold text-white disabled:opacity-60">{editLoading ? (isRtl ? "جارٍ الحفظ..." : "Saving...") : (isRtl ? "حفظ التعديلات" : "Save changes")}</button>
+              </div>
+            </div>
+          )}
           <footer className="mt-auto flex min-h-[64px] flex-wrap items-center justify-between gap-3 border-t border-[#E8EBEF] bg-white px-[32px] py-[15px] text-[12px] text-[#9AA1AA] max-sm:px-4">
             <div className="flex flex-wrap items-center gap-[7px]"><Link href="/support" className="hover:text-[#5B50C7]">{isRtl ? "مركز المساعدة" : "Help Center"}</Link><span>·</span><Link href="/terms" className="hover:text-[#5B50C7]">{isRtl ? "الشروط" : "Terms"}</Link><span>·</span><Link href="/privacy" className="hover:text-[#5B50C7]">{isRtl ? "الخصوصية" : "Privacy"}</Link></div>
             <span>© Prime Physio 2026</span>
