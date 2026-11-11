@@ -126,6 +126,12 @@ export async function POST(request: NextRequest) {
     }
     const start = new Date(body.startTime);
     const end = new Date(body.endTime);
+    if (body.isGroupSession !== undefined && typeof body.isGroupSession !== "boolean") {
+      return NextResponse.json({ error: "نوع الجلسة الجماعية غير صالح" }, { status: 400 });
+    }
+    if (body.recurrenceMode !== undefined && !["none", "weekly", "biweekly"].includes(body.recurrenceMode)) {
+      return NextResponse.json({ error: "نمط تكرار الموعد غير صالح" }, { status: 400 });
+    }
     const recurrenceMode = body.recurrenceMode === "weekly" || body.recurrenceMode === "biweekly" ? body.recurrenceMode : "none";
     const recurrenceCount = recurrenceMode === "none" ? 1 : Number(body.recurrenceCount);
     if (recurrenceMode !== "none" && (!Number.isInteger(recurrenceCount) || recurrenceCount < 2 || recurrenceCount > 12)) {
