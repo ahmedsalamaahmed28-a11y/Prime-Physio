@@ -6,9 +6,11 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/login", destination: "/login.php", permanent: true },
-      { source: "/manage", destination: "/login.php", permanent: true },
       { source: "/signup", destination: "/rgstr.php", permanent: true },
     ];
+  },
+  async rewrites() {
+    return [{ source: "/login.php", destination: "/manage" }];
   },
   allowedDevOrigins: [
     "localhost:3000",
