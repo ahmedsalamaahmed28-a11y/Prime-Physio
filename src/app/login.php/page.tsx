@@ -131,8 +131,10 @@ function LoginContent() {
   const handleForgotResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setForgotError("");
-    if (forgotNewPassword.length < 12) {
-      setForgotError(isRtl ? "كلمة المرور يجب أن تكون 12 حرفًا على الأقل وتحتوي على حرف كبير وصغير ورقم ورمز" : "Password must be at least 12 characters with upper/lowercase, a number and a symbol");
+    const commonPasswords = new Set(["12345678", "123456789", "1234567890", "123456", "password", "password1", "password123", "qwerty123", "qwertyui", "abcdefgh", "abc12345", "admin123", "welcome1", "iloveyou", "11111111", "00000000", "87654321", "111111111"]);
+    const passwordBytes = new TextEncoder().encode(forgotNewPassword).length;
+    if (forgotNewPassword.length < 8 || forgotNewPassword.length > 128 || passwordBytes > 72 || commonPasswords.has(forgotNewPassword.trim().toLowerCase())) {
+      setForgotError(isRtl ? "كلمة المرور يجب أن تكون من 8 إلى 128 حرفًا، وألا تكون شائعة أو سهلة التخمين." : "Password must be 8–128 characters, must not be common or easily guessed, and must fit within 72 UTF-8 bytes.");
       return;
     }
     if (forgotNewPassword !== forgotConfirmPassword) {
