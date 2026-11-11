@@ -133,7 +133,7 @@ export default function CreateCenterPage() {
           shortName: shortName.trim(),
           fullName: fullName.trim(),
           slug: normalizeSlug(slug),
-          phone: `+${selectedCountry.dial}${phone.trim().replace(/\\D/g, "").replace(/^0+/, "")}`,
+          phone: `+${selectedCountry.dial}${phone.trim().replace(/[^0-9]/g, "").replace(/^0+/, "")}`,
           address: address.trim(),
           logoUrl: uploadedLogo?.url || null,
           logoPath: uploadedLogo?.path || null,
