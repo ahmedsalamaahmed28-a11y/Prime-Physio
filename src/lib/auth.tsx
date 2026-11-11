@@ -494,7 +494,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setAppValue("current_user", null).catch(() => {});
     await supabase.auth.signOut();
     signOut({ callbackUrl: "/login.php/" }).catch(() => {
-      window.location.href = "/manage";
+      window.location.href = "/login.php/";
     });
   };
 
