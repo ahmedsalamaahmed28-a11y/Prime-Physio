@@ -231,7 +231,7 @@ function ManageContent() {
         await setAppValue("pending_role", "doctor");
         // A clinic-specific login must never trigger new-clinic auto-provisioning.
         await setAppValue("pending_google_signup", "");
-        const callbackUrl = `/manage?clinic_slug=${encodeURIComponent(clinicSlug)}`;
+        const callbackUrl = `/login.php?clinic_slug=${encodeURIComponent(clinicSlug)}`;
         const result = await signIn("google", { callbackUrl, redirect: false });
         if (result?.error) {
           sessionStorage.removeItem("preferred_clinic_id");
