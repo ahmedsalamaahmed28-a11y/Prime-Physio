@@ -37,12 +37,17 @@ export async function POST(req: NextRequest) {
     // Do not turn an existing clinic employee into an administrator during signup.
     const { data: existingStaff, error: staffLookupError } = await admin
       .from("staff")
-      .select("id")
+      .select("id, clinic_id, role, status")
       .eq("email", email)
       .maybeSingle();
     if (staffLookupError) throw staffLookupError;
     if (existingStaff) {
-      return NextResponse.json({ error: "تعذر إنشاء الحساب أو رمز التحقق غير صالح" }, { status: 400 });
+      const staffRole = String(existingStaff.role || "").trim().toLowerCase();
+      const staffStatus = String(existingStaff.status || "").trim().toLowerCase();
+      const isUnassignedOwnerPlaceholder = !existingStaff.clinic_id &&
+        ["admin", "clinic_admin", "مدير العيادة", "مدير العياده"].includes(staffRole) &&
+        !["محذوف", "deleted", "inactive", "غير نشط"].includes(staffStatus);
+      if (!isUnassignedOwnerPlaceholder) return NextResponse.json({ error: "هذا البريد مرتبط بعضوية مركز قائمة ولا يمكن استخدامه لإنشاء حساب مالك جديد." }, { status: 409 });
     }
 
     const codeValid = await checkVerificationCode(admin, email, "signup", code);
@@ -86,19 +91,17 @@ export async function POST(req: NextRequest) {
     }
 
     // Keep the owner's personal contact number outside the clinic-wide staff table.
-    const { error: staffError } = await admin.from("staff").insert({
-      email,
-      name: accountName,
-      role: "admin",
-      status: "نشط",
-      phone: null,
-      clinic_id: null,
-    });
-
-    if (staffError) {
-      console.error("[VerifyEmail] Staff insert failed:", staffError);
-      await admin.from("auth_accounts").delete().eq("id", authRecord.id);
-      return NextResponse.json({ error: "فشل إكمال إنشاء الحساب. يمكنك طلب رمز تحقق جديد والمحاولة مرة أخرى." }, { status: 500 });
+    let createdStaffRecord = false;
+    if (!existingStaff) {
+      const { error: staffError } = await admin.from("staff").insert({
+        email, name: accountName, role: "admin", status: "نشط", phone: null, clinic_id: null,
+      });
+      if (staffError) {
+        console.error("[VerifyEmail] Staff insert failed:", staffError);
+        await admin.from("auth_accounts").delete().eq("id", authRecord.id);
+        return NextResponse.json({ error: "فشل إكمال إنشاء الحساب. يمكنك طلب رمز تحقق جديد والمحاولة مرة أخرى." }, { status: 500 });
+      }
+      createdStaffRecord = true;
     }
 
     const { error: contactError } = await admin.rpc("store_clinic_owner_contact", {
@@ -108,7 +111,7 @@ export async function POST(req: NextRequest) {
 
     if (contactError) {
       console.error("[VerifyEmail] Owner contact storage failed:", contactError);
-      await admin.from("staff").delete().eq("email", email).is("clinic_id", null);
+      if (createdStaffRecord) await admin.from("staff").delete().eq("email", email).is("clinic_id", null);
       await admin.from("auth_accounts").delete().eq("id", authRecord.id);
       return NextResponse.json({ error: "فشل حفظ بيانات التواصل بشكل آمن. يمكنك طلب رمز تحقق جديد والمحاولة مرة أخرى." }, { status: 500 });
     }
@@ -130,7 +133,7 @@ export async function POST(req: NextRequest) {
 
     if (legalError) {
       console.error("[VerifyEmail] Legal acceptance record failed:", legalError);
-      await admin.from("staff").delete().eq("email", email).is("clinic_id", null);
+      if (createdStaffRecord) await admin.from("staff").delete().eq("email", email).is("clinic_id", null);
       await admin.from("auth_accounts").delete().eq("id", authRecord.id);
       return NextResponse.json({ error: "تعذر تسجيل موافقتك على الشروط. لم يتم إكمال إنشاء الحساب؛ حاول مرة أخرى." }, { status: 500 });
     }
