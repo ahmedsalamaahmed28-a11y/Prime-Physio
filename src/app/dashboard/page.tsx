@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 export default function HomePage() {
   const { language } = useLanguage();
@@ -31,6 +32,13 @@ export default function HomePage() {
     }
 
     if (clinicId === null) {
+      // The membership lookup may still be completing after the auth session resolves.
+      // Keep the full-page skeleton visible until enrichment has definitively finished.
+      if (isEnriching) {
+        setLoadError(null);
+        setIsLoading(true);
+        return;
+      }
       setLoadError("هذا الحساب غير مرتبط بعيادة حتى الآن. أكمل إعداد العيادة أولاً.");
       setIsLoading(false);
       return;
@@ -117,20 +125,9 @@ export default function HomePage() {
   }, [clinicId, isEnriching, user?.email]);
 
   if (isLoading) {
-    return (
-      <div className="space-y-6 animate-pulse" aria-label={isRtl ? "جاري تحميل الصفحة" : "Loading page"} aria-busy="true">
-        <div className="h-7 w-48 rounded-lg shimmer-skeleton" />
-        <div className="h-4 w-64 rounded shimmer-skeleton" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((item) => <div key={item} className="h-28 rounded-xl shimmer-skeleton" />)}
-        </div>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-          <div className="h-56 rounded-xl shimmer-skeleton" />
-          <div className="h-56 rounded-xl shimmer-skeleton" />
-        </div>
-        <div className="h-64 rounded-xl shimmer-skeleton" />
-      </div>
-    );
+    // Use the shared full-page skeleton so the sidebar, header and page body
+    // transition together instead of showing mixed loaded/loading regions.
+    return <LoadingSpinner />;
   }
 
   if (loadError) {
