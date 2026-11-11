@@ -663,6 +663,7 @@ export default function CalendarPage() {
     if (!clinicId) return;
     const loadData = async () => {
       let dbEvents: any[] = [];
+      let roomData: { id: string; name: string; branch_id: string | null }[] = [];
       try {
         const response = await fetch("/api/calendar", { method: "GET", cache: "no-store" });
         const result = await response.json();
@@ -671,7 +672,8 @@ export default function CalendarPage() {
         const isDoctor = (role: string) =>
           ["admin", "clinic_admin", "doctor", "مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي"].includes(role);
         setDoctorsList((result.doctors || []).filter((staff: any) => isDoctor(staff.role)));
-        setRooms(result.rooms || []);
+        roomData = result.rooms || [];
+        setRooms(roomData);
         dbEvents = result.appointments || [];
       } catch (error: any) {
         console.error("Calendar data could not be loaded:", error);
@@ -683,7 +685,7 @@ export default function CalendarPage() {
         return;
       }
 
-      const roomNames = new Map((result.rooms || []).map((room: any) => [room.id, room.name]));
+      const roomNames = new Map<string, string>(roomData.map((room) => [room.id, room.name]));
       const formatted = (dbEvents || []).map((e: any) => {
         const startValue = e.start_time || (e.date && e.time ? `${e.date}T${e.time}` : new Date().toISOString());
         const start = new Date(startValue);
