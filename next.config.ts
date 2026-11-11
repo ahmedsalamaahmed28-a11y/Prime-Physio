@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/login.php", destination: "/login", permanent: true },
+      { source: "/create-center", destination: "/my-centers/create", permanent: true },
       // Legacy /manage links must never open a separate or obsolete management route.
       { source: "/manage", destination: "/login.php", permanent: false },
       { source: "/manage/:path*", destination: "/login.php", permanent: false },
