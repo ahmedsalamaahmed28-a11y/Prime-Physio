@@ -19,7 +19,7 @@ export default function Security() {
       description: isEnglish
         ? "Access is governed by the user's account and assigned role, rather than treating every team member as an administrator."
         : "يُحدد الوصول وفق حساب المستخدم والدور الممنوح له، بدلًا من منح جميع أعضاء الفريق صلاحيات المدير.",
-      icon: <UserCog className="h-6 w-6 text-indigo-600" />,
+      icon: <ShieldCheck className="h-6 w-6 text-indigo-600" />,
     },
     {
       title: isEnglish ? "Protected account activation" : "تفعيل آمن للحساب",
