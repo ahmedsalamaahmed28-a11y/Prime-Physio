@@ -101,6 +101,8 @@ function NewAppointmentDialog({
   roomsList,
   clinicId,
   branchId,
+  canManageRooms,
+  onCreateRoom,
   onClose,
   onSave,
 }: {
@@ -111,6 +113,8 @@ function NewAppointmentDialog({
   roomsList: { id: string; name: string; branch_id: string | null }[];
   clinicId?: string;
   branchId?: string | null;
+  canManageRooms: boolean;
+  onCreateRoom: (name: string) => Promise<{ id: string; name: string; branch_id: string | null } | null>;
   onClose: () => void;
   onSave: (ev: CalendarEvent) => void;
 }) {
@@ -122,6 +126,8 @@ function NewAppointmentDialog({
   const [duration, setDuration] = useState(45);
   const [startTime, setStartTime] = useState("09:00");
   const [roomId, setRoomId] = useState("");
+  const [newRoomName, setNewRoomName] = useState("");
+  const [isCreatingRoom, setIsCreatingRoom] = useState(false);
   const [notes, setNotes] = useState("");
 
   useEffect(() => {
@@ -298,7 +304,19 @@ function NewAppointmentDialog({
                 <option key={room.id} value={room.id}>{room.name}</option>
               ))}
             </select>
-            {roomsList.length === 0 && <p className="text-xs text-muted-foreground">{isRtl ? "لم تتم إضافة غرف علاج بعد. يمكنك إضافتها من إعدادات المركز." : "No treatment rooms have been added yet. Add them in clinic settings."}</p>}
+            {roomsList.length === 0 && <p className="text-xs text-muted-foreground">{isRtl ? "لم تتم إضافة غرف علاج بعد." : "No treatment rooms have been added yet."}</p>}
+            {canManageRooms && (
+              <div className="flex gap-2">
+                <Input value={newRoomName} onChange={(e) => setNewRoomName(e.target.value)} maxLength={60} placeholder={isRtl ? "اسم غرفة جديدة" : "New room name"} />
+                <Button type="button" variant="outline" disabled={isCreatingRoom || !newRoomName.trim()} onClick={async () => {
+                  setIsCreatingRoom(true);
+                  try {
+                    const created = await onCreateRoom(newRoomName.trim());
+                    if (created) { setRoomId(created.id); setNewRoomName(""); }
+                  } finally { setIsCreatingRoom(false); }
+                }}>{isCreatingRoom ? (isRtl ? "جارٍ الإضافة..." : "Adding...") : (isRtl ? "إضافة" : "Add")}</Button>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -728,6 +746,25 @@ export default function CalendarPage() {
   const pending = events.filter((e) => e.status === "انتظار").length;
   const done = events.filter((e) => e.status === "منتهي").length;
 
+  const handleCreateRoom = async (name: string) => {
+    if (!clinicId) return null;
+    try {
+      const response = await fetch("/api/calendar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "create_room", name, branchId: activeBranchId || null }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "تعذر إضافة الغرفة");
+      const room = result.room as { id: string; name: string; branch_id: string | null };
+      setRooms((current) => [...current.filter((item) => item.id !== room.id), room].sort((a, b) => a.name.localeCompare(b.name)));
+      return room;
+    } catch (error: any) {
+      alert(isRtl ? "فشل إضافة الغرفة: " + (error.message || error) : "Could not add room: " + (error.message || error));
+      return null;
+    }
+  };
+
   const handleSaveNew = async (ev: CalendarEvent) => {
     if (!clinicId) {
       alert(isRtl ? "تعذر تحديد العيادة الحالية." : "The active clinic could not be identified.");
@@ -974,6 +1011,8 @@ export default function CalendarPage() {
         roomsList={rooms}
         clinicId={clinicId || undefined}
         branchId={activeBranchId || null}
+        canManageRooms={hasPermission("manage_settings")}
+        onCreateRoom={handleCreateRoom}
         onClose={() => setSelectedDate(null)}
         onSave={handleSaveNew}
       />
