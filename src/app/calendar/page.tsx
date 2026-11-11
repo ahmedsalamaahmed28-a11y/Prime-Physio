@@ -273,11 +273,11 @@ function NewAppointmentDialog({
       recurrenceMode,
       recurrenceCount: recurrenceMode === "none" ? 1 : recurrenceCount,
       notes,
-      treatmentPlanId: treatmentPlanId || undefined,
-      treatmentPlanTitle: treatmentPlans.find((plan) => plan.id === treatmentPlanId)?.goals || undefined,
-      sessionIntervention,
-      sessionObjectives,
-      targetExercises: targetExercisesText.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
+      treatmentPlanId: isGroupSession ? undefined : (treatmentPlanId || undefined),
+      treatmentPlanTitle: isGroupSession ? undefined : (treatmentPlans.find((plan) => plan.id === treatmentPlanId)?.goals || undefined),
+      sessionIntervention: isGroupSession ? "" : sessionIntervention,
+      sessionObjectives: isGroupSession ? "" : sessionObjectives,
+      targetExercises: isGroupSession ? [] : targetExercisesText.split(/\r?\n/).map((item) => item.trim()).filter(Boolean),
     });
     setNotes("");
   };
@@ -609,6 +609,17 @@ function EventDetailsDialog({
           </div>
           <Separator />
 
+          {event.isGroupSession && (
+            <div className="rounded-lg border p-3 space-y-1">
+              <p className="text-sm font-semibold">{isRtl ? "المشاركون في الجلسة الجماعية" : "Group participants"}</p>
+              <p className="text-sm text-muted-foreground">{(event.groupParticipantNames || []).join("، ") || "—"}</p>
+            </div>
+          )}
+          {event.recurrenceTotal && event.recurrenceTotal > 1 && (
+            <div className="rounded-lg border p-3 text-sm">
+              {isRtl ? `موعد متكرر: ${event.recurrenceIndex} من ${event.recurrenceTotal}` : `Recurring appointment: ${event.recurrenceIndex} of ${event.recurrenceTotal}`}
+            </div>
+          )}
           {event.isGroupSession && (
             <div className="rounded-lg border p-3 space-y-1">
               <p className="text-sm font-semibold">{isRtl ? "المشاركون في الجلسة الجماعية" : "Group participants"}</p>
