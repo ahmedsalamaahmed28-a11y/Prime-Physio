@@ -280,7 +280,7 @@ export async function POST(request: NextRequest) {
       }
       throw creationError;
     }
-    return NextResponse.json({ success: true, createdCount: recurrenceCount, recurrenceId, groupSize: patients.length });
+    return NextResponse.json({ success: true, createdCount: recurrenceCount, recurrenceId, appointmentIds: createdAppointmentIds, groupSize: patients.length });
   } catch (error: any) {
     console.error("[Calendar API] Appointment creation failed:", error);
     return NextResponse.json({ error: error?.message || "تعذر حفظ الموعد والفاتورة" }, { status: 500 });
