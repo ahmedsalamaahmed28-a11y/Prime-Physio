@@ -7,7 +7,7 @@ import { useLanguage } from "@/lib/LanguageContext";
 import {
   Bell, Building, HelpCircle, CreditCard, Download, Globe, Search, Wifi,
   LayoutDashboard, RefreshCw, Sparkles, User, Menu as MenuIcon, X,
-  Copy, Check, Users, CalendarDays, Activity, QrCode, Pencil, Printer, ExternalLink
+  Copy, Check, Users, CalendarDays, Activity
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -19,6 +19,14 @@ const menu = [
   { label: "الباقات", en: "Plans", href: "/packages", icon: CreditCard },
   { label: "الإشعارات", en: "Notifications", href: "/notifications", icon: Bell },
 ];
+
+function ActionIcon({ kind, className = "h-4 w-4" }: { kind: "open" | "qr" | "edit" | "print"; className?: string }) {
+  const common = { className, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, "aria-hidden": true as const };
+  if (kind === "open") return <svg {...common}><path d="M14 3h7v7" /><path d="M10 14 21 3" /><path d="M19 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h6" /></svg>;
+  if (kind === "qr") return <svg {...common}><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3z" /><path d="M14 14h3v3h-3zM20 14v2M20 20h-2M14 20v1M17 20v1M20 17v1" /></svg>;
+  if (kind === "edit") return <svg {...common}><path d="m16 4 4 4L9 19l-5 1 1-5L16 4Z" /><path d="m14 6 4 4" /></svg>;
+  return <svg {...common}><path d="M6 9V3h12v6M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" /><path d="M6 14h12v7H6zM18 12h.01" /></svg>;
+}
 
 export default function CenterManagementPage() {
   const { user, isLoading, isEnriching, logout } = useAuth();
@@ -268,11 +276,11 @@ export default function CenterManagementPage() {
                           </div>
 
                           <div className="mt-4 flex gap-2">
-                            <Link href={`/center-management/open/${center.id}`} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#5147B8] text-sm font-extrabold text-white shadow-sm transition hover:bg-[#40369F]"><ExternalLink className="h-4 w-4" />{isRtl ? "فتح" : "Open"}</Link>
-                            <button type="button" disabled={!center.slug} onClick={() => setQrCenter(center)} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[#DCE2F0] bg-white text-sm font-bold text-[#4E5D72] hover:bg-[#F7F8FC] disabled:opacity-40"><QrCode className="h-4 w-4" />{isRtl ? "ملصق QR" : "QR sticker"}</button>
+                            <Link href={`/center-management/open/${center.id}`} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#5147B8] text-sm font-extrabold text-white shadow-sm transition hover:bg-[#40369F]"><ActionIcon kind="open" />{isRtl ? "فتح" : "Open"}</Link>
+                            <button type="button" disabled={!center.slug} onClick={() => setQrCenter(center)} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[#DCE2F0] bg-white text-sm font-bold text-[#4E5D72] hover:bg-[#F7F8FC] disabled:opacity-40"><ActionIcon kind="qr" />{isRtl ? "ملصق QR" : "QR sticker"}</button>
                           </div>
                           <div className="mt-2 flex gap-2">
-                            <button type="button" onClick={() => openEdit(center)} className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[#E3E8F0] text-sm font-bold text-[#536276] hover:bg-slate-50"><Pencil className="h-4 w-4" />{isRtl ? "تعديل" : "Edit"}</button>
+                            <button type="button" onClick={() => openEdit(center)} className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[#E3E8F0] text-sm font-bold text-[#536276] hover:bg-slate-50"><ActionIcon kind="edit" />{isRtl ? "تعديل" : "Edit"}</button>
                             <button type="button" onClick={() => downloadCenterExport(center.id)} className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[#E3E8F0] text-sm font-bold text-[#536276] hover:bg-slate-50"><Download className="h-4 w-4" />{isRtl ? "التصدير الكامل" : "Full export"}</button>
                           </div>
                           <div className="mt-4 flex items-start gap-2 border-t border-[#F0F2F6] pt-3 text-[11px] leading-6 text-[#8994A2]"><HelpCircle className="mt-1 h-4 w-4 shrink-0 text-[#5B50C7]" /><span>{isRtl ? "انسخ الرابط لإرساله على واتساب، أو اطبع ملصق QR لمكتب الاستقبال." : "Copy the link to share on WhatsApp, or print the QR sticker for reception."}</span></div>
@@ -298,7 +306,7 @@ export default function CenterManagementPage() {
                 <p className="mt-1 text-sm text-slate-500">{qrCenter.name}</p>
                 <img className="mx-auto my-5 h-56 w-56" alt="Center public QR code" src={`https://api.qrserver.com/v1/create-qr-code/?size=500x500&margin=20&data=${encodeURIComponent(publicUrl(qrCenter.slug))}`} />
                 <p className="break-all text-xs text-slate-500" dir="ltr">{publicUrl(qrCenter.slug)}</p>
-                <button onClick={() => window.print()} className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#5147B8] text-sm font-bold text-white"><Printer className="h-4 w-4" />{isRtl ? "طباعة الملصق" : "Print sticker"}</button>
+                <button onClick={() => window.print()} className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#5147B8] text-sm font-bold text-white"><ActionIcon kind="print" />{isRtl ? "طباعة الملصق" : "Print sticker"}</button>
               </div>
             </div>
           )}
