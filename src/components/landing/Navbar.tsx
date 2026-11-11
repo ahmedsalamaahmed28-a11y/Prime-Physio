@@ -107,7 +107,7 @@ export default function Navbar() {
             </Link>
           ) : (
             <>
-              <Link href="/manage" className="pp-login-link" onClick={closeMenu}>دخول المالك</Link>
+              <Link href="/login.php/" className="pp-login-link" onClick={closeMenu}>دخول المالك</Link>
               <a href="/rgstr.php" className="pp-button pp-button-primary pp-nav-cta" onClick={closeMenu}>أنشئ مركزك</a>
             </>
           )}
