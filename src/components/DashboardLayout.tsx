@@ -48,6 +48,7 @@ import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { supabase } from "@/lib/supabase";
 import { UserDropdown } from "@/components/UserDropdown";
 import { Loader } from "@/components/Loader";
+import { DashboardPageLoadingContext } from "@/lib/DashboardPageLoadingContext";
 
 interface SystemNotification {
   id: string;
@@ -111,6 +112,7 @@ export default function DashboardLayout({
   const [branchLogo, setBranchLogo] = useState<string | null>(null);
   const [branchName, setBranchName] = useState<string | null>(null);
   const [platformBranding, setPlatformBranding] = useState<{brandName: string, sidebarTitle: string} | null>(null);
+  const [isDashboardPageLoading, setIsDashboardPageLoading] = useState(true);
   
   const activeAccount = user;
 
@@ -365,6 +367,14 @@ export default function DashboardLayout({
   const isRtl = language === "ar";
 
   return (
+    <DashboardPageLoadingContext.Provider value={setIsDashboardPageLoading}>
+      <div className="relative min-h-screen">
+        {pathname === "/dashboard" && isDashboardPageLoading && (
+          <div className="fixed inset-0 z-[100] bg-slate-50">
+            <LoadingSpinner />
+          </div>
+        )}
+        <div className={pathname === "/dashboard" && isDashboardPageLoading ? "invisible" : "visible"}>
     <div className={`min-h-screen bg-slate-50/50 flex flex-col ${isRtl ? "md:flex-row-reverse" : "md:flex-row"} text-slate-800`} dir={isRtl ? "rtl" : "ltr"}>
       
       {/* ─── DESKTOP SIDEBAR ─────────────────────────────────── */}
@@ -774,6 +784,8 @@ export default function DashboardLayout({
         
       </div>
       
-    </div>
+    </div>        </div>
+      </div>
+    </DashboardPageLoadingContext.Provider>
   );
 }
