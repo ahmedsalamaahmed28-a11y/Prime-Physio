@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHash } from "crypto";
 import { hashVerificationCode } from "@/lib/verificationCodes";
 import { getAdminClient } from "@/lib/supabase-admin";
 import { requireAuthOnly } from "../../utils/auth";
