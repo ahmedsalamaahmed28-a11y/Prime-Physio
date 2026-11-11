@@ -27,17 +27,17 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   )
 }
 
-export default function ManagePage() {
+export default function LoginPage() {
   return (
     <div className="min-h-screen bg-white flex w-full">
       <Suspense fallback={<div className="flex-1 flex items-center justify-center"><div className="w-8 h-8 border-4 border-[#4F46BA] border-t-transparent rounded-full animate-spin" /></div>}>
-        <ManageContent />
+        <LoginContent />
       </Suspense>
     </div>
   )
 }
 
-function ManageContent() {
+function LoginContent() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const searchParams = useSearchParams();
