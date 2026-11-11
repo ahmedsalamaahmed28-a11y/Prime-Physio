@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase-admin";
 import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
+import { checkSubscriptionLimit } from "@/lib/subscriptionCheck";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -134,6 +135,10 @@ export async function POST(request: NextRequest) {
     if (patientIds.length < 1 || patientIds.length > 12 || (body.isGroupSession && patientIds.length < 2) || (!body.isGroupSession && patientIds.length !== 1)) {
       return NextResponse.json({ error: "حدد مريضًا واحدًا أو من 2 إلى 12 مريضًا للجلسة الجماعية" }, { status: 400 });
     }
+    const subscriptionLimit = await checkSubscriptionLimit(auth.clinicId, "sessions", recurrenceCount * patientIds.length);
+    if (!subscriptionLimit.allowed) {
+      return NextResponse.json({ error: "عدد الجلسات المطلوبة يتجاوز الحد المتاح في باقة المركز لهذا الشهر.", limit: subscriptionLimit }, { status: 403 });
+    }
     if (body.isGroupSession && hasClinicalPayload) {
       return NextResponse.json({ error: "يجب ربط الخطط والتفاصيل الطبية بكل مريض بشكل منفصل؛ لا يمكن مشاركة خطة طبية في جلسة جماعية" }, { status: 400 });
     }
@@ -194,9 +199,6 @@ export async function POST(request: NextRequest) {
     const patient = patients[0];
     if (body.patientId !== patient.id) return NextResponse.json({ error: "المريض الأساسي لا يطابق قائمة المشاركين" }, { status: 400 });
 
-    if (!body.appointmentId || !body.startTime || !body.endTime || !body.invoiceId) {
-      return NextResponse.json({ error: "بيانات الموعد أو الفاتورة غير مكتملة" }, { status: 400 });
-    }
     if (body.treatmentPlanId && canEditClinicalDetails) {
       const { data: plan, error: planError } = await auth.admin.from("treatment_plans")
         .select("id").eq("id", body.treatmentPlanId).eq("patient_id", patient.id)
