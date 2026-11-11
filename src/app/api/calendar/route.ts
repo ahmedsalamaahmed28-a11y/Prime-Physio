@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     const end = new Date(body.endTime);
     const recurrenceMode = body.recurrenceMode === "weekly" || body.recurrenceMode === "biweekly" ? body.recurrenceMode : "none";
     const recurrenceCount = recurrenceMode === "none" ? 1 : Number(body.recurrenceCount);
-    if (!Number.isInteger(recurrenceCount) || recurrenceCount < 2 || recurrenceCount > 12 && recurrenceMode !== "none") {
+    if (recurrenceMode !== "none" && (!Number.isInteger(recurrenceCount) || recurrenceCount < 2 || recurrenceCount > 12)) {
       return NextResponse.json({ error: "عدد التكرارات يجب أن يكون بين 2 و12" }, { status: 400 });
     }
     const patientIds = Array.isArray(body.patientIds) ? [...new Set(body.patientIds.filter((id: unknown) => typeof id === "string" && id.trim()))] : [body.patientId];
