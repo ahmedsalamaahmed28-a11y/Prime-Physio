@@ -16,10 +16,6 @@ export async function POST(req: NextRequest) {
     if (!email || !/^\d{6}$/.test(code) || !newPassword) {
       return NextResponse.json({ error: "جميع الحقول مطلوبة بشكل صحيح" }, { status: 400 });
     }
-    if (newPassword.length < 12 || newPassword.length > 128) {
-      return NextResponse.json({ error: "كلمة المرور يجب أن تكون 12 حرفًا على الأقل وبحد أقصى 128 حرفًا" }, { status: 400 });
-    }
-
     const admin = getAdminClient();
     const { data: existing, error: accountError } = await admin
       .from("auth_accounts")
@@ -50,7 +46,7 @@ export async function POST(req: NextRequest) {
       await validateNewPassword(newPassword);
     } catch (error) {
       const reason = error instanceof Error ? error.message : "";
-      if (reason === "PASSWORD_TOO_WEAK") return NextResponse.json({ error: "كلمة المرور يجب أن تكون 12 حرفًا على الأقل وتحتوي على حرف كبير وصغير ورقم ورمز." }, { status: 400 });
+      if (reason === "PASSWORD_TOO_WEAK") return NextResponse.json({ error: "كلمة المرور يجب أن تكون من 8 إلى 128 حرفًا، وألا تكون شائعة أو سهلة التخمين." }, { status: 400 });
       if (reason === "PASSWORD_COMPROMISED") return NextResponse.json({ error: "كلمة المرور ظهرت في تسريبات سابقة. اختر كلمة مرور مختلفة." }, { status: 400 });
       return NextResponse.json({ error: "تعذر فحص أمان كلمة المرور حاليًا. حاول مرة أخرى." }, { status: 503 });
     }
