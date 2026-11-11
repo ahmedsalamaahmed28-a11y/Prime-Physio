@@ -530,3 +530,93 @@ details.ob2More[open]>summary h2::after{content:"–"}
   .shimmer-skeleton::after { animation: none; display: none; }
   .shimmer-skeleton { background: #e9edf4; }
 }
+
+/* ── Prime Physio motion polish: lightweight, CSP-safe and dependency-free ── */
+@keyframes pp-page-enter {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+@keyframes pp-soft-pop {
+  0% { opacity: 0; transform: scale(.985) translateY(7px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes pp-glow-breathe {
+  0%, 100% { box-shadow: 0 8px 24px rgba(17,144,148,.06); }
+  50% { box-shadow: 0 12px 30px rgba(17,144,148,.13); }
+}
+.pp-dashboard-content {
+  animation: pp-page-enter 420ms cubic-bezier(.2,.7,.2,1) both;
+}
+.pp-dashboard-content > * {
+  animation: pp-soft-pop 480ms cubic-bezier(.2,.7,.2,1) both;
+}
+.pp-dashboard-content > *:nth-child(2) { animation-delay: 35ms; }
+.pp-dashboard-content > *:nth-child(3) { animation-delay: 70ms; }
+.pp-dashboard-content > *:nth-child(4) { animation-delay: 105ms; }
+.pp-dashboard-content > *:nth-child(5) { animation-delay: 140ms; }
+.pp-dashboard-content :where(button, a, [role="button"]) {
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+.pp-dashboard-content :where(button:not(:disabled), a, [role="button"]):active {
+  transform: scale(.975);
+}
+.pp-dashboard-content :where(button:not(:disabled), a, [role="button"]):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 72%, white);
+  outline-offset: 3px;
+}
+.pp-dashboard-content :where(.rounded-xl, .rounded-2xl, .rounded-3xl).border,
+.pp-dashboard-content :where([class*="shadow-sm"], [class*="shadow-md"]) {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pp-dashboard-content :where(.rounded-xl, .rounded-2xl, .rounded-3xl).border:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .07);
+    border-color: color-mix(in srgb, var(--primary) 22%, #e2e8f0);
+  }
+}
+.pp-landing .pp-button,
+.pp-landing .pp-nav a,
+.pp-landing .pp-language {
+  transition: transform 200ms ease, box-shadow 200ms ease, background-color 200ms ease, color 200ms ease;
+}
+.pp-landing .pp-button:active,
+.pp-landing .pp-language:active { transform: scale(.97); }
+.pp-landing .pp-button:focus-visible,
+.pp-landing a:focus-visible,
+.pp-landing button:focus-visible {
+  outline: 2px solid var(--primary, #119094);
+  outline-offset: 4px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pp-landing .pp-button:hover { transform: translateY(-2px); }
+  .pp-landing .pp-brand-mark { transition: transform 260ms ease, box-shadow 260ms ease; }
+  .pp-landing .pp-brand:hover .pp-brand-mark {
+    transform: rotate(-8deg) scale(1.06);
+    box-shadow: 0 8px 22px rgba(17,144,148,.22);
+  }
+}
+@supports (animation-timeline: view()) {
+  .pp-landing main > section,
+  .pp-landing main > div[id],
+  .pp-landing main > div:has(> section) {
+    animation: pp-page-enter linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 22%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-dashboard-content,
+  .pp-dashboard-content > *,
+  .pp-landing main > section,
+  .pp-landing main > div[id],
+  .pp-landing main > div:has(> section) {
+    animation: none !important;
+  }
+  .pp-dashboard-content *,
+  .pp-landing * {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
+
