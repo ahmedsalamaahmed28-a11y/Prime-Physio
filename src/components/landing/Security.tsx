@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck, Lock, Database, ShieldCheck } from "lucide-react";
+import { ShieldCheck, Lock, Database, FileCheck } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 
 export default function Security() {
@@ -26,7 +26,7 @@ export default function Security() {
       description: isEnglish
         ? "Owner registration requires email verification before the account can proceed to clinic creation."
         : "يتطلب تسجيل المالك تفعيل البريد الإلكتروني قبل الانتقال إلى إنشاء المركز.",
-      icon: <ShieldCheck className="h-6 w-6 text-indigo-600" />,
+      icon: <FileCheck className="h-6 w-6 text-indigo-600" />,
     },
     {
       title: isEnglish ? "HTTPS connection" : "اتصال عبر HTTPS",
