@@ -68,12 +68,44 @@ export async function POST(request: NextRequest) {
   const auth = await authorize();
   if ("response" in auth) return auth.response;
   try {
-    if (!hasStaffPermission(auth.staff, "edit_appointments") || !hasStaffPermission(auth.staff, "create_invoice")) {
-      return NextResponse.json({ error: "ليس لديك صلاحية حجز المواعيد وإنشاء الفواتير" }, { status: 403 });
-    }
     const body = await request.json();
     if (!body || typeof body !== "object" || Array.isArray(body)) {
-      return NextResponse.json({ error: "بيانات الموعد غير صالحة" }, { status: 400 });
+      return NextResponse.json({ error: "بيانات الطلب غير صالحة" }, { status: 400 });
+    }
+
+    if (body.action === "create_room") {
+      if (!hasStaffPermission(auth.staff, "manage_settings")) {
+        return NextResponse.json({ error: "ليس لديك صلاحية إدارة غرف العلاج" }, { status: 403 });
+      }
+      const name = typeof body.name === "string" ? body.name.trim() : "";
+      if (!name || name.length > 60) {
+        return NextResponse.json({ error: "اسم الغرفة مطلوب ويجب ألا يتجاوز 60 حرفًا" }, { status: 400 });
+      }
+      const { data: activeBranches, error: branchesError } = await auth.admin.from("branches")
+        .select("id").eq("clinic_id", auth.clinicId).eq("status", "active");
+      if (branchesError) throw branchesError;
+      let branchId: string | null = null;
+      if (body.branchId) {
+        const selected = (activeBranches || []).find((branch: any) => branch.id === body.branchId);
+        if (!selected) return NextResponse.json({ error: "الفرع المختار لا يتبع هذه العيادة" }, { status: 400 });
+        branchId = selected.id;
+      } else if ((activeBranches || []).length === 1) {
+        branchId = activeBranches![0].id;
+      } else if ((activeBranches || []).length > 1) {
+        return NextResponse.json({ error: "يرجى تحديد الفرع قبل إضافة الغرفة" }, { status: 400 });
+      }
+      const { data: room, error: roomError } = await auth.admin.from("appointment_rooms")
+        .insert({ clinic_id: auth.clinicId, branch_id: branchId, name, is_active: true })
+        .select("id,name,branch_id").single();
+      if (roomError) {
+        if (roomError.code === "23505") return NextResponse.json({ error: "يوجد غرفة بهذا الاسم بالفعل" }, { status: 409 });
+        throw roomError;
+      }
+      return NextResponse.json({ success: true, room });
+    }
+
+    if (!hasStaffPermission(auth.staff, "edit_appointments") || !hasStaffPermission(auth.staff, "create_invoice")) {
+      return NextResponse.json({ error: "ليس لديك صلاحية حجز المواعيد وإنشاء الفواتير" }, { status: 403 });
     }
     const canEditClinicalDetails = hasStaffPermission(auth.staff, "edit_emr");
     const hasClinicalPayload = Boolean(
