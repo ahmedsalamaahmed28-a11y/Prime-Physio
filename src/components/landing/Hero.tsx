@@ -43,7 +43,7 @@ export default function Hero({ cmsContent }: { cmsContent?: any }) {
             <a href="/rgstr.php" className="pp-button pp-button-primary pp-button-large">
               {primaryButtonText}<DirectionArrow aria-hidden="true" />
             </a>
-            <Link href="/login.php/" className="pp-button pp-button-outline pp-button-large">
+            <Link href="/login.php" className="pp-button pp-button-outline pp-button-large">
               {ownerLoginText}
             </Link>
           </div>
