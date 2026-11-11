@@ -345,7 +345,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     } else if (status === "unauthenticated" && nextAuthEmailRef.current) {
       const expiredEmail = nextAuthEmailRef.current;
       nextAuthEmailRef.current = null;
-      endEnrichment();
+      enrichmentCountRef.current = 0;
+      setIsEnriching(false);
       setUser((prev) => prev?.email?.toLowerCase() === expiredEmail ? null : prev);
       setAppValue("current_user", null).catch(() => {});
       // Revoke the long-lived Supabase shadow session when its NextAuth owner expires.
