@@ -1,16 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { DashboardPageLoadingContext } from "@/lib/DashboardPageLoadingContext";
 
 export default function HomePage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { user, isEnriching } = useAuth();
+  const setDashboardPageLoading = useContext(DashboardPageLoadingContext);
   const clinicId = user?.clinicId;
 
   const [appointments, setAppointments] = useState<any[]>([]);
@@ -28,6 +30,7 @@ export default function HomePage() {
       }
       setLoadError("تعذر التحقق من ارتباط حسابك بالعيادة. أعد تحميل الصفحة، وإذا استمرت المشكلة تواصل مع مسؤول المنصة.");
       setIsLoading(false);
+      setDashboardPageLoading(false);
       return;
     }
 
@@ -41,6 +44,7 @@ export default function HomePage() {
       }
       setLoadError("هذا الحساب غير مرتبط بعيادة حتى الآن. أكمل إعداد العيادة أولاً.");
       setIsLoading(false);
+      setDashboardPageLoading(false);
       return;
     }
 
@@ -118,7 +122,10 @@ export default function HomePage() {
         if (!cancelled) setLoadError("تعذر تحميل بيانات الاشتراك حالياً.");
       }
 
-      if (!cancelled) setIsLoading(false);
+      if (!cancelled) {
+        setIsLoading(false);
+        setDashboardPageLoading(false);
+      }
     }
     fetchData();
     return () => { cancelled = true; };
