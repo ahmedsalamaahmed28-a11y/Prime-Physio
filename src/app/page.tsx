@@ -1,4 +1,3 @@
-import Link from "next/link";
 import "./landing.css";
 import { getAdminClient } from "@/lib/supabase";
 import Navbar from "@/components/landing/Navbar";
@@ -60,7 +59,7 @@ export default async function LandingPage() {
       <Security />
       <TestimonialsCarousel />
       <CaseStudy />
-      <Pricing cmsContent={contentMap.pricing} />
+      <Pricing />
       <ROICalculator />
       <FAQ />
       <FinalCTA />
