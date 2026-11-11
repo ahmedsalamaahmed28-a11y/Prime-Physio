@@ -788,7 +788,8 @@ export default function DashboardLayout({
         
       </div>
       
-    </div>\n        </div>
+    </div>
+        </div>
       </div>
     </DashboardPageLoadingContext.Provider>
   );
