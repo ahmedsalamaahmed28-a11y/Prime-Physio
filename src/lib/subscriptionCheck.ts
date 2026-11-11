@@ -6,7 +6,10 @@ const PLAN_LIMITS: Record<string, { patients: number; sessionsPerMonth: number }
   gold:   { patients: -1,  sessionsPerMonth: -1 },
 };
 
-export async function checkSubscriptionLimit(clinicId: string, resource: "patients" | "sessions") {
+export async function checkSubscriptionLimit(clinicId: string, resource: "patients" | "sessions", quantity = 1) {
+  if (!Number.isInteger(quantity) || quantity < 1) {
+    return { allowed: false, reason: "invalid_quantity" };
+  }
   const admin = getAdminClient();
 
   const { data: sub } = await admin
@@ -53,8 +56,8 @@ export async function checkSubscriptionLimit(clinicId: string, resource: "patien
     count = c;
   }
 
-  if (count !== null && count >= limit) {
-    return { allowed: false, reason: "limit_reached", current: count, limit };
+  if (count !== null && count + quantity > limit) {
+    return { allowed: false, reason: "limit_reached", current: count, requested: quantity, limit };
   }
 
   return { allowed: true, current: count ?? 0, limit };
