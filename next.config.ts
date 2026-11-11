@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/login", destination: "/manage", permanent: true },
+      { source: "/signup", destination: "/rgstr.php", permanent: true },
     ];
   },
   allowedDevOrigins: [
