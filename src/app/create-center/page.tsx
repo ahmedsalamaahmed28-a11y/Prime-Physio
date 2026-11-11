@@ -7,6 +7,47 @@ import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
 import { Building, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
 
+type CenterCountry = { code: string; dial: string; flag: string; ar: string; en: string; example: string };
+
+const CENTER_COUNTRIES: CenterCountry[] = [
+  { code: "EG", dial: "20", flag: "🇪🇬", ar: "مصر", en: "Egypt", example: "10 1234 5678" },
+  { code: "SA", dial: "966", flag: "🇸🇦", ar: "السعودية", en: "Saudi Arabia", example: "5X XXX XXXX" },
+  { code: "AE", dial: "971", flag: "🇦🇪", ar: "الإمارات", en: "United Arab Emirates", example: "50 123 4567" },
+  { code: "KW", dial: "965", flag: "🇰🇼", ar: "الكويت", en: "Kuwait", example: "5XXX XXXX" },
+  { code: "QA", dial: "974", flag: "🇶🇦", ar: "قطر", en: "Qatar", example: "33XX XXXX" },
+  { code: "BH", dial: "973", flag: "🇧🇭", ar: "البحرين", en: "Bahrain", example: "3XXX XXXX" },
+  { code: "OM", dial: "968", flag: "🇴🇲", ar: "عُمان", en: "Oman", example: "9XXX XXXX" },
+  { code: "JO", dial: "962", flag: "🇯🇴", ar: "الأردن", en: "Jordan", example: "7X XXX XXXX" },
+  { code: "LB", dial: "961", flag: "🇱🇧", ar: "لبنان", en: "Lebanon", example: "XX XXX XXX" },
+  { code: "IQ", dial: "964", flag: "🇮🇶", ar: "العراق", en: "Iraq", example: "7XX XXX XXXX" },
+  { code: "PS", dial: "970", flag: "🇵🇸", ar: "فلسطين", en: "Palestine", example: "59 XXX XXXX" },
+  { code: "YE", dial: "967", flag: "🇾🇪", ar: "اليمن", en: "Yemen", example: "7XX XXX XXX" },
+  { code: "MA", dial: "212", flag: "🇲🇦", ar: "المغرب", en: "Morocco", example: "6XX XXX XXX" },
+  { code: "DZ", dial: "213", flag: "🇩🇿", ar: "الجزائر", en: "Algeria", example: "5XX XX XX XX" },
+  { code: "TN", dial: "216", flag: "🇹🇳", ar: "تونس", en: "Tunisia", example: "XX XXX XXX" },
+  { code: "LY", dial: "218", flag: "🇱🇾", ar: "ليبيا", en: "Libya", example: "91 XXX XXXX" },
+  { code: "SD", dial: "249", flag: "🇸🇩", ar: "السودان", en: "Sudan", example: "9X XXX XXXX" },
+  { code: "US", dial: "1", flag: "🇺🇸", ar: "الولايات المتحدة", en: "United States", example: "201 555 0123" },
+  { code: "CA", dial: "1", flag: "🇨🇦", ar: "كندا", en: "Canada", example: "204 234 5678" },
+  { code: "GB", dial: "44", flag: "🇬🇧", ar: "المملكة المتحدة", en: "United Kingdom", example: "7XXX XXXXXX" },
+  { code: "DE", dial: "49", flag: "🇩🇪", en: "Germany", ar: "ألمانيا", example: "1512 3456789" },
+  { code: "FR", dial: "33", flag: "🇫🇷", en: "France", ar: "فرنسا", example: "6 12 34 56 78" },
+  { code: "IT", dial: "39", flag: "🇮🇹", en: "Italy", ar: "إيطاليا", example: "312 345 6789" },
+  { code: "ES", dial: "34", flag: "🇪🇸", en: "Spain", ar: "إسبانيا", example: "612 345 678" },
+  { code: "TR", dial: "90", flag: "🇹🇷", en: "Türkiye", ar: "تركيا", example: "501 234 5678" },
+  { code: "IN", dial: "91", flag: "🇮🇳", en: "India", ar: "الهند", example: "98765 43210" },
+  { code: "PK", dial: "92", flag: "🇵🇰", en: "Pakistan", ar: "باكستان", example: "301 2345678" },
+  { code: "BD", dial: "880", flag: "🇧🇩", en: "Bangladesh", ar: "بنغلاديش", example: "1812 345678" },
+  { code: "MY", dial: "60", flag: "🇲🇾", en: "Malaysia", ar: "ماليزيا", example: "12 345 6789" },
+  { code: "ID", dial: "62", flag: "🇮🇩", en: "Indonesia", ar: "إندونيسيا", example: "812 3456 7890" },
+  { code: "AU", dial: "61", flag: "🇦🇺", en: "Australia", ar: "أستراليا", example: "4XX XXX XXX" },
+  { code: "ZA", dial: "27", flag: "🇿🇦", en: "South Africa", ar: "جنوب أفريقيا", example: "XX XXX XXXX" },
+  { code: "BR", dial: "55", flag: "🇧🇷", en: "Brazil", ar: "البرازيل", example: "11 91234 5678" },
+  { code: "JP", dial: "81", flag: "🇯🇵", en: "Japan", ar: "اليابان", example: "90 1234 5678" },
+  { code: "CN", dial: "86", flag: "🇨🇳", en: "China", ar: "الصين", example: "131 2345 6789" },
+  { code: "RU", dial: "7", flag: "🇷🇺", en: "Russia", ar: "روسيا", example: "912 345-67-89" },
+];
+
 const plans = [
   { id: "basic", nameAr: "الأساسية", nameEn: "Basic", price: "0", priceLabelAr: "مجانًا", priceLabelEn: "Free", descriptionAr: "مجانية — لا تحتاج إلى بطاقة دفع", descriptionEn: "Free — no payment card required" },
   { id: "silver", nameAr: "الفضية", nameEn: "Silver", price: "1000", priceLabelAr: "1,000 جنيه / شهريًا", priceLabelEn: "EGP 1,000 / month", descriptionAr: "للمراكز النامية", descriptionEn: "For growing centers" },
@@ -20,6 +61,8 @@ export default function CreateCenterPage() {
   const [planId, setPlanId] = useState("basic");
   const [step, setStep] = useState<"plan" | "details">("plan");
   const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("EG");
+  const selectedCountry = CENTER_COUNTRIES.find((country) => country.code === countryCode) ?? CENTER_COUNTRIES[0];
   const [address, setAddress] = useState("");
   const [shortName, setShortName] = useState("");
   const [fullName, setFullName] = useState("");
@@ -32,6 +75,7 @@ export default function CreateCenterPage() {
   const [notice, setNotice] = useState("");
   const [paymentUrl, setPaymentUrl] = useState("");
   const [createdSlug, setCreatedSlug] = useState("");
+  const [createdCenterName, setCreatedCenterName] = useState("");
   const [centerCreated, setCenterCreated] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
 
@@ -89,7 +133,7 @@ export default function CreateCenterPage() {
           shortName: shortName.trim(),
           fullName: fullName.trim(),
           slug: normalizeSlug(slug),
-          phone: phone.trim(),
+          phone: `+${selectedCountry.dial}${phone.trim().replace(/\\D/g, "").replace(/^0+/, "")}`,
           address: address.trim(),
           logoUrl: uploadedLogo?.url || null,
           logoPath: uploadedLogo?.path || null,
@@ -107,7 +151,9 @@ export default function CreateCenterPage() {
         const subscribeData = await subscribeResponse.json().catch(() => ({}));
         if (!subscribeResponse.ok) throw new Error(subscribeData.error || "The center was created, but the free plan could not be activated.");
         await activateCenterSession(data.clinicId);
-        window.location.href = "/dashboard";
+        setCreatedCenterName(shortName.trim());
+        setCreatedSlug(data.slug);
+        setCenterCreated(true);
         return;
       }
 
@@ -171,12 +217,15 @@ export default function CreateCenterPage() {
         <section className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-7 text-center shadow-sm sm:p-9">
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"><CheckCircle2 className="h-9 w-9" /></div>
           <h1 className="text-2xl font-extrabold text-slate-900">{isRtl ? "تم إنشاء المركز بنجاح" : "Center created successfully"}</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-500">{isRtl ? "أصبح للمركز رابط مستقل يمكنك مشاركته مع فريق العمل." : "Your center now has its own link that you can share with your team."}</p>
+          <p className="mt-2 text-base font-bold text-slate-800">{createdCenterName}</p>
+          <p className="mt-2 text-sm leading-6 text-slate-500">{isRtl ? "أصبح للمركز رابط دخول مستقل يمكنك مشاركته مع فريق العمل." : "Your center now has its own login link that you can share with your team."}</p>
           <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-3 text-left" dir="ltr">
             <p className="break-all text-sm font-semibold text-[#4F46BA]">{centerUrl}</p>
           </div>
           <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(centerUrl); setLinkCopied(true); } catch { setLinkCopied(false); } }} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-[#5B50C7] font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{linkCopied ? (isRtl ? "تم نسخ الرابط" : "Link copied") : (isRtl ? "نسخ رابط المركز" : "Copy center link")}</button>
-          <Link href={`/${createdSlug}`} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#5B50C7] font-bold text-white transition hover:bg-[#4338A8]">{isRtl ? "فتح صفحة المركز" : "Open center page"}</Link>
+          <p className="mt-2 text-xs leading-5 text-slate-500">{isRtl ? "هذا الرابط يفتح صفحة تسجيل الدخول الخاصة بالمركز، وليس لوحة التحكم مباشرة." : "This link opens the center login page, not the dashboard directly."}</p>
+          <Link href={`/${createdSlug}`} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-[#5B50C7] font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{isRtl ? "فتح صفحة دخول المركز" : "Open center login"}</Link>
+          <Link href="/dashboard" className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#5B50C7] font-bold text-white transition hover:bg-[#4338A8]">{isRtl ? "الانتقال إلى لوحة التحكم" : "Continue to dashboard"}</Link>
           <Link href="/center-management" className="mt-4 inline-block text-sm font-semibold text-slate-500 hover:text-[#5B50C7]">{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         </section>
       </main>
@@ -245,12 +294,14 @@ export default function CreateCenterPage() {
             <h2 className="mb-4 text-base font-extrabold text-slate-800">{isRtl ? "2. بيانات المركز" : "2. Center details"}</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <label className="block text-sm font-semibold text-slate-700">
-                {isRtl ? "اسم المركز" : "Center name"}
-                <input value={shortName} onChange={(e) => setShortName(e.target.value)} required maxLength={120} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "مثال: مركز برايم للعلاج الطبيعي" : "e.g. Prime Physiotherapy Center"} />
+                {isRtl ? "اسم المركز المختصر" : "Center display name"}
+                <input value={shortName} onChange={(e) => setShortName(e.target.value)} required maxLength={120} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "مثال: برايم للعلاج الطبيعي" : "e.g. Prime Physiotherapy"} />
+                <span className="mt-1 block text-xs font-normal text-slate-500">{isRtl ? "الاسم المختصر الذي سيظهر في واجهة المركز." : "The short name displayed across the center interface."}</span>
               </label>
               <label className="block text-sm font-semibold text-slate-700">
-                {isRtl ? "الاسم الكامل (اختياري)" : "Full name (optional)"}
-                <input value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={200} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "الاسم الظاهر في صفحة الدخول" : "Name shown on the login page"} />
+                {isRtl ? "الاسم الكامل أو الرسمي (اختياري)" : "Full / official name (optional)"}
+                <input value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={200} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "الاسم القانوني أو الاسم الكامل للمركز" : "Legal or complete center name"} />
+                <span className="mt-1 block text-xs font-normal text-slate-500">{isRtl ? "اتركه فارغًا إذا كان اسم المركز المختصر كافيًا." : "Leave blank if the center display name is sufficient."}</span>
               </label>
             </div>
             <label className="mt-4 block text-sm font-semibold text-slate-700">
@@ -259,7 +310,7 @@ export default function CreateCenterPage() {
                 <span className="flex items-center bg-slate-50 px-3 text-xs text-slate-500">primephysio.vercel.app/</span>
                 <input value={slug} onChange={(e) => setSlug(normalizeSlug(e.target.value))} required maxLength={50} pattern="[a-z0-9]+(-[a-z0-9]+)*" className="h-11 min-w-0 flex-1 px-3 outline-none" placeholder="my-center" />
               </div>
-              <span className="mt-1 block text-xs font-normal text-slate-400">{isRtl ? "استخدم أحرفًا إنجليزية صغيرة وأرقامًا وشرطة فقط." : "Use lowercase English letters, numbers and hyphens only."}</span>
+              <span className="mt-1 block text-xs font-normal text-slate-400">{isRtl ? "استخدم أحرفًا إنجليزية صغيرة وأرقامًا وشرطة فقط. الرابط يفتح صفحة تسجيل دخول المركز." : "Use lowercase English letters, numbers and hyphens only. This URL opens the center login page."}</span>
             </label>
           <div className="mt-5">
             <label className="mb-2 block text-sm font-semibold text-slate-700">
@@ -303,7 +354,17 @@ export default function CreateCenterPage() {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <label className="block text-sm font-semibold text-slate-700">{isRtl ? "رقم هاتف المركز" : "Center phone"}
-                <input value={phone} onChange={(e) => setPhone(e.target.value)} required maxLength={32} type="tel" className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder="+20 10 1234 5678" />
+                <div className="mt-2 flex h-11 overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#5B50C7]" dir="ltr">
+                  <div className="relative flex w-[116px] shrink-0 items-center gap-2 border-r border-slate-200 bg-slate-50 px-3">
+                    <span aria-hidden="true">{selectedCountry.flag}</span>
+                    <span className="text-sm font-semibold text-slate-700">+{selectedCountry.dial}</span>
+                    <select value={countryCode} onChange={(event) => setCountryCode(event.target.value)} aria-label={isRtl ? "اختر دولة هاتف المركز" : "Select center phone country"} className="absolute inset-0 h-full w-full cursor-pointer opacity-0">
+                      {CENTER_COUNTRIES.map((country) => <option key={country.code} value={country.code}>+{country.dial} · {isRtl ? country.ar : country.en}</option>)}
+                    </select>
+                  </div>
+                  <input value={phone} onChange={(event) => setPhone(event.target.value.replace(/[^0-9]/g, ""))} required maxLength={18} type="tel" inputMode="tel" autoComplete="tel-national" className="min-w-0 flex-1 px-3 outline-none" placeholder={selectedCountry.example} />
+                </div>
+                <span className="mt-1 block text-xs font-normal text-slate-500">{isRtl ? "اختر الدولة أولًا، وسيُضاف مفتاحها الدولي تلقائيًا إلى الرقم." : "Choose the country first; its calling code will be added automatically."}</span>
               </label>
               <label className="block text-sm font-semibold text-slate-700">{isRtl ? "عنوان المركز" : "Center address"}
                 <input value={address} onChange={(e) => setAddress(e.target.value)} required maxLength={250} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "المحافظة، المنطقة، الشارع" : "City, area, street"} />
@@ -313,7 +374,7 @@ export default function CreateCenterPage() {
             {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</p>}
             <button type="submit" disabled={creating || uploadingLogo} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#5B50C7] px-6 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">
               {(creating || uploadingLogo) && <Loader2 className="h-4 w-4 animate-spin" />}
-              {isRtl ? "إنشاء المركز وفتح لوحة التحكم" : "Create center and open dashboard"}
+              {isRtl ? "إنشاء المركز" : "Create center"}
             </button>
             <p className="text-center text-[11px] leading-5 text-slate-400">{isRtl ? "سيتم إنشاء مركز مستقل. لا يمكن للمراكز الأخرى الوصول إلى مرضاه أو سجلاته." : "A separate tenant will be created. Other centers cannot access its patients or records."}</p>
           </>}
