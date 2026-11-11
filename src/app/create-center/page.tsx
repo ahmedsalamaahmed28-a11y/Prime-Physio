@@ -78,10 +78,6 @@ export default function CreateCenterPage() {
   const [createdCenterName, setCreatedCenterName] = useState("");
   const [centerCreated, setCenterCreated] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [otpCode, setOtpCode] = useState("");
-  const [otpSent, setOtpSent] = useState(false);
-  const [sendingOtp, setSendingOtp] = useState(false);
-  const [otpMessage, setOtpMessage] = useState("");
 
   useEffect(() => () => { if (logoPreview) URL.revokeObjectURL(logoPreview); }, [logoPreview]);
 
@@ -102,27 +98,6 @@ export default function CreateCenterPage() {
     if (sessionError) throw sessionError;
   };
 
-  const sendCenterOtp = async () => {
-    setError("");
-    setOtpMessage("");
-    if (!user?.email) {
-      setError(isRtl ? "تعذر تحديد بريد حسابك. سجّل الدخول مرة أخرى." : "Your account email is unavailable. Please sign in again.");
-      return;
-    }
-    setSendingOtp(true);
-    try {
-      const response = await fetch("/api/centers/send-otp", { method: "POST", cache: "no-store", headers: { "Content-Type": "application/json" }, body: JSON.stringify({}) });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.success) throw new Error(data.error || (isRtl ? "تعذر إرسال رمز التحقق." : "Could not send the verification code."));
-      setOtpSent(true);
-      setOtpCode("");
-      setOtpMessage(data.message || (isRtl ? "تم إرسال الرمز إلى بريد حسابك." : "The code was sent to your account email."));
-    } catch (sendError) {
-      setOtpSent(false);
-      setOtpMessage("");
-      setError(sendError instanceof Error ? sendError.message : (isRtl ? "تعذر إرسال رمز التحقق." : "Could not send the verification code."));
-    } finally { setSendingOtp(false); }
-  };
 
   const createCenter = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -134,10 +109,6 @@ export default function CreateCenterPage() {
     }
     if (!planId) {
       setError(isRtl ? "اختر باقة الاشتراك قبل إنشاء المركز." : "Choose a subscription plan before creating the center.");
-      return;
-    }
-    if (!otpSent || !/^\d{6}$/.test(otpCode)) {
-      setError(isRtl ? "أرسل رمز التحقق إلى بريدك وأدخل الرمز المكوّن من 6 أرقام." : "Send the verification code to your email and enter the 6-digit code.");
       return;
     }
     setCreating(true);
@@ -160,7 +131,6 @@ export default function CreateCenterPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           planId,
-          otpCode,
           shortName: shortName.trim(),
           fullName: fullName.trim(),
           slug: normalizeSlug(slug),
@@ -172,11 +142,8 @@ export default function CreateCenterPage() {
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.success || !data.clinicId) {
-        if (data.code === "OTP_INVALID") { setOtpSent(false); setOtpCode(""); setOtpMessage(""); }
         throw new Error(data.error || "Center creation failed");
       }
-      setOtpCode("");
-      setOtpSent(false);
 
       if (planId === "basic") {
         const subscribeResponse = await fetch("/api/subscribe", {
@@ -328,6 +295,7 @@ export default function CreateCenterPage() {
             <button type="button" onClick={() => setStep("plan")} className="inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة لاختيار الباقة" : "Back to plan selection"}</button>
           <section className="border-t border-slate-100 pt-6">
             <h2 className="mb-4 text-base font-extrabold text-slate-800">{isRtl ? "2. بيانات المركز" : "2. Center details"}</h2>
+            <p className="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium leading-6 text-emerald-800">{isRtl ? "تم التحقق من بريد حساب المالك أثناء إنشاء الحساب. يمكنك الآن إعداد مركزك." : "Your owner email was verified during account creation. You can now set up your center."}</p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <label className="block text-sm font-semibold text-slate-700">
                 {isRtl ? "اسم المركز المختصر" : "Center display name"}
@@ -406,21 +374,10 @@ export default function CreateCenterPage() {
                 <input value={address} onChange={(e) => setAddress(e.target.value)} required maxLength={250} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "المحافظة، المنطقة، الشارع" : "City, area, street"} />
               </label>
             </div>
-            <section className="border-t border-slate-100 pt-6">
-              <h2 className="mb-2 text-base font-extrabold text-slate-800">{isRtl ? "3. تأكيد البريد الإلكتروني" : "3. Verify your email"}</h2>
-              <p className="text-sm leading-6 text-slate-500">{isRtl ? "سنرسل رمز تحقق إلى بريد حسابك:" : "A verification code will be sent to your account email:"}<span className="mx-1 font-semibold text-slate-700" dir="ltr">{user.email}</span></p>
-              <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                <button type="button" onClick={sendCenterOtp} disabled={sendingOtp || creating} className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl border border-[#5B50C7] px-4 text-sm font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF] disabled:cursor-not-allowed disabled:opacity-50">
-                  {sendingOtp && <Loader2 className="h-4 w-4 animate-spin" />}
-                  {sendingOtp ? (isRtl ? "جارٍ الإرسال..." : "Sending...") : (otpSent ? (isRtl ? "إعادة إرسال الرمز" : "Resend code") : (isRtl ? "إرسال رمز التحقق" : "Send verification code"))}
-                </button>
-                <input value={otpCode} onChange={(event) => setOtpCode(event.target.value.replace(/\D/g, "").slice(0, 6))} inputMode="numeric" autoComplete="one-time-code" maxLength={6} pattern="[0-9]{6}" aria-label={isRtl ? "رمز التحقق المكوّن من 6 أرقام" : "6-digit verification code"} placeholder={isRtl ? "أدخل رمز التحقق" : "Enter verification code"} className="h-11 min-w-0 flex-1 rounded-xl border border-slate-200 px-3 text-center tracking-[0.3em] outline-none focus:border-[#5B50C7]" dir="ltr" />
-              </div>
-              {otpMessage && <p role="status" className="mt-2 text-xs font-medium text-emerald-700">{otpMessage}</p>}
-            </section>
+            
             {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
             {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</p>}
-            <button type="submit" disabled={creating || uploadingLogo || !otpSent || !/^\d{6}$/.test(otpCode)} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#5B50C7] px-6 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">
+            <button type="submit" disabled={creating || uploadingLogo} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#5B50C7] px-6 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">
               {(creating || uploadingLogo) && <Loader2 className="h-4 w-4 animate-spin" />}
               {isRtl ? "إنشاء المركز" : "Create center"}
             </button>
