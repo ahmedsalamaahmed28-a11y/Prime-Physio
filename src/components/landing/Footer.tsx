@@ -52,7 +52,7 @@ export default function Footer() {
                   {link.href.startsWith("mailto:") ? (
                     <a href={link.href}>{link.label}</a>
                   ) : (
-                    <Link href={link.href}>{link.label}</Link>
+                    <a href={link.href}>{link.label}</a>
                   )}
                 </li>
               ))}
