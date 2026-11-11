@@ -16,7 +16,7 @@ const menu = [
   { label: "مراكزي", en: "My Centers", href: "/center-management", icon: Building },
   { label: "التصدير الكامل للبيانات", en: "Full data export", href: "/center-management#export", icon: Download },
   { label: "الحساب والاشتراك", en: "Account & subscription", href: "/subscription", icon: User },
-  { label: "الباقات", en: "Plans", href: "/packages", icon: CreditCard },
+  { label: "الباقات", en: "Plans", href: "/plans", icon: CreditCard },
   { label: "الإشعارات", en: "Notifications", href: "/notifications", icon: Bell },
 ];
 
