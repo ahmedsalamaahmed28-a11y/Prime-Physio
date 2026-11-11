@@ -936,7 +936,7 @@ export default function CalendarPage() {
         defaultPrice = String(settings.default_session_price);
       }
 
-      const invoiceDesc = isRtl ? `جلسة: ${ev.visitType}` : `Session: ${ev.visitType}`;
+      const invoiceDesc = isRtl ? `جلسة: ${ev.visitType}` : `Session: ${ev.visitType === "جلسة جماعية" ? "Group Session" : ev.visitType === "جلسة علاج" ? "Therapy Session" : ev.visitType === "كشف أول" ? "First Exam" : ev.visitType === "متابعة" ? "Follow-up" : "Assessment"}`;
       const invoiceAmt = isRtl ? `${defaultPrice} ج.م` : `${defaultPrice} EGP`;
       const response = await fetch("/api/calendar", {
         method: "POST",
