@@ -136,7 +136,7 @@ function SignupPageContent() {
   }, [email]);
   const fullName = useMemo(() => (firstName.trim() + " " + lastName.trim()).trim(), [firstName, lastName]);
   const hasLength = password.length >= 8;
-  const commonPasswords = new Set(["12345678", "password", "password1", "qwerty123", "123456789", "admin123"]);
+  const commonPasswords = new Set(["12345678", "123456789", "1234567890", "123456", "password", "password1", "password123", "qwerty123", "qwertyui", "abcdefgh", "abc12345", "admin123", "welcome1", "iloveyou", "11111111", "00000000", "87654321", "111111111"]);
   const passwordIsCommon = commonPasswords.has(password.toLowerCase());
   const hasLowercase = /[a-z]/.test(password);
   const hasUppercase = /[A-Z]/.test(password);
@@ -157,7 +157,7 @@ function SignupPageContent() {
         ? (isRtl ? "جيدة" : "Good")
         : (isRtl ? "قوية" : "Strong");
   const passwordStrengthColor = passwordStrength <= 1 ? "bg-red-500" : passwordStrength === 2 ? "bg-amber-500" : passwordStrength === 3 ? "bg-lime-500" : "bg-emerald-500";
-  const passwordReady = hasLength && !passwordIsCommon;
+  const passwordReady = hasLength && password.length <= 128 && new TextEncoder().encode(password).length <= 72 && !passwordIsCommon;
 
   const isValidPhone = (value: string) => /^\+[1-9]\d{6,14}$/.test(value);
 
@@ -183,7 +183,7 @@ function SignupPageContent() {
       return;
     }
     if (!passwordReady) {
-      setError(isRtl ? "كلمة المرور يجب أن تتكون من 8 أحرف على الأقل، ويجب ألا تكون كلمة مرور شائعة أو سهلة التخمين." : "Use at least 8 characters and avoid common or easily guessed passwords.");
+      setError(isRtl ? "كلمة المرور يجب أن تتكون من 8 أحرف على الأقل (وبحد أقصى 128)، وألا تكون شائعة أو سهلة التخمين." : "Use 8–128 characters, avoid common passwords, and keep the UTF-8 size within 72 bytes.");
       return;
     }
     if (password !== confirmPassword) {
