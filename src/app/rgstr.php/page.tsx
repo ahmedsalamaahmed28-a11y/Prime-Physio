@@ -137,7 +137,7 @@ function SignupPageContent() {
   const fullName = useMemo(() => (firstName.trim() + " " + lastName.trim()).trim(), [firstName, lastName]);
   const hasLength = password.length >= 8;
   const commonPasswords = new Set(["12345678", "123456789", "1234567890", "123456", "password", "password1", "password123", "qwerty123", "qwertyui", "abcdefgh", "abc12345", "admin123", "welcome1", "iloveyou", "11111111", "00000000", "87654321", "111111111"]);
-  const passwordIsCommon = commonPasswords.has(password.toLowerCase());
+  const passwordIsCommon = commonPasswords.has(password.trim().toLowerCase());
   const hasLowercase = /[a-z]/.test(password);
   const hasUppercase = /[A-Z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
