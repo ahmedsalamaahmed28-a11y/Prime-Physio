@@ -16,7 +16,7 @@ const footerGroups = [
   {
     title: "للمراكز والعيادات",
     links: [
-      { label: "إنشاء حساب جديد", href: "/signup" },
+      { label: "إنشاء حساب جديد", href: "/rgstr.php" },
       { label: "تسجيل الدخول", href: "/manage" },
       { label: "لوحة التحكم", href: "/manage" },
       { label: "تواصل مع فريقنا", href: "mailto:support@primephysio.app" },
