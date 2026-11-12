@@ -1,7 +1,5 @@
-import DashboardPage from "../dashboard/page";
+import CenterAdminPlaceholder from "@/components/CenterAdminPlaceholder";
 
-// The overview route should show the clinic activity dashboard, not the
-// separate center-management screen.
 export default function OverviewPhpPage() {
-  return <DashboardPage />;
+  return <CenterAdminPlaceholder />;
 }
