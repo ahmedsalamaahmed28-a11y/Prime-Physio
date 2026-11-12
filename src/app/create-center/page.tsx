@@ -260,12 +260,13 @@ export default function CreateCenterPage() {
             </label>
             <label className="mt-4 block text-sm font-semibold text-slate-700">
               {isRtl ? "الدولة" : "Country"}
-              <div className="relative mt-2 flex h-12 items-center rounded-xl border border-slate-200 bg-white px-3 transition focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10">
-                <span className="text-xl" aria-hidden="true">{selectedCountry.flag}</span>
-                <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)} aria-label={isRtl ? "دولة المركز" : "Center country"} className="h-full min-w-0 flex-1 appearance-none bg-transparent px-3 text-sm font-medium text-slate-700 outline-none">
-                  {CENTER_COUNTRIES.map((country) => <option key={country.code} value={country.code}>{country.flag}  {isRtl ? country.ar : country.en}</option>)}
+              <div className="relative mt-2 flex h-[46px] min-h-[46px] items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white px-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10">
+                <img src={`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png`} alt="" aria-hidden="true" width="28" height="20" className="pointer-events-none h-4 w-6 object-contain" />
+                <span className="min-w-0 flex-1 px-3 text-[15px] font-semibold text-slate-700">{isRtl ? selectedCountry.ar : selectedCountry.en}</span>
+                <ChevronDown className="pointer-events-none absolute left-3 h-4 w-4 text-slate-500" aria-hidden="true" />
+                <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)} aria-label={isRtl ? "دولة المركز" : "Center country"} className="absolute inset-0 h-full w-full cursor-pointer opacity-0">
+                  {CENTER_COUNTRIES.map((country) => <option key={country.code} value={country.code}>{country.flag} {isRtl ? country.ar : country.en}</option>)}
                 </select>
-                <ChevronDown className="pointer-events-none h-4 w-4 text-slate-500" />
               </div>
             </label>
             <label className="mt-4 block text-sm font-semibold text-slate-700">
@@ -327,16 +328,19 @@ export default function CreateCenterPage() {
               </div>
 
               <label className="block text-sm font-semibold text-slate-700">{isRtl ? "الهاتف" : "Phone"}
-                <div className="mt-2 flex h-11 overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#5B50C7]" dir="ltr">
-                  <div className="relative flex w-[116px] shrink-0 items-center gap-2 border-r border-slate-200 bg-slate-50 px-3">
-                    <span aria-hidden="true">{selectedPhoneCountry.flag}</span>
-                    <span className="text-sm font-semibold text-slate-700">+{selectedPhoneCountry.dial}</span>
-                    <ChevronDown className="h-3 w-3 text-slate-500" />
-                    <select value={phoneCountryCode} onChange={(event) => setPhoneCountryCode(event.target.value)} aria-label={isRtl ? "اختر دولة الهاتف" : "Select phone country"} className="absolute inset-0 h-full w-full cursor-pointer opacity-0">
+                <div className="mt-2 flex h-[46px] min-h-[46px] min-w-0 items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
+                  <div className="relative flex h-full w-[60px] shrink-0 items-center justify-center gap-1 bg-transparent">
+                    <label htmlFor="center-phone-country" className="sr-only">{isRtl ? "اختيار الدولة" : "Select country"}</label>
+                    <img src={`https://flagcdn.com/w40/${selectedPhoneCountry.code.toLowerCase()}.png`} alt="" aria-hidden="true" width="28" height="20" className="pointer-events-none h-3.5 w-5 object-contain" />
+                    <ChevronDown className="pointer-events-none h-3 w-3 shrink-0 text-slate-500" aria-hidden="true" />
+                    <select id="center-phone-country" value={phoneCountryCode} onChange={(event) => setPhoneCountryCode(event.target.value)} aria-label={isRtl ? "اختر دولة الهاتف" : "Select phone country"} className="absolute inset-0 h-full w-full cursor-pointer opacity-0">
                       {CENTER_COUNTRIES.map((country) => <option key={country.code} value={country.code}>+{country.dial} · {isRtl ? country.ar : country.en}</option>)}
                     </select>
                   </div>
-                  <input value={phone} onChange={(event) => setPhone(event.target.value.replace(/[^0-9]/g, ""))} maxLength={18} type="tel" inputMode="tel" autoComplete="tel-national" className="min-w-0 flex-1 px-3 outline-none" placeholder={selectedPhoneCountry.example} />
+                  <div className="flex h-full min-w-0 flex-1 items-center pl-1">
+                    <span className="mr-2 shrink-0 whitespace-nowrap text-[16px] font-normal leading-[24px] text-slate-800" aria-label={isRtl ? "مفتاح الدولة" : "Country calling code"}>+{selectedPhoneCountry.dial}</span>
+                    <input type="tel" inputMode="tel" autoComplete="tel-national" value={phone} onChange={(event) => setPhone(event.target.value.replace(/[^0-9]/g, ""))} maxLength={18} placeholder={selectedPhoneCountry.example} aria-label={isRtl ? "رقم الهاتف" : "Phone number"} className="h-full min-w-0 w-full bg-transparent py-0 pr-3 font-normal text-[16px] leading-[24px] text-slate-800 outline-none placeholder:text-slate-400" />
+                  </div>
                 </div>
               </label>
             </div>}
