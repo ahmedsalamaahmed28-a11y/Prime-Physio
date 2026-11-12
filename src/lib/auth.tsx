@@ -336,7 +336,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           window.location.href = "/platform";
         } else if (enriched.clinicId && typeof window !== "undefined" && isAuthEntryPath && !isClinicLandingPage) {
           window.location.href = "/dashboard";
-        } else if (enriched.clinicId === null && typeof window !== "undefined" && currentPath !== "/" && !currentPath.startsWith("/setup") && currentPath !== "/center-management" && currentPath !== "/center-management.php" && currentPath !== "/create-center" && !/^\/[a-z][a-z0-9-]+$/.test(currentPath) && !isClinicLandingPage) {
+        } else if (enriched.clinicId === null && typeof window !== "undefined" && currentPath !== "/" && !currentPath.startsWith("/setup") && currentPath !== "/center-management" && currentPath !== "/center-management.php" && currentPath !== "/create-center" && currentPath !== "/my-centers/create" && !/^\/[a-z][a-z0-9-]+$/.test(currentPath) && !isClinicLandingPage) {
           window.location.href = "/center-management";
         }
 
@@ -399,7 +399,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       // Redirect only after enrichment has confirmed that the account has no clinic.
       // undefined means the lookup is unresolved and must not trigger an onboarding redirect.
       if (user?.clinicId === null && !user?.isPlatformAdmin && user?.email && !isEnriching) {
-        const setupPaths = ["/login.php", "/login", "/signup", "/rgstr.php", "/setup", "/setup/center", "/plans", "/center_setup", "/center-management", "/center-management.php", "/create-center", "/centers/new", "/my-centers/new"];
+        const setupPaths = ["/login.php", "/login", "/signup", "/rgstr.php", "/setup", "/setup/center", "/plans", "/center_setup", "/center-management", "/center-management.php", "/create-center", "/my-centers/create", "/centers/new", "/my-centers/new"];
         if (!setupPaths.includes(pathname)) {
           window.location.href = "/center-management";
         }
