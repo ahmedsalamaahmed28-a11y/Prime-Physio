@@ -26,7 +26,7 @@ const pageCopy: Record<string, { ar: string; en: string; descAr: string; descEn:
 export default function CenterAdminPlaceholder() {
   const { language, toggleLanguage } = useLanguage();
   const pathname = usePathname() || "/";
-  const normalized = pathname.replace(/\\/+$/, "") || "/";
+  const normalized = pathname.replace(new RegExp("/+$"), "") || "/";
   const isRtl = language === "ar";
   const [mobileOpen, setMobileOpen] = useState(false);
   const copy = pageCopy[normalized] || pageCopy["/overview.php"];
@@ -40,7 +40,7 @@ export default function CenterAdminPlaceholder() {
       <nav className="space-y-1">
         {items.map((item) => {
           const Icon = item.icon;
-          const active = normalized === item.href.replace(/\\/+$/, "");
+          const active = normalized === item.href.replace(new RegExp("/+$"), "");
           return (
             <Link key={item.key} href={item.href} onClick={() => setMobileOpen(false)} className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-semibold transition ${active ? "bg-[#F1EFFF] text-[#5B50C7]" : "text-[#59616B] hover:bg-[#F7F9FB] hover:text-[#5B50C7]"}`}>
               <Icon className="h-[18px] w-[18px] shrink-0" />
