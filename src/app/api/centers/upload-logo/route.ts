@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await requireAuthOnly(req);
     const form = await req.formData();
+    const kind = form.get("kind") === "cover" ? "cover" : "logo";
     const file = form.get("file");
     if (!(file instanceof File)) return NextResponse.json({ error: "اختر صورة للمركز أولاً." }, { status: 400 });
     if (file.size <= 0 || file.size > MAX_LOGO_BYTES) return NextResponse.json({ error: "يجب ألا يتجاوز حجم الصورة 5 ميجابايت." }, { status: 413 });
@@ -37,7 +38,7 @@ export async function POST(req: NextRequest) {
     if (!validSignature(buffer, mime)) return NextResponse.json({ error: "ملف الصورة غير صالح." }, { status: 415 });
 
     const ownerFolder = createHash("sha256").update(session.email.toLowerCase().trim()).digest("hex");
-    const path = `onboarding/${ownerFolder}/${randomUUID()}.${extension}`;
+    const path = `onboarding/${ownerFolder}/${kind === "cover" ? "covers/" : ""}${randomUUID()}.${extension}`;
     const admin = getAdminClient();
     const { error } = await admin.storage.from("branch-logos").upload(path, buffer, {
       contentType: mime,
