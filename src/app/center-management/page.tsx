@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
-  Bell, Building, HelpCircle, CreditCard, Download, Globe, Search, Wifi,
+  Bell, Building, HelpCircle, CreditCard, Download, Globe, Wifi,
   LayoutDashboard, RefreshCw, Sparkles, User, Menu as MenuIcon, X,
   Copy, Check, Users, CalendarDays, Activity
 } from "lucide-react";
@@ -160,20 +160,6 @@ export default function CenterManagementPage() {
               <button onClick={() => setMobileMenuOpen(true)} className="rounded-lg p-2 text-[#5B50C7] transition hover:bg-[#F1EFFF] lg:hidden" aria-label={isRtl ? "فتح القائمة" : "Open menu"}>
                 <MenuIcon className="h-5 w-5" />
               </button>
-              <div className="hidden max-w-[340px] flex-1 items-center gap-2 rounded-xl border border-[#E5EAF0] bg-[#F8FAFC] px-3 py-2 sm:flex">
-                <Search className="h-4 w-4 shrink-0 text-[#8A929C]" />
-                <input
-                  type="search"
-                  placeholder={isRtl ? "ابحث عن مركز أو مريض..." : "Search centers or patients..."}
-                  aria-label={isRtl ? "بحث" : "Search"}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" && event.currentTarget.value.trim()) {
-                      router.push(`/patients?search=${encodeURIComponent(event.currentTarget.value.trim())}`);
-                    }
-                  }}
-                  className={`w-full bg-transparent text-[13px] text-[#303846] outline-none placeholder:text-[#A0A7B0] ${isRtl ? "text-right" : "text-left"}`}
-                />
-              </div>
             </div>
 
             <div className="flex shrink-0 items-center gap-2 sm:gap-3">
@@ -260,13 +246,12 @@ export default function CenterManagementPage() {
           <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col px-[32px] pb-[26px] pt-[40px] max-sm:px-4 max-sm:pt-7">
             <div className="mb-[24px] flex min-h-[75px] items-center justify-between gap-5 max-sm:flex-col max-sm:items-stretch">
               <div className="order-2 flex items-center gap-[13px] max-sm:order-2">
-                <Link href="/my-centers" className="inline-flex h-[40px] items-center gap-[8px] rounded-full bg-[#5B50C7] px-[17px] text-[14px] font-bold text-white shadow-[0_4px_12px_rgba(91,80,199,.18)] transition hover:bg-[#4338A8]">
-                  {isRtl ? "مراكزي" : "My Centers"}<Building className="h-[17px] w-[17px]" />
-                </Link>
-                <span className="h-[8px] w-[8px] rounded-full bg-[#D9E4F0]" />
                 <button onClick={() => window.location.reload()} className="inline-flex h-[40px] items-center gap-[8px] rounded-full border border-[#E7EBEF] bg-white px-[16px] text-[14px] font-semibold text-[#69727D] transition hover:bg-slate-50">
                   {isRtl ? "التحديث" : "Refresh"}<RefreshCw className="h-[17px] w-[17px]" />
                 </button>
+                <Link href="/my-centers" className="inline-flex h-[40px] items-center gap-[8px] rounded-full bg-[#5B50C7] px-[17px] text-[14px] font-bold text-white shadow-[0_4px_12px_rgba(91,80,199,.18)] transition hover:bg-[#4338A8]">
+                  {isRtl ? "مراكزي" : "My Centers"}<Building className="h-[17px] w-[17px]" />
+                </Link>
               </div>
               <div className="order-1 text-right max-sm:order-1">
                 <h1 className="text-[30px] font-extrabold leading-[1.35] tracking-tight text-[#202B38] max-sm:text-[25px]">{isRtl ? `مرحباً، ${displayName}` : `Welcome, ${displayName}`}</h1>
@@ -275,13 +260,6 @@ export default function CenterManagementPage() {
             </div>
 
             <section className="w-full">
-              <div className="mb-5 flex items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-[20px] font-extrabold text-[#202B38]">{isRtl ? "المراكز التابعة لحسابك" : "Your independent centers"}</h2>
-                  <p className="mt-1 text-[13px] text-[#9299A2]">{isRtl ? "كل مركز له رابط دخول وبيانات واشتراك مستقل." : "Each center has its own login URL, data and subscription."}</p>
-                </div>
-                <button onClick={startSetup} className="inline-flex h-[42px] shrink-0 items-center justify-center rounded-full bg-[#5B50C7] px-5 text-[13px] font-extrabold text-white transition hover:bg-[#4338A8]">{isRtl ? "+ إنشاء مركز" : "+ Create center"}</button>
-              </div>
               {centersLoading ? (
                 <div className="flex min-h-[220px] items-center justify-center rounded-[18px] border border-[#E8EBEF] bg-white">
                   <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#5B50C7] border-t-transparent" />
