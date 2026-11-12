@@ -335,7 +335,7 @@ export default function CenterManagementPage() {
                           </div>
 
                           <div className="mt-4 flex gap-2">
-                            <Link href={`/center-management/open/${center.id}`} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#5147B8] text-sm font-extrabold text-white shadow-sm transition hover:bg-[#40369F]"><ActionIcon kind="open" />{isRtl ? "فتح" : "Open"}</Link>
+                            <Link href={center.slug ? `/${center.slug}` : "/my-centers"} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#5147B8] text-sm font-extrabold text-white shadow-sm transition hover:bg-[#40369F]"><ActionIcon kind="open" />{isRtl ? "فتح" : "Open"}</Link>
                             <button type="button" disabled={!center.slug} onClick={() => setQrCenter(center)} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[#DCE2F0] bg-white text-sm font-bold text-[#4E5D72] hover:bg-[#F7F8FC] disabled:opacity-40"><ActionIcon kind="qr" />{isRtl ? "ملصق QR" : "QR sticker"}</button>
                           </div>
                           <div className="mt-2 flex gap-2">
