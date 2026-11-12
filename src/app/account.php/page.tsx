@@ -1,5 +1,5 @@
-import SubscriptionPage from "../subscription/page";
+import CenterAdminPlaceholder from "@/components/CenterAdminPlaceholder";
 
 export default function AccountPhpPage() {
-  return <SubscriptionPage />;
+  return <CenterAdminPlaceholder />;
 }
