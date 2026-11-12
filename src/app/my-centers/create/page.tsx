@@ -238,31 +238,31 @@ export default function CreateCenterPage() {
   return (
     <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-white font-sans text-slate-800">
       <div className="flex min-h-screen w-full flex-col" dir={isRtl ? "rtl" : "ltr"}>
-                <section className="flex w-full flex-1 flex-col items-start bg-[#F7F9FC] px-5 py-8 sm:px-8 lg:px-10">
-          <div className="w-full max-w-none flex-1">
+                <section className="relative flex w-full flex-1 flex-col items-start overflow-hidden bg-[#F8FAFF] px-4 py-7 sm:px-6 sm:py-9 lg:px-8 xl:px-10"><div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_8%,rgba(79,70,229,0.07),transparent_28%),radial-gradient(circle_at_92%_82%,rgba(11,76,150,0.055),transparent_30%)]" />
+          <div className="relative z-10 flex w-full min-w-0 flex-1 flex-col">
         <div className="mb-6 flex w-full justify-start" dir="ltr">
           <Link href="/center-management" dir={isRtl ? "rtl" : "ltr"} className="inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7] hover:text-[#4338A8]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         </div>
-        <div className="mb-8">
-          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#5B50C7] text-white"><Building className="h-7 w-7" /></div>
-          <h1 className="text-3xl font-extrabold text-[#202B38]">{isRtl ? "إنشاء مركز مستقل جديد" : "Create a new independent center"}</h1>
-          <p className="mt-2 max-w-3xl text-base leading-7 text-[#7C8794]">{isRtl ? "كل مركز يحصل على رابط دخول وبيانات واشتراك منفصل." : "Every center gets its own login URL, data and subscription."}</p>
+        <div className="mb-8 w-full rounded-3xl border border-indigo-100/80 bg-white/90 p-6 shadow-sm backdrop-blur-sm sm:p-8 lg:p-9">
+          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600"><Building className="h-7 w-7" /></div>
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">{isRtl ? "إنشاء مركز مستقل جديد" : "Create a new independent center"}</h1>
+          <p className="mt-3 max-w-4xl text-base font-medium leading-8 text-slate-600 sm:text-lg">{isRtl ? "كل مركز يحصل على رابط دخول وبيانات واشتراك منفصل." : "Every center gets its own login URL, data and subscription."}</p>
         </div>
 
-        <form onSubmit={createCenter} className="w-full space-y-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 lg:p-10">
+        <form onSubmit={createCenter} className="flex w-full flex-col gap-6 sm:gap-7">
           {step === "plan" && <>
           <section>
             <h2 className="mb-3 text-base font-extrabold text-slate-800">{isRtl ? "1. اختر الباقة" : "1. Choose a plan"}</h2>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {plans.map((plan) => (
-                <button key={plan.id} type="button" onClick={() => setPlanId(plan.id)} className={`rounded-2xl border p-4 text-start transition ${planId === plan.id ? "border-[#5B50C7] bg-[#F1EFFF] ring-2 ring-[#5B50C7]/15" : "border-slate-200 bg-white hover:border-slate-300"}`}>
+                <button key={plan.id} type="button" onClick={() => setPlanId(plan.id)} className={`group relative flex min-h-[170px] flex-col rounded-3xl border p-5 text-start shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60 sm:p-6 ${planId === plan.id ? "border-indigo-300 bg-indigo-50/70 ring-2 ring-indigo-500/15" : "border-slate-200 bg-white hover:border-indigo-200"}`}>
                   {plan.id === "basic" && <span className="mb-2 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">{isRtl ? "موصى بها — بدون بطاقة دفع" : "Recommended — no card required"}</span>}
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-extrabold text-slate-800">{isRtl ? plan.nameAr : plan.nameEn}</span>
                     {planId === plan.id && <CheckCircle2 className="h-5 w-5 text-[#5B50C7]" />}
                   </div>
-                  <div className="mt-3 text-lg font-extrabold text-[#5B50C7]">{isRtl ? plan.priceLabelAr : plan.priceLabelEn}</div>
-                  <p className="mt-1 text-xs text-slate-500">{isRtl ? plan.descriptionAr : plan.descriptionEn}</p>
+                  <div className="mt-5 text-xl font-black text-indigo-700 sm:text-2xl">{isRtl ? plan.priceLabelAr : plan.priceLabelEn}</div>
+                  <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{isRtl ? plan.descriptionAr : plan.descriptionEn}</p>
                 </button>
               ))}
             </div>
@@ -273,8 +273,8 @@ export default function CreateCenterPage() {
           </>}
           {step === "details" && <>
             <button type="button" onClick={() => setStep("plan")} className="inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة لاختيار الباقة" : "Back to plan selection"}</button>
-          <section className="border-t border-slate-100 pt-6">
-            <h2 className="mb-4 text-base font-extrabold text-slate-800">{isRtl ? "2. بيانات المركز" : "2. Center details"}</h2>
+          <section className="w-full rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-lg hover:shadow-slate-200/50 sm:p-7 lg:p-8">
+            <h2 className="mb-5 text-lg font-black text-slate-900 sm:text-xl">{isRtl ? "2. بيانات المركز" : "2. Center details"}</h2>
             <p className="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium leading-6 text-emerald-800">{isRtl ? "تم التحقق من بريد حساب المالك أثناء إنشاء الحساب. يمكنك الآن إعداد مركزك." : "Your owner email was verified during account creation. You can now set up your center."}</p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <label className="block text-sm font-semibold text-slate-700">
