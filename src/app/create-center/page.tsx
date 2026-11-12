@@ -159,7 +159,7 @@ export default function CreateCenterPage() {
         const subscribeData = await subscribeResponse.json().catch(() => ({}));
         if (!subscribeResponse.ok) throw new Error(subscribeData.error || "The center was created, but the free plan could not be activated.");
         await activateCenterSession(data.clinicId);
-        setCreatedCenterName(shortName.trim());
+        setCreatedCenterName(shortName.trim() || fullName.trim());
         setCreatedSlug(data.slug);
         setCenterCreated(true);
         return;
