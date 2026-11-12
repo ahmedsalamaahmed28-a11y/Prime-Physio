@@ -17,14 +17,21 @@ export async function POST(req: NextRequest) {
     const shortName = typeof body?.shortName === "string" ? body.shortName.trim().slice(0, 120) : "";
     const fullName = typeof body?.fullName === "string" ? body.fullName.trim().slice(0, 200) : "";
     const slug = typeof body?.slug === "string" ? body.slug.trim().toLowerCase() : "";
-    const logoUrl = typeof body?.logoUrl === "string" ? body.logoUrl.trim().slice(0, 1000) : null;
+    const suppliedLogoUrl = typeof body?.logoUrl === "string" ? body.logoUrl.trim().slice(0, 1000) : null;
     const logoPath = typeof body?.logoPath === "string" ? body.logoPath.trim().slice(0, 500) : "";
+    const logoUrl = suppliedLogoUrl || `${req.nextUrl.origin}/logo.png`;
+    const country = typeof body?.country === "string" ? body.country.trim().slice(0, 100) : "";
+    const countryCode = typeof body?.countryCode === "string" ? body.countryCode.trim().toUpperCase() : "";
 
     if (!["basic", "silver", "gold"].includes(planId)) {
       return NextResponse.json({ error: "يرجى اختيار باقة صالحة أولاً." }, { status: 400 });
     }
     if (!shortName || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 50) {
       return NextResponse.json({ error: "يرجى إدخال اسم المركز ورابط صالح من أحرف إنجليزية وأرقام وشرطات." }, { status: 400 });
+    }
+
+    if (!country || !/^[A-Z]{2}$/.test(countryCode)) {
+      return NextResponse.json({ error: "يرجى اختيار دولة صحيحة للمركز." }, { status: 400 });
     }
 
     const admin = getAdminClient();
@@ -37,7 +44,7 @@ export async function POST(req: NextRequest) {
       if (logoUrl !== expectedLogoUrl) {
         return NextResponse.json({ error: "رابط صورة المركز غير صالح." }, { status: 400 });
       }
-    } else if (logoUrl) {
+    } else if (suppliedLogoUrl) {
       return NextResponse.json({ error: "تعذر التحقق من مصدر صورة المركز." }, { status: 400 });
     }
     const cleanupLogo = async () => {
@@ -47,7 +54,6 @@ export async function POST(req: NextRequest) {
     };
     const phone = typeof body?.phone === "string" ? body.phone.trim().slice(0, 32) : "";
     const address = typeof body?.address === "string" ? body.address.trim().slice(0, 250) : "";
-    if (!phone || !address) return NextResponse.json({ error: "يرجى إدخال رقم هاتف المركز وعنوانه." }, { status: 400 });
 
     // Email verification is completed during owner signup. The database function
     // independently requires auth_accounts.verified = true before creating a center.
@@ -70,7 +76,10 @@ export async function POST(req: NextRequest) {
       }, { status, headers: { "Cache-Control": "no-store, private" } });
     }
 
-    const { error: detailsError } = await admin.from("clinics").update({ phone, address }).eq("id", data.clinicId).eq("admin_email", email);
+    const clinicDetails: Record<string, string | null> = { country };
+    if (phone) clinicDetails.phone = phone;
+    if (address) clinicDetails.address = address;
+    const { error: detailsError } = await admin.from("clinics").update(clinicDetails).eq("id", data.clinicId).eq("admin_email", email);
     if (detailsError) {
       console.error("[IndependentCenter] Contact details update failed:", detailsError);
       return NextResponse.json({ error: "تم إنشاء المركز لكن تعذر حفظ الهاتف والعنوان. تواصل مع الدعم قبل إعادة المحاولة.", clinicCreated: true, clinicId: data.clinicId }, { status: 500 });
