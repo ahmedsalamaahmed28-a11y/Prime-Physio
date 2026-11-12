@@ -305,7 +305,7 @@ export default function DashboardLayout({
 
   // Center management and public/auth pages remain standalone.
   // Center creation keeps the global header but hides dashboard navigation.
-  if (isCenterManagementPage || isAuthPage) {
+  if (isCenterManagementPage || isCenterCreationPage || isAuthPage) {
     return <>{children}</>;
   }
 
