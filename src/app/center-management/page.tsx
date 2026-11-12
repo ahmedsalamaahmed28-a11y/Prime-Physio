@@ -106,7 +106,7 @@ export default function CenterManagementPage() {
     return <main className="flex min-h-screen items-center justify-center bg-white"><div className="h-9 w-9 animate-spin rounded-full border-4 border-[#5B50C7] border-t-transparent" /></main>;
   }
 
-  const startSetup = () => router.push("/create-center");
+  const startSetup = () => router.push("/my-centers/create");
   const sidebar = (
     <>
       <Link href="/home.php" onClick={() => setMobileMenuOpen(false)} className="mb-[26px] flex h-[42px] w-full items-center justify-start gap-[9px] px-[2px]">
