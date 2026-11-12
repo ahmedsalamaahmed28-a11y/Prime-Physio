@@ -1,11 +1,12 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import type { FormEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
 import {
-  ArrowRight, Building2, CalendarDays, CheckCircle2, Clock3, Eye, EyeOff,
+  ArrowRight, Building2, CheckCircle2, Clock3, Eye, EyeOff,
   Facebook, Globe, Instagram, Lock, Mail, MapPin, MessageCircle, Phone,
   Stethoscope, Users,
 } from "lucide-react";
