@@ -651,6 +651,12 @@ export default function DashboardLayout({
                 }}
                 onAction={(action) => {
                   switch (action) {
+                    case "account":
+                      router.push("/subscription");
+                      break;
+                    case "password":
+                      router.push("/forgot-password");
+                      break;
                     case "profile":
                       router.push("/profile");
                       break;
