@@ -239,7 +239,7 @@ export default function CreateCenterPage() {
     <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-white font-sans text-slate-800">
       <div className="flex min-h-screen w-full flex-col" dir={isRtl ? "rtl" : "ltr"}>
                 <section className="flex w-full flex-1 flex-col items-start bg-[#F7F9FC] px-5 py-8 sm:px-8 lg:px-10">
-          <div className="w-full max-w-6xl">
+          <div className="w-full max-w-none flex-1">
         <div className="mb-6 flex w-full justify-start" dir="ltr">
           <Link href="/center-management" dir={isRtl ? "rtl" : "ltr"} className="inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7] hover:text-[#4338A8]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         </div>
