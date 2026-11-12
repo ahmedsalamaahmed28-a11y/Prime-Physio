@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation";
+import CenterManagementPage from "../center-management/page";
 
-// Keep the My Centers URL aligned with the canonical center-management screen.
-export default function MyCentersRedirect() {
-  redirect("/center-management");
+export default function MyCentersPage() {
+  return <CenterManagementPage />;
 }
