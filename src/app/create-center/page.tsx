@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -57,6 +57,7 @@ const plans = [
 
 export default function CreateCenterPage() {
   const pathname = usePathname();
+  const router = useRouter();
   const isAddCenterRoute = (pathname || "").replace(/\/+$/, "") === "/addcenter.php";
   const { user, isLoading, isEnriching } = useAuth();
   const { language, toggleLanguage } = useLanguage();
@@ -78,6 +79,8 @@ export default function CreateCenterPage() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [slug, setSlug] = useState("");
   const [creating, setCreating] = useState(false);
+  const [showCreationProgress, setShowCreationProgress] = useState(false);
+  const [creationProgress, setCreationProgress] = useState(0);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [paymentUrl, setPaymentUrl] = useState("");
@@ -146,6 +149,10 @@ export default function CreateCenterPage() {
       return;
     }
     setCreating(true);
+    if (planId === "basic") {
+      setCreationProgress(0);
+      setShowCreationProgress(true);
+    }
     try {
       let uploadedLogo: { url: string; path: string } | null = null;
       if (logoFile) {
@@ -182,6 +189,10 @@ export default function CreateCenterPage() {
       }
 
       if (planId === "basic") {
+        // Center provisioning also creates the verified owner membership.
+        setCreationProgress(1);
+        await new Promise((resolve) => window.setTimeout(resolve, 550));
+        setCreationProgress(2);
         const subscribeResponse = await fetch("/api/subscribe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -190,9 +201,8 @@ export default function CreateCenterPage() {
         const subscribeData = await subscribeResponse.json().catch(() => ({}));
         if (!subscribeResponse.ok) throw new Error(subscribeData.error || "The center was created, but the free plan could not be activated.");
         await activateCenterSession(data.clinicId);
-        setCreatedCenterName(shortName.trim() || fullName.trim());
-        setCreatedSlug(data.slug);
-        setCenterCreated(true);
+        setCreationProgress(3);
+        window.setTimeout(() => router.replace("/dashboard"), 900);
         return;
       }
 
@@ -220,6 +230,7 @@ export default function CreateCenterPage() {
       setPaymentUrl(paymentData.iframeUrl);
       setNotice(isRtl ? "تم إنشاء المركز. أكمل الدفع لتفعيل الباقة." : "The center was created. Complete payment to activate the plan.");
     } catch (createError) {
+      setShowCreationProgress(false);
       setError(createError instanceof Error ? createError.message : "Center creation failed");
     } finally {
       setUploadingLogo(false);
@@ -273,6 +284,35 @@ export default function CreateCenterPage() {
 
   return (
     <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-white font-sans text-[#303846]">
+      {showCreationProgress && planId === "basic" && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/35 px-4 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="center-creation-progress-title">
+          <section className="w-full max-w-md rounded-3xl border border-white/70 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)] sm:p-8">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F1EFFF] text-[#5B50C7]"><Building className="h-7 w-7" /></div>
+            <h2 id="center-creation-progress-title" className="text-center text-xl font-extrabold text-[#202B38]">{isRtl ? "جارٍ إعداد مركزك" : "Setting up your center"}</h2>
+            <p className="mt-2 text-center text-sm leading-6 text-slate-500">{isRtl ? "يرجى الانتظار، لا تغلق الصفحة حتى تكتمل الخطوات." : "Please wait and keep this page open until setup is complete."}</p>
+            <div className="mt-7 space-y-5">
+              {[
+                isRtl ? "جارٍ تجهيز مركزك" : "Preparing your center",
+                isRtl ? "جارٍ جعلك مديرًا للمركز" : "Making you the center owner",
+                isRtl ? "جارٍ فتح المركز" : "Opening your center",
+              ].map((label, index) => {
+                const complete = creationProgress > index;
+                const active = creationProgress === index;
+                return (
+                  <div key={label} className="flex items-center gap-3" dir={isRtl ? "rtl" : "ltr"}>
+                    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${complete ? "bg-emerald-100 text-emerald-600" : active ? "bg-[#F1EFFF] text-[#5B50C7]" : "bg-slate-100 text-slate-400"}`}>
+                      {complete ? <CheckCircle2 className="h-5 w-5" /> : active ? <Loader2 className="h-5 w-5 animate-spin" /> : <span className="text-sm font-bold">{index + 1}</span>}
+                    </span>
+                    <span className={`text-sm font-bold ${complete ? "text-emerald-700" : active ? "text-[#5B50C7]" : "text-slate-400"}`}>{label}</span>
+                    {complete && <CheckCircle2 className="ms-auto h-5 w-5 shrink-0 text-emerald-600" />}
+                  </div>
+                );
+              })}
+            </div>
+            {creationProgress === 3 && <p className="mt-6 rounded-xl bg-emerald-50 px-4 py-3 text-center text-sm font-bold text-emerald-700">{isRtl ? "اكتمل الإعداد، جارٍ تحويلك إلى المركز..." : "Setup complete. Redirecting you to your center..."}</p>}
+          </section>
+        </div>
+      )}
       <div className="flex min-h-screen w-full">
         <aside className="hidden w-[290px] shrink-0 flex-col border-l border-[#E8EBEF] bg-white px-[12px] pb-[18px] pt-[16px] lg:flex">{sidebar}</aside>
         {mobileMenuOpen && <div className="fixed inset-0 z-[90] flex lg:hidden">
