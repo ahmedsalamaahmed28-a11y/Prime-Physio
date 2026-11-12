@@ -290,7 +290,7 @@ export default function CreateCenterPage() {
                 <input value={shortName} onChange={(e) => setShortName(e.target.value)} maxLength={120} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "اسم مختصر يظهر داخل المنصة" : "A short name shown in the platform"} />
               </label>
 
-              <div className="min-w-0 md:col-span-2">
+              <div className="min-w-0">
                 <label className="mb-2 block text-sm font-semibold text-slate-700">{isRtl ? "الشعار" : "Logo"}</label>
                 <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 sm:flex-row sm:items-center">
                   {logoPreview ? (
