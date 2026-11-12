@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -55,6 +56,8 @@ const plans = [
 ];
 
 export default function CreateCenterPage() {
+  const pathname = usePathname();
+  const isAddCenterRoute = (pathname || "").replace(/\/+$/, "") === "/addcenter.php";
   const { user, isLoading, isEnriching } = useAuth();
   const { language, toggleLanguage } = useLanguage();
   const isRtl = language === "ar";
@@ -100,7 +103,7 @@ export default function CreateCenterPage() {
       <nav className="space-y-[2px]">
         {sidebarMenu.map((item, index) => {
           const Icon = item.icon;
-          return <Link key={`${item.href}-${index}`} href={item.href} onClick={() => setMobileMenuOpen(false)} className={`flex h-[44px] w-full items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold transition-colors ${index === 0 ? "bg-[#F1EFFF] text-[#5B50C7]" : "text-[#59616B] hover:bg-[#F7F9FB] hover:text-[#5B50C7]"}`}><Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} /><span className="flex-1 text-right">{isRtl ? item.label : item.en}</span></Link>;
+          return <Link key={`${item.href}-${index}`} href={item.href} onClick={() => setMobileMenuOpen(false)} className={`flex h-[44px] w-full items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold transition-colors ${(isAddCenterRoute ? index === 1 : index === 0) ? "bg-[#F1EFFF] text-[#5B50C7]" : "text-[#59616B] hover:bg-[#F7F9FB] hover:text-[#5B50C7]"}`}><Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} /><span className="flex-1 text-right">{isRtl ? item.label : item.en}</span></Link>;
         })}
       </nav>
       <div className="mt-auto space-y-[2px] border-t border-[#EEF0F2] pt-[15px]">
