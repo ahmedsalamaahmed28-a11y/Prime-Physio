@@ -12,12 +12,12 @@ import {
 import { useEffect, useState } from "react";
 
 const menu = [
-  { label: "نظرة عامة", en: "Overview", href: "/center-management", icon: LayoutDashboard },
-  { label: "مراكزي", en: "My Centers", href: "/my-centers", icon: Building },
-  { label: "التصدير الكامل للبيانات", en: "Full data export", href: "/center-management#export", icon: Download },
-  { label: "الحساب والاشتراك", en: "Account & subscription", href: "/subscription", icon: User },
-  { label: "الباقات", en: "Plans", href: "/plans", icon: CreditCard },
-  { label: "الإشعارات", en: "Notifications", href: "/notifications", icon: Bell },
+  { label: "نظرة عامة", en: "Overview", href: "/overview.php/", icon: LayoutDashboard },
+  { label: "مراكزي", en: "My Centers", href: "/centers.php/", icon: Building },
+  { label: "التصدير الكامل للبيانات", en: "Full data export", href: "/export.php/", icon: Download },
+  { label: "الحساب والاشتراك", en: "Account & subscription", href: "/account.php/", icon: User },
+  { label: "الباقات", en: "Plans", href: "/plans.php/", icon: CreditCard },
+  { label: "الإشعارات", en: "Notifications", href: "/notices.php/", icon: Bell },
 ];
 
 function ActionIcon({ kind, className = "h-4 w-4" }: { kind: "open" | "qr" | "edit" | "print"; className?: string }) {
@@ -33,7 +33,7 @@ export default function CenterManagementPage() {
   const { language, toggleLanguage } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
-  const isMyCentersPage = pathname === "/my-centers";
+  const isMyCentersPage = pathname === "/my-centers" || pathname === "/centers.php";
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [centers, setCenters] = useState<Array<any>>([]);
@@ -177,7 +177,7 @@ export default function CenterManagementPage() {
                 <Globe className="h-4 w-4" />
                 {isRtl ? "ENG" : "عربي"}
               </button>
-              <Link href="/notifications" aria-label={isRtl ? "الإشعارات" : "Notifications"} className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#5B50C7]/20 bg-white text-[#5B50C7] transition hover:bg-[#5B50C7] hover:text-white">
+              <Link href="/notices.php/" aria-label={isRtl ? "الإشعارات" : "Notifications"} className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#5B50C7]/20 bg-white text-[#5B50C7] transition hover:bg-[#5B50C7] hover:text-white">
                 <Bell className="h-[18px] w-[18px]" />
               </Link>
               <div className="relative">
@@ -213,7 +213,7 @@ export default function CenterManagementPage() {
                       <button
                         type="button"
                         role="menuitem"
-                        onClick={() => { setAccountMenuOpen(false); router.push("/subscription"); }}
+                        onClick={() => { setAccountMenuOpen(false); router.push("/account.php/"); }}
                         className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-[#4B5563] transition hover:bg-[#F7F6FF] hover:text-[#5B50C7]"
                       >
                         <CreditCard className="h-4 w-4" />
