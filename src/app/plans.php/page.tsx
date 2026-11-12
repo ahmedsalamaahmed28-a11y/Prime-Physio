@@ -1,5 +1,5 @@
-import PlansPage from "../plans/page";
+import CenterAdminPlaceholder from "@/components/CenterAdminPlaceholder";
 
 export default function PlansPhpPage() {
-  return <PlansPage />;
+  return <CenterAdminPlaceholder />;
 }
