@@ -1,7 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
@@ -41,7 +41,6 @@ export default function BrandedClinicPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState("");
-  const activationStarted = useRef(false);
 
   const primary = clinic?.primary_color || "#4F46BA";
   const addressText = [clinic?.address, clinic?.city, clinic?.country].filter(Boolean).join("، ");
@@ -67,31 +66,6 @@ export default function BrandedClinicPage() {
     return () => { active = false; };
   }, [slug]);
 
-  useEffect(() => {
-    if ((status !== "authenticated" && !user) || !clinic?.id || activationStarted.current) return;
-    activationStarted.current = true;
-    sessionStorage.setItem("preferred_clinic_id", clinic.id);
-    (async () => {
-      try {
-        const response = await fetch(`/api/auth/supabase-session?clinic_id=${encodeURIComponent(clinic.id)}`, { cache: "no-store" });
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok || !payload.session?.access_token || !payload.session?.refresh_token) {
-          throw new Error(payload.error || "Could not activate this center session");
-        }
-        const { error } = await supabase.auth.setSession({
-          access_token: payload.session.access_token,
-          refresh_token: payload.session.refresh_token,
-        });
-        if (error) throw error;
-        window.location.replace("/dashboard");
-      } catch (error) {
-        activationStarted.current = false;
-        setLoginError(isRtl ? "تعذر تفعيل جلسة هذا المركز. حاول تسجيل الدخول مرة أخرى." : "Could not activate this clinic session. Please sign in again.");
-        console.error("[PublicClinic] Tenant activation failed:", error);
-      }
-    })();
-  }, [status, user, clinic?.id, isRtl]);
-
   const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setLoginError("");
@@ -103,12 +77,25 @@ export default function BrandedClinicPage() {
         clinicSlug: slug,
         redirect: false,
       });
-      if (result?.error) {
-        setLoginError(isRtl ? "البريد الإلكتروني أو كلمة المرور غير صحيحة" : "Invalid email or password");
-        setLoginLoading(false);
+      if (!result || result.error) {
+        throw new Error(isRtl ? "البريد الإلكتروني أو كلمة المرور غير صحيحة" : "Invalid email or password");
       }
-    } catch {
-      setLoginError(isRtl ? "حدث خطأ في الاتصال. حاول مرة أخرى." : "Connection error. Please try again.");
+
+      if (!clinic?.id) throw new Error(isRtl ? "بيانات المركز غير متاحة" : "Clinic information is unavailable");
+      sessionStorage.setItem("preferred_clinic_id", clinic.id);
+      const response = await fetch(`/api/auth/supabase-session?clinic_id=${encodeURIComponent(clinic.id)}`, { cache: "no-store" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.session?.access_token || !payload.session?.refresh_token) {
+        throw new Error(payload.error || (isRtl ? "تعذر تفعيل جلسة هذا المركز" : "Could not activate this clinic session"));
+      }
+      const { error } = await supabase.auth.setSession({
+        access_token: payload.session.access_token,
+        refresh_token: payload.session.refresh_token,
+      });
+      if (error) throw error;
+      window.location.replace("/dashboard");
+    } catch (error) {
+      setLoginError(error instanceof Error ? error.message : (isRtl ? "حدث خطأ في الاتصال. حاول مرة أخرى." : "Connection error. Please try again."));
       setLoginLoading(false);
     }
   };
