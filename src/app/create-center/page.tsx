@@ -338,7 +338,7 @@ export default function CreateCenterPage() {
           </section>
 
           <section className="border-t border-slate-100 pt-4">
-            <button type="button" onClick={() => setShowMore((value) => !value)} aria-expanded={showMore} className="flex w-full items-center justify-between rounded-xl py-2 text-sm font-bold text-[#5B50C7] transition hover:text-[#4338A8]">
+            <button type="button" onClick={() => setShowMore((value) => !value)} aria-expanded={showMore} className="flex w-full items-center justify-start gap-2 rounded-xl py-2 text-sm font-bold text-[#5B50C7] transition hover:text-[#4338A8]">
               <span>{isRtl ? "أضف المزيد الآن" : "Add more now"}</span>
               <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${showMore ? "rotate-180" : ""}`} />
             </button>
