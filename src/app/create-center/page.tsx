@@ -252,13 +252,13 @@ export default function CreateCenterPage() {
         </div>
 
         <form onSubmit={createCenter} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
-          <section>
-            <h2 className="mb-5 text-base font-extrabold text-slate-800">{isRtl ? "بيانات المركز" : "Center details"}</h2>
-            <label className="block text-sm font-semibold text-slate-700">
+          <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <h2 className="md:col-span-2 mb-1 text-base font-extrabold text-slate-800">{isRtl ? "بيانات المركز" : "Center details"}</h2>
+            <label className="block min-w-0 text-sm font-semibold text-slate-700">
               {isRtl ? "اسم المركز" : "Center name"}
               <input value={fullName} onChange={(e) => setFullName(e.target.value)} required maxLength={200} className="mt-2 h-12 w-full rounded-xl border border-slate-200 px-3 outline-none transition focus:border-[#5B50C7] focus:ring-4 focus:ring-[#5B50C7]/10" placeholder={isRtl ? "اكتب اسم المركز" : "Enter center name"} />
             </label>
-            <label className="mt-4 block text-sm font-semibold text-slate-700">
+            <label className="block min-w-0 text-sm font-semibold text-slate-700">
               {isRtl ? "الدولة" : "Country"}
               <div className="relative mt-2 flex h-[46px] min-h-[46px] items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white px-3 shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10">
                 <img src={`https://flagcdn.com/w40/${selectedCountry.code.toLowerCase()}.png`} alt="" aria-hidden="true" width="28" height="20" className="pointer-events-none h-4 w-6 object-contain" />
@@ -269,7 +269,7 @@ export default function CreateCenterPage() {
                 </select>
               </div>
             </label>
-            <label className="mt-4 block text-sm font-semibold text-slate-700">
+            <label className="block min-w-0 text-sm font-semibold text-slate-700 md:col-span-2">
               {isRtl ? "رابط المركز" : "Center URL"}
               <div className="mt-2 flex overflow-hidden rounded-xl border border-slate-200 transition focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
                 <span className="flex shrink-0 items-center bg-slate-50 px-3 text-xs text-slate-500 sm:text-sm">primephysio.vercel.app/</span>
@@ -284,13 +284,13 @@ export default function CreateCenterPage() {
               <span>{isRtl ? "أضف المزيد الآن" : "Add more now"}</span>
               <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${showMore ? "rotate-180" : ""}`} />
             </button>
-            {showMore && <div className="mt-4 space-y-5 animate-in fade-in slide-in-from-top-2 duration-200">
-              <label className="block text-sm font-semibold text-slate-700">
+            {showMore && <div className="mt-4 grid grid-cols-1 gap-5 animate-in fade-in slide-in-from-top-2 duration-200 md:grid-cols-2">
+              <label className="block min-w-0 text-sm font-semibold text-slate-700">
                 {isRtl ? "الاسم المختصر" : "Short name"}
                 <input value={shortName} onChange={(e) => setShortName(e.target.value)} maxLength={120} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "اسم مختصر يظهر داخل المنصة" : "A short name shown in the platform"} />
               </label>
 
-              <div>
+              <div className="min-w-0 md:col-span-2">
                 <label className="mb-2 block text-sm font-semibold text-slate-700">{isRtl ? "الشعار" : "Logo"}</label>
                 <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 sm:flex-row sm:items-center">
                   {logoPreview ? (
@@ -327,7 +327,7 @@ export default function CreateCenterPage() {
                 </div>
               </div>
 
-              <label className="block text-sm font-semibold text-slate-700">{isRtl ? "الهاتف" : "Phone"}
+              <label className="block min-w-0 text-sm font-semibold text-slate-700">{isRtl ? "الهاتف" : "Phone"}
                 <div className="mt-2 flex h-[46px] min-h-[46px] min-w-0 items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
                   <div className="relative flex h-full w-[60px] shrink-0 items-center justify-center gap-1 bg-transparent">
                     <label htmlFor="center-phone-country" className="sr-only">{isRtl ? "اختيار الدولة" : "Select country"}</label>
