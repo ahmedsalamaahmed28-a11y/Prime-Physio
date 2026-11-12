@@ -496,6 +496,7 @@ export default function DashboardLayout({
       <div className={`flex-1 flex flex-col print:pr-0 print:pl-0 ${isCenterCreationPage ? "" : (isRtl ? "md:pr-[210px]" : "md:pl-[210px]")}`}>
         
         {/* ─── GLOBAL HEADER ────────── */}
+        {!isCenterCreationPage && (
         <header className="h-16 border-b border-slate-200/80 bg-card text-card-foreground flex items-center justify-between px-6 sticky top-0 z-50 overflow-visible print:hidden" dir={isRtl ? "rtl" : "ltr"}>
           
           {/* Right Side: Quick Search & Mobile Hamburger */}
@@ -673,6 +674,7 @@ export default function DashboardLayout({
             </div>
         </div>
       </header>
+        )}
 
         {/* ─── MOBILE DRAWER (Slide-in RTL/LTR Overlay) ─────────────────────────── */}
         {isOpen && (
