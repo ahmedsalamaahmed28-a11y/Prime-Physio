@@ -296,7 +296,7 @@ export default function DashboardLayout({
     const knownDashboardPages = new Set(["home","dashboard","hr","admin","patients","doctors","calendar","billing","reports","chat","ai-assistant","ai-planner","staff","settings","subscription","permissions","security","profile","analytics","packages","clinic-settings","clinical-library","clinical-nutrition","protocols","medical-reports","red-flags","users-permissions","notifications"]);
     const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname || "") && !knownDashboardPages.has((pathname || "").replace("/", ""));
     const p = pathname || "";
-    const isCenterManagementPage = (pathname || "").split("/").some(
+    const isCenterManagementPage = pathname === "/centers.php" || (pathname || "").split("/").some(
       (segment) => segment === "center-management" || segment === "center-management.php"
     );
     const isAuthPage = p === "/" || p === "/login.php" || p === "/privacy" || p === "/terms" || p === "/manage" || p.startsWith("/manage/") || p === "/signup" || p === "/forgot-password" || p === "/reset-password" || p === "/setup" || p.startsWith("/setup/") || p === "/subscribe" || p === "/plans" || p === "/centers" || p === "/about" || p === "/support" || p === "/center_setup" || p.startsWith("/center-management") || isCenterManagementPage || p === "/home.php" || p === "/rgstr.php" || p.startsWith("/platform") || isSlugPage;
