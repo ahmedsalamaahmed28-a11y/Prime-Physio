@@ -6,6 +6,16 @@ export const revalidate = 0;
 
 const noStore = { "Cache-Control": "no-store, private" };
 
+function safeHttpUrl(value: unknown): string {
+  if (typeof value !== "string" || !value.trim()) return "";
+  try {
+    const parsed = new URL(value.trim());
+    return parsed.protocol === "https:" || parsed.protocol === "http:" ? parsed.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
 export async function GET(request: NextRequest) {
   const slug = (request.nextUrl.searchParams.get("slug") || "").trim().toLowerCase();
   const query = (request.nextUrl.searchParams.get("q") || "").trim().slice(0, 80);
@@ -69,10 +79,10 @@ export async function GET(request: NextRequest) {
         cover_url: settings?.cover_url || "",
         whatsapp: settings?.whatsapp || "",
         working_hours: settings?.working_hours || "",
-        website_url: settings?.website_url || "",
-        instagram_url: settings?.instagram_url || "",
-        facebook_url: settings?.facebook_url || "",
-        maps_url: settings?.maps_url || "",
+        website_url: safeHttpUrl(settings?.website_url),
+        instagram_url: safeHttpUrl(settings?.instagram_url),
+        facebook_url: safeHttpUrl(settings?.facebook_url),
+        maps_url: safeHttpUrl(settings?.maps_url),
         primary_color: settings?.primary_color || "#4F46BA",
         cta_text: settings?.cta_text || "احجز موعدك",
       };
