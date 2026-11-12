@@ -238,38 +238,38 @@ export default function CreateCenterPage() {
   return (
     <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-white font-sans text-slate-800">
       <div className="flex min-h-screen w-full flex-col" dir={isRtl ? "rtl" : "ltr"}>
-                <section className="relative flex w-full flex-1 flex-col items-start overflow-hidden bg-[#F8FAFF] px-4 py-7 sm:px-6 sm:py-9 lg:px-8 xl:px-10"><div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_8%,rgba(79,70,229,0.07),transparent_28%),radial-gradient(circle_at_92%_82%,rgba(11,76,150,0.055),transparent_30%)]" />
+                <section className="relative flex w-full flex-1 flex-col items-start overflow-hidden bg-[#F8FAFF] px-3 py-6 sm:px-5 sm:py-8 lg:px-6 xl:px-8"><div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_8%,rgba(79,70,229,0.07),transparent_28%),radial-gradient(circle_at_92%_82%,rgba(11,76,150,0.055),transparent_30%)]" />
           <div className="relative z-10 flex w-full min-w-0 flex-1 flex-col">
-        <div className="mb-6 flex w-full justify-start" dir="ltr">
+        <div className="mb-7 flex w-full justify-start" dir="ltr">
           <Link href="/center-management" dir={isRtl ? "rtl" : "ltr"} className="inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7] hover:text-[#4338A8]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         </div>
-        <div className="mb-8 w-full rounded-3xl border border-indigo-100/80 bg-white/90 p-6 shadow-sm backdrop-blur-sm sm:p-8 lg:p-9">
-          <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600"><Building className="h-7 w-7" /></div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">{isRtl ? "إنشاء مركز مستقل جديد" : "Create a new independent center"}</h1>
-          <p className="mt-3 max-w-4xl text-base font-medium leading-8 text-slate-600 sm:text-lg">{isRtl ? "كل مركز يحصل على رابط دخول وبيانات واشتراك منفصل." : "Every center gets its own login URL, data and subscription."}</p>
+        <div className="mb-8 w-full rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/60 sm:p-9 lg:p-11">
+          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600"><Building className="h-7 w-7" /></div>
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">{isRtl ? "إنشاء مركز مستقل جديد" : "Create a new independent center"}</h1>
+          <p className="mt-4 max-w-5xl text-base font-medium leading-8 text-slate-600 sm:text-lg lg:text-xl">{isRtl ? "كل مركز يحصل على رابط دخول وبيانات واشتراك منفصل." : "Every center gets its own login URL, data and subscription."}</p>
         </div>
 
-        <form onSubmit={createCenter} className="flex w-full flex-col gap-6 sm:gap-7">
+        <form onSubmit={createCenter} className="flex w-full flex-col gap-7 sm:gap-8">
           {step === "plan" && <>
-          <section className="w-full rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-lg hover:shadow-slate-200/50 sm:p-7 lg:p-8">
-            <h2 className="mb-5 text-lg font-black text-slate-900 sm:text-xl">{isRtl ? "1. اختر الباقة" : "1. Choose a plan"}</h2>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <section className="w-full rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/60 sm:p-9 lg:p-10">
+            <h2 className="mb-7 text-xl font-black text-slate-900 sm:text-2xl">{isRtl ? "1. اختر الباقة" : "1. Choose a plan"}</h2>
+            <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-3 lg:gap-6">
               {plans.map((plan) => (
-                <button key={plan.id} type="button" onClick={() => setPlanId(plan.id)} className={`group relative flex min-h-[170px] flex-col rounded-3xl border p-5 text-start shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60 sm:p-6 ${planId === plan.id ? "border-indigo-300 bg-indigo-50/70 ring-2 ring-indigo-500/15" : "border-slate-200 bg-white hover:border-indigo-200"}`}>
+                <button key={plan.id} type="button" onClick={() => setPlanId(plan.id)} className={`group relative flex min-h-[230px] flex-col rounded-3xl border p-7 text-start shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60 sm:p-8 ${planId === plan.id ? "border-indigo-300 bg-indigo-50/70 ring-2 ring-indigo-500/15" : "border-slate-200 bg-white hover:border-indigo-200"}`}>
                   {plan.id === "basic" && <span className="mb-2 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">{isRtl ? "موصى بها — بدون بطاقة دفع" : "Recommended — no card required"}</span>}
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-extrabold text-slate-800">{isRtl ? plan.nameAr : plan.nameEn}</span>
                     {planId === plan.id && <CheckCircle2 className="h-5 w-5 text-[#5B50C7]" />}
                   </div>
-                  <div className="mt-5 text-xl font-black text-indigo-700 sm:text-2xl">{isRtl ? plan.priceLabelAr : plan.priceLabelEn}</div>
-                  <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{isRtl ? plan.descriptionAr : plan.descriptionEn}</p>
+                  <div className="mt-7 text-2xl font-black text-indigo-700 sm:text-3xl">{isRtl ? plan.priceLabelAr : plan.priceLabelEn}</div>
+                  <p className="mt-3 text-base font-medium leading-7 text-slate-600">{isRtl ? plan.descriptionAr : plan.descriptionEn}</p>
                 </button>
               ))}
             </div>
           </section>
 
 
-            <button type="button" disabled={!planId} onClick={() => { setError(""); setStep("details"); }} className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#5B50C7] px-6 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">{isRtl ? "متابعة إلى بيانات المركز" : "Continue to center details"}</button>
+            <button type="button" disabled={!planId} onClick={() => { setError(""); setStep("details"); }} className="inline-flex h-14 w-full items-center justify-center rounded-full bg-[#5B50C7] px-8 text-base font-extrabold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#4338A8] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50">{isRtl ? "متابعة إلى بيانات المركز" : "Continue to center details"}</button>
           </>}
           {step === "details" && <>
             <button type="button" onClick={() => setStep("plan")} className="inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة لاختيار الباقة" : "Back to plan selection"}</button>
