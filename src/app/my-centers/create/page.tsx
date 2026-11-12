@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
-import { Building, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
+import { Building, CheckCircle2, ArrowLeft, Loader2, Check, Star } from "lucide-react";
 
 type CenterCountry = { code: string; dial: string; flag: string; ar: string; en: string; example: string };
 
@@ -49,9 +49,45 @@ const CENTER_COUNTRIES: CenterCountry[] = [
 ];
 
 const plans = [
-  { id: "basic", nameAr: "الأساسية", nameEn: "Basic", price: "0", priceLabelAr: "مجانًا", priceLabelEn: "Free", descriptionAr: "مجانية — لا تحتاج إلى بطاقة دفع", descriptionEn: "Free — no payment card required" },
-  { id: "silver", nameAr: "الفضية", nameEn: "Silver", price: "1000", priceLabelAr: "1,000 جنيه / شهريًا", priceLabelEn: "EGP 1,000 / month", descriptionAr: "للمراكز النامية", descriptionEn: "For growing centers" },
-  { id: "gold", nameAr: "الذهبية", nameEn: "Gold", price: "1500", priceLabelAr: "1,500 جنيه / شهريًا", priceLabelEn: "EGP 1,500 / month", descriptionAr: "للمراكز الكبيرة", descriptionEn: "For larger centers" },
+  {
+    id: "basic",
+    nameAr: "الأساسية",
+    nameEn: "Basic",
+    price: "0",
+    priceLabelAr: "مجانًا",
+    priceLabelEn: "Free",
+    descriptionAr: "بداية مجانية لتنظيم مركزك.",
+    descriptionEn: "A free starting point for a small clinic.",
+    featuresAr: ["إدارة حتى 50 مريضًا", "حتى 100 جلسة شهريًا", "إدارة ملفات المرضى", "جدولة المواعيد", "تقارير أساسية"],
+    featuresEn: ["Up to 50 patients", "Up to 100 sessions per month", "Patient records management", "Appointment scheduling", "Basic reports"],
+    popular: false,
+  },
+  {
+    id: "silver",
+    nameAr: "الفضية",
+    nameEn: "Silver",
+    price: "1000",
+    priceLabelAr: "1,000 جنيه",
+    priceLabelEn: "EGP 1,000",
+    descriptionAr: "للمراكز التي تحتاج إلى سعة وأدوات إضافية.",
+    descriptionEn: "For clinics that need more capacity and tools.",
+    featuresAr: ["إدارة حتى 200 مريض", "حتى 500 جلسة شهريًا", "إدارة الجلسات العلاجية", "تقارير مالية", "دعم فني", "تشمل مميزات الباقة الأساسية"],
+    featuresEn: ["Up to 200 patients", "Up to 500 sessions per month", "Treatment session management", "Financial reports", "Technical support", "Includes Basic plan features"],
+    popular: true,
+  },
+  {
+    id: "gold",
+    nameAr: "الذهبية",
+    nameEn: "Gold",
+    price: "1500",
+    priceLabelAr: "1,500 جنيه",
+    priceLabelEn: "EGP 1,500",
+    descriptionAr: "للمراكز التي تحتاج إلى سعة تشغيلية أكبر.",
+    descriptionEn: "For clinics that need higher operating capacity.",
+    featuresAr: ["عدد غير محدود من المرضى", "جلسات غير محدودة شهريًا", "إدارة التمارين الرياضية", "روشتات علاجية", "تشمل مميزات الباقة الفضية"],
+    featuresEn: ["Unlimited patients", "Unlimited sessions per month", "Exercise management", "Treatment prescriptions", "Includes Silver plan features"],
+    popular: false,
+  },
 ];
 
 export default function CreateCenterPage() {
@@ -192,7 +228,7 @@ export default function CreateCenterPage() {
   };
 
   if (isLoading || isEnriching || !user) {
-    return <main className="flex min-h-screen items-center justify-center bg-[#F7F9FC]"><Loader2 className="h-8 w-8 animate-spin text-[#5B50C7]" /></main>;
+    return <main className="flex min-h-screen items-center justify-center bg-[#F7F9FC]"><Loader2 className="h-8 w-8 animate-spin text-[#0B4C96]" /></main>;
   }
 
   if (paymentUrl) {
@@ -206,7 +242,7 @@ export default function CreateCenterPage() {
           <iframe src={paymentUrl} title="Paymob payment" className="h-[620px] w-full border-0" allow="payment" />
           <div className="p-5">
             <p className="mb-4 text-xs leading-6 text-slate-500">{isRtl ? "بعد نجاح الدفع، قد يستغرق تحديث حالة الاشتراك لحظات. يمكنك فتح المركز ومراجعة حالة الاشتراك." : "After successful payment, subscription status may take a short moment to update. You can open the center and review its subscription status."}</p>
-            <Link href={`/${createdSlug}`} className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#5B50C7] text-sm font-bold text-white">{isRtl ? "الانتقال إلى المركز" : "Open center"}</Link>
+            <Link href={`/${createdSlug}`} className="inline-flex h-11 w-full items-center justify-center rounded-full bg-[#0B4C96] text-sm font-bold text-white">{isRtl ? "الانتقال إلى المركز" : "Open center"}</Link>
           </div>
         </div>
       </main>
@@ -225,72 +261,89 @@ export default function CreateCenterPage() {
           <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-3 text-left" dir="ltr">
             <p className="break-all text-sm font-semibold text-[#4F46BA]">{centerUrl}</p>
           </div>
-          <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(centerUrl); setLinkCopied(true); } catch { setLinkCopied(false); } }} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-[#5B50C7] font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{linkCopied ? (isRtl ? "تم نسخ الرابط" : "Link copied") : (isRtl ? "نسخ رابط المركز" : "Copy center link")}</button>
+          <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(centerUrl); setLinkCopied(true); } catch { setLinkCopied(false); } }} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-[#0B4C96] font-bold text-[#0B4C96] transition hover:bg-[#F1EFFF]">{linkCopied ? (isRtl ? "تم نسخ الرابط" : "Link copied") : (isRtl ? "نسخ رابط المركز" : "Copy center link")}</button>
           <p className="mt-2 text-xs leading-5 text-slate-500">{isRtl ? "هذا الرابط يفتح صفحة تسجيل الدخول الخاصة بالمركز، وليس لوحة التحكم مباشرة." : "This link opens the center login page, not the dashboard directly."}</p>
-          <Link href={`/${createdSlug}`} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-[#5B50C7] font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{isRtl ? "فتح صفحة دخول المركز" : "Open center login"}</Link>
-          <Link href="/dashboard" className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#5B50C7] font-bold text-white transition hover:bg-[#4338A8]">{isRtl ? "الانتقال إلى لوحة التحكم" : "Continue to dashboard"}</Link>
-          <Link href="/center-management" className="mt-4 inline-block text-sm font-semibold text-slate-500 hover:text-[#5B50C7]">{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
+          <Link href={`/${createdSlug}`} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-[#0B4C96] font-bold text-[#0B4C96] transition hover:bg-[#F1EFFF]">{isRtl ? "فتح صفحة دخول المركز" : "Open center login"}</Link>
+          <Link href="/dashboard" className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#0B4C96] font-bold text-white transition hover:bg-[#083B75]">{isRtl ? "الانتقال إلى لوحة التحكم" : "Continue to dashboard"}</Link>
+          <Link href="/center-management" className="mt-4 inline-block text-sm font-semibold text-slate-500 hover:text-[#0B4C96]">{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         </section>
       </main>
     );
   }
 
   return (
-    <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-white font-sans text-slate-800">
+    <main dir={isRtl ? "rtl" : "ltr"} className="min-h-[calc(100vh-4rem)] w-full max-w-none bg-slate-50/40 font-sans text-slate-800">
       <div className="flex min-h-screen w-full flex-col" dir={isRtl ? "rtl" : "ltr"}>
-                <section className="relative flex w-full flex-1 flex-col items-start overflow-hidden bg-[#F8FAFF] px-3 py-6 sm:px-5 sm:py-8 lg:px-6 xl:px-8"><div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_8%,rgba(79,70,229,0.07),transparent_28%),radial-gradient(circle_at_92%_82%,rgba(11,76,150,0.055),transparent_30%)]" />
-          <div className="relative z-10 flex w-full min-w-0 flex-1 flex-col">
+                <section className="relative flex min-h-[calc(100vh-4rem)] w-full max-w-none flex-1 flex-col items-stretch overflow-hidden bg-slate-50/40 px-3 py-4 sm:px-5 sm:py-5 lg:px-7 xl:px-8">
+          <div className="relative z-10 flex w-full max-w-none min-w-0 flex-1 flex-col">
         <div className="mb-7 flex w-full justify-start" dir="ltr">
-          <Link href="/center-management" dir={isRtl ? "rtl" : "ltr"} className="inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7] hover:text-[#4338A8]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
+          <Link href="/center-management" dir={isRtl ? "rtl" : "ltr"} className="inline-flex items-center gap-2 text-sm font-semibold text-[#0B4C96] hover:text-[#4338A8]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         </div>
-        <div className="mb-8 w-full rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/60 sm:p-9 lg:p-11">
-          <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600"><Building className="h-7 w-7" /></div>
+        <div className="mb-5 flex w-full items-center gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#0B4C96]"><Building className="h-7 w-7" /></div>
           <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">{isRtl ? "إنشاء مركز مستقل جديد" : "Create a new independent center"}</h1>
-          <p className="mt-4 max-w-5xl text-base font-medium leading-8 text-slate-600 sm:text-lg lg:text-xl">{isRtl ? "كل مركز يحصل على رابط دخول وبيانات واشتراك منفصل." : "Every center gets its own login URL, data and subscription."}</p>
+          <p className="mt-2 max-w-none text-sm font-medium leading-7 text-slate-600 sm:text-base">{isRtl ? "كل مركز يحصل على رابط دخول وبيانات واشتراك منفصل." : "Every center gets its own login URL, data and subscription."}</p>
         </div>
 
         <form onSubmit={createCenter} className="flex w-full flex-col gap-7 sm:gap-8">
           {step === "plan" && <>
-          <section className="w-full rounded-3xl border border-slate-200 bg-white p-7 shadow-sm transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/60 sm:p-9 lg:p-10">
-            <h2 className="mb-7 text-xl font-black text-slate-900 sm:text-2xl">{isRtl ? "1. اختر الباقة" : "1. Choose a plan"}</h2>
-            <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-3 lg:gap-6">
-              {plans.map((plan) => (
-                <button key={plan.id} type="button" onClick={() => setPlanId(plan.id)} className={`group relative flex min-h-[230px] flex-col rounded-3xl border p-7 text-start shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60 sm:p-8 ${planId === plan.id ? "border-indigo-300 bg-indigo-50/70 ring-2 ring-indigo-500/15" : "border-slate-200 bg-white hover:border-indigo-200"}`}>
-                  {plan.id === "basic" && <span className="mb-2 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">{isRtl ? "موصى بها — بدون بطاقة دفع" : "Recommended — no card required"}</span>}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-extrabold text-slate-800">{isRtl ? plan.nameAr : plan.nameEn}</span>
-                    {planId === plan.id && <CheckCircle2 className="h-5 w-5 text-[#5B50C7]" />}
-                  </div>
-                  <div className="mt-7 text-2xl font-black text-indigo-700 sm:text-3xl">{isRtl ? plan.priceLabelAr : plan.priceLabelEn}</div>
-                  <p className="mt-3 text-base font-medium leading-7 text-slate-600">{isRtl ? plan.descriptionAr : plan.descriptionEn}</p>
-                </button>
-              ))}
+          <section className="flex w-full flex-1 flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-7">
+            <div className="mb-6 flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-xl font-black text-slate-900 sm:text-2xl">{isRtl ? "1. اختر الباقة" : "1. Choose a plan"}</h2>
+                <p className="mt-1 text-sm text-slate-500">{isRtl ? "أسعار واضحة وبسيطة — اختر الباقة المناسبة لمركزك." : "Simple, transparent pricing — choose the plan that fits your center."}</p>
+              </div>
+              <span className="hidden rounded-full bg-slate-100 px-4 py-2 text-xs font-bold text-slate-600 sm:inline-flex">{isRtl ? "اختر باقة واحدة" : "Select one plan"}</span>
+            </div>
+            <div className="grid w-full flex-1 grid-cols-1 items-stretch gap-5 md:grid-cols-3 lg:gap-7">
+              {plans.map((plan) => {
+                const selected = planId === plan.id;
+                const features = isRtl ? plan.featuresAr : plan.featuresEn;
+                return (
+                  <button key={plan.id} type="button" aria-pressed={selected} onClick={() => setPlanId(plan.id)} className={`relative flex h-full min-h-[390px] flex-col rounded-3xl bg-white p-6 text-start transition-all duration-200 sm:p-7 lg:p-8 ${plan.popular ? "border-2 border-[#4F46E5] shadow-xl shadow-indigo-500/10" : "border border-slate-200 shadow-sm"} ${selected ? "ring-2 ring-[#0B4C96]/20 border-[#0B4C96]" : "hover:-translate-y-1 hover:shadow-lg"}`}>
+                    {plan.popular && <span className="absolute -top-3.5 left-0 right-0 mx-auto inline-flex w-fit items-center gap-1 rounded-full bg-[#4F46E5] px-4 py-1.5 text-xs font-bold text-white"><Star className="h-3 w-3 fill-white" />{isRtl ? "الأكثر طلبًا" : "Most popular"}</span>}
+                    <div className="mb-5 flex items-center justify-between gap-3">
+                      <h3 className="text-xl font-bold text-slate-900">{isRtl ? plan.nameAr : plan.nameEn}</h3>
+                      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${selected ? "border-[#0B4C96] bg-[#0B4C96] text-white" : "border-slate-300 text-transparent"}`}><Check className="h-4 w-4" /></span>
+                    </div>
+                    <p className="mb-6 min-h-10 text-sm leading-6 text-slate-500">{isRtl ? plan.descriptionAr : plan.descriptionEn}</p>
+                    <div className="mb-7 flex flex-wrap items-baseline gap-2 border-b border-slate-100 pb-6">
+                      <span className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">{isRtl ? plan.priceLabelAr : plan.priceLabelEn}</span>
+                      {plan.id !== "basic" && <span className="text-sm font-semibold text-slate-500">{isRtl ? "/ شهريًا" : "/ month"}</span>}
+                    </div>
+                    <ul className="mb-7 flex-1 space-y-3">
+                      {features.map((feature) => <li key={feature} className="flex items-start gap-3"><Check className={`mt-0.5 h-4 w-4 shrink-0 ${plan.popular ? "text-[#4F46E5]" : "text-slate-400"}`} /><span className="text-sm font-medium leading-6 text-slate-700">{feature}</span></li>)}
+                    </ul>
+                    <span className={`mt-auto inline-flex w-full items-center justify-center rounded-full py-3 text-sm font-bold transition-colors ${selected || plan.popular ? "bg-[#0B4C96] text-white" : "bg-slate-100 text-slate-800"}`}>{selected ? (isRtl ? "تم اختيار هذه الباقة" : "Selected plan") : (isRtl ? "اختيار الباقة" : "Choose plan")}</span>
+                  </button>
+                );
+              })}
             </div>
           </section>
 
 
-            <button type="button" disabled={!planId} onClick={() => { setError(""); setStep("details"); }} className="inline-flex h-14 w-full items-center justify-center rounded-full bg-[#5B50C7] px-8 text-base font-extrabold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#4338A8] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50">{isRtl ? "متابعة إلى بيانات المركز" : "Continue to center details"}</button>
+            <button type="button" disabled={!planId} onClick={() => { setError(""); setStep("details"); }} className="inline-flex h-14 w-full items-center justify-center rounded-full bg-[#0B4C96] px-8 text-base font-extrabold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#083B75] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50">{isRtl ? "متابعة إلى بيانات المركز" : "Continue to center details"}</button>
           </>}
           {step === "details" && <>
-            <button type="button" onClick={() => setStep("plan")} className="inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة لاختيار الباقة" : "Back to plan selection"}</button>
+            <button type="button" onClick={() => setStep("plan")} className="inline-flex items-center gap-2 text-sm font-semibold text-[#0B4C96]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة لاختيار الباقة" : "Back to plan selection"}</button>
           <section className="w-full rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-lg hover:shadow-slate-200/50 sm:p-7 lg:p-8">
             <h2 className="mb-5 text-lg font-black text-slate-900 sm:text-xl">{isRtl ? "2. بيانات المركز" : "2. Center details"}</h2>
             <p className="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium leading-6 text-emerald-800">{isRtl ? "تم التحقق من بريد حساب المالك أثناء إنشاء الحساب. يمكنك الآن إعداد مركزك." : "Your owner email was verified during account creation. You can now set up your center."}</p>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <label className="block text-sm font-semibold text-slate-700">
                 {isRtl ? "اسم المركز المختصر" : "Center display name"}
-                <input value={shortName} onChange={(e) => setShortName(e.target.value)} required maxLength={120} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "مثال: برايم للعلاج الطبيعي" : "e.g. Prime Physiotherapy"} />
+                <input value={shortName} onChange={(e) => setShortName(e.target.value)} required maxLength={120} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#0B4C96]" placeholder={isRtl ? "مثال: برايم للعلاج الطبيعي" : "e.g. Prime Physiotherapy"} />
                 <span className="mt-1 block text-xs font-normal text-slate-500">{isRtl ? "الاسم المختصر الذي سيظهر في واجهة المركز." : "The short name displayed across the center interface."}</span>
               </label>
               <label className="block text-sm font-semibold text-slate-700">
                 {isRtl ? "الاسم الكامل أو الرسمي (اختياري)" : "Full / official name (optional)"}
-                <input value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={200} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "الاسم القانوني أو الاسم الكامل للمركز" : "Legal or complete center name"} />
+                <input value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={200} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#0B4C96]" placeholder={isRtl ? "الاسم القانوني أو الاسم الكامل للمركز" : "Legal or complete center name"} />
                 <span className="mt-1 block text-xs font-normal text-slate-500">{isRtl ? "اتركه فارغًا إذا كان اسم المركز المختصر كافيًا." : "Leave blank if the center display name is sufficient."}</span>
               </label>
             </div>
             <label className="mt-4 block text-sm font-semibold text-slate-700">
               {isRtl ? "رابط المركز الخاص" : "Unique center URL"}
-              <div className="mt-2 flex overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#5B50C7]" dir="ltr">
+              <div className="mt-2 flex overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#0B4C96]" dir="ltr">
                 <span className="flex items-center bg-slate-50 px-3 text-xs text-slate-500">primephysio.vercel.app/</span>
                 <input value={slug} onChange={(e) => setSlug(normalizeSlug(e.target.value))} required maxLength={50} pattern="[a-z0-9]+(-[a-z0-9]+)*" className="h-11 min-w-0 flex-1 px-3 outline-none" placeholder="my-center" />
               </div>
@@ -304,13 +357,13 @@ export default function CreateCenterPage() {
               {logoPreview ? (
                 <img src={logoPreview} alt={isRtl ? "معاينة شعار المركز" : "Center logo preview"} className="h-24 w-24 rounded-xl border border-slate-200 bg-white object-contain p-2" />
               ) : (
-                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-white text-[#5B50C7]"><Building className="h-9 w-9" /></div>
+                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-white text-[#0B4C96]"><Building className="h-9 w-9" /></div>
               )}
               <div className="flex-1">
                 <p className="text-sm font-semibold text-slate-700">{isRtl ? "أضف شعار المركز ليظهر في صفحته" : "Add a logo to display on your center page"}</p>
                 <p className="mt-1 text-xs text-slate-500">{isRtl ? "PNG أو JPG أو WebP — بحد أقصى 5 ميجابايت." : "PNG, JPG or WebP — up to 5 MB."}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  <label className="inline-flex h-9 cursor-pointer items-center justify-center rounded-full bg-[#5B50C7] px-4 text-xs font-bold text-white hover:bg-[#4338A8]">
+                  <label className="inline-flex h-9 cursor-pointer items-center justify-center rounded-full bg-[#0B4C96] px-4 text-xs font-bold text-white hover:bg-[#083B75]">
                     {isRtl ? (logoFile ? "تغيير الصورة" : "اختيار صورة") : (logoFile ? "Change image" : "Choose image")}
                     <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event) => {
                       const file = event.target.files?.[0];
@@ -338,7 +391,7 @@ export default function CreateCenterPage() {
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <label className="block text-sm font-semibold text-slate-700">{isRtl ? "رقم هاتف المركز" : "Center phone"}
-                <div className="mt-2 flex h-11 overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#5B50C7]" dir="ltr">
+                <div className="mt-2 flex h-11 overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#0B4C96]" dir="ltr">
                   <div className="relative flex w-[116px] shrink-0 items-center gap-2 border-r border-slate-200 bg-slate-50 px-3">
                     <span aria-hidden="true">{selectedCountry.flag}</span>
                     <span className="text-sm font-semibold text-slate-700">+{selectedCountry.dial}</span>
@@ -351,13 +404,13 @@ export default function CreateCenterPage() {
                 <span className="mt-1 block text-xs font-normal text-slate-500">{isRtl ? "اختر الدولة أولًا، وسيُضاف مفتاحها الدولي تلقائيًا إلى الرقم." : "Choose the country first; its calling code will be added automatically."}</span>
               </label>
               <label className="block text-sm font-semibold text-slate-700">{isRtl ? "عنوان المركز" : "Center address"}
-                <input value={address} onChange={(e) => setAddress(e.target.value)} required maxLength={250} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "المحافظة، المنطقة، الشارع" : "City, area, street"} />
+                <input value={address} onChange={(e) => setAddress(e.target.value)} required maxLength={250} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#0B4C96]" placeholder={isRtl ? "المحافظة، المنطقة، الشارع" : "City, area, street"} />
               </label>
             </div>
             
             {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
             {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</p>}
-            <button type="submit" disabled={creating || uploadingLogo} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#5B50C7] px-6 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">
+            <button type="submit" disabled={creating || uploadingLogo} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#0B4C96] px-6 text-sm font-extrabold text-white transition hover:bg-[#083B75] disabled:cursor-not-allowed disabled:opacity-50">
               {(creating || uploadingLogo) && <Loader2 className="h-4 w-4 animate-spin" />}
               {isRtl ? "إنشاء المركز" : "Create center"}
             </button>
