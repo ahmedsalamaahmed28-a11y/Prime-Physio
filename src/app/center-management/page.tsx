@@ -45,7 +45,7 @@ export default function CenterManagementPage() {
   const [editForm, setEditForm] = useState({ name: "", slug: "", phone: "", address: "" });
   const [editLoading, setEditLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState("");
-  const publicUrl = (slug: string) => `${window.location.origin}/clinic/${slug}`;
+  const publicUrl = (slug: string) => `${window.location.origin}/${slug}`;
   const copyCenterUrl = async (slug: string) => {
     try {
       await navigator.clipboard.writeText(publicUrl(slug));
@@ -304,7 +304,7 @@ export default function CenterManagementPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
                   {centers.map((center) => {
-                    const shareUrl = center.slug ? `/clinic/${center.slug}` : "";
+                    const shareUrl = center.slug ? `/${center.slug}` : "";
                     const setupSteps = center.setupProgress || { completed: 0, total: 7 };
                     return (
                       <article key={center.id} className="overflow-hidden rounded-[20px] border border-[#E5EAF2] bg-white shadow-[0_8px_28px_rgba(25,48,75,.06)]">
