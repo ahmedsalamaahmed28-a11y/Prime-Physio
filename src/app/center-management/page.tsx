@@ -121,20 +121,11 @@ export default function CenterManagementPage() {
         {menu.map((item, index) => {
           const Icon = item.icon;
           return (
-            <div key={item.href} className="space-y-1">
-              <Link href={item.href} onClick={() => setMobileMenuOpen(false)}
-                className={`flex h-[44px] w-full items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold transition-colors ${(isMyCentersPage ? index === 1 : index === 0) ? "bg-[#F1EFFF] text-[#5B50C7]" : "text-[#59616B] hover:bg-[#F7F9FB] hover:text-[#5B50C7]"}`}>
-                <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} />
-                <span className="flex-1 text-right">{isRtl ? item.label : item.en}</span>
-              </Link>
-              {index === 1 && (
-                <Link href="/addcenter.php/" onClick={() => setMobileMenuOpen(false)}
-                  className={`mr-7 flex h-[38px] items-center gap-2 rounded-[8px] px-3 text-[13px] font-semibold transition-colors ${normalizedPathname === "/addcenter.php" ? "bg-[#F1EFFF] text-[#5B50C7]" : "text-[#7B8490] hover:bg-[#F7F9FB] hover:text-[#5B50C7]"}`}>
-                  <Building className="h-4 w-4 shrink-0" />
-                  <span>{isRtl ? "إضافة مركز" : "Add a center"}</span>
-                </Link>
-              )}
-            </div>
+            <Link key={item.href} href={item.href} onClick={() => setMobileMenuOpen(false)}
+              className={`flex h-[44px] w-full items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold transition-colors ${(isMyCentersPage ? index === 1 : index === 0) ? "bg-[#F1EFFF] text-[#5B50C7]" : "text-[#59616B] hover:bg-[#F7F9FB] hover:text-[#5B50C7]"}`}>
+              <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} />
+              <span className="flex-1 text-right">{isRtl ? item.label : item.en}</span>
+            </Link>
           );
         })}
       </nav>
