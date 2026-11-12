@@ -297,7 +297,7 @@ export default function DashboardLayout({
     const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname || "") && !knownDashboardPages.has((pathname || "").replace("/", ""));
     // Next may expose PHP-style routes with a trailing slash in the browser.
     // Normalize once so standalone center-management routes are recognized consistently.
-    const p = (pathname || "").replace(/\\/+$/, "") || "/";
+    const p = (pathname || "").replace(new RegExp("/+$"), "") || "/";
     const isCenterManagementPage = p === "/centers.php" || p.split("/").some(
       (segment) => segment === "center-management" || segment === "center-management.php"
     );
