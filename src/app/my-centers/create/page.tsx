@@ -238,16 +238,18 @@ export default function CreateCenterPage() {
   return (
     <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-white font-sans text-slate-800">
       <div className="flex min-h-screen w-full flex-col" dir={isRtl ? "rtl" : "ltr"}>
-                <section className="flex w-full flex-col items-center justify-center bg-[#F7F9FC] px-4 py-8 sm:px-6">
-          <div className="mx-auto w-full max-w-3xl">
-        <Link href="/center-management" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
-        <div className="mb-7">
-          <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5B50C7] text-white"><Building className="h-6 w-6" /></div>
-          <h1 className="text-2xl font-extrabold text-[#202B38]">{isRtl ? "إنشاء مركز مستقل جديد" : "Create a new independent center"}</h1>
-          <p className="mt-2 text-sm text-[#7C8794]">{isRtl ? "كل مركز يحصل على رابط دخول وبيانات واشتراك منفصل." : "Every center gets its own login URL, data and subscription."}</p>
+                <section className="flex w-full flex-1 flex-col items-start bg-[#F7F9FC] px-5 py-8 sm:px-8 lg:px-10">
+          <div className="w-full max-w-6xl">
+        <div className="mb-6 flex w-full justify-start" dir="ltr">
+          <Link href="/center-management" dir={isRtl ? "rtl" : "ltr"} className="inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7] hover:text-[#4338A8]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
+        </div>
+        <div className="mb-8">
+          <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#5B50C7] text-white"><Building className="h-7 w-7" /></div>
+          <h1 className="text-3xl font-extrabold text-[#202B38]">{isRtl ? "إنشاء مركز مستقل جديد" : "Create a new independent center"}</h1>
+          <p className="mt-2 max-w-3xl text-base leading-7 text-[#7C8794]">{isRtl ? "كل مركز يحصل على رابط دخول وبيانات واشتراك منفصل." : "Every center gets its own login URL, data and subscription."}</p>
         </div>
 
-        <form onSubmit={createCenter} className="space-y-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+        <form onSubmit={createCenter} className="w-full space-y-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 lg:p-10">
           {step === "plan" && <>
           <section>
             <h2 className="mb-3 text-base font-extrabold text-slate-800">{isRtl ? "1. اختر الباقة" : "1. Choose a plan"}</h2>
