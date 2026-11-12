@@ -268,13 +268,13 @@ export default function CreateCenterPage() {
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"><CheckCircle2 className="h-9 w-9" /></div>
           <h1 className="text-2xl font-extrabold text-slate-900">{isRtl ? "تم إنشاء المركز بنجاح" : "Center created successfully"}</h1>
           <p className="mt-2 text-base font-bold text-slate-800">{createdCenterName}</p>
-          <p className="mt-2 text-sm leading-6 text-slate-500">{isRtl ? "أصبح للمركز رابط دخول مستقل يمكنك مشاركته مع فريق العمل." : "Your center now has its own login link that you can share with your team."}</p>
+          <p className="mt-2 text-sm leading-6 text-slate-500">{isRtl ? "أصبح للمركز صفحة عامة مستقلة تشمل بياناته وصوره ووسائل التواصل وتسجيل الدخول، ويمكنك مشاركة الرابط مع العملاء والفريق." : "Your center now has its own public profile with its details, images, contact options and secure team login."}</p>
           <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-3 text-left" dir="ltr">
             <p className="break-all text-sm font-semibold text-[#4F46BA]">{centerUrl}</p>
           </div>
           <button type="button" onClick={async () => { try { await navigator.clipboard.writeText(centerUrl); setLinkCopied(true); } catch { setLinkCopied(false); } }} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-[#5B50C7] font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{linkCopied ? (isRtl ? "تم نسخ الرابط" : "Link copied") : (isRtl ? "نسخ رابط المركز" : "Copy center link")}</button>
-          <p className="mt-2 text-xs leading-5 text-slate-500">{isRtl ? "هذا الرابط يفتح صفحة تسجيل الدخول الخاصة بالمركز، وليس لوحة التحكم مباشرة." : "This link opens the center login page, not the dashboard directly."}</p>
-          <Link href={`/${createdSlug}`} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-[#5B50C7] font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{isRtl ? "فتح صفحة دخول المركز" : "Open center login"}</Link>
+          <p className="mt-2 text-xs leading-5 text-slate-500">{isRtl ? "هذا الرابط يفتح الصفحة العامة للمركز، ومنها يمكن للعملاء التعرف عليه والتواصل معه، ويمكن للفريق تسجيل الدخول." : "This link opens the center public profile, where visitors can learn about the clinic and staff can sign in."}</p>
+          <Link href={`/${createdSlug}`} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-[#5B50C7] font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{isRtl ? "فتح صفحة المركز" : "Open center page"}</Link>
           <Link href="/dashboard" className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#5B50C7] font-bold text-white transition hover:bg-[#4338A8]">{isRtl ? "الانتقال إلى لوحة التحكم" : "Continue to dashboard"}</Link>
           <Link href="/centers.php/" className="mt-4 inline-block text-sm font-semibold text-slate-500 hover:text-[#5B50C7]">{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         </section>
