@@ -1,5 +1,5 @@
-import NotificationsPage from "../notifications/page";
+import CenterAdminPlaceholder from "@/components/CenterAdminPlaceholder";
 
 export default function NoticesPhpPage() {
-  return <NotificationsPage />;
+  return <CenterAdminPlaceholder />;
 }
