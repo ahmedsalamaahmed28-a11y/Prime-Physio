@@ -99,7 +99,7 @@ export default function CreateCenterPage() {
       <nav className="space-y-[2px]">
         {sidebarMenu.map((item, index) => {
           const Icon = item.icon;
-          return <Link key={`${item.href}-${index}`} href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex h-[44px] w-full items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold text-[#59616B] transition-colors hover:bg-[#F7F9FB] hover:text-[#5B50C7]"><Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} /><span className="flex-1 text-right">{isRtl ? item.label : item.en}</span></Link>;
+          return <Link key={`${item.href}-${index}`} href={item.href} onClick={() => setMobileMenuOpen(false)} className={`flex h-[44px] w-full items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold transition-colors ${index === 0 ? "bg-[#F1EFFF] text-[#5B50C7]" : "text-[#59616B] hover:bg-[#F7F9FB] hover:text-[#5B50C7]"}`}><Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} /><span className="flex-1 text-right">{isRtl ? item.label : item.en}</span></Link>;
         })}
       </nav>
       <div className="mt-auto space-y-[2px] border-t border-[#EEF0F2] pt-[15px]">
@@ -269,8 +269,8 @@ export default function CreateCenterPage() {
 
   return (
     <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen w-full bg-[#F7F9FC] font-sans text-slate-800">
-      <div className="flex min-h-screen w-full">
-        <aside className="hidden w-[290px] shrink-0 flex-col border-l border-[#E8EBEF] bg-white px-[12px] pb-[18px] pt-[16px] lg:flex">{sidebar}</aside>
+      <div dir="ltr" className="flex min-h-screen w-full">
+        <aside className={`hidden h-screen w-[290px] shrink-0 flex-col border-[#E8EBEF] bg-white px-[12px] pb-[18px] pt-[16px] lg:flex ${isRtl ? "order-2 border-l" : "order-1 border-r"}`}>{sidebar}</aside>
         {mobileMenuOpen && <div className="fixed inset-0 z-[90] flex lg:hidden">
           <button aria-label={isRtl ? "إغلاق القائمة" : "Close menu"} onClick={() => setMobileMenuOpen(false)} className="absolute inset-0 bg-black/25" />
           <aside className="relative z-10 flex h-full w-[290px] max-w-[85vw] flex-col border-l border-[#E8EBEF] bg-white px-[12px] pb-[18px] pt-[16px] shadow-xl">
@@ -278,7 +278,7 @@ export default function CreateCenterPage() {
             {sidebar}
           </aside>
         </div>}
-        <section className="flex min-h-screen min-w-0 flex-1 flex-col">
+        <section className={`flex min-h-screen min-w-0 flex-1 flex-col ${isRtl ? "order-1" : "order-2"}`}>
           <header className="flex min-h-[64px] shrink-0 items-center border-b border-[#E8EBEF] bg-white px-4 lg:hidden">
             <button onClick={() => setMobileMenuOpen(true)} className="inline-flex items-center gap-2 rounded-lg p-2 text-[#5B50C7] hover:bg-[#F1EFFF]" aria-label={isRtl ? "فتح القائمة" : "Open menu"}><MenuIcon className="h-5 w-5" /><span className="text-sm font-bold">{isRtl ? "القائمة" : "Menu"}</span></button>
           </header>
