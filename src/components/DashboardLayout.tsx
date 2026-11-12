@@ -301,7 +301,9 @@ export default function DashboardLayout({
     );
     const isAuthPage = p === "/" || p === "/login.php" || p === "/privacy" || p === "/terms" || p === "/manage" || p.startsWith("/manage/") || p === "/signup" || p === "/forgot-password" || p === "/reset-password" || p === "/setup" || p.startsWith("/setup/") || p === "/subscribe" || p === "/plans" || p === "/centers" || p === "/about" || p === "/support" || p === "/center_setup" || p.startsWith("/center-management") || isCenterManagementPage || p === "/home.php" || p === "/rgstr.php" || p.startsWith("/platform") || isSlugPage;
 
-  if (isCenterManagementPage || isAuthPage) {
+  // The center creation flow is a focused standalone page: hide the
+  // authenticated dashboard sidebar and global header on this route.
+  if (p === "/my-centers/create" || isCenterManagementPage || isAuthPage) {
     return <>{children}</>;
   }
 
