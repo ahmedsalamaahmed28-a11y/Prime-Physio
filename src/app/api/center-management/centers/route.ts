@@ -54,7 +54,7 @@ export async function GET(req: NextRequest) {
         id: clinic.id,
         name: clinic.name,
         slug: clinic.slug,
-        publicUrl: clinic.slug ? `/clinic/${clinic.slug}` : null,
+        publicUrl: clinic.slug ? `/${clinic.slug}` : null,
         loginUrl: "/dashboard",
         phone: clinic.phone || "",
         address: clinic.address || "",
@@ -108,7 +108,7 @@ export async function PATCH(req: NextRequest) {
       throw error;
     }
 
-    return NextResponse.json({ center: { id: data.id, name: data.name, slug: data.slug, phone: data.phone, address: data.address, publicUrl: `/clinic/${data.slug}` } });
+    return NextResponse.json({ center: { id: data.id, name: data.name, slug: data.slug, phone: data.phone, address: data.address, publicUrl: `/${data.slug}` } });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
     if (/unauthorized/i.test(message)) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
