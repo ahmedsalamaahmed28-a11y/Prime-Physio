@@ -269,9 +269,9 @@ export default function CenterManagementPage() {
               ) : centers.length === 0 ? (
                 <div className="flex min-h-[300px] w-full flex-col items-center justify-center rounded-[19px] border border-dashed border-[#E6E9ED] bg-white px-5 py-10 text-center">
                   <Building className="mb-[15px] h-[43px] w-[43px] text-[#5B50C7]" strokeWidth={2.1} />
-                  <h3 className="text-[21px] font-extrabold leading-[1.5] text-[#303846]">{isRtl ? "لم تنشئ أي مركز بعد" : "You haven't created a center yet"}</h3>
-                  <p className="mt-[4px] max-w-[440px] text-[15px] leading-[29px] text-[#9299A2]">{isRtl ? "اختر الباقة المناسبة ثم أنشئ مركزك الأول. ستظهر روابط جميع مراكزك هنا." : "Choose a plan and create your first center. All your center links will appear here."}</p>
-                  <button onClick={startSetup} className="mt-[16px] inline-flex h-[46px] items-center justify-center rounded-full bg-[#5B50C7] px-[27px] text-[14px] font-extrabold text-white shadow-[0_5px_14px_rgba(91,80,199,.2)] transition hover:bg-[#4338A8]">{isRtl ? "اختر باقة وأنشئ مركزك" : "Choose a plan and create a center"}</button>
+                  <h3 className="text-[21px] font-extrabold leading-[1.5] text-[#303846]">{isRtl ? "جهّز مركزك الأول" : "Set up your first center"}</h3>
+                  <p className="mt-[4px] max-w-[560px] text-[15px] leading-[29px] text-[#9299A2]">{isRtl ? "بعد إنشاء مركزك ستقارن هذه الصفحة كل فروعك: الجلسات والحضور والإيرادات والفرق." : "Once you create your center, this page will compare all your branches: sessions, attendance, revenue, and teams."}</p>
+                  <button onClick={startSetup} className="mt-[16px] inline-flex h-[46px] items-center justify-center gap-2 rounded-full bg-[#5B50C7] px-[27px] text-[14px] font-extrabold text-white shadow-[0_5px_14px_rgba(91,80,199,.2)] transition hover:bg-[#4338A8]"><Building className="h-4 w-4" />{isRtl ? "أضف مركزاً" : "Add a center"}</button>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
