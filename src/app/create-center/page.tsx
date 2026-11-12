@@ -87,9 +87,9 @@ export default function CreateCenterPage() {
   const [linkCopied, setLinkCopied] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const sidebarMenu = [
-    { label: "نظرة عامة", en: "Overview", href: "/center-management", icon: LayoutDashboard },
-    { label: "مراكزي", en: "My Centers", href: "/center-management", icon: Building },
-    { label: "التصدير الكامل للبيانات", en: "Full data export", href: "/center-management#export", icon: Download },
+    { label: "نظرة عامة", en: "Overview", href: "/overview.php/", icon: LayoutDashboard },
+    { label: "مراكزي", en: "My Centers", href: "/centers.php/", icon: Building },
+    { label: "التصدير الكامل للبيانات", en: "Full data export", href: "/export.php/", icon: Download },
     { label: "الحساب والاشتراك", en: "Account & subscription", href: "/subscription", icon: User },
     { label: "الباقات", en: "Plans", href: "/plans", icon: CreditCard },
     { label: "الإشعارات", en: "Notifications", href: "/notifications", icon: Bell },
@@ -265,7 +265,7 @@ export default function CreateCenterPage() {
           <p className="mt-2 text-xs leading-5 text-slate-500">{isRtl ? "هذا الرابط يفتح صفحة تسجيل الدخول الخاصة بالمركز، وليس لوحة التحكم مباشرة." : "This link opens the center login page, not the dashboard directly."}</p>
           <Link href={`/${createdSlug}`} className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl border border-[#5B50C7] font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{isRtl ? "فتح صفحة دخول المركز" : "Open center login"}</Link>
           <Link href="/dashboard" className="mt-3 inline-flex h-11 w-full items-center justify-center rounded-xl bg-[#5B50C7] font-bold text-white transition hover:bg-[#4338A8]">{isRtl ? "الانتقال إلى لوحة التحكم" : "Continue to dashboard"}</Link>
-          <Link href="/center-management" className="mt-4 inline-block text-sm font-semibold text-slate-500 hover:text-[#5B50C7]">{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
+          <Link href="/centers.php/" className="mt-4 inline-block text-sm font-semibold text-slate-500 hover:text-[#5B50C7]">{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         </section>
       </main>
     );
@@ -305,7 +305,7 @@ export default function CreateCenterPage() {
             </div>
           </header>
           <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col px-[32px] pb-[26px] pt-[40px] max-sm:px-4 max-sm:pt-7">
-        <Link href="/center-management" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
+        <Link href="/centers.php/" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         <div className="mb-7">
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5B50C7] text-white"><Building className="h-6 w-6" /></div>
           <h1 className="text-2xl font-extrabold text-[#202B38]">{isRtl ? "إنشاء مركز مستقل جديد" : "Create a new independent center"}</h1>
@@ -414,7 +414,7 @@ export default function CreateCenterPage() {
               {(creating || uploadingLogo) && <Loader2 className="h-4 w-4 animate-spin" />}
               {isRtl ? "إنشاء المركز" : "Create center"}
             </button>
-            <Link href="/center-management" className="inline-flex h-12 items-center justify-center rounded-xl border border-[#5B50C7] bg-white px-4 text-sm font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{isRtl ? "إلغاء" : "Cancel"}</Link>
+            <Link href="/centers.php/" className="inline-flex h-12 items-center justify-center rounded-xl border border-[#5B50C7] bg-white px-4 text-sm font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{isRtl ? "إلغاء" : "Cancel"}</Link>
           </div>
           <p className="text-center text-[11px] leading-5 text-slate-400">{isRtl ? "سيتم إنشاء مركز مستقل. لا يمكن للمراكز الأخرى الوصول إلى مرضاه أو سجلاته." : "A separate tenant will be created. Other centers cannot access its patients or records."}</p>
         </form>
