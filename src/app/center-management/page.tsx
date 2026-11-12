@@ -33,7 +33,8 @@ export default function CenterManagementPage() {
   const { language, toggleLanguage } = useLanguage();
   const router = useRouter();
   const pathname = usePathname();
-  const isMyCentersPage = pathname === "/my-centers" || pathname === "/centers.php";
+  const normalizedPathname = (pathname || "").replace(/\\/+$/, "") || "/";
+  const isMyCentersPage = normalizedPathname === "/my-centers" || normalizedPathname === "/centers.php";
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [centers, setCenters] = useState<Array<any>>([]);
