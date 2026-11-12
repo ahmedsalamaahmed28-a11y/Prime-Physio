@@ -282,8 +282,7 @@ export default function CreateCenterPage() {
           <header className="flex min-h-[64px] shrink-0 items-center border-b border-[#E8EBEF] bg-white px-4 lg:hidden">
             <button onClick={() => setMobileMenuOpen(true)} className="inline-flex items-center gap-2 rounded-lg p-2 text-[#5B50C7] hover:bg-[#F1EFFF]" aria-label={isRtl ? "فتح القائمة" : "Open menu"}><MenuIcon className="h-5 w-5" /><span className="text-sm font-bold">{isRtl ? "القائمة" : "Menu"}</span></button>
           </header>
-          <div className="flex w-full flex-1 flex-col items-center px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
-          <div className="mx-auto w-full max-w-6xl">
+          <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col px-[32px] pb-[26px] pt-[40px] max-sm:px-4 max-sm:pt-7">
         <Link href="/center-management" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         <div className="mb-7">
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5B50C7] text-white"><Building className="h-6 w-6" /></div>
@@ -397,7 +396,6 @@ export default function CreateCenterPage() {
           </div>
           <p className="text-center text-[11px] leading-5 text-slate-400">{isRtl ? "سيتم إنشاء مركز مستقل. لا يمكن للمراكز الأخرى الوصول إلى مرضاه أو سجلاته." : "A separate tenant will be created. Other centers cannot access its patients or records."}</p>
         </form>
-          </div>
           </div>
         </section>
       </div>
