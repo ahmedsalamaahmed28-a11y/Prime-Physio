@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
-import { Building, CheckCircle2, ArrowLeft, Loader2, ChevronDown } from "lucide-react";
+import { Building, CheckCircle2, ArrowLeft, Loader2, ChevronDown, LayoutDashboard, Download, User, CreditCard, Bell, HelpCircle, Sparkles, Menu as MenuIcon, X } from "lucide-react";
 
 type CenterCountry = { code: string; dial: string; flag: string; ar: string; en: string; example: string };
 
@@ -81,6 +81,33 @@ export default function CreateCenterPage() {
   const [createdCenterName, setCreatedCenterName] = useState("");
   const [centerCreated, setCenterCreated] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const sidebarMenu = [
+    { label: "نظرة عامة", en: "Overview", href: "/center-management", icon: LayoutDashboard },
+    { label: "مراكزي", en: "My Centers", href: "/center-management", icon: Building },
+    { label: "التصدير الكامل للبيانات", en: "Full data export", href: "/center-management#export", icon: Download },
+    { label: "الحساب والاشتراك", en: "Account & subscription", href: "/subscription", icon: User },
+    { label: "الباقات", en: "Plans", href: "/plans", icon: CreditCard },
+    { label: "الإشعارات", en: "Notifications", href: "/notifications", icon: Bell },
+  ];
+  const sidebar = (
+    <>
+      <Link href="/home.php" onClick={() => setMobileMenuOpen(false)} className="mb-[26px] flex h-[42px] w-full items-center justify-start gap-[9px] px-[2px]">
+        <span className="text-[21px] font-black tracking-tight text-[#153B60]">Prime<span className="text-[#5B50C7]">Physio</span></span>
+        <span className="flex h-[35px] w-[35px] items-center justify-center rounded-[9px] bg-[#5B50C7] text-white"><Building className="h-[21px] w-[21px]" /></span>
+      </Link>
+      <nav className="space-y-[2px]">
+        {sidebarMenu.map((item, index) => {
+          const Icon = item.icon;
+          return <Link key={`${item.href}-${index}`} href={item.href} onClick={() => setMobileMenuOpen(false)} className="flex h-[44px] w-full items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold text-[#59616B] transition-colors hover:bg-[#F7F9FB] hover:text-[#5B50C7]"><Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.9} /><span className="flex-1 text-right">{isRtl ? item.label : item.en}</span></Link>;
+        })}
+      </nav>
+      <div className="mt-auto space-y-[2px] border-t border-[#EEF0F2] pt-[15px]">
+        <Link href="/support" onClick={() => setMobileMenuOpen(false)} className="flex h-[42px] items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold text-[#737B85] hover:bg-[#F7F9FB]"><HelpCircle className="h-[18px] w-[18px]" strokeWidth={1.9} /><span>{isRtl ? "مركز المساعدة" : "Help Center"}</span></Link>
+        <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="flex h-[42px] items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold text-[#737B85] hover:bg-[#F7F9FB]"><Sparkles className="h-[18px] w-[18px]" strokeWidth={1.9} /><span>{isRtl ? "الجديد" : "What's New"}</span></Link>
+      </div>
+    </>
+  );
 
   useEffect(() => () => { if (logoPreview) URL.revokeObjectURL(logoPreview); }, [logoPreview]);
 
@@ -242,7 +269,20 @@ export default function CreateCenterPage() {
 
   return (
     <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen w-full bg-[#F7F9FC] font-sans text-slate-800">
-      <section className="flex min-h-screen w-full flex-col items-center bg-[#F7F9FC] px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+      <div className="flex min-h-screen w-full">
+        <aside className="hidden w-[290px] shrink-0 flex-col border-l border-[#E8EBEF] bg-white px-[12px] pb-[18px] pt-[16px] lg:flex">{sidebar}</aside>
+        {mobileMenuOpen && <div className="fixed inset-0 z-[90] flex lg:hidden">
+          <button aria-label={isRtl ? "إغلاق القائمة" : "Close menu"} onClick={() => setMobileMenuOpen(false)} className="absolute inset-0 bg-black/25" />
+          <aside className="relative z-10 flex h-full w-[290px] max-w-[85vw] flex-col border-l border-[#E8EBEF] bg-white px-[12px] pb-[18px] pt-[16px] shadow-xl">
+            <button onClick={() => setMobileMenuOpen(false)} aria-label="Close" className="mb-3 self-start rounded-lg p-2 text-slate-500 hover:bg-slate-100"><X className="h-5 w-5" /></button>
+            {sidebar}
+          </aside>
+        </div>}
+        <section className="flex min-h-screen min-w-0 flex-1 flex-col">
+          <header className="flex min-h-[64px] shrink-0 items-center border-b border-[#E8EBEF] bg-white px-4 lg:hidden">
+            <button onClick={() => setMobileMenuOpen(true)} className="inline-flex items-center gap-2 rounded-lg p-2 text-[#5B50C7] hover:bg-[#F1EFFF]" aria-label={isRtl ? "فتح القائمة" : "Open menu"}><MenuIcon className="h-5 w-5" /><span className="text-sm font-bold">{isRtl ? "القائمة" : "Menu"}</span></button>
+          </header>
+          <div className="flex w-full flex-1 flex-col items-center px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
           <div className="mx-auto w-full max-w-6xl">
         <Link href="/center-management" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         <div className="mb-7">
@@ -358,7 +398,9 @@ export default function CreateCenterPage() {
           <p className="text-center text-[11px] leading-5 text-slate-400">{isRtl ? "سيتم إنشاء مركز مستقل. لا يمكن للمراكز الأخرى الوصول إلى مرضاه أو سجلاته." : "A separate tenant will be created. Other centers cannot access its patients or records."}</p>
         </form>
           </div>
-      </section>
+          </div>
+        </section>
+      </div>
     </main>
   );
 }
