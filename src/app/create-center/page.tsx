@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
-import { Building, CheckCircle2, ArrowLeft, Loader2 } from "lucide-react";
+import { Building, CheckCircle2, ArrowLeft, Loader2, ChevronDown } from "lucide-react";
 
 type CenterCountry = { code: string; dial: string; flag: string; ar: string; en: string; example: string };
 
@@ -59,10 +59,13 @@ export default function CreateCenterPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const [planId, setPlanId] = useState("basic");
-  const [step, setStep] = useState<"plan" | "details">("plan");
+  const [step, setStep] = useState<"plan" | "details">("details");
+  const [showMore, setShowMore] = useState(false);
+  const [phoneCountryCode, setPhoneCountryCode] = useState("EG");
   const [phone, setPhone] = useState("");
   const [countryCode, setCountryCode] = useState("EG");
   const selectedCountry = CENTER_COUNTRIES.find((country) => country.code === countryCode) ?? CENTER_COUNTRIES[0];
+  const selectedPhoneCountry = CENTER_COUNTRIES.find((country) => country.code === phoneCountryCode) ?? CENTER_COUNTRIES[0];
   const [address, setAddress] = useState("");
   const [shortName, setShortName] = useState("");
   const [fullName, setFullName] = useState("");
@@ -107,8 +110,8 @@ export default function CreateCenterPage() {
       setError(isRtl ? "يرجى تسجيل الدخول أولاً." : "Please sign in first.");
       return;
     }
-    if (!planId) {
-      setError(isRtl ? "اختر باقة الاشتراك قبل إنشاء المركز." : "Choose a subscription plan before creating the center.");
+    if (!fullName.trim()) {
+      setError(isRtl ? "يرجى إدخال اسم المركز." : "Please enter the center name.");
       return;
     }
     setCreating(true);
@@ -131,11 +134,13 @@ export default function CreateCenterPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           planId,
-          shortName: shortName.trim(),
+          shortName: shortName.trim() || fullName.trim(),
           fullName: fullName.trim(),
           slug: normalizeSlug(slug),
-          phone: `+${selectedCountry.dial}${phone.trim().replace(/[^0-9]/g, "").replace(/^0+/, "")}`,
-          address: address.trim(),
+          countryCode: selectedCountry.code,
+          country: isRtl ? selectedCountry.ar : selectedCountry.en,
+          phone: phone.trim() ? `+${selectedPhoneCountry.dial}${phone.trim().replace(/[^0-9]/g, "").replace(/^0+/, "")}` : "",
+          address: "",
           logoUrl: uploadedLogo?.url || null,
           logoPath: uploadedLogo?.path || null,
         }),
@@ -269,120 +274,107 @@ export default function CreateCenterPage() {
           <p className="mt-2 text-sm text-[#7C8794]">{isRtl ? "كل مركز يحصل على رابط دخول وبيانات واشتراك منفصل." : "Every center gets its own login URL, data and subscription."}</p>
         </div>
 
-        <form onSubmit={createCenter} className="space-y-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
-          {step === "plan" && <>
+        <form onSubmit={createCenter} className="space-y-5 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
           <section>
-            <h2 className="mb-3 text-base font-extrabold text-slate-800">{isRtl ? "1. اختر الباقة" : "1. Choose a plan"}</h2>
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              {plans.map((plan) => (
-                <button key={plan.id} type="button" onClick={() => setPlanId(plan.id)} className={`rounded-2xl border p-4 text-start transition ${planId === plan.id ? "border-[#5B50C7] bg-[#F1EFFF] ring-2 ring-[#5B50C7]/15" : "border-slate-200 bg-white hover:border-slate-300"}`}>
-                  {plan.id === "basic" && <span className="mb-2 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700">{isRtl ? "موصى بها — بدون بطاقة دفع" : "Recommended — no card required"}</span>}
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-extrabold text-slate-800">{isRtl ? plan.nameAr : plan.nameEn}</span>
-                    {planId === plan.id && <CheckCircle2 className="h-5 w-5 text-[#5B50C7]" />}
-                  </div>
-                  <div className="mt-3 text-lg font-extrabold text-[#5B50C7]">{isRtl ? plan.priceLabelAr : plan.priceLabelEn}</div>
-                  <p className="mt-1 text-xs text-slate-500">{isRtl ? plan.descriptionAr : plan.descriptionEn}</p>
-                </button>
-              ))}
-            </div>
+            <h2 className="mb-5 text-base font-extrabold text-slate-800">{isRtl ? "بيانات المركز" : "Center details"}</h2>
+            <label className="block text-sm font-semibold text-slate-700">
+              {isRtl ? "اسم المركز" : "Center name"}
+              <input value={fullName} onChange={(e) => setFullName(e.target.value)} required maxLength={200} className="mt-2 h-12 w-full rounded-xl border border-slate-200 px-3 outline-none transition focus:border-[#5B50C7] focus:ring-4 focus:ring-[#5B50C7]/10" placeholder={isRtl ? "اكتب اسم المركز" : "Enter center name"} />
+            </label>
+            <label className="mt-4 block text-sm font-semibold text-slate-700">
+              {isRtl ? "الدولة" : "Country"}
+              <div className="relative mt-2 flex h-12 items-center rounded-xl border border-slate-200 bg-white px-3 transition focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10">
+                <span className="text-xl" aria-hidden="true">{selectedCountry.flag}</span>
+                <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)} aria-label={isRtl ? "دولة المركز" : "Center country"} className="h-full min-w-0 flex-1 appearance-none bg-transparent px-3 text-sm font-medium text-slate-700 outline-none">
+                  {CENTER_COUNTRIES.map((country) => <option key={country.code} value={country.code}>{country.flag} {isRtl ? country.ar : country.en}</option>)}
+                </select>
+                <ChevronDown className="pointer-events-none h-4 w-4 text-slate-500" />
+              </div>
+            </label>
+            <label className="mt-4 block text-sm font-semibold text-slate-700">
+              {isRtl ? "رابط المركز" : "Center URL"}
+              <div className="mt-2 flex overflow-hidden rounded-xl border border-slate-200 transition focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
+                <span className="flex shrink-0 items-center bg-slate-50 px-3 text-xs text-slate-500 sm:text-sm">primephysio.vercel.app/</span>
+                <input value={slug} onChange={(e) => setSlug(normalizeSlug(e.target.value))} required maxLength={50} pattern="[a-z0-9]+(-[a-z0-9]+)*" className="h-12 min-w-0 flex-1 px-3 text-sm outline-none" placeholder="my-center" />
+              </div>
+              <span className="mt-1 block text-xs font-normal text-slate-400">{isRtl ? "استخدم أحرفًا إنجليزية صغيرة وأرقامًا وشرطة فقط." : "Use lowercase English letters, numbers and hyphens only."}</span>
+            </label>
           </section>
 
+          <section className="border-t border-slate-100 pt-4">
+            <button type="button" onClick={() => setShowMore((value) => !value)} aria-expanded={showMore} className="flex w-full items-center justify-between rounded-xl py-2 text-sm font-bold text-[#5B50C7] transition hover:text-[#4338A8]">
+              <span>{isRtl ? "أضف المزيد الآن" : "Add more now"}</span>
+              <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${showMore ? "rotate-180" : ""}`} />
+            </button>
+            {showMore && <div className="mt-4 space-y-5 animate-in fade-in slide-in-from-top-2 duration-200">
+              <label className="block text-sm font-semibold text-slate-700">
+                {isRtl ? "الاسم المختصر" : "Short name"}
+                <input value={shortName} onChange={(e) => setShortName(e.target.value)} maxLength={120} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "اسم مختصر يظهر داخل المنصة" : "A short name shown in the platform"} />
+              </label>
 
-            <button type="button" disabled={!planId} onClick={() => { setError(""); setStep("details"); }} className="inline-flex h-12 w-full items-center justify-center rounded-full bg-[#5B50C7] px-6 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">{isRtl ? "متابعة إلى بيانات المركز" : "Continue to center details"}</button>
-          </>}
-          {step === "details" && <>
-            <button type="button" onClick={() => setStep("plan")} className="inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة لاختيار الباقة" : "Back to plan selection"}</button>
-          <section className="border-t border-slate-100 pt-6">
-            <h2 className="mb-4 text-base font-extrabold text-slate-800">{isRtl ? "2. بيانات المركز" : "2. Center details"}</h2>
-            <p className="mb-4 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium leading-6 text-emerald-800">{isRtl ? "تم التحقق من بريد حساب المالك أثناء إنشاء الحساب. يمكنك الآن إعداد مركزك." : "Your owner email was verified during account creation. You can now set up your center."}</p>
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <label className="block text-sm font-semibold text-slate-700">
-                {isRtl ? "اسم المركز المختصر" : "Center display name"}
-                <input value={shortName} onChange={(e) => setShortName(e.target.value)} required maxLength={120} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "مثال: برايم للعلاج الطبيعي" : "e.g. Prime Physiotherapy"} />
-                <span className="mt-1 block text-xs font-normal text-slate-500">{isRtl ? "الاسم المختصر الذي سيظهر في واجهة المركز." : "The short name displayed across the center interface."}</span>
-              </label>
-              <label className="block text-sm font-semibold text-slate-700">
-                {isRtl ? "الاسم الكامل أو الرسمي (اختياري)" : "Full / official name (optional)"}
-                <input value={fullName} onChange={(e) => setFullName(e.target.value)} maxLength={200} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "الاسم القانوني أو الاسم الكامل للمركز" : "Legal or complete center name"} />
-                <span className="mt-1 block text-xs font-normal text-slate-500">{isRtl ? "اتركه فارغًا إذا كان اسم المركز المختصر كافيًا." : "Leave blank if the center display name is sufficient."}</span>
-              </label>
-            </div>
-            <label className="mt-4 block text-sm font-semibold text-slate-700">
-              {isRtl ? "رابط المركز الخاص" : "Unique center URL"}
-              <div className="mt-2 flex overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#5B50C7]" dir="ltr">
-                <span className="flex items-center bg-slate-50 px-3 text-xs text-slate-500">primephysio.vercel.app/</span>
-                <input value={slug} onChange={(e) => setSlug(normalizeSlug(e.target.value))} required maxLength={50} pattern="[a-z0-9]+(-[a-z0-9]+)*" className="h-11 min-w-0 flex-1 px-3 outline-none" placeholder="my-center" />
-              </div>
-              <span className="mt-1 block text-xs font-normal text-slate-400">{isRtl ? "استخدم أحرفًا إنجليزية صغيرة وأرقامًا وشرطة فقط. الرابط يفتح صفحة تسجيل دخول المركز." : "Use lowercase English letters, numbers and hyphens only. This URL opens the center login page."}</span>
-            </label>
-          <div className="mt-5">
-            <label className="mb-2 block text-sm font-semibold text-slate-700">
-              {isRtl ? "شعار أو صورة المركز (اختياري)" : "Center logo or image (optional)"}
-            </label>
-            <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 sm:flex-row sm:items-center">
-              {logoPreview ? (
-                <img src={logoPreview} alt={isRtl ? "معاينة شعار المركز" : "Center logo preview"} className="h-24 w-24 rounded-xl border border-slate-200 bg-white object-contain p-2" />
-              ) : (
-                <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-white text-[#5B50C7]"><Building className="h-9 w-9" /></div>
-              )}
-              <div className="flex-1">
-                <p className="text-sm font-semibold text-slate-700">{isRtl ? "أضف شعار المركز ليظهر في صفحته" : "Add a logo to display on your center page"}</p>
-                <p className="mt-1 text-xs text-slate-500">{isRtl ? "PNG أو JPG أو WebP — بحد أقصى 5 ميجابايت." : "PNG, JPG or WebP — up to 5 MB."}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <label className="inline-flex h-9 cursor-pointer items-center justify-center rounded-full bg-[#5B50C7] px-4 text-xs font-bold text-white hover:bg-[#4338A8]">
-                    {isRtl ? (logoFile ? "تغيير الصورة" : "اختيار صورة") : (logoFile ? "Change image" : "Choose image")}
-                    <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      event.target.value = "";
-                      if (!file) return;
-                      if (!["image/png", "image/jpeg", "image/webp"].includes(file.type.toLowerCase())) {
-                        setError(isRtl ? "اختر صورة PNG أو JPG أو WebP." : "Choose a PNG, JPG, or WebP image.");
-                        return;
-                      }
-                      if (file.size > 5 * 1024 * 1024) {
-                        setError(isRtl ? "حجم الصورة يجب ألا يتجاوز 5 ميجابايت." : "Image size must not exceed 5 MB.");
-                        return;
-                      }
-                      setError("");
-                      setLogoFile(file);
-                      setLogoPreview(URL.createObjectURL(file));
-                    }} />
-                  </label>
-                  {logoFile && <button type="button" onClick={() => { setLogoFile(null); setLogoPreview(""); }} className="h-9 rounded-full border border-slate-300 px-4 text-xs font-bold text-slate-600">{isRtl ? "إزالة الصورة" : "Remove image"}</button>}
+              <div>
+                <label className="mb-2 block text-sm font-semibold text-slate-700">{isRtl ? "الشعار" : "Logo"}</label>
+                <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 sm:flex-row sm:items-center">
+                  {logoPreview ? (
+                    <img src={logoPreview} alt={isRtl ? "معاينة شعار المركز" : "Center logo preview"} className="h-24 w-24 rounded-xl border border-slate-200 bg-white object-contain p-2" />
+                  ) : (
+                    <img src="/logo.png" alt="Prime Physio" className="h-24 w-24 shrink-0 rounded-xl border border-slate-200 bg-white object-contain p-2" />
+                  )}
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold text-slate-700">{isRtl ? "الشعار الافتراضي هو شعار Prime Physio" : "The default logo is the Prime Physio logo"}</p>
+                    <p className="mt-1 text-xs text-slate-500">{isRtl ? "يمكنك اختيار شعار آخر بصيغة PNG أو JPG أو WebP حتى 5 ميجابايت." : "Choose another PNG, JPG or WebP logo up to 5 MB."}</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <label className="inline-flex h-9 cursor-pointer items-center justify-center rounded-full bg-[#5B50C7] px-4 text-xs font-bold text-white hover:bg-[#4338A8]">
+                        {isRtl ? (logoFile ? "اختيار ملف آخر" : "Choose file") : (logoFile ? "Choose another file" : "Choose file")}
+                        <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          event.target.value = "";
+                          if (!file) return;
+                          if (!["image/png", "image/jpeg", "image/webp"].includes(file.type.toLowerCase())) {
+                            setError(isRtl ? "اختر صورة PNG أو JPG أو WebP." : "Choose a PNG, JPG, or WebP image.");
+                            return;
+                          }
+                          if (file.size > 5 * 1024 * 1024) {
+                            setError(isRtl ? "حجم الصورة يجب ألا يتجاوز 5 ميجابايت." : "Image size must not exceed 5 MB.");
+                            return;
+                          }
+                          setError("");
+                          setLogoFile(file);
+                          setLogoPreview(URL.createObjectURL(file));
+                        }} />
+                      </label>
+                      {logoFile && <button type="button" onClick={() => { setLogoFile(null); setLogoPreview(""); }} className="h-9 rounded-full border border-slate-300 px-4 text-xs font-bold text-slate-600">{isRtl ? "إزالة الصورة" : "Remove image"}</button>}
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-          </section>
 
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <label className="block text-sm font-semibold text-slate-700">{isRtl ? "رقم هاتف المركز" : "Center phone"}
+              <label className="block text-sm font-semibold text-slate-700">{isRtl ? "الهاتف" : "Phone"}
                 <div className="mt-2 flex h-11 overflow-hidden rounded-xl border border-slate-200 focus-within:border-[#5B50C7]" dir="ltr">
                   <div className="relative flex w-[116px] shrink-0 items-center gap-2 border-r border-slate-200 bg-slate-50 px-3">
-                    <span aria-hidden="true">{selectedCountry.flag}</span>
-                    <span className="text-sm font-semibold text-slate-700">+{selectedCountry.dial}</span>
-                    <select value={countryCode} onChange={(event) => setCountryCode(event.target.value)} aria-label={isRtl ? "اختر دولة هاتف المركز" : "Select center phone country"} className="absolute inset-0 h-full w-full cursor-pointer opacity-0">
+                    <span aria-hidden="true">{selectedPhoneCountry.flag}</span>
+                    <span className="text-sm font-semibold text-slate-700">+{selectedPhoneCountry.dial}</span>
+                    <ChevronDown className="h-3 w-3 text-slate-500" />
+                    <select value={phoneCountryCode} onChange={(event) => setPhoneCountryCode(event.target.value)} aria-label={isRtl ? "اختر دولة الهاتف" : "Select phone country"} className="absolute inset-0 h-full w-full cursor-pointer opacity-0">
                       {CENTER_COUNTRIES.map((country) => <option key={country.code} value={country.code}>+{country.dial} · {isRtl ? country.ar : country.en}</option>)}
                     </select>
                   </div>
-                  <input value={phone} onChange={(event) => setPhone(event.target.value.replace(/[^0-9]/g, ""))} required maxLength={18} type="tel" inputMode="tel" autoComplete="tel-national" className="min-w-0 flex-1 px-3 outline-none" placeholder={selectedCountry.example} />
+                  <input value={phone} onChange={(event) => setPhone(event.target.value.replace(/[^0-9]/g, ""))} maxLength={18} type="tel" inputMode="tel" autoComplete="tel-national" className="min-w-0 flex-1 px-3 outline-none" placeholder={selectedPhoneCountry.example} />
                 </div>
-                <span className="mt-1 block text-xs font-normal text-slate-500">{isRtl ? "اختر الدولة أولًا، وسيُضاف مفتاحها الدولي تلقائيًا إلى الرقم." : "Choose the country first; its calling code will be added automatically."}</span>
               </label>
-              <label className="block text-sm font-semibold text-slate-700">{isRtl ? "عنوان المركز" : "Center address"}
-                <input value={address} onChange={(e) => setAddress(e.target.value)} required maxLength={250} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "المحافظة، المنطقة، الشارع" : "City, area, street"} />
-              </label>
-            </div>
-            
-            {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
-            {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</p>}
-            <button type="submit" disabled={creating || uploadingLogo} className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-[#5B50C7] px-6 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">
+            </div>}
+          </section>
+
+          {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+          {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">{notice}</p>}
+          <div className="grid grid-cols-2 gap-3">
+            <button type="submit" disabled={creating || uploadingLogo} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#5B50C7] px-4 text-sm font-extrabold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:opacity-50">
               {(creating || uploadingLogo) && <Loader2 className="h-4 w-4 animate-spin" />}
               {isRtl ? "إنشاء المركز" : "Create center"}
             </button>
-            <p className="text-center text-[11px] leading-5 text-slate-400">{isRtl ? "سيتم إنشاء مركز مستقل. لا يمكن للمراكز الأخرى الوصول إلى مرضاه أو سجلاته." : "A separate tenant will be created. Other centers cannot access its patients or records."}</p>
-          </>}
+            <Link href="/center-management" className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50">{isRtl ? "إلغاء" : "Cancel"}</Link>
+          </div>
+          <p className="text-center text-[11px] leading-5 text-slate-400">{isRtl ? "سيتم إنشاء مركز مستقل. لا يمكن للمراكز الأخرى الوصول إلى مرضاه أو سجلاته." : "A separate tenant will be created. Other centers cannot access its patients or records."}</p>
         </form>
           </div>
         </section>
