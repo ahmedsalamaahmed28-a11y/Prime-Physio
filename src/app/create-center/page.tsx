@@ -321,7 +321,7 @@ export default function CreateCenterPage() {
                           setLogoPreview(URL.createObjectURL(file));
                         }} />
                       </label>
-                      {logoFile && <button type="button" onClick={() => { setLogoFile(null); setLogoPreview(""); }} className="h-9 rounded-full border border-slate-300 px-4 text-xs font-bold text-slate-600">{isRtl ? "إزالة الصورة" : "Remove image"}</button>}
+                      {logoFile && <button type="button" onClick={() => { setLogoFile(null); setLogoPreview(""); }} className="h-9 rounded-full border border-[#5B50C7] bg-white px-4 text-xs font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{isRtl ? "إزالة الصورة" : "Remove image"}</button>}
                     </div>
                   </div>
                 </div>
@@ -353,7 +353,7 @@ export default function CreateCenterPage() {
               {(creating || uploadingLogo) && <Loader2 className="h-4 w-4 animate-spin" />}
               {isRtl ? "إنشاء المركز" : "Create center"}
             </button>
-            <Link href="/center-management" className="inline-flex h-12 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50">{isRtl ? "إلغاء" : "Cancel"}</Link>
+            <Link href="/center-management" className="inline-flex h-12 items-center justify-center rounded-xl border border-[#5B50C7] bg-white px-4 text-sm font-bold text-[#5B50C7] transition hover:bg-[#F1EFFF]">{isRtl ? "إلغاء" : "Cancel"}</Link>
           </div>
           <p className="text-center text-[11px] leading-5 text-slate-400">{isRtl ? "سيتم إنشاء مركز مستقل. لا يمكن للمراكز الأخرى الوصول إلى مرضاه أو سجلاته." : "A separate tenant will be created. Other centers cannot access its patients or records."}</p>
         </form>
