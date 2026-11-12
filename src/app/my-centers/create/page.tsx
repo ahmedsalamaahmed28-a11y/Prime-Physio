@@ -277,7 +277,7 @@ export default function CreateCenterPage() {
                 <section className="relative flex min-h-[calc(100dvh-4rem)] w-full max-w-none flex-1 flex-col items-stretch bg-slate-50/40 px-3 py-3 sm:px-5 sm:py-4 lg:px-7 xl:px-8">
           <div className="relative z-10 flex w-full max-w-none min-w-0 flex-1 flex-col">
         <div className="mb-4 flex w-full justify-start" dir="ltr">
-          <Link href="/center-management" dir={isRtl ? "rtl" : "ltr"} className="inline-flex items-center gap-2 text-sm font-semibold text-[#0B4C96] hover:text-[#4338A8]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
+          <Link href="/center-management" dir={isRtl ? "rtl" : "ltr"} className="inline-flex items-center gap-2 text-sm font-bold text-[#4F46E5] transition-colors hover:text-[#7C3AED]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         </div>
         <div className="mb-5 flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:gap-4 sm:p-5">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-[#4F46E5] sm:h-12 sm:w-12"><Building className="h-5 w-5 sm:h-6 sm:w-6" /></div>
@@ -326,7 +326,7 @@ export default function CreateCenterPage() {
           </section>
 
 
-            <button type="button" disabled={!planId} onClick={() => { setError(""); setStep("details"); }} className="inline-flex h-14 w-full items-center justify-center rounded-full bg-[#0B4C96] px-8 text-base font-extrabold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-[#083B75] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50">{isRtl ? "متابعة إلى بيانات المركز" : "Continue to center details"}</button>
+            <button type="button" disabled={!planId} onClick={() => { setError(""); setStep("details"); }} className="inline-flex h-14 w-full items-center justify-center rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-8 text-base font-extrabold text-white shadow-md shadow-indigo-500/20 transition hover:-translate-y-0.5 hover:from-[#4338CA] hover:to-[#6D28D9] hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50">{isRtl ? "متابعة إلى بيانات المركز" : "Continue to center details"}</button>
           </>}
           {step === "details" && <>
             <button type="button" onClick={() => setStep("plan")} className="inline-flex items-center gap-2 text-sm font-semibold text-[#0B4C96]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة لاختيار الباقة" : "Back to plan selection"}</button>
