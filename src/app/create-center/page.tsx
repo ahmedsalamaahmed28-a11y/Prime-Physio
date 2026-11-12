@@ -284,13 +284,13 @@ export default function CreateCenterPage() {
               <span>{isRtl ? "أضف المزيد الآن" : "Add more now"}</span>
               <ChevronDown className={`h-5 w-5 transition-transform duration-200 ${showMore ? "rotate-180" : ""}`} />
             </button>
-            {showMore && <div className="mt-4 grid grid-cols-1 gap-5 animate-in fade-in slide-in-from-top-2 duration-200 md:grid-cols-2">
-              <label className="block min-w-0 text-sm font-semibold text-slate-700">
+            {showMore && <div dir="ltr" className="mt-4 grid grid-cols-1 gap-5 animate-in fade-in slide-in-from-top-2 duration-200 md:grid-cols-2 md:grid-rows-2">
+              <label dir={isRtl ? "rtl" : "ltr"} className="block min-w-0 text-sm font-semibold text-slate-700 md:col-start-2 md:row-start-1">
                 {isRtl ? "الاسم المختصر" : "Short name"}
                 <input value={shortName} onChange={(e) => setShortName(e.target.value)} maxLength={120} className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-3 outline-none focus:border-[#5B50C7]" placeholder={isRtl ? "اسم مختصر يظهر داخل المنصة" : "A short name shown in the platform"} />
               </label>
 
-              <div className="min-w-0">
+              <div className="min-w-0 md:col-start-1 md:row-span-2 md:row-start-1">
                 <label className="mb-2 block text-sm font-semibold text-slate-700">{isRtl ? "الشعار" : "Logo"}</label>
                 <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 sm:flex-row sm:items-center">
                   {logoPreview ? (
@@ -327,7 +327,7 @@ export default function CreateCenterPage() {
                 </div>
               </div>
 
-              <label className="block min-w-0 text-sm font-semibold text-slate-700">{isRtl ? "الهاتف" : "Phone"}
+              <label dir={isRtl ? "rtl" : "ltr"} className="block min-w-0 text-sm font-semibold text-slate-700 md:col-start-2 md:row-start-2">{isRtl ? "الهاتف" : "Phone"}
                 <div className="mt-2 flex h-[46px] min-h-[46px] min-w-0 items-center overflow-hidden rounded-xl border-[1.5px] border-[#D9E1EA] bg-white shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition duration-200 hover:border-[#B8C5D3] focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10" dir="ltr">
                   <div className="relative flex h-full w-[60px] shrink-0 items-center justify-center gap-1 bg-transparent">
                     <label htmlFor="center-phone-country" className="sr-only">{isRtl ? "اختيار الدولة" : "Select country"}</label>
