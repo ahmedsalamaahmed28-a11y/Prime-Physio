@@ -241,32 +241,9 @@ export default function CreateCenterPage() {
   }
 
   return (
-    <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-white font-sans text-slate-800">
-      <div className="flex min-h-screen w-full flex-col lg:flex-row" dir={isRtl ? "rtl" : "ltr"}>
-        <section className="relative hidden overflow-hidden bg-slate-900 lg:flex lg:w-1/2 items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-[#4F46BA] opacity-95" />
-          <div className="relative z-10 flex w-full max-w-lg flex-col items-center justify-center p-12 text-center text-white">
-            <Link href="/" className="mb-10 transition-transform hover:scale-105">
-              <img src="/logo.png" alt="Prime Physio" className="h-24 w-24 object-contain drop-shadow-2xl brightness-0 invert" />
-            </Link>
-            <h2 className="mb-6 text-4xl font-bold leading-tight">
-              {isRtl ? "مستقبل إدارة عيادات" : "The Future of Clinic"}<br />
-              <span className="text-indigo-400">{isRtl ? "العلاج الطبيعي" : "Management"}</span>
-            </h2>
-            <p className="mb-12 text-lg leading-relaxed text-slate-300">
-              {isRtl
-                ? "نظام متكامل يجمع بين السجلات الطبية، الإدارة المالية، وجدولة المواعيد في منصة واحدة سهلة الاستخدام."
-                : "An integrated system combining EMR, billing, and scheduling in one easy-to-use platform."}
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <div className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium backdrop-blur">{isRtl ? "سجلات طبية" : "EMR"}</div>
-              <div className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium backdrop-blur">{isRtl ? "إدارة المراكز" : "Center management"}</div>
-              <div className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium backdrop-blur">{isRtl ? "مواعيد" : "Scheduling"}</div>
-            </div>
-          </div>
-        </section>
-        <section className="flex w-full flex-col items-center justify-center bg-[#F7F9FC] px-4 py-8 sm:px-6 lg:w-1/2">
-          <div className="mx-auto w-full max-w-4xl">
+    <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen w-full bg-[#F7F9FC] font-sans text-slate-800">
+      <section className="flex min-h-screen w-full flex-col items-center bg-[#F7F9FC] px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+          <div className="mx-auto w-full max-w-6xl">
         <Link href="/center-management" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         <div className="mb-7">
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5B50C7] text-white"><Building className="h-6 w-6" /></div>
@@ -286,7 +263,7 @@ export default function CreateCenterPage() {
               <div className="relative mt-2 flex h-12 items-center rounded-xl border border-slate-200 bg-white px-3 transition focus-within:border-[#5B50C7] focus-within:ring-4 focus-within:ring-[#5B50C7]/10">
                 <span className="text-xl" aria-hidden="true">{selectedCountry.flag}</span>
                 <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)} aria-label={isRtl ? "دولة المركز" : "Center country"} className="h-full min-w-0 flex-1 appearance-none bg-transparent px-3 text-sm font-medium text-slate-700 outline-none">
-                  {CENTER_COUNTRIES.map((country) => <option key={country.code} value={country.code}>{country.flag} {isRtl ? country.ar : country.en}</option>)}
+                  {CENTER_COUNTRIES.map((country) => <option key={country.code} value={country.code}>{country.flag}  {isRtl ? country.ar : country.en}</option>)}
                 </select>
                 <ChevronDown className="pointer-events-none h-4 w-4 text-slate-500" />
               </div>
@@ -377,8 +354,7 @@ export default function CreateCenterPage() {
           <p className="text-center text-[11px] leading-5 text-slate-400">{isRtl ? "سيتم إنشاء مركز مستقل. لا يمكن للمراكز الأخرى الوصول إلى مرضاه أو سجلاته." : "A separate tenant will be created. Other centers cannot access its patients or records."}</p>
         </form>
           </div>
-        </section>
-      </div>
+      </section>
     </main>
   );
 }
