@@ -272,22 +272,24 @@ export default function CreateCenterPage() {
   }
 
   return (
-    <main dir={isRtl ? "rtl" : "ltr"} className="min-h-[calc(100vh-4rem)] w-full max-w-none bg-slate-50/40 font-sans text-slate-800">
-      <div className="flex min-h-screen w-full flex-col" dir={isRtl ? "rtl" : "ltr"}>
-                <section className="relative flex min-h-[calc(100vh-4rem)] w-full max-w-none flex-1 flex-col items-stretch overflow-hidden bg-slate-50/40 px-3 py-4 sm:px-5 sm:py-5 lg:px-7 xl:px-8">
+    <main dir={isRtl ? "rtl" : "ltr"} className="min-h-[calc(100dvh-4rem)] w-full max-w-none bg-slate-50/40 font-sans text-slate-800">
+      <div className="flex min-h-[calc(100dvh-4rem)] w-full flex-col" dir={isRtl ? "rtl" : "ltr"}>
+                <section className="relative flex min-h-[calc(100dvh-4rem)] w-full max-w-none flex-1 flex-col items-stretch bg-slate-50/40 px-3 py-3 sm:px-5 sm:py-4 lg:px-7 xl:px-8">
           <div className="relative z-10 flex w-full max-w-none min-w-0 flex-1 flex-col">
-        <div className="mb-7 flex w-full justify-start" dir="ltr">
+        <div className="mb-4 flex w-full justify-start" dir="ltr">
           <Link href="/center-management" dir={isRtl ? "rtl" : "ltr"} className="inline-flex items-center gap-2 text-sm font-semibold text-[#0B4C96] hover:text-[#4338A8]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         </div>
-        <div className="mb-5 flex w-full items-center gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
-          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-[#0B4C96]"><Building className="h-7 w-7" /></div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">{isRtl ? "إنشاء مركز مستقل جديد" : "Create a new independent center"}</h1>
-          <p className="mt-2 max-w-none text-sm font-medium leading-7 text-slate-600 sm:text-base">{isRtl ? "كل مركز يحصل على رابط دخول وبيانات واشتراك منفصل." : "Every center gets its own login URL, data and subscription."}</p>
+        <div className="mb-5 flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:gap-4 sm:p-5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-[#4F46E5] sm:h-12 sm:w-12"><Building className="h-5 w-5 sm:h-6 sm:w-6" /></div>
+          <div className="min-w-0">
+            <h1 className="text-xl font-extrabold leading-tight tracking-tight text-slate-900 sm:text-2xl lg:text-[1.7rem]">{isRtl ? "إنشاء مركز مستقل جديد" : "Create a new independent center"}</h1>
+            <p className="mt-1 text-xs font-medium leading-5 text-slate-500 sm:text-sm">{isRtl ? "كل مركز يحصل على رابط دخول وبيانات واشتراك منفصل." : "Every center gets its own login URL, data and subscription."}</p>
+          </div>
         </div>
 
-        <form onSubmit={createCenter} className="flex w-full flex-col gap-7 sm:gap-8">
+        <form onSubmit={createCenter} className="flex w-full flex-1 flex-col gap-5 sm:gap-6">
           {step === "plan" && <>
-          <section className="flex w-full flex-1 flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-7">
+          <section className="flex w-full flex-1 flex-col rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6 lg:p-7">
             <div className="mb-6 flex items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl font-black text-slate-900 sm:text-2xl">{isRtl ? "1. اختر الباقة" : "1. Choose a plan"}</h2>
@@ -295,26 +297,28 @@ export default function CreateCenterPage() {
               </div>
               <span className="hidden rounded-full bg-slate-100 px-4 py-2 text-xs font-bold text-slate-600 sm:inline-flex">{isRtl ? "اختر باقة واحدة" : "Select one plan"}</span>
             </div>
-            <div className="grid w-full flex-1 grid-cols-1 items-stretch gap-5 md:grid-cols-3 lg:gap-7">
+            <div className="mx-auto grid w-full max-w-none grid-cols-1 items-stretch gap-5 md:grid-cols-3 xl:gap-7">
               {plans.map((plan) => {
                 const selected = planId === plan.id;
                 const features = isRtl ? plan.featuresAr : plan.featuresEn;
                 return (
-                  <button key={plan.id} type="button" aria-pressed={selected} onClick={() => setPlanId(plan.id)} className={`relative flex h-full min-h-[390px] flex-col rounded-3xl bg-white p-6 text-start transition-all duration-200 sm:p-7 lg:p-8 ${plan.popular ? "border-2 border-[#4F46E5] shadow-xl shadow-indigo-500/10" : "border border-slate-200 shadow-sm"} ${selected ? "ring-2 ring-[#0B4C96]/20 border-[#0B4C96]" : "hover:-translate-y-1 hover:shadow-lg"}`}>
-                    {plan.popular && <span className="absolute -top-3.5 left-0 right-0 mx-auto inline-flex w-fit items-center gap-1 rounded-full bg-[#4F46E5] px-4 py-1.5 text-xs font-bold text-white"><Star className="h-3 w-3 fill-white" />{isRtl ? "الأكثر طلبًا" : "Most popular"}</span>}
-                    <div className="mb-5 flex items-center justify-between gap-3">
-                      <h3 className="text-xl font-bold text-slate-900">{isRtl ? plan.nameAr : plan.nameEn}</h3>
-                      <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border ${selected ? "border-[#0B4C96] bg-[#0B4C96] text-white" : "border-slate-300 text-transparent"}`}><Check className="h-4 w-4" /></span>
+                  <button key={plan.id} type="button" aria-pressed={selected} onClick={() => setPlanId(plan.id)} className={`relative flex h-full min-h-[340px] flex-col rounded-3xl bg-white p-5 text-start transition-all duration-200 sm:p-6 lg:p-7 ${plan.popular || selected ? "border-2 border-[#4F46E5] shadow-xl shadow-indigo-500/10" : "my-1 border border-slate-200 shadow-sm hover:border-slate-300"} hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5] focus-visible:ring-offset-2`}>
+                    {plan.popular && <span className="absolute -top-3.5 left-0 right-0 mx-auto flex w-fit items-center gap-1 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-4 py-1.5 text-xs font-bold text-white"><Star className="h-3 w-3 fill-white" />{isRtl ? "الأكثر طلبًا" : "Most popular"}</span>}
+                    <div className="mb-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <h3 className="text-lg font-bold text-slate-900 sm:text-xl">{isRtl ? plan.nameAr : plan.nameEn}</h3>
+                        {selected && <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#4F46E5] text-white"><Check className="h-4 w-4" /></span>}
+                      </div>
+                      <p className="mt-2 min-h-10 text-sm leading-6 text-slate-500">{isRtl ? plan.descriptionAr : plan.descriptionEn}</p>
                     </div>
-                    <p className="mb-6 min-h-10 text-sm leading-6 text-slate-500">{isRtl ? plan.descriptionAr : plan.descriptionEn}</p>
-                    <div className="mb-7 flex flex-wrap items-baseline gap-2 border-b border-slate-100 pb-6">
+                    <div className="mb-6 flex flex-wrap items-baseline gap-2 border-b border-slate-100 pb-5">
                       <span className="text-3xl font-black tracking-tight text-slate-900 sm:text-4xl">{isRtl ? plan.priceLabelAr : plan.priceLabelEn}</span>
                       {plan.id !== "basic" && <span className="text-sm font-semibold text-slate-500">{isRtl ? "/ شهريًا" : "/ month"}</span>}
                     </div>
-                    <ul className="mb-7 flex-1 space-y-3">
-                      {features.map((feature) => <li key={feature} className="flex items-start gap-3"><Check className={`mt-0.5 h-4 w-4 shrink-0 ${plan.popular ? "text-[#4F46E5]" : "text-slate-400"}`} /><span className="text-sm font-medium leading-6 text-slate-700">{feature}</span></li>)}
+                    <ul className="mb-6 flex-1 space-y-3">
+                      {features.map((feature) => <li key={feature} className="flex items-start gap-3"><Check className={`mt-0.5 h-5 w-5 shrink-0 ${plan.popular ? "text-[#4F46E5]" : "text-slate-400"}`} /><span className="text-sm font-medium leading-6 text-slate-700">{feature}</span></li>)}
                     </ul>
-                    <span className={`mt-auto inline-flex w-full items-center justify-center rounded-full py-3 text-sm font-bold transition-colors ${selected || plan.popular ? "bg-[#0B4C96] text-white" : "bg-slate-100 text-slate-800"}`}>{selected ? (isRtl ? "تم اختيار هذه الباقة" : "Selected plan") : (isRtl ? "اختيار الباقة" : "Choose plan")}</span>
+                    <span className={`mt-auto inline-flex w-full items-center justify-center rounded-full py-3 text-sm font-bold transition-all ${selected || plan.popular ? "bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white shadow-md" : "bg-slate-100 text-slate-900 hover:bg-slate-200"}`}>{selected ? (isRtl ? "تم اختيار هذه الباقة" : "Selected plan") : (isRtl ? "اختيار الباقة" : "Choose plan")}</span>
                   </button>
                 );
               })}
