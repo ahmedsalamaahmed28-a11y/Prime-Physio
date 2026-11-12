@@ -34,6 +34,14 @@ export default function ClinicSettingsPage() {
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [workingHours, setWorkingHours] = useState("");
+  const [publicDescription, setPublicDescription] = useState("");
+  const [coverUrl, setCoverUrl] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [websiteUrl, setWebsiteUrl] = useState("");
+  const [instagramUrl, setInstagramUrl] = useState("");
+  const [facebookUrl, setFacebookUrl] = useState("");
+  const [mapsUrl, setMapsUrl] = useState("");
+  const [coverUploading, setCoverUploading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [weeklyHours, setWeeklyHours] = useState<any[]>([]);
   
@@ -69,6 +77,13 @@ export default function ClinicSettingsPage() {
       setPhone(data?.phone || "0114002020");
       setAddress(data?.address || "Main branch");
       setWorkingHours(data?.working_hours || "09:00 AM - 09:00 PM");
+      setPublicDescription(data?.public_description || "");
+      setCoverUrl(data?.cover_url || "");
+      setWhatsapp(data?.whatsapp || "");
+      setWebsiteUrl(data?.website_url || "");
+      setInstagramUrl(data?.instagram_url || "");
+      setFacebookUrl(data?.facebook_url || "");
+      setMapsUrl(data?.maps_url || "");
 
       const branches = Array.isArray(data?.branches) ? data.branches : [];
       const mainBranch = branches.find((b: any) => b.id === "main") || branches[0];
@@ -89,6 +104,13 @@ export default function ClinicSettingsPage() {
       phone,
       address,
       working_hours: workingHours,
+      public_description: publicDescription,
+      cover_url: coverUrl,
+      whatsapp,
+      website_url: websiteUrl,
+      instagram_url: instagramUrl,
+      facebook_url: facebookUrl,
+      maps_url: mapsUrl,
       branches: [{ id: "main", name: clinicName, phone, address, hours: weeklyHours }],
       google_drive_email: googleDriveEmail,
       google_drive_folder_link: googleDriveFolder,
@@ -101,6 +123,25 @@ export default function ClinicSettingsPage() {
     }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+  };
+
+  const handleCoverUpload = async (file?: File) => {
+    if (!file) return;
+    setCoverUploading(true);
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("kind", "cover");
+      const response = await fetch("/api/centers/upload-logo", { method: "POST", body: form });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || !payload.url) throw new Error(payload.error || "Upload failed");
+      setCoverUrl(payload.url);
+    } catch (error) {
+      console.error("Clinic cover upload failed:", error);
+      alert(isRtl ? "تعذر رفع صورة الغلاف. حاول مرة أخرى." : "Could not upload the cover image. Please try again.");
+    } finally {
+      setCoverUploading(false);
+    }
   };
 
   const handleBackupNow = async () => {
@@ -200,6 +241,48 @@ export default function ClinicSettingsPage() {
                 <Button type="submit" className={`bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white ${isRtl ? "mr-auto" : "ml-auto"} rounded-xl gap-1.5 font-bold px-6 shadow-md transition-all active:scale-95 ${isRtl ? "" : "flex-row-reverse"}`}>
                   <Save className="w-4 h-4" />
                   {isRtl ? "حفظ التغييرات" : "Save Changes"}
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <Card className="lg:col-span-2 shadow-xs">
+          <CardHeader className="border-b pb-4">
+            <CardTitle className={`text-base font-bold flex items-center gap-2 text-slate-800 ${isRtl ? "" : "flex-row-reverse justify-end"}`}>
+              <Building className="w-5 h-5 text-[#4F46BA]" />
+              {isRtl ? "صفحة المركز العامة" : "Public Center Page"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <form onSubmit={handleSave} className="space-y-4">
+              <p className="text-xs leading-6 text-slate-500">
+                {isRtl ? "هذه البيانات تظهر للزوار على رابط مركزك المستقل. ارفع غلافًا واكتب نبذة وأضف وسائل التواصل." : "These details appear to visitors on your center's public link. Add a cover, description and contact links."}
+              </p>
+              {coverUrl && <div className="overflow-hidden rounded-2xl border border-slate-200"><img src={coverUrl} alt="Center cover" className="h-40 w-full object-cover" /></div>}
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#4F46BA]/20 bg-violet-50 px-4 py-2.5 text-xs font-bold text-[#4F46BA]">
+                  <UploadCloud className="h-4 w-4" />
+                  {coverUploading ? (isRtl ? "جارٍ رفع الغلاف..." : "Uploading cover...") : (isRtl ? "رفع صورة الغلاف" : "Upload cover image")}
+                  <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" disabled={coverUploading} onChange={(e) => { void handleCoverUpload(e.target.files?.[0]); e.currentTarget.value = ""; }} />
+                </label>
+                {coverUrl && <Button type="button" variant="outline" className="h-9 text-xs" onClick={() => setCoverUrl("")}>{isRtl ? "إزالة الغلاف" : "Remove cover"}</Button>}
+                <span className="text-[11px] text-slate-400">{isRtl ? "PNG أو JPG أو WebP — حتى 5 ميجابايت" : "PNG, JPG or WebP — up to 5 MB"}</span>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">{isRtl ? "نبذة عن المركز" : "About the center"}</label>
+                <textarea value={publicDescription} onChange={(e) => setPublicDescription(e.target.value)} rows={4} maxLength={1200} placeholder={isRtl ? "اكتب نبذة تعريفية تظهر للزوار..." : "Write a short introduction for visitors..."} className="w-full rounded-xl border border-slate-200 p-3 text-sm outline-none focus:border-[#4F46BA] focus:ring-4 focus:ring-[#4F46BA]/10" />
+              </div>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-1.5"><label className="text-xs font-bold text-slate-700">WhatsApp</label><Input value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="+201xxxxxxxxx" dir="ltr" /></div>
+                <div className="space-y-1.5"><label className="text-xs font-bold text-slate-700">{isRtl ? "رابط الموقع الإلكتروني" : "Website URL"}</label><Input value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="https://example.com" dir="ltr" /></div>
+                <div className="space-y-1.5"><label className="text-xs font-bold text-slate-700">Instagram URL</label><Input value={instagramUrl} onChange={(e) => setInstagramUrl(e.target.value)} placeholder="https://instagram.com/..." dir="ltr" /></div>
+                <div className="space-y-1.5"><label className="text-xs font-bold text-slate-700">Facebook URL</label><Input value={facebookUrl} onChange={(e) => setFacebookUrl(e.target.value)} placeholder="https://facebook.com/..." dir="ltr" /></div>
+                <div className="space-y-1.5 md:col-span-2"><label className="text-xs font-bold text-slate-700">{isRtl ? "رابط الموقع على خرائط Google (اختياري)" : "Google Maps URL (optional)"}</label><Input value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder="https://maps.google.com/..." dir="ltr" /></div>
+              </div>
+              <div className="flex justify-end border-t pt-4">
+                <Button type="submit" className="rounded-xl bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] px-6 font-bold text-white">
+                  <Save className="mr-2 h-4 w-4" /> {isRtl ? "حفظ صفحة المركز" : "Save public page"}
                 </Button>
               </div>
             </form>
