@@ -7,7 +7,7 @@ import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
 import {
   ArrowRight, Building2, CheckCircle2, Clock3, Eye, EyeOff,
-  Facebook, Globe, Instagram, Lock, Mail, MapPin, MessageCircle, Phone,
+  Globe, Lock, Mail, MapPin, MessageCircle, Phone,
   Stethoscope, Users,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -238,7 +238,7 @@ export default function BrandedClinicPage() {
       <footer className="border-t border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-7 sm:flex-row sm:px-6 lg:px-8">
           <div className="flex items-center gap-2"><img src="/logo.png" alt="" className="h-7 w-7 object-contain" /><span className="text-xs font-black tracking-wide text-[#4F46BA]">POWERED BY PRIME PHYSIO</span></div>
-          <div className="flex items-center gap-4 text-slate-400">{clinic.website_url && <a href={clinic.website_url} target="_blank" rel="noreferrer" aria-label="Website" className="hover:text-[#4F46BA]"><Globe size={18} /></a>}{clinic.instagram_url && <a href={clinic.instagram_url} target="_blank" rel="noreferrer" aria-label="Instagram" className="hover:text-[#4F46BA]"><Instagram size={18} /></a>}{clinic.facebook_url && <a href={clinic.facebook_url} target="_blank" rel="noreferrer" aria-label="Facebook" className="hover:text-[#4F46BA]"><Facebook size={18} /></a>}<span className="text-xs">{sectionTitle("مدعوم من Prime Physio", "Powered by Prime Physio")}</span></div>
+          <div className="flex items-center gap-4 text-slate-400">{clinic.website_url && <a href={clinic.website_url} target="_blank" rel="noreferrer" aria-label="Website" className="hover:text-[#4F46BA]"><Globe size={18} /></a>}{clinic.instagram_url && <a href={clinic.instagram_url} target="_blank" rel="noreferrer" aria-label="Instagram" className="hover:text-[#4F46BA]"><span className="text-[10px] font-black">IG</span></a>}{clinic.facebook_url && <a href={clinic.facebook_url} target="_blank" rel="noreferrer" aria-label="Facebook" className="hover:text-[#4F46BA]"><span className="text-sm font-black">f</span></a>}<span className="text-xs">{sectionTitle("مدعوم من Prime Physio", "Powered by Prime Physio")}</span></div>
         </div>
       </footer>
     </main>
