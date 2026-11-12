@@ -301,9 +301,11 @@ export default function DashboardLayout({
     );
     const isAuthPage = p === "/" || p === "/login.php" || p === "/privacy" || p === "/terms" || p === "/manage" || p.startsWith("/manage/") || p === "/signup" || p === "/forgot-password" || p === "/reset-password" || p === "/setup" || p.startsWith("/setup/") || p === "/subscribe" || p === "/plans" || p === "/centers" || p === "/about" || p === "/support" || p === "/center_setup" || p.startsWith("/center-management") || isCenterManagementPage || p === "/home.php" || p === "/rgstr.php" || p.startsWith("/platform") || isSlugPage;
 
-  // The center creation flow is a focused standalone page: hide the
-  // authenticated dashboard sidebar and global header on this route.
-  if (p === "/my-centers/create" || isCenterManagementPage || isAuthPage) {
+  const isCenterCreationPage = p === "/my-centers/create";
+
+  // Center management and public/auth pages remain standalone.
+  // Center creation keeps the global header but hides dashboard navigation.
+  if (isCenterManagementPage || isAuthPage) {
     return <>{children}</>;
   }
 
@@ -384,7 +386,7 @@ export default function DashboardLayout({
     <div className={`min-h-screen bg-slate-50/50 flex flex-col ${isRtl ? "md:flex-row-reverse" : "md:flex-row"} text-slate-800`} dir={isRtl ? "rtl" : "ltr"}>
       
       {/* ─── DESKTOP SIDEBAR ─────────────────────────────────── */}
-      <aside className={`hidden md:flex print:hidden flex-col w-[210px] ${
+      {!isCenterCreationPage && <aside className={`hidden md:flex print:hidden flex-col w-[210px] ${
         isRtl ? "border-l right-0" : "border-r left-0"
       } border-white/10 bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white fixed top-0 bottom-0 z-10 pt-4 pb-2 shadow-xl`}>
         {/* Clinic Brand / Logo in Center */}
@@ -488,26 +490,28 @@ export default function DashboardLayout({
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
           </div>
         </div>
-      </aside>
+      </aside>}
 
       {/* ─── MAIN CONTENT CONTAINER ────────────────────────────────────────── */}
-      <div className={`flex-1 flex flex-col print:pr-0 print:pl-0 ${isRtl ? "md:pr-[210px]" : "md:pl-[210px]"}`}>
+      <div className={`flex-1 flex flex-col print:pr-0 print:pl-0 ${isCenterCreationPage ? "" : (isRtl ? "md:pr-[210px]" : "md:pl-[210px]")}`}>
         
         {/* ─── GLOBAL HEADER ────────── */}
         <header className="h-16 border-b border-slate-200/80 bg-card text-card-foreground flex items-center justify-between px-6 sticky top-0 z-50 overflow-visible print:hidden" dir={isRtl ? "rtl" : "ltr"}>
           
           {/* Right Side: Quick Search & Mobile Hamburger */}
-          <div className="flex items-center gap-3 flex-1 max-w-md">
-            <button 
-              onClick={toggleSidebar} 
-              className="md:hidden p-1.5 rounded-lg border bg-muted/40 hover:bg-muted text-slate-700 transition-colors"
-              aria-label={t("nav_section_title")}
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-            
-            {/* Search Bar (Desktop) */}
-            <div className="hidden md:flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 rounded-xl px-3 py-1.5 w-80 border border-slate-200/50 relative z-50">
+          <div className={`flex items-center gap-3 ${isCenterCreationPage ? "flex-1" : "flex-1 max-w-md"}`}>
+            {!isCenterCreationPage && (
+              <>
+                <button 
+                  onClick={toggleSidebar} 
+                  className="md:hidden p-1.5 rounded-lg border bg-muted/40 hover:bg-muted text-slate-700 transition-colors"
+                  aria-label={t("nav_section_title")}
+                >
+                  <Menu className="w-5 h-5" />
+                </button>
+                
+                {/* Search Bar (Desktop) */}
+                <div className="hidden md:flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 rounded-xl px-3 py-1.5 w-80 border border-slate-200/50 relative z-50">
               <Search className="w-4 h-4 text-slate-400 shrink-0 pointer-events-none" />
               <input 
                 type="text" 
@@ -520,7 +524,9 @@ export default function DashboardLayout({
                   }
                 }}
               />
-            </div>
+                </div>
+              </>
+            )}
 
             {/* Mobile Brand */}
             <div className="md:hidden flex items-center gap-2">
