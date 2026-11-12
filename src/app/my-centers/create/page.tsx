@@ -251,8 +251,8 @@ export default function CreateCenterPage() {
 
         <form onSubmit={createCenter} className="flex w-full flex-col gap-6 sm:gap-7">
           {step === "plan" && <>
-          <section>
-            <h2 className="mb-3 text-base font-extrabold text-slate-800">{isRtl ? "1. اختر الباقة" : "1. Choose a plan"}</h2>
+          <section className="w-full rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow duration-300 hover:shadow-lg hover:shadow-slate-200/50 sm:p-7 lg:p-8">
+            <h2 className="mb-5 text-lg font-black text-slate-900 sm:text-xl">{isRtl ? "1. اختر الباقة" : "1. Choose a plan"}</h2>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               {plans.map((plan) => (
                 <button key={plan.id} type="button" onClick={() => setPlanId(plan.id)} className={`group relative flex min-h-[170px] flex-col rounded-3xl border p-5 text-start shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-200/60 sm:p-6 ${planId === plan.id ? "border-indigo-300 bg-indigo-50/70 ring-2 ring-indigo-500/15" : "border-slate-200 bg-white hover:border-indigo-200"}`}>
