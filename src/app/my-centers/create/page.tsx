@@ -237,31 +237,9 @@ export default function CreateCenterPage() {
 
   return (
     <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-white font-sans text-slate-800">
-      <div className="flex min-h-screen w-full flex-col lg:flex-row" dir={isRtl ? "rtl" : "ltr"}>
-        <section className="relative hidden overflow-hidden bg-slate-900 lg:flex lg:w-1/2 items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 via-slate-900 to-[#4F46BA] opacity-95" />
-          <div className="relative z-10 flex w-full max-w-lg flex-col items-center justify-center p-12 text-center text-white">
-            <Link href="/" className="mb-10 transition-transform hover:scale-105">
-              <img src="/logo.png" alt="Prime Physio" className="h-24 w-24 object-contain drop-shadow-2xl brightness-0 invert" />
-            </Link>
-            <h2 className="mb-6 text-4xl font-bold leading-tight">
-              {isRtl ? "مستقبل إدارة عيادات" : "The Future of Clinic"}<br />
-              <span className="text-indigo-400">{isRtl ? "العلاج الطبيعي" : "Management"}</span>
-            </h2>
-            <p className="mb-12 text-lg leading-relaxed text-slate-300">
-              {isRtl
-                ? "نظام متكامل يجمع بين السجلات الطبية، الإدارة المالية، وجدولة المواعيد في منصة واحدة سهلة الاستخدام."
-                : "An integrated system combining EMR, billing, and scheduling in one easy-to-use platform."}
-            </p>
-            <div className="flex flex-wrap justify-center gap-3">
-              <div className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium backdrop-blur">{isRtl ? "سجلات طبية" : "EMR"}</div>
-              <div className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium backdrop-blur">{isRtl ? "إدارة المراكز" : "Center management"}</div>
-              <div className="rounded-full border border-white/20 bg-white/10 px-5 py-2 text-sm font-medium backdrop-blur">{isRtl ? "مواعيد" : "Scheduling"}</div>
-            </div>
-          </div>
-        </section>
-        <section className="flex w-full flex-col items-center justify-center bg-[#F7F9FC] px-4 py-8 sm:px-6 lg:w-1/2">
-          <div className="mx-auto w-full max-w-4xl">
+      <div className="flex min-h-screen w-full flex-col" dir={isRtl ? "rtl" : "ltr"}>
+                <section className="flex w-full flex-col items-center justify-center bg-[#F7F9FC] px-4 py-8 sm:px-6">
+          <div className="mx-auto w-full max-w-3xl">
         <Link href="/center-management" className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[#5B50C7]"><ArrowLeft className="h-4 w-4" />{isRtl ? "العودة إلى إدارة المراكز" : "Back to center management"}</Link>
         <div className="mb-7">
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#5B50C7] text-white"><Building className="h-6 w-6" /></div>
