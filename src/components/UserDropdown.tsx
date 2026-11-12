@@ -17,22 +17,11 @@ import { useLanguage } from "@/lib/LanguageContext";
 
 const MENU_ITEMS = {
   profile: [
-    { icon: "solar:user-circle-line-duotone", labelAr: "ملفك الشخصي", labelEn: "Your profile", action: "profile" },
-    { icon: "solar:settings-line-duotone", labelAr: "الإعدادات", labelEn: "Settings", action: "settings" },
-    { icon: "solar:bell-line-duotone", labelAr: "الإشعارات", labelEn: "Notifications", action: "notifications" }
-  ],
-  premium: [
-    { 
-      icon: "solar:star-bold", 
-      labelAr: "الترقية إلى Pro", labelEn: "Upgrade to Pro", 
-      action: "upgrade",
-      iconClass: "text-amber-600",
-      badge: { text: "20% off", className: "bg-amber-600 text-white text-[11px]" }
-    },
+    { icon: "solar:wallet-money-line-duotone", labelAr: "الحساب والاشتراك", labelEn: "Account & subscription", action: "account" },
+    { icon: "solar:lock-password-line-duotone", labelAr: "تغيير كلمة المرور", labelEn: "Change password", action: "password" }
   ],
   account: [
-    { icon: "solar:logout-2-bold-duotone", labelAr: "تسجيل الخروج", labelEn: "Log out", action: "logout" },
-    { icon: "solar:trash-bin-minimalistic-line-duotone", labelAr: "حذف الحساب", labelEn: "Delete Account", action: "delete_account" }
+    { icon: "solar:logout-2-bold-duotone", labelAr: "تسجيل خروج", labelEn: "Log out", action: "logout" }
   ]
 };
 
@@ -122,10 +111,7 @@ export const UserDropdown = ({
             {MENU_ITEMS.profile.map(renderMenuItem)}
           </DropdownMenuGroup>
 
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            {MENU_ITEMS.premium.map(renderMenuItem)}
-          </DropdownMenuGroup>
+          
         </section>
 
         <section className="mt-1 p-1 rounded-2xl">
