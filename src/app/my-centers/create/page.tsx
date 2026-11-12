@@ -302,7 +302,7 @@ export default function CreateCenterPage() {
                 const selected = planId === plan.id;
                 const features = isRtl ? plan.featuresAr : plan.featuresEn;
                 return (
-                  <button key={plan.id} type="button" aria-pressed={selected} onClick={() => setPlanId(plan.id)} className={`relative flex h-full min-h-[340px] flex-col rounded-3xl bg-white p-5 text-start transition-all duration-200 sm:p-6 lg:p-7 ${plan.popular || selected ? "border-2 border-[#4F46E5] shadow-xl shadow-indigo-500/10" : "my-1 border border-slate-200 shadow-sm hover:border-slate-300"} hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5] focus-visible:ring-offset-2`}>
+                  <button key={plan.id} type="button" aria-pressed={selected} onClick={() => setPlanId(plan.id)} className={`relative flex h-full min-h-[340px] flex-col rounded-3xl bg-white p-5 text-start transition-all duration-200 sm:p-6 lg:p-7 ${selected ? "border-2 border-[#4F46E5] shadow-xl shadow-indigo-500/10" : "my-1 border border-slate-200 shadow-sm hover:border-slate-300"} hover:-translate-y-0.5 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5] focus-visible:ring-offset-2`}>
                     {plan.popular && <span className="absolute -top-3.5 left-0 right-0 mx-auto flex w-fit items-center gap-1 rounded-full bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] px-4 py-1.5 text-xs font-bold text-white"><Star className="h-3 w-3 fill-white" />{isRtl ? "الأكثر طلبًا" : "Most popular"}</span>}
                     <div className="mb-5">
                       <div className="flex items-center justify-between gap-3">
@@ -318,7 +318,7 @@ export default function CreateCenterPage() {
                     <ul className="mb-6 flex-1 space-y-3">
                       {features.map((feature) => <li key={feature} className="flex items-start gap-3"><Check className={`mt-0.5 h-5 w-5 shrink-0 ${plan.popular ? "text-[#4F46E5]" : "text-slate-400"}`} /><span className="text-sm font-medium leading-6 text-slate-700">{feature}</span></li>)}
                     </ul>
-                    <span className={`mt-auto inline-flex w-full items-center justify-center rounded-full py-3 text-sm font-bold transition-all ${selected || plan.popular ? "bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white shadow-md" : "bg-slate-100 text-slate-900 hover:bg-slate-200"}`}>{selected ? (isRtl ? "تم اختيار هذه الباقة" : "Selected plan") : (isRtl ? "اختيار الباقة" : "Choose plan")}</span>
+                    <span className={`mt-auto inline-flex w-full items-center justify-center rounded-full py-3 text-sm font-bold transition-all ${selected ? "bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] text-white shadow-md" : "bg-slate-100 text-slate-900 hover:bg-slate-200"}`}>{selected ? (isRtl ? "تم اختيار هذه الباقة" : "Selected plan") : (isRtl ? "اختيار الباقة" : "Choose plan")}</span>
                   </button>
                 );
               })}
