@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Bell, ShieldAlert, Activity } from "lucide-react";
+import { Bell, ShieldAlert, Activity, CalendarDays } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 
 interface NotificationItem {
@@ -14,7 +14,7 @@ interface NotificationItem {
   detailsAr: string;
   detailsEn: string;
   createdAt: string;
-  type: "broadcast" | "audit";
+  type: "broadcast" | "audit" | "clinic";
 }
 
 export default function NotificationsPage() {
@@ -44,6 +44,27 @@ export default function NotificationsPage() {
         createdAt: b.created_at || new Date().toISOString(),
         type: "broadcast"
       }));
+
+      // Fetch clinic-scoped notifications such as public appointment requests
+      let mappedClinicNotifications: NotificationItem[] = [];
+      if (user?.clinicId) {
+        const { data: clinicItems } = await supabase
+          .from("notifications")
+          .select("id, title_ar, title_en, body_ar, body_en, created_at")
+          .eq("clinic_id", user.clinicId)
+          .order("created_at", { ascending: false })
+          .limit(50);
+
+        mappedClinicNotifications = (clinicItems || []).map((item: any) => ({
+          id: item.id,
+          titleAr: item.title_ar || "تنبيه جديد",
+          titleEn: item.title_en || "New notification",
+          detailsAr: item.body_ar || "",
+          detailsEn: item.body_en || "",
+          createdAt: item.created_at || new Date().toISOString(),
+          type: "clinic"
+        }));
+      }
 
       // Fetch Audit Logs if clinic
       let mappedAudit: NotificationItem[] = [];
@@ -81,7 +102,7 @@ export default function NotificationsPage() {
         });
       }
 
-      const combined = [...mappedBroadcasts, ...mappedAudit].sort(
+      const combined = [...mappedBroadcasts, ...mappedClinicNotifications, ...mappedAudit].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
 
@@ -123,9 +144,9 @@ export default function NotificationsPage() {
               {notifications.map((item) => (
                 <div key={item.id} className="p-4 hover:bg-slate-50 transition-colors flex gap-4">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                    item.type === "broadcast" ? "bg-rose-50 text-rose-600" : "bg-indigo-50 text-[#4F46BA]"
+                    item.type === "broadcast" ? "bg-rose-50 text-rose-600" : item.type === "clinic" ? "bg-emerald-50 text-emerald-600" : "bg-indigo-50 text-[#4F46BA]"
                   }`}>
-                    {item.type === "broadcast" ? <Bell className="w-5 h-5" /> : <Activity className="w-5 h-5" />}
+                    {item.type === "broadcast" ? <Bell className="w-5 h-5" /> : item.type === "clinic" ? <CalendarDays className="w-5 h-5" /> : <Activity className="w-5 h-5" />}
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-slate-800 mb-1">{isRtl ? item.titleAr : item.titleEn}</h3>
