@@ -1,5 +1,7 @@
-import CenterAdminPlaceholder from "@/components/CenterAdminPlaceholder";
+"use client";
+
+import FullDataExport from "@/components/FullDataExport";
 
 export default function ExportPhpPage() {
-  return <CenterAdminPlaceholder />;
+  return <FullDataExport />;
 }
