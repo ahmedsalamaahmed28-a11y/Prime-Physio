@@ -360,6 +360,11 @@ export default function ProfileSettingsPage() {
       alert(isRtl ? "الرجاء تعبئة الحقول الإجبارية (اسم العيادة ورقم الهاتف)" : "Please fill required fields (Clinic Name and Phone)");
       return;
     }
+    const hasMapCoordinates = Boolean(mapLat.trim() || mapLng.trim());
+    if (hasMapCoordinates && (!mapLat.trim() || !mapLng.trim() || !Number.isFinite(Number(mapLat)) || !Number.isFinite(Number(mapLng)) || Math.abs(Number(mapLat)) > 90 || Math.abs(Number(mapLng)) > 180)) {
+      alert(isRtl ? "يرجى إدخال خط العرض والطول بشكل صحيح، أو ترك الحقلين فارغين." : "Enter valid latitude and longitude, or leave both fields empty.");
+      return;
+    }
 
     try {
       const { data: { session } } = await supabase.auth.getSession();
