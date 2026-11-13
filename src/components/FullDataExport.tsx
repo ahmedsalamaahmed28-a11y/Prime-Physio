@@ -101,6 +101,81 @@ function dateForRow(row: Record<string, any>) {
   }
   return null;
 }
+function makePdfFromJpegs(images: Uint8Array[]) {
+  const enc = (value: string) => utf8(value);
+  const objects: Uint8Array[] = [];
+  objects.push(enc('<< /Type /Catalog /Pages 2 0 R >>'));
+  const kids = images.map((_, index) => (3 + index * 3) + ' 0 R').join(' ');
+  objects.push(enc('<< /Type /Pages /Kids [' + kids + '] /Count ' + images.length + ' >>'));
+  images.forEach((jpeg, index) => {
+    const pageId = 3 + index * 3, contentId = pageId + 1, imageId = pageId + 2;
+    objects.push(enc('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /XObject << /Im0 ' + imageId + ' 0 R >> >> /Contents ' + contentId + ' 0 R >>'));
+    const stream = enc('q 595 0 0 842 0 0 cm /Im0 Do Q');
+    objects.push(concat([enc('<< /Length ' + stream.length + ' >>\nstream\n'), stream, enc('\nendstream')]));
+    objects.push(concat([enc('<< /Type /XObject /Subtype /Image /Width 1240 /Height 1754 /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + jpeg.length + ' >>\nstream\n'), jpeg, enc('\nendstream')]));
+  });
+  const chunks: Uint8Array[] = [enc('%PDF-1.4\n%\xE2\xE3\xCF\xD3\n')];
+  const offsets = [0]; let length = chunks[0].length;
+  objects.forEach((object, index) => {
+    offsets.push(length);
+    const part = concat([enc((index + 1) + ' 0 obj\n'), object, enc('\nendobj\n')]);
+    chunks.push(part); length += part.length;
+  });
+  const xrefOffset = length;
+  let xref = 'xref\n0 ' + (objects.length + 1) + '\n0000000000 65535 f \n';
+  for (let i = 1; i < offsets.length; i++) xref += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+  const trailer = 'trailer\n<< /Size ' + (objects.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + xrefOffset + '\n%%EOF';
+  chunks.push(enc(xref + trailer));
+  return concat(chunks);
+}
+async function createPatientPdf(patient: Record<string, any>, related: Record<string, any>, clinicName: string, ar: boolean) {
+  const name = String(patient.name || patient.full_name || patient.patient_name || patient.id || 'Patient');
+  const lines: string[] = [];
+  lines.push(ar ? 'ملف الحالة الطبي' : 'PATIENT CASE FILE');
+  lines.push((ar ? 'المركز: ' : 'Clinic: ') + clinicName);
+  lines.push((ar ? 'اسم الحالة: ' : 'Patient: ') + name);
+  lines.push((ar ? 'رقم الملف: ' : 'File ID: ') + String(patient.id || patient.file_number || '—'));
+  lines.push('');
+  lines.push(ar ? 'البيانات الأساسية' : 'PATIENT DETAILS');
+  lines.push(JSON.stringify(patient, null, 2));
+  for (const [table, rows] of Object.entries(related)) {
+    lines.push(''); lines.push('— ' + table + ' —'); lines.push(JSON.stringify(rows, null, 2));
+  }
+  const pageLines: string[][] = [];
+  let current: string[] = [];
+  for (const raw of lines.join('\n').split('\n')) {
+    const text = raw || ' ';
+    const max = 66;
+    if (text.length <= max) current.push(text);
+    else { for (let i = 0; i < text.length; i += max) current.push(text.slice(i, i + max)); }
+    if (current.length >= 42) { pageLines.push(current); current = []; }
+  }
+  if (current.length || !pageLines.length) pageLines.push(current);
+  const images: Uint8Array[] = [];
+  for (let page = 0; page < pageLines.length; page++) {
+    const canvas = document.createElement('canvas'); canvas.width = 1240; canvas.height = 1754;
+    const ctx = canvas.getContext('2d'); if (!ctx) throw new Error('PDF canvas is unavailable.');
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#17324d'; ctx.direction = ar ? 'rtl' : 'ltr'; ctx.textAlign = ar ? 'right' : 'left';
+    const x = ar ? 1160 : 80;
+    ctx.font = 'bold 42px Cairo, Arial, sans-serif'; ctx.fillText('Prime Physio', x, 88);
+    ctx.font = 'bold 32px Cairo, Arial, sans-serif'; ctx.fillText(pageLines[page][0] || '', x, 160);
+    ctx.strokeStyle = '#dbe3ed'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(80, 195); ctx.lineTo(1160, 195); ctx.stroke();
+    ctx.fillStyle = '#25364a'; ctx.font = '24px Cairo, Arial, sans-serif';
+    let y = 245;
+    for (const line of pageLines[page].slice(1)) {
+      const segments = line.match(/.{1,70}/gu) || [line];
+      for (const segment of segments) { ctx.fillText(segment, x, y, 1080); y += 31; if (y > 1640) break; }
+      if (y > 1640) break;
+    }
+    ctx.fillStyle = '#8b98a8'; ctx.font = '18px Cairo, Arial, sans-serif'; ctx.fillText((ar ? 'صفحة ' : 'Page ') + (page + 1) + ' / ' + pageLines.length, x, 1695);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.84);
+    const binary = atob(dataUrl.split(',')[1]); const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    images.push(bytes);
+  }
+  return makePdfFromJpegs(images);
+}
 function safeFileName(value: string) {
   return value.normalize("NFKD").replace(/[^\w.-]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 70) || "record";
 }
