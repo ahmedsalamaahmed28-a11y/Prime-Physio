@@ -316,7 +316,7 @@ export default function CenterManagementPage() {
                     const shareUrl = center.slug ? `/${center.slug}` : "";
                     const setupSteps = center.setupProgress || { completed: 0, total: 7 };
                     return (
-                      <article key={center.id} className="aspect-square min-w-0 overflow-hidden rounded-[18px] border border-[#E7E9ED] bg-white shadow-[0_3px_14px_rgba(25,48,75,.035)]">
+                      <article key={center.id} className="aspect-[0.94/1] min-w-0 overflow-hidden rounded-[18px] border border-[#E7E9ED] bg-white shadow-[0_3px_14px_rgba(25,48,75,.035)]">
                       <div className="flex h-full flex-col justify-between gap-1 p-2 sm:p-2.5">
                         <div className="flex items-center gap-2">
                           <div className="flex h-[36px] w-[36px] shrink-0 items-center justify-center overflow-hidden rounded-[10px] border border-[#EEF0F3] bg-white">
@@ -341,17 +341,13 @@ export default function CenterManagementPage() {
                           <div className="px-0.5 py-0.5"><strong className="block text-[15px] font-extrabold tabular-nums text-[#202B38]">{center.activeUsers ?? 0}</strong><span className="mt-0.5 block text-[8px] text-[#9299A2]">{isRtl ? "مستخدم نشط" : "Active users"}</span></div>
                         </div>
 
-                        <div className="flex items-center gap-1">
-                          <div className="flex-1">
-                            <a href={`/dashboard/?clinicId=${encodeURIComponent(center.id)}`} target="_blank" rel="noopener noreferrer" className="inline-flex h-[34px] w-full items-center justify-center gap-1 rounded-full bg-[#1262A8] text-[10px] font-extrabold text-white shadow-[0_3px_8px_rgba(18,98,168,.16)] transition hover:bg-[#0E548F]"><ActionIcon kind="open" className="h-4 w-4" />{isRtl ? "فتح" : "Open"}</a>
-                          </div>
-                          <button type="button" disabled={!center.slug} onClick={() => setQrCenter(center)} className="inline-flex h-[34px] flex-1 items-center justify-center gap-1 rounded-full border border-[#E5E9EF] bg-white text-[9px] font-extrabold text-[#174D7B] transition hover:bg-[#F7FAFD] disabled:opacity-40"><ActionIcon kind="qr" className="h-4 w-4" />{isRtl ? "ملصق QR" : "QR sticker"}</button>
+                        <div className="grid grid-cols-3 items-center gap-1">
+                          <a href={`/dashboard/?clinicId=${encodeURIComponent(center.id)}`} target="_blank" rel="noopener noreferrer" className="inline-flex h-[35px] min-w-0 w-full items-center justify-center gap-1 rounded-full bg-[#1262A8] px-1 text-[10px] font-extrabold text-white shadow-[0_3px_8px_rgba(18,98,168,.16)] transition hover:bg-[#0E548F]"><ActionIcon kind="open" className="h-4 w-4 shrink-0" />{isRtl ? "فتح" : "Open"}</a>
+                          <button type="button" disabled={!center.slug} onClick={() => setQrCenter(center)} className="inline-flex h-[35px] min-w-0 w-full items-center justify-center gap-1 rounded-full border border-[#E5E9EF] bg-white px-1 text-[9px] font-extrabold text-[#174D7B] transition hover:bg-[#F7FAFD] disabled:opacity-40"><ActionIcon kind="qr" className="h-4 w-4 shrink-0" />{isRtl ? "ملصق QR" : "QR sticker"}</button>
+                          <button type="button" onClick={() => openEdit(center)} className="inline-flex h-[35px] min-w-0 w-full items-center justify-center gap-1 rounded-full border border-[#DCE8F3] bg-white px-1 text-[9px] font-extrabold text-[#174D7B] transition hover:border-[#1262A8] hover:bg-[#F5F9FD]"><ActionIcon kind="edit" className="h-4 w-4 shrink-0" />{isRtl ? "تعديل" : "Edit"}</button>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-1 border-t border-[#F0F2F5] pt-1">
-                          <button type="button" onClick={() => openEdit(center)} className="inline-flex h-[30px] w-full items-center justify-center gap-1 rounded-full border border-[#DCE8F3] bg-white px-1 text-[9px] font-extrabold text-[#174D7B] transition hover:border-[#1262A8] hover:bg-[#F5F9FD]"><ActionIcon kind="edit" className="h-4 w-4" />{isRtl ? "تعديل" : "Edit"}</button>
-                          <button type="button" onClick={() => downloadCenterExport(center.id)} className="inline-flex h-[34px] w-full items-center justify-center gap-1 rounded-full border border-[#DCE8F3] bg-white px-1.5 text-[10px] font-extrabold text-[#174D7B] transition hover:border-[#1262A8] hover:bg-[#F5F9FD]"><Download className="h-4 w-4" />{isRtl ? "التصدير الكامل" : "Full export"}</button>
-                        </div>
+                        <button type="button" onClick={() => downloadCenterExport(center.id)} className="inline-flex h-[36px] w-full items-center justify-center gap-2 rounded-full border border-[#DCE8F3] bg-white px-3 text-[10px] font-extrabold text-[#174D7B] transition hover:border-[#1262A8] hover:bg-[#F5F9FD]"><Download className="h-4 w-4" />{isRtl ? "التصدير الكامل" : "Full export"}</button>
                         <p className="px-1 text-center text-[7px] leading-[10px] text-[#8994A2]">{isRtl ? "انسخ الرابط لإرساله على واتساب، أو اطبع ملصق QR لمكتب الاستقبال." : "Copy the link to share it on WhatsApp, or print a QR sticker for the reception desk."}</p>
                       </div>
                     </article>
