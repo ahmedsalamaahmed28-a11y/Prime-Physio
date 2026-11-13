@@ -334,7 +334,7 @@ export default function CenterManagementPage() {
 
                         <div className="mt-5 flex items-center gap-2.5">
                           <div className="flex-1 rounded-[17px] border-[2px] border-[#F9E7A8] p-[4px]">
-                            <Link href={center.slug ? `/${center.slug}` : "/my-centers"} className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full bg-[#1262A8] text-[16px] font-extrabold text-white shadow-[0_5px_13px_rgba(18,98,168,.2)] transition hover:bg-[#0E548F]"><ActionIcon kind="open" className="h-6 w-6" />{isRtl ? "فتح" : "Open"}</Link>
+                            <a href={`/dashboard/?clinicId=${encodeURIComponent(center.id)}`} target="_blank" rel="noopener noreferrer" className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full bg-[#1262A8] text-[16px] font-extrabold text-white shadow-[0_5px_13px_rgba(18,98,168,.2)] transition hover:bg-[#0E548F]"><ActionIcon kind="open" className="h-6 w-6" />{isRtl ? "فتح" : "Open"}</a>
                           </div>
                           <button type="button" disabled={!center.slug} onClick={() => setQrCenter(center)} className="inline-flex h-[62px] flex-1 items-center justify-center gap-2 rounded-full border border-[#E5E9EF] bg-white text-[15px] font-extrabold text-[#174D7B] transition hover:bg-[#F7FAFD] disabled:opacity-40"><ActionIcon kind="qr" className="h-6 w-6" />{isRtl ? "ملصق QR" : "QR sticker"}</button>
                         </div>
