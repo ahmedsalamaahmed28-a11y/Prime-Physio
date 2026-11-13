@@ -394,10 +394,7 @@ export default function CenterManagementPage() {
               </div>
             </div>
           )}
-          <footer className="mt-auto flex min-h-[64px] flex-wrap items-center justify-between gap-3 border-t border-[#E8EBEF] bg-white px-[32px] py-[15px] text-[12px] text-[#9AA1AA] max-sm:px-4">
-            <div className="flex flex-wrap items-center gap-[7px]"><Link href="/support" className="hover:text-[#5B50C7]">{isRtl ? "مركز المساعدة" : "Help Center"}</Link><span>·</span><Link href="/terms" className="hover:text-[#5B50C7]">{isRtl ? "الشروط" : "Terms"}</Link><span>·</span><Link href="/privacy" className="hover:text-[#5B50C7]">{isRtl ? "الخصوصية" : "Privacy"}</Link></div>
-            <span>© Prime Physio 2026</span>
-          </footer>
+
         </section>
       </div>
     </main>
