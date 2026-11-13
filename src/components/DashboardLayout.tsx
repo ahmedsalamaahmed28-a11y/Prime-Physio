@@ -57,6 +57,7 @@ interface SystemNotification {
   detailsAr: string;
   detailsEn: string;
   createdAt: string;
+  readKey: string;
 }
 
 interface SidebarItem {
@@ -109,6 +110,34 @@ export default function DashboardLayout({
   const [isOpen, setIsOpen] = useState(false); // Mobile sidebar state
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false); // Notifications popover state
   const [notifications, setNotifications] = useState<SystemNotification[]>([]);
+  const [readNotificationKeys, setReadNotificationKeys] = useState<string[]>([]);
+  const notificationReadStorageKey = user?.email
+    ? `prime-physio:notifications:read:${user.clinicId || "no-clinic"}:${user.email.toLowerCase()}`
+    : null;
+
+  useEffect(() => {
+    if (!notificationReadStorageKey) {
+      setReadNotificationKeys([]);
+      return;
+    }
+    try {
+      const saved = JSON.parse(localStorage.getItem(notificationReadStorageKey) || "[]");
+      setReadNotificationKeys(Array.isArray(saved) ? saved.filter((key): key is string => typeof key === "string") : []);
+    } catch {
+      setReadNotificationKeys([]);
+    }
+  }, [notificationReadStorageKey]);
+
+  useEffect(() => {
+    const handleNotificationsRead = (event: Event) => {
+      const keys = (event as CustomEvent<string[]>).detail;
+      if (Array.isArray(keys)) {
+        setReadNotificationKeys((current) => Array.from(new Set([...current, ...keys])));
+      }
+    };
+    window.addEventListener("prime-physio:notifications-read", handleNotificationsRead);
+    return () => window.removeEventListener("prime-physio:notifications-read", handleNotificationsRead);
+  }, []);
   const [branchLogo, setBranchLogo] = useState<string | null>(null);
   const [branchName, setBranchName] = useState<string | null>(null);
   const [platformBranding, setPlatformBranding] = useState<{brandName: string, sidebarTitle: string} | null>(null);
@@ -167,6 +196,7 @@ export default function DashboardLayout({
 
       return {
         id: row.id,
+        readKey: `audit:${row.id}`,
         titleAr: moduleName ? `${titleAr} • ${moduleName}` : titleAr,
         titleEn: moduleName ? `${titleEn} • ${moduleName}` : titleEn,
         detailsAr: details || "تم تنفيذ عملية داخل النظام",
@@ -189,6 +219,7 @@ export default function DashboardLayout({
       
       const mappedBroadcasts: SystemNotification[] = (broadcastsData || []).map((b: any) => ({
         id: b.id,
+        readKey: `broadcast:${b.id}`,
         titleAr: `📢 إشعار عام: ${b.title}`,
         titleEn: `📢 System Broadcast: ${b.title}`,
         detailsAr: b.message,
@@ -210,6 +241,7 @@ export default function DashboardLayout({
 
       const mappedClinicNotifications: SystemNotification[] = (clinicNotifications || []).map((item: any) => ({
         id: item.id,
+        readKey: `clinic:${item.id}`,
         titleAr: item.title_ar || "تنبيه جديد",
         titleEn: item.title_en || "New notification",
         detailsAr: item.body_ar || "",
@@ -221,6 +253,7 @@ export default function DashboardLayout({
       const { data: auditData, error: auditError } = await supabase
         .from("audit_logs")
         .select("id, action, entity, entity_id, details, created_at")
+        .eq("clinic_id", user.clinicId)
         .order("created_at", { ascending: false })
         .limit(6);
 
@@ -406,9 +439,29 @@ export default function DashboardLayout({
 
   const toggleSidebar = () => setIsOpen(!isOpen);
   const closeSidebar = () => setIsOpen(false);
-  const toggleNotifications = () => setIsNotificationsOpen(prev => !prev);
+  const markNotificationsAsRead = (keys: string[]) => {
+    if (!notificationReadStorageKey || keys.length === 0) return;
+    const next = Array.from(new Set([...readNotificationKeys, ...keys]));
+    setReadNotificationKeys(next);
+    try {
+      localStorage.setItem(notificationReadStorageKey, JSON.stringify(next));
+    } catch (error) {
+      console.warn("Could not persist notification read state", error);
+    }
+    window.dispatchEvent(new CustomEvent("prime-physio:notifications-read", { detail: keys }));
+  };
+
+  const toggleNotifications = () => {
+    if (!isNotificationsOpen) {
+      markNotificationsAsRead(notifications.map((item) => item.readKey));
+    }
+    setIsNotificationsOpen((prev) => !prev);
+  };
 
   const isRtl = language === "ar";
+  const unreadNotificationsCount = notifications.filter(
+    (item) => !readNotificationKeys.includes(item.readKey)
+  ).length;
 
   return (
     <DashboardPageLoadingContext.Provider value={setIsDashboardPageLoading}>
@@ -632,7 +685,11 @@ export default function DashboardLayout({
                  title={isRtl ? "الإشعارات" : "Notifications"}
                >
                  <Bell className="w-5 h-5" />
-                 {notifications.length > 0 && (                   <span className="absolute top-1 right-1 min-w-4 h-4 px-0.5 rounded-full bg-rose-500 text-[9px] font-bold text-white flex items-center justify-center border border-white">                     {notifications.length}                   </span>                 )}
+                 {unreadNotificationsCount > 0 && (
+                   <span className="absolute top-1 right-1 min-w-4 h-4 px-0.5 rounded-full bg-rose-500 text-[9px] font-bold text-white flex items-center justify-center border border-white">
+                     {unreadNotificationsCount > 99 ? "99+" : unreadNotificationsCount}
+                   </span>
+                 )}
                </button>
 
                {/* Notifications Popover */}
@@ -640,7 +697,7 @@ export default function DashboardLayout({
                  <div className={`absolute ${isRtl ? "left-0" : "right-0"} top-11 w-80 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 shadow-2xl z-50 p-4 space-y-3 animate-in fade-in slide-in-from-top-3 duration-200`} dir={isRtl ? "rtl" : "ltr"}>
                    <div className="flex items-center justify-between border-b pb-2">
                      <span className="font-bold text-sm text-slate-800 dark:text-white">{isRtl ? "الإشعارات والتنبيهات" : "Notifications & Alerts"}</span>
-                     <span className="text-[10px] text-[#4F46BA] bg-indigo-50 px-2 py-0.5 rounded-full font-bold">{notifications.length} {isRtl ? "جديدة" : "new"}</span>
+                     <span className="text-[10px] text-[#4F46BA] bg-indigo-50 px-2 py-0.5 rounded-full font-bold">{unreadNotificationsCount} {isRtl ? "غير مقروءة" : "unread"}</span>
                    </div>
                    <div className="space-y-2.5 max-h-72 overflow-y-auto">
                      {notifications.length === 0 ? (
