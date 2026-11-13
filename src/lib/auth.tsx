@@ -82,7 +82,10 @@ function mapStaffRoleToRoleKey(staffRole: string): "admin" | "doctor" | "recepti
 
 async function enrichUserWithClinic(user: User): Promise<User> {
   // First, try server API (uses service_role — works for NextAuth users without Supabase session)
-  const preferredClinicId = typeof window !== 'undefined' ? sessionStorage.getItem("preferred_clinic_id") : null;
+  const storedPreferredClinicId = typeof window !== "undefined" ? sessionStorage.getItem("preferred_clinic_id") : null;
+  // Credentials login stores the verified clinic ID in the signed NextAuth JWT.
+  // Use that server-authenticated scope if browser sessionStorage is unavailable.
+  const preferredClinicId = storedPreferredClinicId || user.clinicId || null;
   try {
     const t = Date.now();
     const queryParams = preferredClinicId ? `?preferred_clinic_id=${preferredClinicId}&t=${t}` : `?t=${t}`;
@@ -297,6 +300,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           initials,
           role: getArabicRoleLabel(finalRoleKey),
           roleKey: finalRoleKey,
+          clinicId: typeof (currentUser as any).clinicId === "string" ? (currentUser as any).clinicId : undefined,
           bg: "bg-gradient-to-br from-emerald-500 to-teal-600",
           image: currentUser.image || undefined,
           nameEn: prefixEnglishName(name, finalRoleKey),
