@@ -142,7 +142,8 @@ function makePdfFromJpegs(images: Uint8Array[]) {
   chunks.push(enc(xref + trailer));
   return concat(chunks);
 }
-async function createPatientPdf(patient: Record<string, any>, related: Record<string, any>, clinicName: string, ar: boolean) {\n  if (document.fonts?.ready) await document.fonts.ready;
+async function createPatientPdf(patient: Record<string, any>, related: Record<string, any>, clinicName: string, ar: boolean) {
+  if (document.fonts?.ready) await document.fonts.ready;
   const name = String(patient.name || patient.full_name || patient.patient_name || patient.id || 'Patient');
   const lines: string[] = [];
   lines.push(ar ? 'ملف الحالة الطبي' : 'PATIENT CASE FILE');
