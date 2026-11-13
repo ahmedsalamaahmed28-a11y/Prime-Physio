@@ -52,10 +52,23 @@ function toExcelXml(rows: Record<string, any>[], title: string) {
     const output = isDate ? new Date(value as string).toISOString() : raw;
     return `<Cell><Data ss:Type="${type}">${xmlEscape(output)}</Data></Cell>`;
   }).join("") + "</Row>";
-  const body = [rowXml(keys), ...rows.map((row) => rowXml(keys.map((key) => row[key])))].join("");
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
-<Worksheet ss:Name="${xmlEscape(title.slice(0,31))}" ss:RightToLeft="1"><Table>${body}</Table></Worksheet></Workbook>`;
+  const makeSheet = (name: string, sheetRows: Record<string, any>[]) => {
+    const body = [rowXml(keys), ...sheetRows.map((row) => rowXml(keys.map((key) => row[key])))].join("");
+    return `<Worksheet ss:Name="${xmlEscape(name.slice(0,31))}" ss:RightToLeft="1"><Table>${body}</Table></Worksheet>`;
+  };
+  let worksheets: string[];
+  if (["sessions", "appointments"].includes(title)) {
+    const months: Record<string, Record<string, any>[]> = {};
+    for (const row of rows) {
+      const date = dateForRow(row);
+      const month = date ? date.toISOString().slice(0, 7) : "Unscheduled";
+      (months[month] ||= []).push(row);
+    }
+    worksheets = Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([month, items]) => makeSheet(month, items));
+  } else {
+    worksheets = [makeSheet(title, rows)];
+  }
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">${worksheets.join("")}</Workbook>`;
 }
 function utf8(value: string) { return new TextEncoder().encode(value); }
 function concat(parts: Uint8Array[]) {
