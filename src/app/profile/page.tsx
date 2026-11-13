@@ -78,6 +78,8 @@ export default function ProfileSettingsPage() {
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
+  const [mapLat, setMapLat] = useState("");
+  const [mapLng, setMapLng] = useState("");
   const [country, setCountry] = useState("");
   const [description, setDescription] = useState("");
   
@@ -146,6 +148,10 @@ export default function ProfileSettingsPage() {
         if (data.email) setEmail(data.email);
         if (data.phone) setPhone(data.phone);
         if (data.address) setAddress(data.address);
+        if (data.maps_url) {
+          const coordinates = String(data.maps_url).match(/[?&]q=(-?\\d+(?:\\.\\d+)?),\\s*(-?\\d+(?:\\.\\d+)?)/);
+          if (coordinates) { setMapLat(coordinates[1]); setMapLng(coordinates[2]); }
+        }
         if (data.city) setCity(data.city);
         if (data.country) setCountry(data.country);
         if (data.description) setDescription(data.description);
@@ -370,6 +376,9 @@ export default function ProfileSettingsPage() {
         email: email,
         phone: phone,
         address: address,
+        maps_url: mapLat.trim() && mapLng.trim() && Number.isFinite(Number(mapLat)) && Number.isFinite(Number(mapLng)) && Math.abs(Number(mapLat)) <= 90 && Math.abs(Number(mapLng)) <= 180
+          ? `https://www.google.com/maps?q=${Number(mapLat)},${Number(mapLng)}&output=embed`
+          : null,
         city: city,
         country: country,
         description: description,
@@ -566,6 +575,26 @@ export default function ProfileSettingsPage() {
                   </div>
                 </div>
 
+              </div>
+
+              {/* Exact clinic map pin */}
+              <div className="space-y-4 rounded-2xl border border-indigo-100 bg-indigo-50/50 p-5">
+                <div className="flex items-center gap-2 text-[#4F46BA]">
+                  <MapPin className="h-5 w-5" />
+                  <h3 className="text-sm font-extrabold">{isRtl ? "تحديد موقع المركز بدقة على الخريطة" : "Set the clinic’s exact map location"}</h3>
+                </div>
+                <p className="text-xs leading-6 text-slate-600">{isRtl ? "افتح Google Maps وابحث عن عنوان المركز، ثم اضغط بزر الفأرة الأيمن على مدخل المركز أو مكانه الدقيق واختر الإحداثيات لنسخها. أدخل خط العرض والطول هنا ليظهر دبوس الموقع الدقيق في صفحة المركز العامة." : "Open Google Maps and search for the clinic address. Right-click the exact clinic entrance/location and copy its coordinates, then enter latitude and longitude below to place the exact pin on the public clinic page."}</p>
+                <div className="flex flex-wrap gap-3">
+                  <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([address, city, country].filter(Boolean).join(", ") || clinicName)}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-[#4F46BA] shadow-sm ring-1 ring-indigo-100 hover:bg-indigo-50">
+                    <MapPin className="h-4 w-4" />{isRtl ? "فتح Google Maps لاختيار النقطة" : "Open Google Maps to choose the point"}
+                  </a>
+                </div>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5"><label className="text-xs font-bold text-slate-600">{isRtl ? "خط العرض (Latitude)" : "Latitude"}</label><Input type="number" step="any" min="-90" max="90" value={mapLat} onChange={e => setMapLat(e.target.value)} placeholder="30.0444" dir="ltr" className="border-indigo-100 bg-white text-left" /></div>
+                  <div className="space-y-1.5"><label className="text-xs font-bold text-slate-600">{isRtl ? "خط الطول (Longitude)" : "Longitude"}</label><Input type="number" step="any" min="-180" max="180" value={mapLng} onChange={e => setMapLng(e.target.value)} placeholder="31.2357" dir="ltr" className="border-indigo-100 bg-white text-left" /></div>
+                </div>
+                {mapLat.trim() && mapLng.trim() && Number.isFinite(Number(mapLat)) && Number.isFinite(Number(mapLng)) && Math.abs(Number(mapLat)) <= 90 && Math.abs(Number(mapLng)) <= 180 && <div className="overflow-hidden rounded-xl border border-slate-200 bg-white"><iframe title={isRtl ? "معاينة دبوس المركز" : "Clinic pin preview"} src={`https://www.google.com/maps?q=${Number(mapLat)},${Number(mapLng)}&output=embed`} className="h-56 w-full border-0" loading="lazy" /><div className="flex items-center justify-between gap-2 p-3"><span className="text-[11px] font-semibold text-emerald-700">{isRtl ? "تم تحديد إحداثيات الدبوس" : "Pin coordinates selected"}</span><a href={`https://www.google.com/maps?q=${Number(mapLat)},${Number(mapLng)}`} target="_blank" rel="noreferrer" className="text-[11px] font-bold text-[#4F46BA] hover:underline">{isRtl ? "فتح الموقع" : "Open location"}</a></div></div>}
+                <p className="text-[11px] text-slate-500">{isRtl ? "اترك الإحداثيات فارغة لإزالة الدبوس والاعتماد على العنوان النصي فقط." : "Leave coordinates empty to remove the exact pin and use the text address only."}</p>
               </div>
 
               {/* Full Width Description Textarea */}
