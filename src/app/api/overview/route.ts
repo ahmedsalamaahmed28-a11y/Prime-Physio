@@ -101,7 +101,7 @@ export async function GET(req: NextRequest) {
         attendanceRate: due.length ? Math.round(attended.length / due.length * 100) : null,
         receivedPayments: paid.reduce((sum, i) => sum + money(i.amount), 0), previousPayments: previousPaid,
         activeStaff: activeStaff.length, activePatients: activePatients.length,
-        setupProgress: { completed: checks.filter(Boolean).length, total: checks.length },
+        setupProgress: { completed: checks.filter(Boolean).length, total: checks.length },\n        setupChecks: checks,
         subscription: subscription?.plan_name || "—",
         subscriptionStatus: subscription?.status || "pending",
         activeUsers: activeStaff.length,
@@ -111,7 +111,7 @@ export async function GET(req: NextRequest) {
     });
 
     const sum = (key: string) => centers.reduce((total: number, center: any) => total + (Number(center[key]) || 0), 0);
-    const dueAll = appointments.filter((a) => a.starts_at >= monthStart && new Date(a.starts_at).getTime() <= now.getTime() && !cancelledStatuses.includes(String(a.status || "").toLowerCase()));
+    const dueAll = appointments.filter((a) => new Date(a.starts_at).getTime() >= new Date(monthStart).getTime() && new Date(a.starts_at).getTime() <= now.getTime() && !cancelledStatuses.includes(String(a.status || "").toLowerCase()));
     const attendedAll = dueAll.filter((a) => attendedStatuses.includes(String(a.status || "").toLowerCase()));
     const currentPaid = invoices.filter((i) => i.created_at >= monthStart && paidStatuses.includes(String(i.status || "").toLowerCase()));
     const previousPaid = invoices.filter((i) => new Date(i.created_at).getTime() < new Date(monthStart).getTime() && paidStatuses.includes(String(i.status || "").toLowerCase()));
