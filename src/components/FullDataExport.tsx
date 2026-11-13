@@ -255,7 +255,7 @@ export default function FullDataExport() {
         tableCounts: counts,
         totalRows: Object.values(counts).reduce((sum, count) => sum + count, 0),
         attachmentCount,
-        note: "This archive includes all selected clinic-scoped database rows returned by the backup API. Storage files and generated PDF documents are not yet included in this release.",
+        note: "This archive includes selected clinic-scoped database rows, uploaded patient attachments and generated patient PDF reports. Password-encrypted ZIP is not included in this release.",
       };
       files.unshift({ name: "00-Export-Summary.json", content: JSON.stringify(summary, null, 2) });
       files.push({ name: "00-READ-ME.txt", content: [
@@ -269,10 +269,10 @@ export default function FullDataExport() {
         "The .xls files are Excel-compatible XML workbooks. CSV files use UTF-8 with BOM for Arabic text.",
         "Patient and staff records are exported in full. The selected date range is applied to time-based activity tables.",
         "",
-        "IMPORTANT: Uploaded patient attachments are included under each case folder. Generated PDF case reports and password-encrypted ZIP are not included in this release.",
+        "IMPORTANT: Uploaded patient attachments are included under each case folder. Password-encrypted ZIP is not included in this release.",
         "Keep this file secure: it may contain confidential patient information."
       ].join("\n") });
-      files.push({ name: "00-Contents.html", content: `<!doctype html><html lang="${ar ? "ar" : "en"}" dir="${ar ? "rtl" : "ltr"}"><meta charset="utf-8"><title>Prime Physio Export Contents</title><body style="font-family:Arial,sans-serif;padding:32px;line-height:1.8"><h1>Prime Physio — Export Contents</h1><p>${xmlEscape(clinicName)}</p><p>${summary.totalRows} records</p><ul>${Object.entries(counts).map(([key,count])=>`<li>${xmlEscape(key)}: ${count}</li>`).join("")}</ul><p>CSV and Excel-compatible workbooks are stored under 01-Data.</p><p>Uploaded patient attachments are stored in each case folder. Generated PDF case reports are not included in this release.</p></body></html>` });
+      files.push({ name: "00-Contents.html", content: `<!doctype html><html lang="${ar ? "ar" : "en"}" dir="${ar ? "rtl" : "ltr"}"><meta charset="utf-8"><title>Prime Physio Export Contents</title><body style="font-family:Arial,sans-serif;padding:32px;line-height:1.8"><h1>Prime Physio — Export Contents</h1><p>${xmlEscape(clinicName)}</p><p>${summary.totalRows} records</p><ul>${Object.entries(counts).map(([key,count])=>`<li>${xmlEscape(key)}: ${count}</li>`).join("")}</ul><p>CSV and Excel-compatible workbooks are stored under 01-Data.</p><p>Uploaded patient attachments are stored in each case folder. Patient PDF reports are included when selected. Password-encrypted ZIP is not included in this release.</p></body></html>` });
       if (includeCaseReports && selected.includes("cases")) {
         const patients = selectedData.patients || [];
         for (const patient of patients) {
@@ -281,6 +281,8 @@ export default function FullDataExport() {
           const related = Object.fromEntries(Object.entries(selectedData).filter(([table]) => !["patients"].includes(table)).map(([table, rows]) => [table, rows.filter((row) => String(row.patient_id || row.patientId || "") === id)]).filter(([, rows]) => (rows as any[]).length));
           const report = `<!doctype html><html lang="${ar ? "ar" : "en"}" dir="${ar ? "rtl" : "ltr"}"><meta charset="utf-8"><title>${xmlEscape(name)}</title><body style="font-family:Arial,sans-serif;padding:28px;line-height:1.7"><h1>Prime Physio — ${ar ? "ملف الحالة" : "Case file"}</h1><h2>${xmlEscape(name)}</h2><p>${ar ? "رقم الملف" : "File ID"}: ${xmlEscape(id)}</p><pre style="white-space:pre-wrap;font-family:Arial,sans-serif">${xmlEscape(JSON.stringify(patient,null,2))}</pre>${Object.entries(related).map(([table,rows])=>`<h3>${xmlEscape(table)}</h3><pre style="white-space:pre-wrap;font-family:Arial,sans-serif">${xmlEscape(JSON.stringify(rows,null,2))}</pre>`).join("")}</body></html>`;
           files.push({ name: `02-Cases/Case-Files/${safeFileName(id)}_${safeFileName(name)}.html`, content: report });
+          const pdf = await createPatientPdf(patient, related, clinicName, ar);
+          files.push({ name: `02-Cases/Case-Files/${safeFileName(id)}_${safeFileName(name)}.pdf`, content: pdf });
         }
       }
       const archive = makeZip(files);
@@ -339,7 +341,7 @@ export default function FullDataExport() {
           <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl bg-slate-50 p-4"><input type="checkbox" checked={includeCaseReports} onChange={(e) => setIncludeCaseReports(e.target.checked)} className="mt-1 accent-[#5B50C7]" /><span><b className="block text-sm text-slate-700">{ar ? "إضافة ملخص HTML لكل حالة" : "Include an HTML summary for each patient"}</b><small className="text-xs text-slate-500">{ar ? "يمكن فتحه وطباعته أو حفظه PDF من المتصفح." : "Can be opened, printed or saved as PDF from your browser."}</small></span></label>
         </section>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900"><div className="flex items-center gap-2 font-bold"><Info className="h-4 w-4 shrink-0" />{ar ? "ملاحظة مهمة حول هذا الإصدار" : "Important for this release"}</div><p className="mt-1">{ar ? "الملف الحالي يضم سجلات قاعدة البيانات المختارة بصيغ JSON وCSV وExcel XML، وملخصات HTML للحالات عند تفعيلها. يتضمن مرفقات المرضى المرفوعة في مساحة الملفات الخاصة. لا يضم بعد ملفات PDF مستقلة أو تشفير ZIP بكلمة مرور؛ لن أعتبر هذه الأجزاء مكتملة قبل تنفيذها واختبارها." : "This release packages selected database records as JSON, CSV and Excel XML, plus optional HTML patient summaries. Uploaded patient attachments are included. Standalone PDF reports and password-encrypted ZIP are not included yet; those parts will not be marked complete until implemented and tested."}</p></div>
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900"><div className="flex items-center gap-2 font-bold"><Info className="h-4 w-4 shrink-0" />{ar ? "ملاحظة مهمة حول هذا الإصدار" : "Important for this release"}</div><p className="mt-1">{ar ? "الملف الحالي يضم سجلات قاعدة البيانات المختارة بصيغ JSON وCSV وExcel XML، وملخصات HTML للحالات عند تفعيلها. يتضمن مرفقات المرضى المرفوعة في مساحة الملفات الخاصة. لا يضم بعد ملفات PDF مستقلة أو تشفير ZIP بكلمة مرور؛ لن أعتبر هذه الأجزاء مكتملة قبل تنفيذها واختبارها." : "This release packages selected database records as JSON, CSV and Excel XML, plus optional HTML patient summaries. Uploaded patient attachments are included. Patient PDF reports are generated and included. Password-encrypted ZIP is not included yet; it will not be marked complete until implemented and tested."}</p></div>
 
         {error && <div role="alert" className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><XCircle className="h-5 w-5 shrink-0" />{error}</div>}
         {success && <div role="status" className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700"><CheckCircle2 className="h-5 w-5 shrink-0" />{success}</div>}
