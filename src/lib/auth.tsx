@@ -14,7 +14,9 @@ interface User {
   initialsEn?: string;
   role: string;
   roleEn?: string;
-  roleKey: "admin" | "doctor" | "receptionist";
+  // Retained only for the separately authenticated platform-admin area; normal clinic login never assigns this role.
+  roleKey: "admin" | "doctor" | "receptionist" | "platform_admin";
+  isPlatformAdmin?: boolean;
   bg: string;
   image?: string;
   clinicId?: string | null;
