@@ -307,49 +307,44 @@ export default function CenterManagementPage() {
                     const shareUrl = center.slug ? `/${center.slug}` : "";
                     const setupSteps = center.setupProgress || { completed: 0, total: 7 };
                     return (
-                      <article key={center.id} className="overflow-hidden rounded-[20px] border border-[#E5EAF2] bg-white shadow-[0_8px_28px_rgba(25,48,75,.06)]">
-                        <div className="p-5 sm:p-6">
-                          <div className="flex items-start gap-3">
-                            <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[#E8EBEF] bg-[#F5F6FF]">
-                              {center.logoUrl ? <img src={center.logoUrl} alt="" className="h-full w-full object-contain" /> : <img src="/logo.png" alt="Prime Physio" className="h-9 w-9 object-contain" />}
+                      <article key={center.id} className="overflow-hidden rounded-[26px] border border-[#E7E9ED] bg-white shadow-[0_3px_14px_rgba(25,48,75,.035)]">
+                      <div className="p-5 sm:p-6">
+                        <div className="flex items-center gap-4">
+                          <div className="flex h-[76px] w-[76px] shrink-0 items-center justify-center overflow-hidden rounded-[19px] border border-[#EEF0F3] bg-white shadow-[0_2px_8px_rgba(25,48,75,.05)]">
+                            {center.logoUrl ? <img src={center.logoUrl} alt="" className="h-full w-full object-contain" /> : <img src="/logo.png" alt="Prime Physio" className="h-[58px] w-[58px] object-contain" />}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-[19px] font-extrabold leading-[1.5] text-[#202B38] sm:text-[21px]">{center.name}</h3>
+                            <div className="mt-2 inline-flex items-center rounded-full bg-[#FFF5D9] px-4 py-2 text-[13px] font-extrabold text-[#946B22]">
+                              {isRtl ? `التجهيز ${setupSteps.completed}/${setupSteps.total}` : `Setup ${setupSteps.completed}/${setupSteps.total}`}
                             </div>
-                            <div className="min-w-0 flex-1">
-                              <h3 className="text-[17px] font-extrabold leading-7 text-[#24364A]">{center.name}</h3>
-                              <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-[#66758A]">
-                                <span>{isRtl ? `التجهيز ${setupSteps.completed}/${setupSteps.total}` : `Setup ${setupSteps.completed}/${setupSteps.total}`}</span>
-                                <div className="h-1.5 w-24 overflow-hidden rounded-full bg-[#E9EDF5]"><div className="h-full rounded-full bg-[#5B50C7]" style={{ width: `${Math.round((setupSteps.completed / setupSteps.total) * 100)}%` }} /></div>
-                                <span className="rounded-full bg-[#F1EFFF] px-2 py-1 text-[#5B50C7]">{center.planName || (isRtl ? "الخطة الأساسية" : "Basic plan")}</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="mt-5 flex items-center gap-2 rounded-xl border border-[#E7EAF1] bg-[#F8FAFD] p-2.5">
-                            <span className="min-w-0 flex-1 truncate text-left text-[12px] font-medium text-[#52647A]" dir="ltr">{center.slug ? `${typeof window !== "undefined" ? window.location.host : "primephysio.vercel.app"}${shareUrl}` : "—"}</span>
-                            <button type="button" disabled={!center.slug} onClick={() => center.slug && copyCenterUrl(center.slug)} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg bg-[#EDF0FF] px-3 text-xs font-bold text-[#5147B8] hover:bg-[#E2E6FF] disabled:opacity-40"><Copy className="h-4 w-4" />{isRtl ? "نسخ" : "Copy"}</button>
-                          </div>
-
-                          <div className="mt-4 grid grid-cols-3 divide-x divide-x-reverse divide-[#EDF0F4] rounded-xl border border-[#EDF0F4] bg-white py-3 text-center">
-                            <div className="px-2"><CalendarDays className="mx-auto mb-1 h-4 w-4 text-[#5B50C7]" /><strong className="block text-xl font-extrabold tabular-nums text-[#24364A]">{center.todayAppointments ?? 0}</strong><span className="text-[11px] text-[#8792A0]">{isRtl ? "جلسات اليوم" : "Today"}</span></div>
-                            <div className="border-x border-[#EDF0F4] px-2"><Activity className="mx-auto mb-1 h-4 w-4 text-[#5B50C7]" /><strong className="block text-xl font-extrabold tabular-nums text-[#24364A]">{center.monthAppointments ?? 0}</strong><span className="text-[11px] text-[#8792A0]">{isRtl ? "هذا الشهر" : "This month"}</span></div>
-                            <div className="px-2"><Users className="mx-auto mb-1 h-4 w-4 text-[#5B50C7]" /><strong className="block text-xl font-extrabold tabular-nums text-[#24364A]">{center.activeUsers ?? 0}</strong><span className="text-[11px] text-[#8792A0]">{isRtl ? "مستخدمون نشطون" : "Active users"}</span></div>
-                          </div>
-
-                          <div className="mt-4 flex gap-2">
-                            <Link href={center.slug ? `/${center.slug}` : "/my-centers"} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-[#5147B8] text-sm font-extrabold text-white shadow-sm transition hover:bg-[#40369F]"><ActionIcon kind="open" />{isRtl ? "فتح" : "Open"}</Link>
-                            <button type="button" disabled={!center.slug} onClick={() => setQrCenter(center)} className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-[#DCE2F0] bg-white text-sm font-bold text-[#4E5D72] hover:bg-[#F7F8FC] disabled:opacity-40"><ActionIcon kind="qr" />{isRtl ? "ملصق QR" : "QR sticker"}</button>
-                          </div>
-                          <div className="mt-2 flex gap-2">
-                            <button type="button" onClick={() => openEdit(center)} className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[#E3E8F0] text-sm font-bold text-[#536276] hover:bg-slate-50"><ActionIcon kind="edit" />{isRtl ? "تعديل" : "Edit"}</button>
-                            <button type="button" onClick={() => downloadCenterExport(center.id)} className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[#E3E8F0] text-sm font-bold text-[#536276] hover:bg-slate-50"><Download className="h-4 w-4" />{isRtl ? "التصدير الكامل" : "Full export"}</button>
-                          </div>
-                          <div className="mt-4 flex items-start gap-2 border-t border-[#F0F2F6] pt-3 text-[11px] leading-6 text-[#8994A2]"><HelpCircle className="mt-1 h-4 w-4 shrink-0 text-[#5B50C7]" /><span>{isRtl ? "انسخ الرابط لإرساله على واتساب، أو اطبع ملصق QR لمكتب الاستقبال." : "Copy the link to share on WhatsApp, or print the QR sticker for reception."}</span></div>
-                          <div className="mt-2 rounded-lg bg-[#F4F5F7] px-3 py-2 text-[11px] text-[#7B8490]">{isRtl ? "٦ · اضغط «فتح» لتدخل مركزك" : "6 · Press Open to enter your center"}</div>
-                          <div className="mt-3 flex items-center justify-between border-t border-[#F0F2F6] pt-3 text-xs">
-                            <span className="text-[#7B8490]">{isRtl ? "الاشتراك" : "Subscription"}: <strong className="text-[#303846]">{center.subscriptionStatus === "active" ? (isRtl ? "نشط" : "Active") : (isRtl ? "قيد التفعيل" : "Pending")}</strong></span>
-                            <span className="text-[#7B8490]">{center.status || ""}</span>
                           </div>
                         </div>
-                      </article>
+
+                        <div className="mt-6 flex min-h-[66px] items-center gap-2 rounded-[16px] bg-[#F5F8FC] px-3 py-2.5 sm:px-4">
+                          <span className="min-w-0 flex-1 truncate text-left text-[13px] font-medium text-[#52647A] sm:text-[15px]" dir="ltr">{center.slug ? `${typeof window !== "undefined" ? window.location.host : "primephysio.vercel.app"}${shareUrl}` : "—"}</span>
+                          <button type="button" disabled={!center.slug} onClick={() => center.slug && copyCenterUrl(center.slug)} className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border border-[#E8EBF1] bg-white px-3.5 text-[13px] font-bold text-[#303846] shadow-sm transition hover:bg-[#F8FAFD] disabled:opacity-40"><Copy className="h-[18px] w-[18px]" />{isRtl ? "نسخ" : "Copy"}</button>
+                        </div>
+
+                        <div className="mt-6 grid grid-cols-3 divide-x divide-x-reverse divide-[#EEF0F3] text-center">
+                          <div className="px-2 py-3"><strong className="block text-[25px] font-extrabold tabular-nums text-[#202B38] sm:text-[29px]">{center.todayAppointments ?? 0}</strong><span className="mt-2 block text-[14px] text-[#9299A2] sm:text-[16px]">{isRtl ? "اليوم" : "Today"}</span></div>
+                          <div className="border-x border-[#EEF0F3] px-2 py-3"><strong className="block text-[25px] font-extrabold tabular-nums text-[#202B38] sm:text-[29px]">{center.monthAppointments ?? 0}</strong><span className="mt-2 block text-[14px] text-[#9299A2] sm:text-[16px]">{isRtl ? "هذا الشهر" : "This month"}</span></div>
+                          <div className="px-2 py-3"><strong className="block text-[25px] font-extrabold tabular-nums text-[#202B38] sm:text-[29px]">{center.activeUsers ?? 0}</strong><span className="mt-2 block text-[14px] text-[#9299A2] sm:text-[16px]">{isRtl ? "مستخدم نشط" : "Active users"}</span></div>
+                        </div>
+
+                        <div className="mt-5 flex items-center gap-2.5">
+                          <div className="flex-1 rounded-[17px] border-[2px] border-[#F9E7A8] p-[4px]">
+                            <Link href={center.slug ? `/${center.slug}` : "/my-centers"} className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full bg-[#1262A8] text-[16px] font-extrabold text-white shadow-[0_5px_13px_rgba(18,98,168,.2)] transition hover:bg-[#0E548F]"><ActionIcon kind="open" className="h-6 w-6" />{isRtl ? "فتح" : "Open"}</Link>
+                          </div>
+                          <button type="button" disabled={!center.slug} onClick={() => setQrCenter(center)} className="inline-flex h-[62px] flex-1 items-center justify-center gap-2 rounded-full border border-[#E5E9EF] bg-white text-[15px] font-extrabold text-[#174D7B] transition hover:bg-[#F7FAFD] disabled:opacity-40"><ActionIcon kind="qr" className="h-6 w-6" />{isRtl ? "ملصق QR" : "QR sticker"}</button>
+                        </div>
+
+                        <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#F0F2F5] pt-4">
+                          <button type="button" onClick={() => openEdit(center)} className="inline-flex min-h-[42px] items-center gap-2 px-2 text-[15px] font-bold text-[#303846] transition hover:text-[#1262A8]"><ActionIcon kind="edit" className="h-5 w-5" />{isRtl ? "تعديل" : "Edit"}</button>
+                          <button type="button" onClick={() => downloadCenterExport(center.id)} className="inline-flex min-h-[42px] items-center gap-2 px-2 text-[15px] font-bold text-[#303846] transition hover:text-[#1262A8]"><Download className="h-5 w-5" />{isRtl ? "التصدير الكامل" : "Full export"}</button>
+                        </div>
+                      </div>
+                    </article>
                     );
                   })}
                 </div>
