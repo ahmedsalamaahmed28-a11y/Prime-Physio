@@ -5,7 +5,6 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Bell, ShieldAlert, Activity, CalendarDays } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
 
 interface NotificationItem {
   id: string;
@@ -15,6 +14,7 @@ interface NotificationItem {
   detailsEn: string;
   createdAt: string;
   type: "broadcast" | "audit" | "clinic";
+  readKey: string;
 }
 
 export default function NotificationsPage() {
@@ -42,7 +42,8 @@ export default function NotificationsPage() {
         detailsAr: b.message,
         detailsEn: b.message,
         createdAt: b.created_at || new Date().toISOString(),
-        type: "broadcast"
+        type: "broadcast",
+        readKey: `broadcast:${b.id}`
       }));
 
       // Fetch clinic-scoped notifications such as public appointment requests
@@ -62,7 +63,8 @@ export default function NotificationsPage() {
           detailsAr: item.body_ar || "",
           detailsEn: item.body_en || "",
           createdAt: item.created_at || new Date().toISOString(),
-          type: "clinic"
+          type: "clinic",
+          readKey: `clinic:${item.id}`
         }));
       }
 
@@ -97,7 +99,8 @@ export default function NotificationsPage() {
             detailsAr: a.details || "تم تنفيذ عملية داخل النظام",
             detailsEn: a.details || "An action was performed",
             createdAt: a.created_at,
-            type: "audit"
+            type: "audit",
+            readKey: `audit:${a.id}`
           };
         });
       }
@@ -107,6 +110,20 @@ export default function NotificationsPage() {
       );
 
       setNotifications(combined);
+
+      // Viewing the full notifications history marks the displayed items as read.
+      const readKeys = combined.map((item) => item.readKey);
+      if (user?.email && readKeys.length > 0) {
+        const storageKey = `prime-physio:notifications:read:${user.clinicId || "no-clinic"}:${user.email.toLowerCase()}`;
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+          const existing = Array.isArray(saved) ? saved.filter((key): key is string => typeof key === "string") : [];
+          localStorage.setItem(storageKey, JSON.stringify(Array.from(new Set([...existing, ...readKeys]))));
+        } catch (error) {
+          console.warn("Could not persist notification read state", error);
+        }
+        window.dispatchEvent(new CustomEvent("prime-physio:notifications-read", { detail: readKeys }));
+      }
       setLoading(false);
     }
 
@@ -116,8 +133,7 @@ export default function NotificationsPage() {
   }, [user]);
 
   return (
-    <DashboardLayout>
-      <div className="max-w-4xl mx-auto p-4 md:p-6" dir={isRtl ? "rtl" : "ltr"}>
+    <div className="max-w-4xl mx-auto p-4 md:p-6" dir={isRtl ? "rtl" : "ltr"}>
         <div className="flex items-center gap-3 mb-6">
           <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
             <Bell className="w-6 h-6 text-[#4F46BA]" />
@@ -160,7 +176,6 @@ export default function NotificationsPage() {
             </div>
           )}
         </div>
-      </div>
-    </DashboardLayout>
+    </div>
   );
 }
