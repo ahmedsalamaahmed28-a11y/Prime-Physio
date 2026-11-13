@@ -1,6 +1,14 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { Cairo } from "next/font/google";
 import "./globals.css";
+
+const cairo = Cairo({
+  subsets: ["arabic", "latin"],
+  weight: ["400", "700"],
+  display: "swap",
+  variable: "--font-cairo",
+});
 import DashboardLayout from "@/components/DashboardLayout";
 
 export const metadata: Metadata = {
@@ -31,7 +39,7 @@ export default async function RootLayout({
   await headers();
 
   return (
-    <html lang="ar" dir="rtl" className="h-full antialiased">
+    <html lang="ar" dir="rtl" className={`${cairo.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col bg-slate-50/50 font-sans">
         <LanguageProvider>
           <PWAProvider>
