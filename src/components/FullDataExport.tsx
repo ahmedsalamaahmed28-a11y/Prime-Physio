@@ -153,6 +153,22 @@ export default function FullDataExport() {
           files.push({ name: `01-Data/${group}/${fileName}.xls`, content: toExcelXml(rows, tableName) });
         }
       }
+      let attachmentCount = 0;
+      if (selected.includes("cases")) {
+        const attachmentResponse = await fetch("/api/backup/attachments", { method: "POST", credentials: "include", cache: "no-store" });
+        const attachmentPayload = await attachmentResponse.json();
+        if (!attachmentResponse.ok) throw new Error(attachmentPayload?.error || (ar ? "تعذر تجهيز مرفقات الحالات." : "Could not prepare patient attachments."));
+        for (const attachment of (attachmentPayload.attachments || [])) {
+          const fileResponse = await fetch(attachment.url, { cache: "no-store" });
+          if (!fileResponse.ok) throw new Error(ar ? "تعذر تنزيل مرفق مريض." : "Could not download a patient attachment.");
+          const bytes = new Uint8Array(await fileResponse.arrayBuffer());
+          const patientId = safeFileName(String(attachment.patientId || "case"));
+          const originalName = String(attachment.fileName || attachment.id || "attachment");
+          const fileName = latinNames ? safeFileName(originalName) : originalName.replace(/[\\/:*?"<>|]/g, "_");
+          files.push({ name: "02-Cases/Case-Files/" + patientId + "/Attachments/" + fileName, content: bytes });
+          attachmentCount += 1;
+        }
+      }
       const summary = {
         format: "Prime Physio Full Export",
         version: 1,
@@ -182,22 +198,6 @@ export default function FullDataExport() {
         "Keep this file secure: it may contain confidential patient information."
       ].join("\n") });
       files.push({ name: "00-Contents.html", content: `<!doctype html><html lang="${ar ? "ar" : "en"}" dir="${ar ? "rtl" : "ltr"}"><meta charset="utf-8"><title>Prime Physio Export Contents</title><body style="font-family:Arial,sans-serif;padding:32px;line-height:1.8"><h1>Prime Physio — Export Contents</h1><p>${xmlEscape(clinicName)}</p><p>${summary.totalRows} records</p><ul>${Object.entries(counts).map(([key,count])=>`<li>${xmlEscape(key)}: ${count}</li>`).join("")}</ul><p>CSV and Excel-compatible workbooks are stored under 01-Data.</p><p>Uploaded patient attachments are stored in each case folder. Generated PDF case reports are not included in this release.</p></body></html>` });
-      let attachmentCount = 0;
-      if (selected.includes("cases")) {
-        const attachmentResponse = await fetch("/api/backup/attachments", { method: "POST", credentials: "include", cache: "no-store" });
-        const attachmentPayload = await attachmentResponse.json();
-        if (!attachmentResponse.ok) throw new Error(attachmentPayload?.error || (ar ? "تعذر تجهيز مرفقات الحالات." : "Could not prepare patient attachments."));
-        for (const attachment of (attachmentPayload.attachments || [])) {
-          const fileResponse = await fetch(attachment.url, { cache: "no-store" });
-          if (!fileResponse.ok) throw new Error(ar ? "تعذر تنزيل مرفق مريض." : "Could not download a patient attachment.");
-          const bytes = new Uint8Array(await fileResponse.arrayBuffer());
-          const patientId = safeFileName(String(attachment.patientId || "case"));
-          const originalName = String(attachment.fileName || attachment.id || "attachment");
-          const fileName = latinNames ? safeFileName(originalName) : originalName.replace(/[\\/:*?"<>|]/g, "_");
-          files.push({ name: "02-Cases/Case-Files/" + patientId + "/Attachments/" + fileName, content: bytes });
-          attachmentCount += 1;
-        }
-      }
       if (includeCaseReports && selected.includes("cases")) {
         const patients = selectedData.patients || [];
         for (const patient of patients) {
