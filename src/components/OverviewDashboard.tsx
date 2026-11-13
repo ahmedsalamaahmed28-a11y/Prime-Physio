@@ -126,10 +126,13 @@ export default function OverviewDashboard() {
               <MetricCard title="المدفوعات المستلمة (EGP)" value={currency(totals?.receivedPayments ?? 0)} note={`الشهر الماضي: ${currency(totals?.previousPayments ?? 0)} EGP`} icon={CreditCard} tone="amber" />
               <MetricCard title="الأخصائيون النشطون" value={totals?.activeStaff ?? 0} icon={Stethoscope} />
               <MetricCard title="الحالات النشطة" value={totals?.activePatients ?? 0} icon={User} tone="green" />
-              <MetricCard title="حسابات المستخدمين النشطة" value={`${totals?.activeUsers ?? 0} / ${totals?.userLimit ?? 20}`} icon={Users} tone="violet" />
-              <article className="flex min-h-[126px] flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_2px_10px_rgba(15,23,42,.025)] sm:p-5">
-                <span className="text-[13px] font-semibold text-slate-500 sm:text-sm">من باقتك</span>
-                <div className="flex items-end justify-between gap-2"><span className="text-sm font-bold text-slate-700">{data?.centers?.[0]?.subscription || "—"}</span><Link href="/account.php/" className="inline-flex items-center gap-1 text-xs font-bold text-[#1262A8] hover:underline">التفاصيل <ChevronLeft className="h-3.5 w-3.5" /></Link></div>
+              <article className="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_2px_10px_rgba(15,23,42,.025)] sm:p-5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[13px] font-semibold leading-6 text-slate-500 sm:text-sm">حسابات المستخدمين النشطة</span>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-700"><Users className="h-[18px] w-[18px]" /></span>
+                </div>
+                <div className="mt-3 text-[27px] font-extrabold leading-none tracking-tight text-slate-900 tabular-nums sm:text-[30px]">{`${totals?.activeUsers ?? 0} / ${totals?.userLimit ?? 20}`}</div>
+                <p className="mt-2 text-[11px] leading-5 text-slate-400 sm:text-xs">من باقتك. <Link href="/account.php/" className="font-bold text-[#1262A8] hover:underline">التفاصيل</Link></p>
               </article>
             </div>
           )}
