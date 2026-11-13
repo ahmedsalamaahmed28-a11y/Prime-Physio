@@ -62,30 +62,8 @@ export async function GET(req: NextRequest) {
       (typeof accountProfile?.name === "string" && accountProfile.name.trim()) ||
       "";
 
-    const { data: platformAdmin, error: platformAdminError } = await admin
-      .from("platform_admins")
-      .select("id")
-      .eq("email", email)
-      .limit(1)
-      .maybeSingle();
-
-    if (platformAdminError) {
-      console.error("[AuthEnrich] Platform-admin lookup failed", { code: platformAdminError.code, message: platformAdminError.message });
-      return NextResponse.json({ error: "Unable to verify account role" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
-    }
-
-    if (platformAdmin) {
-      return NextResponse.json({
-        clinicId: null,
-        displayName,
-        role: "مدير المنصة",
-        roleKey: "platform_admin",
-        roleAr: "مدير المنصة",
-        roleEn: "Platform Admin",
-        shortName: null,
-        logoUrl: null,
-      }, { headers: { "Cache-Control": "no-store, private" } });
-    }
+    // Platform administration is intentionally not assigned through ordinary clinic accounts.
+    // The future platform-admin login will use a separate authentication entry point.
 
     if (preferredClinicId) {
       const { data: activeClinic, error: clinicError } = await admin
