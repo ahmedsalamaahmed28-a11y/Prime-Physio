@@ -119,7 +119,9 @@ async function enrichUserWithClinic(user: User): Promise<User> {
         user.roleEn = data.roleEn;
         user.shortName = data.shortName || null;
         user.logoUrl = data.logoUrl || null;
-        if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+        // Keep the selected clinic scope for the full browser session. Other auth
+        // effects can enrich the same login concurrently; clearing it here lets a
+        // second request misclassify the clinic owner as an unscoped center manager.
         return user;
       }
       // A successful server-side lookup with no membership is authoritative.
@@ -464,6 +466,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
     setUser(null);
     setAppValue("current_user", null).catch(() => {});
     await supabase.auth.signOut();
