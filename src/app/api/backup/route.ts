@@ -15,9 +15,9 @@ const CLINIC_TABLES = [
   "clinic_services", "clinic_settings", "clinical_protocols", "daily_reports",
   "discharges", "executive_reports", "exercises", "gait_tests", "hr_attendance",
   "insurance_claims", "invoices", "leads", "marketing_campaigns", "mmt_assessments",
-  "notifications", "patient_evaluations", "patient_nutrition", "patient_programs",
+  "notifications", "patient_evaluations", "patient_medical_records", "patient_nutrition", "patient_programs",
   "patient_risks", "patients", "payroll_drafts", "peer_reviews", "progress_tracking",
-  "protocol_licenses", "recovery_logs", "referrals", "rom_assessments", "sessions",
+  "protocol_licenses", "recovery_logs", "referrals", "rom_assessments", "sessions", "appointment_rooms", "appointment_group_participants",
   "soap_notes", "special_tests", "staff", "subscriptions", "treatment_plans", "waitlist", "patient_attachments",
 ] as const;
 
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
       let offset = 0;
 
       while (true) {
-        const pageQuery = tableName === "patient_nutrition"
+        const pageQuery = tableName === "patient_nutrition" || tableName === "patient_medical_records"
           ? admin.from(tableName).select("*").eq("clinic_id", user.clinicId)
               .order("patient_id", { ascending: true }).range(offset, offset + PAGE_SIZE - 1)
           : admin.from(tableName).select("*").eq("clinic_id", user.clinicId)
