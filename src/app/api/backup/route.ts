@@ -18,7 +18,7 @@ const CLINIC_TABLES = [
   "notifications", "patient_evaluations", "patient_nutrition", "patient_programs",
   "patient_risks", "patients", "payroll_drafts", "peer_reviews", "progress_tracking",
   "protocol_licenses", "recovery_logs", "referrals", "rom_assessments", "sessions",
-  "soap_notes", "special_tests", "staff", "subscriptions", "treatment_plans", "waitlist",
+  "soap_notes", "special_tests", "staff", "subscriptions", "treatment_plans", "waitlist", "patient_attachments",
 ] as const;
 
 const noStoreHeaders = {
