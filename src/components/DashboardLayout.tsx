@@ -331,7 +331,7 @@ export default function DashboardLayout({
     // Next may expose PHP-style routes with a trailing slash in the browser.
     // Normalize once so standalone center-management routes are recognized consistently.
     const p = (pathname || "").replace(new RegExp("/+$"), "") || "/";
-    const isCenterManagementPage = p === "/centers.php" || p.split("/").some(
+    const isCenterManagementPage = p === "/my-centers" || p === "/centers.php" || p.split("/").some(
       (segment) => segment === "center-management" || segment === "center-management.php"
     );
     const isCenterAdminRoute = ["/overview.php", "/export.php", "/account.php", "/plans.php", "/notices.php"].includes(p);
