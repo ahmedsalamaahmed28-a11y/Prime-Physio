@@ -334,7 +334,7 @@ export default function DashboardLayout({
     const isCenterManagementPage = p === "/centers.php" || p.split("/").some(
       (segment) => segment === "center-management" || segment === "center-management.php"
     );
-    const isCenterAdminRoute = ["/overview.php", "/export.php", "/account.php", "/plans.php", "/notices.php"].includes(p);
+    const isCenterAdminRoute = ["/export.php", "/account.php", "/plans.php", "/notices.php"].includes(p);
     const isAuthPage = p === "/" || p === "/login.php" || p === "/privacy" || p === "/terms" || p === "/manage" || p.startsWith("/manage/") || p === "/signup" || p === "/forgot-password" || p === "/reset-password" || p === "/setup" || p.startsWith("/setup/") || p === "/subscribe" || p === "/plans" || p === "/centers" || p === "/about" || p === "/support" || p === "/center_setup" || p.startsWith("/center-management") || isCenterManagementPage || p === "/home.php" || p === "/rgstr.php" || p.startsWith("/platform") || isSlugPage;
 
   const isCenterCreationPage = p === "/my-centers/create" || p === "/addcenter.php";
