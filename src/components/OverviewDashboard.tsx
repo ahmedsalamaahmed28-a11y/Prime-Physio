@@ -13,7 +13,7 @@ type Center = {
   id: string; name: string; slug: string | null; logoUrl: string | null;
   todayAppointments: number; monthAppointments: number; previousAppointments: number;
   attendanceRate: number | null; receivedPayments: number; previousPayments: number;
-  activeStaff: number; activePatients: number; setupProgress: { completed: number; total: number };
+  activeStaff: number; activePatients: number; setupProgress: { completed: number; total: number }; setupChecks?: boolean[];
   subscription: string; activeUsers: number; createdAt: string;
 };
 type OverviewData = {
@@ -184,7 +184,7 @@ export default function OverviewDashboard() {
                 </div>
                 <div className="mt-4 space-y-1">
                   {setupItems.map((item, i) => {
-                    const completed = i < done;
+                    const completed = center.setupChecks ? !!center.setupChecks[i] : i < done;
                     return <div key={item.title} className="flex min-h-[42px] items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-slate-50">
                       <span className={`flex h-[21px] w-[21px] shrink-0 items-center justify-center rounded-full border ${completed ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-300 bg-white text-transparent"}`}>{completed ? <Check className="h-3.5 w-3.5" strokeWidth={3} /> : <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />}</span>
                       <span className={`min-w-0 flex-1 text-[13px] font-semibold ${completed ? "text-slate-400 line-through" : "text-slate-700"}`}>{item.title}</span>
