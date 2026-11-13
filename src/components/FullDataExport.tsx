@@ -14,16 +14,16 @@ type ExportBackup = {
 };
 
 const GROUPS = [
-  { id: "center", ar: "بيانات المركز والإعدادات", en: "Center & settings", tables: ["clinic_settings", "branches", "clinic_services", "clinical_protocols", "exercises"] },
-  { id: "cases", ar: "الحالات والتقييمات والبرامج العلاجية", en: "Cases, evaluations & programs", tables: ["patients", "patient_evaluations", "assessments", "patient_programs", "patient_nutrition", "patient_risks", "soap_notes", "treatment_plans", "rom_assessments", "mmt_assessments", "gait_tests", "balance_tests", "special_tests", "progress_tracking", "discharges", "referrals", "patient_attachments"] },
-  { id: "sessions", ar: "الجلسات والمواعيد", en: "Sessions & appointments", tables: ["sessions", "appointments", "waitlist", "recovery_logs"] },
+  { id: "center", ar: "بيانات المركز والإعدادات", en: "Center & settings", tables: ["clinic_settings", "branches", "clinic_services", "clinical_protocols", "exercises", "appointment_rooms"] },
+  { id: "cases", ar: "الحالات والتقييمات والبرامج العلاجية", en: "Cases, evaluations & programs", tables: ["patients", "patient_evaluations", "patient_medical_records", "assessments", "patient_programs", "patient_nutrition", "patient_risks", "soap_notes", "treatment_plans", "rom_assessments", "mmt_assessments", "gait_tests", "balance_tests", "special_tests", "progress_tracking", "discharges", "referrals", "patient_attachments"] },
+  { id: "sessions", ar: "الجلسات والمواعيد", en: "Sessions & appointments", tables: ["sessions", "appointments", "appointment_group_participants", "waitlist", "recovery_logs"] },
   { id: "money", ar: "الأموال والفواتير والمطالبات", en: "Money, invoices & claims", tables: ["invoices", "insurance_claims", "daily_reports", "executive_reports"] },
   { id: "staff", ar: "الموظفون والرواتب والحضور", en: "Staff, payroll & attendance", tables: ["staff", "hr_attendance", "payroll_drafts"] },
   { id: "other", ar: "السجلات التشغيلية الأخرى", en: "Other operational records", tables: ["audit_logs", "notifications", "leads", "marketing_campaigns", "peer_reviews", "protocol_licenses", "subscriptions"] },
 ] as const;
 
 const PERIOD_TABLES = new Set([
-  "sessions", "appointments", "waitlist", "recovery_logs", "invoices", "insurance_claims",
+  "sessions", "appointments", "appointment_group_participants", "waitlist", "recovery_logs", "invoices", "insurance_claims",
   "daily_reports", "executive_reports", "hr_attendance", "payroll_drafts", "assessments",
   "patient_evaluations", "rom_assessments", "mmt_assessments", "gait_tests", "balance_tests",
   "special_tests", "soap_notes", "progress_tracking", "discharges", "referrals",
