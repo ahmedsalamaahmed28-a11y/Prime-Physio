@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
+import OverviewDashboard from "@/components/OverviewDashboard";
 import {
   Bell, Building, HelpCircle, CreditCard, Download, Globe, Wifi,
   LayoutDashboard, RefreshCw, Sparkles, User, Menu as MenuIcon, X,
@@ -246,7 +247,9 @@ export default function CenterManagementPage() {
             </div>
           </header>
 
-          <div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col px-[32px] pb-[26px] pt-[40px] max-sm:px-4 max-sm:pt-7">
+          {isMyCentersPage ? (
+            <>
+<div className="mx-auto flex w-full max-w-[1240px] flex-1 flex-col px-[32px] pb-[26px] pt-[40px] max-sm:px-4 max-sm:pt-7">
             <div className="mb-[24px] flex min-h-[75px] items-center justify-between gap-5 max-sm:flex-col max-sm:items-stretch">
               {isMyCentersPage ? (
                 <>
@@ -352,6 +355,12 @@ export default function CenterManagementPage() {
               )}
             </section>
           </div>
+
+          
+            </>
+          ) : (
+            <div className="w-full flex-1"><OverviewDashboard /></div>
+          )}
 
           {actionMessage && <div role="status" className="fixed bottom-5 left-5 z-[70] rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-xl">{actionMessage}</div>}
           {qrCenter && (
