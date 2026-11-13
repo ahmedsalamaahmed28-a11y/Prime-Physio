@@ -1,0 +1,262 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { useLanguage } from "@/lib/LanguageContext";
+import { useAuth } from "@/lib/auth";
+import { Archive, CalendarDays, CheckCircle2, Download, FileSpreadsheet, FileText, FolderArchive, Info, LockKeyhole, ShieldCheck, XCircle } from "lucide-react";
+
+type ExportBackup = {
+  clinic: Record<string, any>;
+  clinicId: string;
+  exportedAt: string;
+  tableCounts: Record<string, number>;
+  totalRows: number;
+  tables: Record<string, Record<string, any>[]>;
+};
+
+const GROUPS = [
+  { id: "center", ar: "بيانات المركز والإعدادات", en: "Center & settings", tables: ["clinic_settings", "branches", "clinic_services", "clinical_protocols", "exercises", "treatment_templates"] },
+  { id: "cases", ar: "الحالات والتقييمات والبرامج العلاجية", en: "Cases, evaluations & programs", tables: ["patients", "patient_evaluations", "assessments", "patient_programs", "patient_nutrition", "patient_risks", "soap_notes", "treatment_plans", "rom_assessments", "mmt_assessments", "gait_tests", "balance_tests", "special_tests", "progress_tracking", "discharges", "referrals", "patient_attachments"] },
+  { id: "sessions", ar: "الجلسات والمواعيد", en: "Sessions & appointments", tables: ["sessions", "appointments", "waitlist", "recovery_logs"] },
+  { id: "money", ar: "الأموال والفواتير والمطالبات", en: "Money, invoices & claims", tables: ["invoices", "insurance_claims", "daily_reports", "executive_reports"] },
+  { id: "staff", ar: "الموظفون والرواتب والحضور", en: "Staff, payroll & attendance", tables: ["staff", "hr_attendance", "payroll_drafts"] },
+  { id: "other", ar: "السجلات التشغيلية الأخرى", en: "Other operational records", tables: ["audit_logs", "notifications", "leads", "marketing_campaigns", "peer_reviews", "protocol_licenses", "subscriptions"] },
+] as const;
+
+const PERIOD_TABLES = new Set([
+  "sessions", "appointments", "waitlist", "recovery_logs", "invoices", "insurance_claims",
+  "daily_reports", "executive_reports", "hr_attendance", "payroll_drafts", "assessments",
+  "patient_evaluations", "rom_assessments", "mmt_assessments", "gait_tests", "balance_tests",
+  "special_tests", "soap_notes", "progress_tracking", "discharges", "referrals",
+]);
+
+const DATE_FIELDS = ["session_date", "appointment_date", "date", "paid_at", "payment_date", "issued_at", "created_at", "updated_at", "attendance_date", "start_time", "scheduled_at", "evaluation_date"];
+
+function xmlEscape(value: unknown) {
+  return String(value ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+}
+function csvCell(value: unknown) {
+  const text = value == null ? "" : typeof value === "object" ? JSON.stringify(value) : String(value);
+  return '"' + text.replace(/"/g, '""') + '"';
+}
+function toCsv(rows: Record<string, any>[]) {
+  if (!rows.length) return "\uFEFFلا توجد بيانات\r\n";
+  const keys = [...new Set(rows.flatMap((row) => Object.keys(row)))];
+  return "\uFEFF" + [keys.map(csvCell).join(","), ...rows.map((row) => keys.map((key) => csvCell(row[key])).join(","))].join("\r\n");
+}
+function toExcelXml(rows: Record<string, any>[], title: string) {
+  const keys = [...new Set(rows.flatMap((row) => Object.keys(row)))];
+  const rowXml = (values: unknown[]) => "<Row>" + values.map((value) => {
+    const raw = value == null ? "" : typeof value === "object" ? JSON.stringify(value) : String(value);
+    const type = typeof value === "number" ? "Number" : "String";
+    return `<Cell><Data ss:Type="${type}">${xmlEscape(raw)}</Data></Cell>`;
+  }).join("") + "</Row>";
+  const body = [rowXml(keys), ...rows.map((row) => rowXml(keys.map((key) => row[key])))].join("");
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+<Worksheet ss:Name="${xmlEscape(title.slice(0,31))}" ss:RightToLeft="1"><Table>${body}</Table></Worksheet></Workbook>`;
+}
+function utf8(value: string) { return new TextEncoder().encode(value); }
+function concat(parts: Uint8Array[]) {
+  const length = parts.reduce((sum, part) => sum + part.length, 0);
+  const out = new Uint8Array(length); let offset = 0;
+  for (const part of parts) { out.set(part, offset); offset += part.length; }
+  return out;
+}
+function crc32(bytes: Uint8Array) {
+  let crc = -1;
+  for (const byte of bytes) {
+    crc ^= byte;
+    for (let i = 0; i < 8; i++) crc = (crc >>> 1) ^ (-(crc & 1) & 0xedb88320);
+  }
+  return (crc ^ -1) >>> 0;
+}
+function u16(value: number) { return new Uint8Array([value & 255, (value >>> 8) & 255]); }
+function u32(value: number) { return new Uint8Array([value & 255, (value >>> 8) & 255, (value >>> 16) & 255, (value >>> 24) & 255]); }
+function makeZip(files: { name: string; content: string }[]) {
+  const local: Uint8Array[] = [], central: Uint8Array[] = [];
+  let offset = 0;
+  const now = new Date();
+  const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | Math.floor(now.getSeconds() / 2);
+  const dosDate = ((Math.max(1980, now.getFullYear()) - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  for (const file of files) {
+    const name = utf8(file.name), data = utf8(file.content), crc = crc32(data);
+    const header = concat([u32(0x04034b50), u16(20), u16(0x0800), u16(0), u16(dosTime), u16(dosDate), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), name]);
+    local.push(header, data);
+    const directory = concat([u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(0), u16(dosTime), u16(dosDate), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset), name]);
+    central.push(directory);
+    offset += header.length + data.length;
+  }
+  const centralBytes = concat(central), localBytes = concat(local);
+  const end = concat([u32(0x06054b50), u16(0), u16(0), u16(files.length), u16(files.length), u32(centralBytes.length), u32(localBytes.length), u16(0)]);
+  return new Blob([localBytes, centralBytes, end], { type: "application/zip" });
+}
+function dateForRow(row: Record<string, any>) {
+  for (const key of DATE_FIELDS) {
+    const value = row[key];
+    if (value) {
+      const parsed = new Date(value);
+      if (!Number.isNaN(parsed.getTime())) return parsed;
+    }
+  }
+  return null;
+}
+function safeFileName(value: string) {
+  return value.normalize("NFKD").replace(/[^\w.-]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 70) || "record";
+}
+
+export default function FullDataExport() {
+  const { language } = useLanguage();
+  const { user } = useAuth();
+  const ar = language === "ar";
+  const [selected, setSelected] = useState<string[]>(GROUPS.map((group) => group.id));
+  const [period, setPeriod] = useState<"all" | "custom">("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState(new Date().toISOString().slice(0, 10));
+  const [latinNames, setLatinNames] = useState(false);
+  const [includeCaseReports, setIncludeCaseReports] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const selectedTables = useMemo(() => GROUPS.filter((group) => selected.includes(group.id)).flatMap((group) => group.tables), [selected]);
+
+  const toggleGroup = (id: string) => setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+
+  const startExport = async () => {
+    setLoading(true); setError(""); setSuccess("");
+    try {
+      const response = await fetch("/api/backup", { method: "POST", credentials: "include", cache: "no-store" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload?.error || (ar ? "تعذر تجهيز بيانات التصدير." : "Could not prepare export data."));
+      const backup = payload as ExportBackup;
+      const files: { name: string; content: string }[] = [];
+      const clinicName = String(backup.clinic?.name || backup.clinic?.name_en || "Prime Physio");
+      const folder = latinNames ? safeFileName(clinicName) : clinicName.replace(/[\\/:*?"<>|]/g, "_");
+      const selectedData: Record<string, Record<string, any>[]> = {};
+      const counts: Record<string, number> = {};
+      for (const tableName of selectedTables) {
+        let rows = backup.tables?.[tableName] || [];
+        if (period === "custom" && PERIOD_TABLES.has(tableName)) {
+          rows = rows.filter((row) => {
+            const date = dateForRow(row);
+            if (!date) return true;
+            const day = date.toISOString().slice(0, 10);
+            return (!fromDate || day >= fromDate) && (!toDate || day <= toDate);
+          });
+        }
+        selectedData[tableName] = rows;
+        counts[tableName] = rows.length;
+        if (rows.length) {
+          const group = GROUPS.find((item) => item.tables.includes(tableName))?.id || "Other";
+          const fileName = latinNames ? safeFileName(tableName) : tableName;
+          files.push({ name: `01-Data/${group}/${fileName}.csv`, content: toCsv(rows) });
+          files.push({ name: `01-Data/${group}/${fileName}.xls`, content: toExcelXml(rows, tableName) });
+        }
+      }
+      const summary = {
+        format: "Prime Physio Full Export",
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        clinic: backup.clinic,
+        clinicId: backup.clinicId,
+        period: period === "all" ? "All available dates" : { from: fromDate || null, to: toDate || null },
+        selectedGroups: selected,
+        tableCounts: counts,
+        totalRows: Object.values(counts).reduce((sum, count) => sum + count, 0),
+        note: "This archive includes all selected clinic-scoped database rows returned by the backup API. Storage files and generated PDF documents are not yet included in this release.",
+      };
+      files.unshift({ name: "00-Export-Summary.json", content: JSON.stringify(summary, null, 2) });
+      files.push({ name: "00-READ-ME.txt", content: [
+        "PRIME PHYSIO — FULL DATA EXPORT",
+        "================================",
+        `Center: ${clinicName}`,
+        `Exported: ${new Date().toLocaleString(ar ? "ar-EG" : "en-US")}`,
+        `Rows: ${summary.totalRows}`,
+        "",
+        "01-Data contains CSV and Excel XML Spreadsheet (.xls) copies of each selected database table.",
+        "The .xls files are Excel-compatible XML workbooks. CSV files use UTF-8 with BOM for Arabic text.",
+        "Patient and staff records are exported in full. The selected date range is applied to time-based activity tables.",
+        "",
+        "IMPORTANT: This release does not yet package uploaded Storage objects or generate individual PDF case reports. Do not treat this archive as a complete document/media archive.",
+        "Keep this file secure: it may contain confidential patient information."
+      ].join("\n") });
+      files.push({ name: "00-Contents.html", content: `<!doctype html><html lang="${ar ? "ar" : "en"}" dir="${ar ? "rtl" : "ltr"}"><meta charset="utf-8"><title>Prime Physio Export Contents</title><body style="font-family:Arial,sans-serif;padding:32px;line-height:1.8"><h1>Prime Physio — Export Contents</h1><p>${xmlEscape(clinicName)}</p><p>${summary.totalRows} records</p><ul>${Object.entries(counts).map(([key,count])=>`<li>${xmlEscape(key)}: ${count}</li>`).join("")}</ul><p>CSV and Excel-compatible workbooks are stored under 01-Data.</p><p>Storage media and generated PDF case reports are not included in this release.</p></body></html>` });
+      if (includeCaseReports && selected.includes("cases")) {
+        const patients = selectedData.patients || [];
+        for (const patient of patients) {
+          const id = String(patient.id || patient.file_number || Math.random().toString(36).slice(2));
+          const name = String(patient.name || patient.full_name || patient.patient_name || id);
+          const related = Object.fromEntries(Object.entries(selectedData).filter(([table]) => !["patients"].includes(table)).map(([table, rows]) => [table, rows.filter((row) => String(row.patient_id || row.patientId || "") === id)]).filter(([, rows]) => (rows as any[]).length));
+          const report = `<!doctype html><html lang="${ar ? "ar" : "en"}" dir="${ar ? "rtl" : "ltr"}"><meta charset="utf-8"><title>${xmlEscape(name)}</title><body style="font-family:Arial,sans-serif;padding:28px;line-height:1.7"><h1>Prime Physio — ${ar ? "ملف الحالة" : "Case file"}</h1><h2>${xmlEscape(name)}</h2><p>${ar ? "رقم الملف" : "File ID"}: ${xmlEscape(id)}</p><pre style="white-space:pre-wrap;font-family:Arial,sans-serif">${xmlEscape(JSON.stringify(patient,null,2))}</pre>${Object.entries(related).map(([table,rows])=>`<h3>${xmlEscape(table)}</h3><pre style="white-space:pre-wrap;font-family:Arial,sans-serif">${xmlEscape(JSON.stringify(rows,null,2))}</pre>`).join("")}</body></html>`;
+          files.push({ name: `02-Cases/Case-Files/${safeFileName(id)}_${safeFileName(name)}.html`, content: report });
+        }
+      }
+      const archive = makeZip(files);
+      const url = URL.createObjectURL(archive);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `Prime-Physio_Full-Export_${new Date().toISOString().slice(0,10)}.zip`;
+      document.body.appendChild(link); link.click(); link.remove();
+      URL.revokeObjectURL(url);
+      setSuccess(ar ? `تم تجهيز ملف ZIP بنجاح — ${summary.totalRows.toLocaleString("ar-EG")} سجل.` : `ZIP archive created — ${summary.totalRows.toLocaleString()} records.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : (ar ? "حدث خطأ أثناء التصدير." : "Export failed."));
+    } finally { setLoading(false); }
+  };
+
+  return (
+    <main dir={ar ? "rtl" : "ltr"} className="min-h-screen bg-[#F7F9FC] px-4 py-6 text-slate-800 sm:px-7 lg:px-9">
+      <div className="mx-auto w-full max-w-6xl space-y-6">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-[#EEF1FF] px-3 py-1 text-xs font-bold text-[#5146B8]"><ShieldCheck className="h-4 w-4" />{ar ? "نسخة آمنة لبيانات المركز" : "Secure clinic data export"}</div>
+            <h1 className="text-2xl font-black tracking-tight text-[#20344B] sm:text-3xl">{ar ? "التصدير الكامل للبيانات" : "Full data export"}</h1>
+            <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-500">{ar ? "أنشئ نسخة منظمة من بيانات المركز المحدد، مع ملفات Excel متوافقة مع العربية وملفات CSV قابلة للفتح في Excel." : "Create an organized archive of the active clinic data, with Arabic-compatible Excel workbooks and CSV files."}</p>
+          </div>
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500"><LockKeyhole className="h-4 w-4 text-emerald-600" />{ar ? "للمدير فقط" : "Clinic admin only"}</div>
+        </div>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+          <div className="mb-5 flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F0EEFF] text-[#594FC4]"><FolderArchive className="h-5 w-5" /></div><div><h2 className="font-extrabold text-slate-800">{ar ? "ما الذي ستحصل عليه؟" : "What’s included"}</h2><p className="mt-1 text-xs text-slate-500">{ar ? "اختر الأقسام التي تريد إضافتها إلى ملف ZIP." : "Choose the sections to include in your ZIP archive."}</p></div></div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {GROUPS.map((group) => {
+              const checked = selected.includes(group.id);
+              return <label key={group.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition ${checked ? "border-[#6559CC] bg-[#F8F7FF]" : "border-slate-200 hover:border-slate-300"}`}>
+                <input type="checkbox" checked={checked} onChange={() => toggleGroup(group.id)} className="mt-1 h-4 w-4 accent-[#5B50C7]" />
+                <span className="min-w-0"><span className="block text-sm font-bold text-slate-700">{ar ? group.ar : group.en}</span><span className="mt-1 block text-xs leading-5 text-slate-500">{group.tables.length} {ar ? "مصدر بيانات" : "data sources"}</span></span>
+              </label>;
+            })}
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+          <div className="mb-5 flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><CalendarDays className="h-5 w-5" /></div><div><h2 className="font-extrabold text-slate-800">{ar ? "الفترة الزمنية" : "Date range"}</h2><p className="mt-1 text-xs text-slate-500">{ar ? "بيانات الحالات والموظفين والإعدادات تظل كاملة دائمًا." : "Patient, staff and settings records remain complete regardless of date range."}</p></div></div>
+          <div className="flex flex-wrap gap-3">
+            <label className={`flex min-w-[190px] flex-1 cursor-pointer items-center gap-3 rounded-xl border p-4 ${period === "all" ? "border-[#6559CC] bg-[#F8F7FF]" : "border-slate-200"}`}><input type="radio" checked={period === "all"} onChange={() => setPeriod("all")} className="accent-[#5B50C7]" /><span><b className="block text-sm">{ar ? "من أول يوم حتى اليوم" : "All time"}</b><small className="text-xs text-slate-500">{ar ? "كل السجلات الزمنية المتاحة" : "All available activity"}</small></span></label>
+            <label className={`flex min-w-[190px] flex-1 cursor-pointer items-center gap-3 rounded-xl border p-4 ${period === "custom" ? "border-[#6559CC] bg-[#F8F7FF]" : "border-slate-200"}`}><input type="radio" checked={period === "custom"} onChange={() => setPeriod("custom")} className="accent-[#5B50C7]" /><span><b className="block text-sm">{ar ? "تحديد فترة" : "Custom period"}</b><small className="text-xs text-slate-500">{ar ? "حدد البداية والنهاية" : "Choose start and end dates"}</small></span></label>
+          </div>
+          {period === "custom" && <div className="mt-4 grid gap-4 sm:grid-cols-2"><label className="text-sm font-semibold text-slate-600">{ar ? "من تاريخ" : "From"}<input type="date" value={fromDate} max={toDate || undefined} onChange={(event) => setFromDate(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-[#6559CC]" /></label><label className="text-sm font-semibold text-slate-600">{ar ? "إلى تاريخ" : "To"}<input type="date" value={toDate} min={fromDate || undefined} onChange={(event) => setToDate(event.target.value)} className="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 text-sm outline-none focus:border-[#6559CC]" /></label></div>}
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+          <div className="mb-5 flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600"><FileSpreadsheet className="h-5 w-5" /></div><div><h2 className="font-extrabold text-slate-800">{ar ? "اللغة وأسماء الملفات" : "Language & filenames"}</h2><p className="mt-1 text-xs text-slate-500">{ar ? "بيانات Excel وCSV تحفظ النصوص العربية بترميز UTF-8." : "Excel and CSV exports preserve Unicode text."}</p></div></div>
+          <div className="flex flex-wrap gap-3">
+            <div className="inline-flex rounded-xl border border-slate-200 p-1"><span className="rounded-lg bg-[#F1EFFF] px-4 py-2 text-sm font-bold text-[#5B50C7]">{ar ? "العربية" : "Arabic"}</span><span className="px-4 py-2 text-sm text-slate-400">English</span></div>
+            <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm"><input type="checkbox" checked={latinNames} onChange={(e) => setLatinNames(e.target.checked)} className="accent-[#5B50C7]" />{ar ? "حروف لاتينية فقط في أسماء الملفات" : "Latin characters in filenames only"}</label>
+          </div>
+          <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl bg-slate-50 p-4"><input type="checkbox" checked={includeCaseReports} onChange={(e) => setIncludeCaseReports(e.target.checked)} className="mt-1 accent-[#5B50C7]" /><span><b className="block text-sm text-slate-700">{ar ? "إضافة ملخص HTML لكل حالة" : "Include an HTML summary for each patient"}</b><small className="text-xs text-slate-500">{ar ? "يمكن فتحه وطباعته أو حفظه PDF من المتصفح." : "Can be opened, printed or saved as PDF from your browser."}</small></span></label>
+        </section>
+
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900"><div className="flex items-center gap-2 font-bold"><Info className="h-4 w-4 shrink-0" />{ar ? "ملاحظة مهمة حول هذا الإصدار" : "Important for this release"}</div><p className="mt-1">{ar ? "الملف الحالي يضم سجلات قاعدة البيانات المختارة بصيغ JSON وCSV وExcel XML، وملخصات HTML للحالات عند تفعيلها. لا يضم بعد الصور والمستندات المخزنة في Storage أو ملفات PDF مستقلة أو تشفير ZIP بكلمة مرور؛ لن أعتبر هذه الأجزاء مكتملة قبل تنفيذها واختبارها." : "This release packages selected database records as JSON, CSV and Excel XML, plus optional HTML patient summaries. Uploaded Storage files, standalone PDF reports and password-encrypted ZIP are not included yet; those parts will not be marked complete until implemented and tested."}</p></div>
+
+        {error && <div role="alert" className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><XCircle className="h-5 w-5 shrink-0" />{error}</div>}
+        {success && <div role="status" className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700"><CheckCircle2 className="h-5 w-5 shrink-0" />{success}</div>}
+        <div className="flex flex-col items-stretch justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:p-6">
+          <div><p className="text-sm font-bold text-slate-800">{ar ? "جاهز لإنشاء نسخة بيانات المركز" : "Ready to create a clinic archive"}</p><p className="mt-1 text-xs text-slate-500">{ar ? `${selected.length} أقسام محددة · البيانات ستُجلب من المركز النشط فقط` : `${selected.length} sections selected · only the active clinic will be exported`}</p></div>
+          <button type="button" disabled={loading || selected.length === 0} onClick={startExport} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#5B50C7] px-7 text-sm font-extrabold text-white shadow-sm transition hover:bg-[#4B40B7] disabled:cursor-not-allowed disabled:opacity-60">{loading ? <><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />{ar ? "جارٍ تجهيز التصدير..." : "Preparing export..."}</> : <><Download className="h-5 w-5" />{ar ? "ابدأ التصدير" : "Start export"}</>}</button>
+        </div>
+        <p className="pb-4 text-center text-xs text-slate-400">{ar ? "Prime Physio · يتم إنشاء الملف على جهازك ولا يتم الاحتفاظ بنسخة إضافية منه على خوادم المنصة." : "Prime Physio · The archive is generated in your browser and is not retained as an extra copy on the platform."}</p>
+      </div>
+    </main>
+  );
+}
