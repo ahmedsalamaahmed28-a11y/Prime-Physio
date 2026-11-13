@@ -14,11 +14,10 @@ interface User {
   initialsEn?: string;
   role: string;
   roleEn?: string;
-  roleKey: "admin" | "doctor" | "receptionist" | "platform_admin";
+  roleKey: "admin" | "doctor" | "receptionist";
   bg: string;
   image?: string;
   clinicId?: string | null;
-  isPlatformAdmin?: boolean;
   shortName?: string | null;
   logoUrl?: string | null;
 }
@@ -39,25 +38,23 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 function prefixArabicName(name: string, roleKey: string) {
-  if (roleKey === "receptionist" || roleKey === "platform_admin") return name;
+  if (roleKey === "receptionist") return name;
   if (name.startsWith("د.") || name.startsWith("د/")) return name;
   return `د. ${name}`;
 }
 
 function prefixEnglishName(name: string, roleKey: string) {
-  if (roleKey === "receptionist" || roleKey === "platform_admin") return name;
+  if (roleKey === "receptionist") return name;
   return name.startsWith("Dr.") ? name : `Dr. ${name.replace(/^د\.?\s*/, "").trim()}`;
 }
 
 function getArabicRoleLabel(roleKey: string) {
-  if (roleKey === "platform_admin") return "مدير المنصة";
   if (roleKey === "admin") return "مدير العيادة";
   if (roleKey === "doctor") return "طبيب معالج";
   return "موظف استقبال";
 }
 
 function getEnglishRoleLabel(roleKey: string) {
-  if (roleKey === "platform_admin") return "Platform Admin";
   if (roleKey === "admin") return "Clinic Admin";
   if (roleKey === "doctor") return "Doctor";
   return "Receptionist";
@@ -120,9 +117,6 @@ async function enrichUserWithClinic(user: User): Promise<User> {
         user.roleEn = data.roleEn;
         user.shortName = data.shortName || null;
         user.logoUrl = data.logoUrl || null;
-        if (data.roleKey === "platform_admin") {
-          user.isPlatformAdmin = true;
-        }
         if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
         return user;
       }
@@ -152,22 +146,6 @@ async function enrichUserWithClinic(user: User): Promise<User> {
   }
 
   try {
-    // Check if platform super admin
-    const { data: pa, error: platformAdminError } = await supabase
-      .from("platform_admins")
-      .select("email")
-      .eq("email", user.email).limit(1).maybeSingle();
-    if (platformAdminError) return user;
-    user.isPlatformAdmin = !!pa;
-
-    if (pa) {
-      user.roleKey = "platform_admin";
-      user.role = getArabicRoleLabel("platform_admin");
-      user.roleEn = getEnglishRoleLabel("platform_admin");
-      user.clinicId = null;
-      return user;
-    }
-
     // Look up clinic_id + role from staff (source of truth for roleKey)
     const { data: staff, error: staffError } = await supabase
       .from("staff")
@@ -332,9 +310,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         const currentPath = typeof window !== "undefined" ? (window.location.pathname.replace(/[/]+$/, "") || "/") : "";
         const isClinicLandingPage = currentPath.startsWith("/clinic/");
         const isAuthEntryPath = currentPath === "/login.php" || currentPath === "/login" || currentPath === "/signup" || currentPath === "/rgstr.php" || currentPath === "/home" || currentPath.startsWith("/setup");
-        if (enriched.roleKey === "platform_admin" && typeof window !== "undefined" && (currentPath === "/dashboard" || currentPath === "/home" || currentPath === "/setup" || currentPath === "/signup" || currentPath === "/rgstr.php")) {
-          window.location.href = "/platform";
-        } else if (enriched.clinicId && typeof window !== "undefined" && isAuthEntryPath && !isClinicLandingPage) {
+        if (enriched.clinicId && typeof window !== "undefined" && isAuthEntryPath && !isClinicLandingPage) {
           window.location.href = "/dashboard";
         } else if (enriched.clinicId === null && typeof window !== "undefined" && currentPath !== "/" && !currentPath.startsWith("/setup") && currentPath !== "/center-management" && currentPath !== "/center-management.php" && !/^\/(?:centers|overview|export|account|plans|notices)\.php$/.test(currentPath) && currentPath !== "/create-center" && currentPath !== "/addcenter.php" && currentPath !== "/my-centers/create" && !/^\/[a-z][a-z0-9-]+$/.test(currentPath) && !isClinicLandingPage) {
           window.location.href = "/overview.php/";
@@ -365,13 +341,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       // Landing page and independent center landing pages are public.
       if (pathname === "/" || pathname.startsWith("/clinic/")) return;
 
-      // Force platform_admin isolation
-      if (user?.roleKey === "platform_admin") {
-        if (!pathname.startsWith("/platform") && pathname !== "/logout") {
-          window.location.href = "/platform";
-          return;
-        }
-      }
+      // Platform administration will use a separate login entry point.
 
       // Allow unauthenticated access to /[slug] branded login pages
       const knownPages = new Set(["home","dashboard","admin","setup","login","login.php","signup","logout","terms","privacy","subscribe","subscription","forgot-password","reset-password","my-centers","patients","doctors","calendar","billing","reports","chat","staff","settings","permissions","security","profile","analytics","appointments","packages","clinic-settings","clinical-library","clinical-nutrition","users-permissions","plans","center_setup","center-management","create-center","home.php","rgstr.php","center-management.php"]);
@@ -428,7 +398,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     endEnrichment();
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/dashboard" : "/overview.php/";
+    window.location.href = enriched.clinicId ? "/dashboard" : "/overview.php/";
   };
 
   const loginWithCredentials = async (email: string, name: string, _role: string) => {
@@ -453,7 +423,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     endEnrichment();
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-    window.location.href = enriched.roleKey === "platform_admin" ? "/platform" : enriched.clinicId ? "/dashboard" : "/overview.php/";
+    window.location.href = enriched.clinicId ? "/dashboard" : "/overview.php/";
   };
 
   const registerWithSupabase = async (email: string, pass: string, meta: any) => {
