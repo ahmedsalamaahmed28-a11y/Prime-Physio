@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
-import { useLanguage } from "@/lib/LanguageContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Activity, CalendarDays, Check, ChevronLeft, CircleHelp,
@@ -59,7 +58,6 @@ function MetricCard({ title, value, note, icon: Icon, tone = "blue" }: {
 
 export default function OverviewDashboard() {
   const { user, isLoading, isEnriching } = useAuth();
-  const { language } = useLanguage();
   const [data, setData] = useState<OverviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
