@@ -5,9 +5,9 @@ import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Activity, CalendarDays, Check, ChevronLeft, CircleHelp, CreditCard,
-  ExternalLink, RefreshCw, Users, UserRound, Wallet, Building2, Clock3,
-  Settings2, Stethoscope, ClipboardList, CalendarCheck, BadgeCheck
+  Activity, CalendarDays, Check, ChevronLeft, CircleHelp,
+  ExternalLink, RefreshCw, Users, UserRound, Wallet, Building2,
+  Stethoscope, BadgeCheck
 } from "lucide-react";
 
 type Center = {
@@ -60,7 +60,6 @@ function MetricCard({ title, value, note, icon: Icon, tone = "blue" }: {
 export default function OverviewDashboard() {
   const { user, isLoading, isEnriching } = useAuth();
   const { language } = useLanguage();
-  const isRtl = language === "ar";
   const [data, setData] = useState<OverviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
