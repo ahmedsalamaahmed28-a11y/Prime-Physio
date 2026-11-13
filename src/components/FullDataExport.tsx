@@ -47,7 +47,7 @@ function toExcelXml(rows: Record<string, any>[], title: string) {
   const keys = [...new Set(rows.flatMap((row) => Object.keys(row)))];
   const rowXml = (values: unknown[]) => "<Row>" + values.map((value) => {
     const raw = value == null ? "" : typeof value === "object" ? JSON.stringify(value) : String(value);
-    const isDate = typeof value === "string" && /^\\d{4}-\\d{2}-\\d{2}(?:T.*)?$/.test(value) && !Number.isNaN(Date.parse(value));
+    const isDate = typeof value === "string" && /^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(value) && !Number.isNaN(Date.parse(value));
     const type = typeof value === "number" ? "Number" : isDate ? "DateTime" : "String";
     const output = isDate ? new Date(value as string).toISOString() : raw;
     return `<Cell><Data ss:Type="${type}">${xmlEscape(output)}</Data></Cell>`;
