@@ -55,7 +55,7 @@ export default function BrandedClinicPage() {
   const primary = clinic?.primary_color || "#372ba2";
   const addressText = [clinic?.address, clinic?.city, clinic?.country].filter(Boolean).join("، ");
   const whatsappNumber = (clinic?.whatsapp || clinic?.phone || "").replace(/[^0-9]/g, "");
-  const mapCoordinates = clinic?.maps_url?.match(/[?&]q=(-?\\d+(?:\\.\\d+)?),\\s*(-?\\d+(?:\\.\\d+)?)/);
+  const mapCoordinates = clinic?.maps_url?.match(/[?&]q=(-?[0-9]+(?:[.][0-9]+)?),[ ]*(-?[0-9]+(?:[.][0-9]+)?)/);
   const mapsHref = mapCoordinates
     ? `https://www.google.com/maps/dir/?api=1&destination=${mapCoordinates[1]},${mapCoordinates[2]}`
     : (clinic?.maps_url || (addressText ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressText)}` : ""));
