@@ -134,6 +134,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "مواعيد المركز غير محددة لهذا اليوم. يرجى التواصل مع المركز." }, { status: 409, headers: noStore });
     }
 
+    const [openHour, openMinute] = hours.from.split(":").map(Number);
+    const [closeHour, closeMinute] = hours.to.split(":").map(Number);
+    const requestedMinute = Number(time.slice(0, 2)) * 60 + Number(time.slice(3, 5));
+    const openingMinute = openHour * 60 + openMinute;
+    const closingMinute = closeHour * 60 + closeMinute;
+    const nowParts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: CAIRO_TZ, hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+    }).format(new Date()).split(":").map(Number);
+    const currentMinute = nowParts[0] * 60 + nowParts[1];
+    if (requestedMinute < openingMinute || requestedMinute + 30 > closingMinute ||
+        requestedMinute % 30 !== 0 || requestedMinute < Math.ceil((currentMinute + 15) / 30) * 30) {
+      return NextResponse.json({ error: "اختر موعدًا متاحًا ضمن مواعيد العمل اليوم." }, { status: 409, headers: noStore });
+    }
+
     const today = cairoDate();
     const admin = getAdminClient();
     const { data: appointments, error: appointmentsError } = await admin.from("appointments")
