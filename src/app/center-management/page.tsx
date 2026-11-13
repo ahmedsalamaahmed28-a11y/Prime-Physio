@@ -311,12 +311,12 @@ export default function CenterManagementPage() {
                   )}
                 </div>
               ) : (
-                <div className="grid w-full grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid w-full grid-cols-1 items-start justify-items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {centers.map((center) => {
                     const shareUrl = center.slug ? `/${center.slug}` : "";
                     const setupSteps = center.setupProgress || { completed: 0, total: 7 };
                     return (
-                      <article key={center.id} className="aspect-[1.06/1] min-w-0 overflow-hidden rounded-[18px] border border-[#E7E9ED] bg-white shadow-[0_3px_14px_rgba(25,48,75,.035)]">
+                      <article key={center.id} className="aspect-[1.05/1] w-full max-w-[300px] min-w-0 overflow-hidden rounded-[18px] border border-[#E7E9ED] bg-white shadow-[0_3px_14px_rgba(25,48,75,.035)]">
                       <div className="flex h-full flex-col justify-between gap-1 p-2 sm:p-2.5">
                         <div className="flex items-center gap-2">
                           <div className="flex h-[36px] w-[36px] shrink-0 items-center justify-center overflow-hidden rounded-[10px] border border-[#EEF0F3] bg-white">
