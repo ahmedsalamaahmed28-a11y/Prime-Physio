@@ -47,8 +47,10 @@ function toExcelXml(rows: Record<string, any>[], title: string) {
   const keys = [...new Set(rows.flatMap((row) => Object.keys(row)))];
   const rowXml = (values: unknown[]) => "<Row>" + values.map((value) => {
     const raw = value == null ? "" : typeof value === "object" ? JSON.stringify(value) : String(value);
-    const type = typeof value === "number" ? "Number" : "String";
-    return `<Cell><Data ss:Type="${type}">${xmlEscape(raw)}</Data></Cell>`;
+    const isDate = typeof value === "string" && /^\\d{4}-\\d{2}-\\d{2}(?:T.*)?$/.test(value) && !Number.isNaN(Date.parse(value));
+    const type = typeof value === "number" ? "Number" : isDate ? "DateTime" : "String";
+    const output = isDate ? new Date(value as string).toISOString() : raw;
+    return `<Cell><Data ss:Type="${type}">${xmlEscape(output)}</Data></Cell>`;
   }).join("") + "</Row>";
   const body = [rowXml(keys), ...rows.map((row) => rowXml(keys.map((key) => row[key])))].join("");
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -341,7 +343,7 @@ export default function FullDataExport() {
           <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl bg-slate-50 p-4"><input type="checkbox" checked={includeCaseReports} onChange={(e) => setIncludeCaseReports(e.target.checked)} className="mt-1 accent-[#5B50C7]" /><span><b className="block text-sm text-slate-700">{ar ? "إضافة ملف PDF وملخص HTML لكل حالة" : "Include a PDF and HTML summary for each patient"}</b><small className="text-xs text-slate-500">{ar ? "يمكن فتحه وطباعته أو حفظه PDF من المتصفح." : "Can be opened, printed or saved as PDF from your browser."}</small></span></label>
         </section>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900"><div className="flex items-center gap-2 font-bold"><ShieldCheck className="h-4 w-4 shrink-0" />{ar ? "ملاحظة مهمة حول هذا الإصدار" : "Important for this release"}</div><p className="mt-1">{ar ? "الملف الحالي يضم سجلات قاعدة البيانات المختارة بصيغ JSON وCSV وExcel XML، وملخصات HTML للحالات عند تفعيلها. يتضمن مرفقات المرضى المرفوعة في مساحة الملفات الخاصة. لا يضم بعد ملفات PDF مستقلة أو تشفير ZIP بكلمة مرور؛ لن أعتبر هذه الأجزاء مكتملة قبل تنفيذها واختبارها." : "This release packages selected database records as JSON, CSV and Excel XML, plus optional HTML patient summaries. Uploaded patient attachments are included. Patient PDF reports are generated and included. Password-encrypted ZIP is not included yet; it will not be marked complete until implemented and tested."}</p></div>
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900"><div className="flex items-center gap-2 font-bold"><ShieldCheck className="h-4 w-4 shrink-0" />{ar ? "ملاحظة مهمة حول هذا الإصدار" : "Important for this release"}</div><p className="mt-1">{ar ? "الملف يضم سجلات قاعدة البيانات المختارة بصيغ JSON وCSV وExcel XML، وملفات PDF وHTML للحالات، ومرفقات المرضى المرفوعة. تشفير ZIP بكلمة مرور لم يُنفذ بعد." : "This release packages selected database records as JSON, CSV and Excel XML, plus patient PDF/HTML reports and uploaded attachments. Password-encrypted ZIP is not included yet."}</p></div>
 
         {error && <div role="alert" className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><XCircle className="h-5 w-5 shrink-0" />{error}</div>}
         {success && <div role="status" className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700"><CheckCircle2 className="h-5 w-5 shrink-0" />{success}</div>}
