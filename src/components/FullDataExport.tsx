@@ -15,7 +15,7 @@ type ExportBackup = {
 };
 
 const GROUPS = [
-  { id: "center", ar: "بيانات المركز والإعدادات", en: "Center & settings", tables: ["clinic_settings", "branches", "clinic_services", "clinical_protocols", "exercises", "treatment_templates"] },
+  { id: "center", ar: "بيانات المركز والإعدادات", en: "Center & settings", tables: ["clinic_settings", "branches", "clinic_services", "clinical_protocols", "exercises"] },
   { id: "cases", ar: "الحالات والتقييمات والبرامج العلاجية", en: "Cases, evaluations & programs", tables: ["patients", "patient_evaluations", "assessments", "patient_programs", "patient_nutrition", "patient_risks", "soap_notes", "treatment_plans", "rom_assessments", "mmt_assessments", "gait_tests", "balance_tests", "special_tests", "progress_tracking", "discharges", "referrals", "patient_attachments"] },
   { id: "sessions", ar: "الجلسات والمواعيد", en: "Sessions & appointments", tables: ["sessions", "appointments", "waitlist", "recovery_logs"] },
   { id: "money", ar: "الأموال والفواتير والمطالبات", en: "Money, invoices & claims", tables: ["invoices", "insurance_claims", "daily_reports", "executive_reports"] },
@@ -73,14 +73,14 @@ function crc32(bytes: Uint8Array) {
 }
 function u16(value: number) { return new Uint8Array([value & 255, (value >>> 8) & 255]); }
 function u32(value: number) { return new Uint8Array([value & 255, (value >>> 8) & 255, (value >>> 16) & 255, (value >>> 24) & 255]); }
-function makeZip(files: { name: string; content: string }[]) {
+function makeZip(files: { name: string; content: string | Uint8Array }[]) {
   const local: Uint8Array[] = [], central: Uint8Array[] = [];
   let offset = 0;
   const now = new Date();
   const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | Math.floor(now.getSeconds() / 2);
   const dosDate = ((Math.max(1980, now.getFullYear()) - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
   for (const file of files) {
-    const name = utf8(file.name), data = utf8(file.content), crc = crc32(data);
+    const name = utf8(file.name), data = typeof file.content === "string" ? utf8(file.content) : file.content, crc = crc32(data);
     const header = concat([u32(0x04034b50), u16(20), u16(0x0800), u16(0), u16(dosTime), u16(dosDate), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), name]);
     local.push(header, data);
     const directory = concat([u32(0x02014b50), u16(20), u16(20), u16(0x0800), u16(0), u16(dosTime), u16(dosDate), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(offset), name]);
@@ -129,7 +129,7 @@ export default function FullDataExport() {
       const payload = await response.json();
       if (!response.ok) throw new Error(payload?.error || (ar ? "تعذر تجهيز بيانات التصدير." : "Could not prepare export data."));
       const backup = payload as ExportBackup;
-      const files: { name: string; content: string }[] = [];
+      const files: { name: string; content: string | Uint8Array }[] = [];
       const clinicName = String(backup.clinic?.name || backup.clinic?.name_en || "Prime Physio");
       const folder = latinNames ? safeFileName(clinicName) : clinicName.replace(/[\\/:*?"<>|]/g, "_");
       const selectedData: Record<string, Record<string, any>[]> = {};
@@ -163,6 +163,7 @@ export default function FullDataExport() {
         selectedGroups: selected,
         tableCounts: counts,
         totalRows: Object.values(counts).reduce((sum, count) => sum + count, 0),
+        attachmentCount,
         note: "This archive includes all selected clinic-scoped database rows returned by the backup API. Storage files and generated PDF documents are not yet included in this release.",
       };
       files.unshift({ name: "00-Export-Summary.json", content: JSON.stringify(summary, null, 2) });
@@ -177,10 +178,26 @@ export default function FullDataExport() {
         "The .xls files are Excel-compatible XML workbooks. CSV files use UTF-8 with BOM for Arabic text.",
         "Patient and staff records are exported in full. The selected date range is applied to time-based activity tables.",
         "",
-        "IMPORTANT: This release does not yet package uploaded Storage objects or generate individual PDF case reports. Do not treat this archive as a complete document/media archive.",
+        "IMPORTANT: Uploaded patient attachments are included under each case folder. Generated PDF case reports and password-encrypted ZIP are not included in this release.",
         "Keep this file secure: it may contain confidential patient information."
       ].join("\n") });
-      files.push({ name: "00-Contents.html", content: `<!doctype html><html lang="${ar ? "ar" : "en"}" dir="${ar ? "rtl" : "ltr"}"><meta charset="utf-8"><title>Prime Physio Export Contents</title><body style="font-family:Arial,sans-serif;padding:32px;line-height:1.8"><h1>Prime Physio — Export Contents</h1><p>${xmlEscape(clinicName)}</p><p>${summary.totalRows} records</p><ul>${Object.entries(counts).map(([key,count])=>`<li>${xmlEscape(key)}: ${count}</li>`).join("")}</ul><p>CSV and Excel-compatible workbooks are stored under 01-Data.</p><p>Storage media and generated PDF case reports are not included in this release.</p></body></html>` });
+      files.push({ name: "00-Contents.html", content: `<!doctype html><html lang="${ar ? "ar" : "en"}" dir="${ar ? "rtl" : "ltr"}"><meta charset="utf-8"><title>Prime Physio Export Contents</title><body style="font-family:Arial,sans-serif;padding:32px;line-height:1.8"><h1>Prime Physio — Export Contents</h1><p>${xmlEscape(clinicName)}</p><p>${summary.totalRows} records</p><ul>${Object.entries(counts).map(([key,count])=>`<li>${xmlEscape(key)}: ${count}</li>`).join("")}</ul><p>CSV and Excel-compatible workbooks are stored under 01-Data.</p><p>Uploaded patient attachments are stored in each case folder. Generated PDF case reports are not included in this release.</p></body></html>` });
+      let attachmentCount = 0;
+      if (selected.includes("cases")) {
+        const attachmentResponse = await fetch("/api/backup/attachments", { method: "POST", credentials: "include", cache: "no-store" });
+        const attachmentPayload = await attachmentResponse.json();
+        if (!attachmentResponse.ok) throw new Error(attachmentPayload?.error || (ar ? "تعذر تجهيز مرفقات الحالات." : "Could not prepare patient attachments."));
+        for (const attachment of (attachmentPayload.attachments || [])) {
+          const fileResponse = await fetch(attachment.url, { cache: "no-store" });
+          if (!fileResponse.ok) throw new Error(ar ? "تعذر تنزيل مرفق مريض." : "Could not download a patient attachment.");
+          const bytes = new Uint8Array(await fileResponse.arrayBuffer());
+          const patientId = safeFileName(String(attachment.patientId || "case"));
+          const originalName = String(attachment.fileName || attachment.id || "attachment");
+          const fileName = latinNames ? safeFileName(originalName) : originalName.replace(/[\\/:*?"<>|]/g, "_");
+          files.push({ name: "02-Cases/Case-Files/" + patientId + "/Attachments/" + fileName, content: bytes });
+          attachmentCount += 1;
+        }
+      }
       if (includeCaseReports && selected.includes("cases")) {
         const patients = selectedData.patients || [];
         for (const patient of patients) {
@@ -198,7 +215,7 @@ export default function FullDataExport() {
       link.download = `Prime-Physio_Full-Export_${new Date().toISOString().slice(0,10)}.zip`;
       document.body.appendChild(link); link.click(); link.remove();
       URL.revokeObjectURL(url);
-      setSuccess(ar ? `تم تجهيز ملف ZIP بنجاح — ${summary.totalRows.toLocaleString("ar-EG")} سجل.` : `ZIP archive created — ${summary.totalRows.toLocaleString()} records.`);
+      setSuccess(ar ? `تم تجهيز ملف ZIP بنجاح — ${summary.totalRows.toLocaleString("ar-EG")} سجل و${attachmentCount.toLocaleString("ar-EG")} مرفق.` : `ZIP archive created — ${summary.totalRows.toLocaleString()} records and ${attachmentCount.toLocaleString()} attachments.`);
     } catch (err) {
       setError(err instanceof Error ? err.message : (ar ? "حدث خطأ أثناء التصدير." : "Export failed."));
     } finally { setLoading(false); }
@@ -247,7 +264,7 @@ export default function FullDataExport() {
           <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl bg-slate-50 p-4"><input type="checkbox" checked={includeCaseReports} onChange={(e) => setIncludeCaseReports(e.target.checked)} className="mt-1 accent-[#5B50C7]" /><span><b className="block text-sm text-slate-700">{ar ? "إضافة ملخص HTML لكل حالة" : "Include an HTML summary for each patient"}</b><small className="text-xs text-slate-500">{ar ? "يمكن فتحه وطباعته أو حفظه PDF من المتصفح." : "Can be opened, printed or saved as PDF from your browser."}</small></span></label>
         </section>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900"><div className="flex items-center gap-2 font-bold"><Info className="h-4 w-4 shrink-0" />{ar ? "ملاحظة مهمة حول هذا الإصدار" : "Important for this release"}</div><p className="mt-1">{ar ? "الملف الحالي يضم سجلات قاعدة البيانات المختارة بصيغ JSON وCSV وExcel XML، وملخصات HTML للحالات عند تفعيلها. لا يضم بعد الصور والمستندات المخزنة في Storage أو ملفات PDF مستقلة أو تشفير ZIP بكلمة مرور؛ لن أعتبر هذه الأجزاء مكتملة قبل تنفيذها واختبارها." : "This release packages selected database records as JSON, CSV and Excel XML, plus optional HTML patient summaries. Uploaded Storage files, standalone PDF reports and password-encrypted ZIP are not included yet; those parts will not be marked complete until implemented and tested."}</p></div>
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900"><div className="flex items-center gap-2 font-bold"><Info className="h-4 w-4 shrink-0" />{ar ? "ملاحظة مهمة حول هذا الإصدار" : "Important for this release"}</div><p className="mt-1">{ar ? "الملف الحالي يضم سجلات قاعدة البيانات المختارة بصيغ JSON وCSV وExcel XML، وملخصات HTML للحالات عند تفعيلها. يتضمن مرفقات المرضى المرفوعة في مساحة الملفات الخاصة. لا يضم بعد ملفات PDF مستقلة أو تشفير ZIP بكلمة مرور؛ لن أعتبر هذه الأجزاء مكتملة قبل تنفيذها واختبارها." : "This release packages selected database records as JSON, CSV and Excel XML, plus optional HTML patient summaries. Uploaded patient attachments are included. Standalone PDF reports and password-encrypted ZIP are not included yet; those parts will not be marked complete until implemented and tested."}</p></div>
 
         {error && <div role="alert" className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><XCircle className="h-5 w-5 shrink-0" />{error}</div>}
         {success && <div role="status" className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700"><CheckCircle2 className="h-5 w-5 shrink-0" />{success}</div>}
