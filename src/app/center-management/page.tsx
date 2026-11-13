@@ -343,6 +343,7 @@ export default function CenterManagementPage() {
                           <button type="button" onClick={() => openEdit(center)} className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full border border-[#DCE8F3] bg-white px-3 text-[14px] font-extrabold text-[#174D7B] transition hover:border-[#1262A8] hover:bg-[#F5F9FD]"><ActionIcon kind="edit" className="h-5 w-5" />{isRtl ? "تعديل" : "Edit"}</button>
                           <button type="button" onClick={() => downloadCenterExport(center.id)} className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full border border-[#DCE8F3] bg-white px-3 text-[14px] font-extrabold text-[#174D7B] transition hover:border-[#1262A8] hover:bg-[#F5F9FD]"><Download className="h-5 w-5" />{isRtl ? "التصدير الكامل" : "Full export"}</button>
                         </div>
+                        <p className="mt-3 px-1 text-center text-[12px] leading-6 text-[#8994A2]">{isRtl ? "انسخ الرابط لإرساله على واتساب، أو اطبع ملصق QR لمكتب الاستقبال." : "Copy the link to share it on WhatsApp, or print a QR sticker for the reception desk."}</p>
                       </div>
                     </article>
                     );
