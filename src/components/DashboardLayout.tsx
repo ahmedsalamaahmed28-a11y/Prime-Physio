@@ -196,6 +196,27 @@ export default function DashboardLayout({
         createdAt: b.created_at || new Date().toISOString(),
       }));
 
+      // Fetch clinic-scoped booking and system notifications
+      const { data: clinicNotifications, error: clinicNotificationsError } = await supabase
+        .from("notifications")
+        .select("id, title_ar, title_en, body_ar, body_en, created_at")
+        .eq("clinic_id", user.clinicId)
+        .order("created_at", { ascending: false })
+        .limit(6);
+
+      if (clinicNotificationsError) {
+        console.warn("Failed to load clinic notifications", clinicNotificationsError);
+      }
+
+      const mappedClinicNotifications: SystemNotification[] = (clinicNotifications || []).map((item: any) => ({
+        id: item.id,
+        titleAr: item.title_ar || "تنبيه جديد",
+        titleEn: item.title_en || "New notification",
+        detailsAr: item.body_ar || "",
+        detailsEn: item.body_en || "",
+        createdAt: item.created_at || new Date().toISOString(),
+      }));
+
       // Fetch audit logs
       const { data: auditData, error: auditError } = await supabase
         .from("audit_logs")
@@ -212,7 +233,7 @@ export default function DashboardLayout({
       const mappedAuditLogs = (auditData || []).map(mapNotification);
       
       // Combine and sort
-      const combined = [...mappedBroadcasts, ...mappedAuditLogs].sort((a, b) => 
+      const combined = [...mappedBroadcasts, ...mappedClinicNotifications, ...mappedAuditLogs].sort((a, b) => 
         new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       ).slice(0, 8); // Keep top 8
       
@@ -232,6 +253,17 @@ export default function DashboardLayout({
       )
       .subscribe();
       
+    const channelClinicNotifications = supabase
+      .channel("clinic-booking-notifications")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications", filter: `clinic_id=eq.${user.clinicId}` },
+        () => {
+          loadNotifications();
+        }
+      )
+      .subscribe();
+
     const channelBroadcasts = supabase
       .channel("broadcast-notifications")
       .on(
@@ -247,6 +279,7 @@ export default function DashboardLayout({
       active = false;
       supabase.removeChannel(channelAudit);
       supabase.removeChannel(channelBroadcasts);
+      supabase.removeChannel(channelClinicNotifications);
     };
   }, [user?.email, user?.clinicId]);
 
