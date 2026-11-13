@@ -183,28 +183,18 @@ export default function ProfileSettingsPage() {
     let active = true;
     const loadClinicServices = async () => {
       setServicesLoading(true);
-      const { data, error } = await supabase.from("clinic_services")
-        .select("id, name, name_en, duration_minutes, price, is_active")
-        .eq("clinic_id", clinicId).order("name", { ascending: true });
+      const response = await fetch("/api/clinic-services", { cache: "no-store" });
+      const payload = await response.json().catch(() => ({}));
       if (!active) return;
-      if (error) {
-        console.error("Failed to load clinic services", error);
-        setServiceMessage(isRtl ? "تعذر تحميل الخدمات. تحقق من صلاحيات قاعدة البيانات." : "Could not load services. Check database permissions.");
-      } else if (!data || data.length === 0) {
-        const defaults = [
-          { clinic_id: clinicId, name: "تقييم", name_en: "Initial Assessment", duration_minutes: 30, price: null, is_active: true },
-          { clinic_id: clinicId, name: "إعادة تقييم", name_en: "Reassessment", duration_minutes: 30, price: null, is_active: true },
-          { clinic_id: clinicId, name: "جلسة علاج طبيعي", name_en: "Physiotherapy Session", duration_minutes: 60, price: null, is_active: true },
-          { clinic_id: clinicId, name: "علاج يدوي", name_en: "Manual Therapy", duration_minutes: 30, price: null, is_active: true },
-          { clinic_id: clinicId, name: "علاج وظيفي", name_en: "Occupational Therapy", duration_minutes: 60, price: null, is_active: true },
-        ];
-        const seeded = await supabase.from("clinic_services").insert(defaults).select("id, name, name_en, duration_minutes, price, is_active");
-        if (seeded.error) {
-          console.error("Failed to add default clinic services", seeded.error);
-          setClinicServices([]);
-          setServiceMessage(isRtl ? "تعذر إعداد الخدمات الافتراضية. تحقق من صلاحيات قاعدة البيانات." : "Could not initialize default services. Check database permissions.");
-        } else setClinicServices((seeded.data || []) as ClinicService[]);
-      } else setClinicServices(data as ClinicService[]);
+      if (!response.ok) {
+        setServiceMessage(isRtl ? "تعذر تحميل الخدمات. تأكد من أنك مدير المركز." : "Could not load services. Make sure you are a clinic administrator.");
+      } else if (!Array.isArray(payload.services) || payload.services.length === 0) {
+        const seeded = await fetch("/api/clinic-services", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ seedDefaults: true }) });
+        const seededPayload = await seeded.json().catch(() => ({}));
+        if (!active) return;
+        if (!seeded.ok) setServiceMessage(isRtl ? "تعذر إعداد الخدمات الافتراضية." : "Could not initialize default services.");
+        else setClinicServices((seededPayload.services || []) as ClinicService[]);
+      } else setClinicServices(payload.services as ClinicService[]);
       setServicesLoading(false);
     };
     loadClinicServices();
@@ -227,23 +217,26 @@ export default function ProfileSettingsPage() {
       setServiceMessage(isRtl ? "راجع مدة الخدمة والسعر المدخل." : "Check the service duration and price."); return;
     }
     setServiceSaving(true); setServiceMessage("");
-    const payload = { clinic_id: clinicId, name: serviceName.trim(), name_en: serviceNameEn.trim() || null, duration_minutes: duration, price, is_active: true };
-    const result = editingServiceId
-      ? await supabase.from("clinic_services").update(payload).eq("id", editingServiceId).eq("clinic_id", clinicId).select("id, name, name_en, duration_minutes, price, is_active").single()
-      : await supabase.from("clinic_services").insert(payload).select("id, name, name_en, duration_minutes, price, is_active").single();
-    if (result.error) {
-      console.error("Failed to save clinic service", result.error);
-      setServiceMessage(isRtl ? "تعذر حفظ الخدمة. تحقق من صلاحيات قاعدة البيانات." : "Could not save service. Check database permissions.");
+    const payload = { name: serviceName.trim(), name_en: serviceNameEn.trim() || null, duration_minutes: duration, price, is_active: true, ...(editingServiceId ? { id: editingServiceId } : {}) };
+    const response = await fetch("/api/clinic-services", {
+      method: editingServiceId ? "PATCH" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.service) {
+      console.error("Failed to save clinic service", result);
+      setServiceMessage(isRtl ? "تعذر حفظ الخدمة. تأكد من صلاحيات الحساب." : "Could not save service. Check account permissions.");
     } else {
-      setClinicServices((current) => (editingServiceId ? current.map((item) => item.id === editingServiceId ? result.data as ClinicService : item) : [...current, result.data as ClinicService]).sort((a, b) => a.name.localeCompare(b.name)));
+      setClinicServices((current) => (editingServiceId ? current.map((item) => item.id === editingServiceId ? result.service as ClinicService : item) : [...current, result.service as ClinicService]).sort((a, b) => a.name.localeCompare(b.name)));
       setServiceMessage(isRtl ? "تم حفظ الخدمة بنجاح." : "Service saved successfully."); resetServiceForm();
     }
     setServiceSaving(false);
   };
   const handleServiceDelete = async (serviceId: string) => {
     if (!clinicId || !window.confirm(isRtl ? "هل تريد حذف هذه الخدمة من صفحة المركز؟" : "Remove this service from the clinic page?")) return;
-    const { error } = await supabase.from("clinic_services").delete().eq("id", serviceId).eq("clinic_id", clinicId);
-    if (error) { console.error("Failed to delete clinic service", error); setServiceMessage(isRtl ? "تعذر حذف الخدمة." : "Could not delete service."); return; }
+    const response = await fetch(`/api/clinic-services?id=${encodeURIComponent(serviceId)}`, { method: "DELETE" });
+    if (!response.ok) { const payload = await response.json().catch(() => ({})); console.error("Failed to delete clinic service", payload); setServiceMessage(isRtl ? "تعذر حذف الخدمة." : "Could not delete service."); return; }
     setClinicServices((current) => current.filter((item) => item.id !== serviceId));
     if (editingServiceId === serviceId) resetServiceForm();
     setServiceMessage(isRtl ? "تم حذف الخدمة." : "Service removed.");
