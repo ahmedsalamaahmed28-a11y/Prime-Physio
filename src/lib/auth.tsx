@@ -279,7 +279,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           // uses the same verified tenant for RLS and subsequent enrichment.
           const requestedClinicId =
             typeof window !== "undefined" &&
-            (window.location.pathname.replace(/\\/+$/, "") || "/") === "/dashboard"
+            (window.location.pathname.replace(/\/+$/, "") || "/") === "/dashboard"
               ? new URLSearchParams(window.location.search).get("clinicId")
               : null;
           if (requestedClinicId) {
