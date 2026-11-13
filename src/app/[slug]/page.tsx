@@ -55,7 +55,10 @@ export default function BrandedClinicPage() {
   const primary = clinic?.primary_color || "#372ba2";
   const addressText = [clinic?.address, clinic?.city, clinic?.country].filter(Boolean).join("، ");
   const whatsappNumber = (clinic?.whatsapp || clinic?.phone || "").replace(/[^0-9]/g, "");
-  const mapsHref = clinic?.maps_url || (addressText ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressText)}` : "");
+  const mapCoordinates = clinic?.maps_url?.match(/[?&]q=(-?\\d+(?:\\.\\d+)?),\\s*(-?\\d+(?:\\.\\d+)?)/);
+  const mapsHref = mapCoordinates
+    ? `https://www.google.com/maps/dir/?api=1&destination=${mapCoordinates[1]},${mapCoordinates[2]}`
+    : (clinic?.maps_url || (addressText ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressText)}` : ""));
   const displayName = isRtl ? clinic?.name : (clinic?.name_en || clinic?.name);
   const workingHoursRows = useMemo(() => {
     if (!clinic?.working_hours) return [];
@@ -323,7 +326,7 @@ export default function BrandedClinicPage() {
           <div className="relative overflow-hidden rounded-[21px] bg-slate-100">
             <iframe
               title={sectionTitle("موقع المركز على خرائط Google","Clinic location on Google Maps")}
-              src={`https://www.google.com/maps?q=${encodeURIComponent(addressText || displayName || clinic.slug)}&output=embed`}
+              src={clinic.maps_url || `https://www.google.com/maps?q=${encodeURIComponent(addressText || displayName || clinic.slug)}&output=embed`}
               className="h-[280px] w-full border-0 sm:h-[360px] lg:h-[390px]"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
