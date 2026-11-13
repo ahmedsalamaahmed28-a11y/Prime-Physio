@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Bell, Building, CreditCard, Download, LayoutDashboard, Menu, User, X, Wifi, Globe, ChevronDown, LogOut, KeyRound } from "lucide-react";
+import { Bell, Building, CreditCard, Download, LayoutDashboard, Menu, User, X, Wifi, Globe, ChevronDown, LogOut, Lock } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
 
@@ -96,7 +96,7 @@ export default function CenterAdminPlaceholder() {
                     <div role="menu" className="absolute end-0 top-[calc(100%+8px)] z-50 w-60 overflow-hidden rounded-xl border border-[#E8EBEF] bg-white py-1.5 shadow-xl">
                       <div className="border-b border-[#F0F2F6] px-4 py-3"><p className="truncate text-xs font-bold text-[#303846]">{displayName}</p><p className="mt-0.5 truncate text-[10px] text-[#8A929C]">{user.email}</p></div>
                       <button type="button" role="menuitem" onClick={() => { setAccountMenuOpen(false); router.push("/account.php/"); }} className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-[#4B5563] hover:bg-[#F7F6FF] hover:text-[#5B50C7]"><CreditCard className="h-4 w-4" />{isRtl ? "الحساب والاشتراك" : "Account & subscription"}</button>
-                      <button type="button" role="menuitem" onClick={() => { setAccountMenuOpen(false); router.push("/forgot-password"); }} className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-[#4B5563] hover:bg-[#F7F6FF] hover:text-[#5B50C7]"><KeyRound className="h-4 w-4" />{isRtl ? "تغيير كلمة المرور" : "Change password"}</button>
+                      <button type="button" role="menuitem" onClick={() => { setAccountMenuOpen(false); router.push("/forgot-password"); }} className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-[#4B5563] hover:bg-[#F7F6FF] hover:text-[#5B50C7]"><Lock className="h-4 w-4" />{isRtl ? "تغيير كلمة المرور" : "Change password"}</button>
                       <div className="my-1 border-t border-[#F0F2F6]" />
                       <button type="button" role="menuitem" onClick={async () => { setAccountMenuOpen(false); await logout(); }} className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50"><LogOut className="h-4 w-4" />{isRtl ? "تسجيل الخروج" : "Log out"}</button>
                     </div>
