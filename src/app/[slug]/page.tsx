@@ -6,7 +6,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
 import {
-  ArrowRight, Building, Check, Clock, Eye, EyeClosed, Lock, Mail, MapPin, Phone,
+  ArrowRight, Building, Check, Clock, Eye, EyeClosed, Globe, Lock, Mail, MapPin, Phone,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
@@ -27,7 +27,7 @@ type PublicTeamMember = { id: string; name: string; role?: string | null; specia
 export default function BrandedClinicPage() {
   const params = useParams();
   const slug = String(params?.slug || "").toLowerCase();
-  const { language } = useLanguage();
+  const { language, toggleLanguage } = useLanguage();
   const isRtl = language === "ar";
   const { status } = useSession();
   const { user } = useAuth();
@@ -127,13 +127,16 @@ export default function BrandedClinicPage() {
             <img src="/logo.png" alt="Prime Physio" className="h-9 w-9 object-contain" />
             <span className="text-sm font-black tracking-tight text-[#4F46BA]">PRIME PHYSIO</span>
           </Link>
-          <div className="flex min-w-0 items-center gap-3">
-            {clinic.logo_url && <img src={clinic.logo_url} alt="" className="h-9 w-9 rounded-xl border border-slate-100 bg-white object-contain p-1" />}
-            <span className="max-w-[42vw] truncate text-sm font-bold text-slate-700">{displayName}</span>
-          </div>
-          <a href="#clinic-login" className="hidden shrink-0 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 sm:inline-flex" style={{ backgroundColor: primary }}>
-            {sectionTitle("تسجيل دخول المركز", "Clinic Login")}
-          </a>
+          <button
+            type="button"
+            onClick={toggleLanguage}
+            aria-label={sectionTitle("Switch language to English", "تغيير اللغة إلى العربية")}
+            className="inline-flex shrink-0 items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-white shadow-md transition hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-violet-200"
+            style={{ backgroundColor: primary }}
+          >
+            <Globe size={17} />
+            <span>{isRtl ? "English" : "العربية"}</span>
+          </button>
         </div>
       </header>
 
@@ -215,7 +218,7 @@ export default function BrandedClinicPage() {
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{team.map((member) => <article key={member.id} className="rounded-2xl border border-slate-100 bg-white p-5 text-center shadow-sm"><div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#4F46BA] to-[#8b70e8] text-white"><Building size={23} /></div><h3 className="font-extrabold text-slate-800">{member.name}</h3>{(member.specialty || member.role) && <p className="mt-1 text-xs text-slate-500">{member.specialty || member.role}</p>}</article>)}</div>
         </section>}
 
-        <section className="rounded-3xl bg-gradient-to-r from-[#282064] to-[#5b4bc1] px-6 py-8 text-white sm:px-10 sm:py-10">
+        <section className="mt-12 rounded-3xl bg-gradient-to-r from-[#282064] to-[#5b4bc1] px-6 py-8 text-white sm:px-10 sm:py-10">
           <div className="flex flex-col items-start justify-between gap-5 sm:flex-row sm:items-center"><div><h2 className="text-xl font-black sm:text-2xl">{sectionTitle("هل أنت من فريق المركز؟", "Are you part of this clinic?")}</h2><p className="mt-2 text-sm text-white/75">{sectionTitle("سجّل الدخول للوصول إلى لوحة الإدارة.", "Sign in to access your clinic dashboard.")}</p></div><a href="#clinic-login" className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-black text-[#40358f] transition hover:-translate-y-0.5">{sectionTitle("تسجيل الدخول", "Clinic Login")} <ArrowRight size={17} /></a></div>
         </section>
       </div>
