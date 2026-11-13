@@ -34,7 +34,7 @@ export default function CenterAdminPlaceholder() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const copy = pageCopy[normalized] || pageCopy["/overview.php"];
-  const displayName = user?.name?.replace(/^د\\.\\s*/, "").trim() || user?.email?.split("@")[0] || (isRtl ? "صاحب الحساب" : "Account owner");
+  const displayName = user?.name?.trim() || user?.email?.split("@")[0] || (isRtl ? "صاحب الحساب" : "Account owner");
 
   if (isLoading || isEnriching || !user) {
     return <main className="flex min-h-screen items-center justify-center bg-white"><div className="h-9 w-9 animate-spin rounded-full border-4 border-[#5B50C7] border-t-transparent" /></main>;
