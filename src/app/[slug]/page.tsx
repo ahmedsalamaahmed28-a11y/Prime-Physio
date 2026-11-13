@@ -4,13 +4,12 @@ import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import {
   ArrowLeft, ArrowRight, Activity, Award, Building2, CalendarDays, Check,
   ChevronDown, Clock3, Eye, EyeOff, Globe2, HeartPulse, LockKeyhole, Mail,
   MapPin, Menu, Phone, ShieldCheck, Sparkles, Stethoscope, Users, X,
 } from "lucide-react";
-import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Loader } from "@/components/Loader";
@@ -31,8 +30,6 @@ export default function BrandedClinicPage() {
   const slug = String(params?.slug || "").toLowerCase();
   const { language, toggleLanguage } = useLanguage();
   const isRtl = language === "ar";
-  const { status } = useSession();
-  const { user } = useAuth();
   const [clinic, setClinic] = useState<ClinicProfile | null>(null);
   const [services, setServices] = useState<PublicService[]>([]);
   const [team, setTeam] = useState<PublicTeamMember[]>([]);
