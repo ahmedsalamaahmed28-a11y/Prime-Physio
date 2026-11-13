@@ -162,8 +162,8 @@ export default function BrandedClinicPage() {
       if (!response.ok || !payload.success) throw new Error(payload.error || (isRtl ? "تعذر إرسال طلب الموعد." : "Could not submit appointment request."));
 
       const message = isRtl
-        ? `مرحبًا، أرغب في طلب جلسة في ${displayName}.\nالاسم بالكامل: ${bookingName.trim()}\nالسن: ${age} سنة\nالقسم: ${payload.categoryAr}\nالعنوان: ${bookingAddress.trim()}\nالموعد المطلوب اليوم: ${bookingTime}\nبرجاء تأكيد توافر الموعد.`
-        : `Hello, I would like to request a session at ${displayName}.\nFull name: ${bookingName.trim()}\nAge: ${age}\nDepartment: ${payload.category}\nAddress: ${bookingAddress.trim()}\nRequested time today: ${bookingTime}\nPlease confirm the appointment.`;
+        ? `مرحبًا، أرغب في طلب جلسة في ${displayName}.\nالاسم بالكامل: ${bookingName.trim()}\nالسن: ${age} سنة\nرقم الهاتف: ${bookingPhone.trim()}\nالقسم: ${payload.categoryAr}\nالعنوان: ${bookingAddress.trim()}\nالموعد المطلوب اليوم: ${bookingTime}\nبرجاء تأكيد توافر الموعد.`
+        : `Hello, I would like to request a session at ${displayName}.\nFull name: ${bookingName.trim()}\nAge: ${age}\nPhone: ${bookingPhone.trim()}\nDepartment: ${payload.category}\nAddress: ${bookingAddress.trim()}\nRequested time today: ${bookingTime}\nPlease confirm the appointment.`;
       const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
       if (whatsappWindow) whatsappWindow.location.href = waUrl;
       else window.location.href = waUrl;
