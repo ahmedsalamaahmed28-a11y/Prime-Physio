@@ -118,10 +118,12 @@ export async function POST(request: NextRequest) {
     const slug = String(body.slug || "").trim().toLowerCase();
     const name = String(body.name || "").trim().slice(0, 120);
     const age = Number(body.age);
+    const phone = String(body.phone || "").trim().slice(0, 20);
     const address = String(body.address || "").trim().slice(0, 300);
     const time = normalizeTime(body.time);
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 80 ||
         name.length < 2 || !Number.isInteger(age) || age < 1 || age > 120 ||
+        phone.length < 7 || phone.length > 20 || !/^[+0-9()\\s.-]+$/.test(phone) ||
         address.length < 3 || !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) {
       return NextResponse.json({ error: "يرجى مراجعة البيانات واختيار موعد صحيح." }, { status: 400, headers: noStore });
     }
@@ -172,8 +174,8 @@ export async function POST(request: NextRequest) {
     const isChild = age < 18;
     const categoryAr = isChild ? "قسم الأطفال" : "قسم الكبار";
     const categoryEn = isChild ? "Pediatrics" : "Adults";
-    const detailsAr = `المريض: ${name} • السن: ${age} سنة • القسم: ${categoryAr} • العنوان: ${address} • الموعد المطلوب اليوم: ${time}. الطلب بانتظار تأكيد المركز عبر واتساب.`;
-    const detailsEn = `Patient: ${name} • Age: ${age} • Department: ${categoryEn} • Address: ${address} • Requested time today: ${time}. Awaiting clinic confirmation via WhatsApp.`;
+    const detailsAr = `المريض: ${name} • السن: ${age} سنة • الهاتف: ${phone} • القسم: ${categoryAr} • العنوان: ${address} • الموعد المطلوب اليوم: ${time}. الطلب بانتظار تأكيد المركز عبر واتساب.`;
+    const detailsEn = `Patient: ${name} • Age: ${age} • Phone: ${phone} • Department: ${categoryEn} • Address: ${address} • Requested time today: ${time}. Awaiting clinic confirmation via WhatsApp.`;
 
     const { error: notificationError } = await admin.from("notifications").insert({
       clinic_id: clinic.id,
