@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
-import { CalendarDays, CheckCircle2, Download, FileSpreadsheet, FolderArchive, Info, LockKeyhole, ShieldCheck, XCircle } from "lucide-react";
+import { CalendarDays, CheckCircle2, Download, FileSpreadsheet, ShieldCheck, XCircle } from "lucide-react";
 
 type ExportBackup = {
   clinic: Record<string, any>;
@@ -127,7 +127,7 @@ function makePdfFromJpegs(images: Uint8Array[]) {
   chunks.push(enc(xref + trailer));
   return concat(chunks);
 }
-async function createPatientPdf(patient: Record<string, any>, related: Record<string, any>, clinicName: string, ar: boolean) {\n  await document.fonts.ready;
+async function createPatientPdf(patient: Record<string, any>, related: Record<string, any>, clinicName: string, ar: boolean) {\n  if (document.fonts?.ready) await document.fonts.ready;
   const name = String(patient.name || patient.full_name || patient.patient_name || patient.id || 'Patient');
   const lines: string[] = [];
   lines.push(ar ? 'ملف الحالة الطبي' : 'PATIENT CASE FILE');
@@ -221,7 +221,7 @@ export default function FullDataExport() {
         selectedData[tableName] = rows;
         counts[tableName] = rows.length;
         if (rows.length) {
-          const group = GROUPS.find((item) => item.tables.includes(tableName))?.id || "Other";
+          const group = GROUPS.find((item) => (item.tables as readonly string[]).includes(tableName))?.id || "Other";
           const fileName = latinNames ? safeFileName(tableName) : tableName;
           files.push({ name: `01-Data/${group}/${fileName}.csv`, content: toCsv(rows) });
           files.push({ name: `01-Data/${group}/${fileName}.xls`, content: toExcelXml(rows, tableName) });
@@ -307,11 +307,11 @@ export default function FullDataExport() {
             <h1 className="text-2xl font-black tracking-tight text-[#20344B] sm:text-3xl">{ar ? "التصدير الكامل للبيانات" : "Full data export"}</h1>
             <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-500">{ar ? "أنشئ نسخة منظمة من بيانات المركز المحدد، مع ملفات Excel متوافقة مع العربية وملفات CSV قابلة للفتح في Excel." : "Create an organized archive of the active clinic data, with Arabic-compatible Excel workbooks and CSV files."}</p>
           </div>
-          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500"><LockKeyhole className="h-4 w-4 text-emerald-600" />{ar ? "للمدير فقط" : "Clinic admin only"}</div>
+          <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-500"><ShieldCheck className="h-4 w-4 text-emerald-600" />{ar ? "للمدير فقط" : "Clinic admin only"}</div>
         </div>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
-          <div className="mb-5 flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F0EEFF] text-[#594FC4]"><FolderArchive className="h-5 w-5" /></div><div><h2 className="font-extrabold text-slate-800">{ar ? "ما الذي ستحصل عليه؟" : "What’s included"}</h2><p className="mt-1 text-xs text-slate-500">{ar ? "اختر الأقسام التي تريد إضافتها إلى ملف ZIP." : "Choose the sections to include in your ZIP archive."}</p></div></div>
+          <div className="mb-5 flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F0EEFF] text-[#594FC4]"><Download className="h-5 w-5" /></div><div><h2 className="font-extrabold text-slate-800">{ar ? "ما الذي ستحصل عليه؟" : "What’s included"}</h2><p className="mt-1 text-xs text-slate-500">{ar ? "اختر الأقسام التي تريد إضافتها إلى ملف ZIP." : "Choose the sections to include in your ZIP archive."}</p></div></div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {GROUPS.map((group) => {
               const checked = selected.includes(group.id);
@@ -341,7 +341,7 @@ export default function FullDataExport() {
           <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl bg-slate-50 p-4"><input type="checkbox" checked={includeCaseReports} onChange={(e) => setIncludeCaseReports(e.target.checked)} className="mt-1 accent-[#5B50C7]" /><span><b className="block text-sm text-slate-700">{ar ? "إضافة ملخص HTML لكل حالة" : "Include an HTML summary for each patient"}</b><small className="text-xs text-slate-500">{ar ? "يمكن فتحه وطباعته أو حفظه PDF من المتصفح." : "Can be opened, printed or saved as PDF from your browser."}</small></span></label>
         </section>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900"><div className="flex items-center gap-2 font-bold"><Info className="h-4 w-4 shrink-0" />{ar ? "ملاحظة مهمة حول هذا الإصدار" : "Important for this release"}</div><p className="mt-1">{ar ? "الملف الحالي يضم سجلات قاعدة البيانات المختارة بصيغ JSON وCSV وExcel XML، وملخصات HTML للحالات عند تفعيلها. يتضمن مرفقات المرضى المرفوعة في مساحة الملفات الخاصة. لا يضم بعد ملفات PDF مستقلة أو تشفير ZIP بكلمة مرور؛ لن أعتبر هذه الأجزاء مكتملة قبل تنفيذها واختبارها." : "This release packages selected database records as JSON, CSV and Excel XML, plus optional HTML patient summaries. Uploaded patient attachments are included. Patient PDF reports are generated and included. Password-encrypted ZIP is not included yet; it will not be marked complete until implemented and tested."}</p></div>
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-7 text-amber-900"><div className="flex items-center gap-2 font-bold"><ShieldCheck className="h-4 w-4 shrink-0" />{ar ? "ملاحظة مهمة حول هذا الإصدار" : "Important for this release"}</div><p className="mt-1">{ar ? "الملف الحالي يضم سجلات قاعدة البيانات المختارة بصيغ JSON وCSV وExcel XML، وملخصات HTML للحالات عند تفعيلها. يتضمن مرفقات المرضى المرفوعة في مساحة الملفات الخاصة. لا يضم بعد ملفات PDF مستقلة أو تشفير ZIP بكلمة مرور؛ لن أعتبر هذه الأجزاء مكتملة قبل تنفيذها واختبارها." : "This release packages selected database records as JSON, CSV and Excel XML, plus optional HTML patient summaries. Uploaded patient attachments are included. Patient PDF reports are generated and included. Password-encrypted ZIP is not included yet; it will not be marked complete until implemented and tested."}</p></div>
 
         {error && <div role="alert" className="flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><XCircle className="h-5 w-5 shrink-0" />{error}</div>}
         {success && <div role="status" className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-700"><CheckCircle2 className="h-5 w-5 shrink-0" />{success}</div>}
