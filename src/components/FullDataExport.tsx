@@ -2,8 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
-import { useAuth } from "@/lib/auth";
-import { Archive, CalendarDays, CheckCircle2, Download, FileSpreadsheet, FileText, FolderArchive, Info, LockKeyhole, ShieldCheck, XCircle } from "lucide-react";
+import { CalendarDays, CheckCircle2, Download, FileSpreadsheet, FolderArchive, Info, LockKeyhole, ShieldCheck, XCircle } from "lucide-react";
 
 type ExportBackup = {
   clinic: Record<string, any>;
@@ -128,7 +127,7 @@ function makePdfFromJpegs(images: Uint8Array[]) {
   chunks.push(enc(xref + trailer));
   return concat(chunks);
 }
-async function createPatientPdf(patient: Record<string, any>, related: Record<string, any>, clinicName: string, ar: boolean) {
+async function createPatientPdf(patient: Record<string, any>, related: Record<string, any>, clinicName: string, ar: boolean) {\n  await document.fonts.ready;
   const name = String(patient.name || patient.full_name || patient.patient_name || patient.id || 'Patient');
   const lines: string[] = [];
   lines.push(ar ? 'ملف الحالة الطبي' : 'PATIENT CASE FILE');
@@ -182,8 +181,9 @@ function safeFileName(value: string) {
 
 export default function FullDataExport() {
   const { language } = useLanguage();
-  const { user } = useAuth();
   const ar = language === "ar";
+  const [exportLanguage, setExportLanguage] = useState<"ar" | "en">(language);
+  const exportAr = exportLanguage === "ar";
   const [selected, setSelected] = useState<string[]>(GROUPS.map((group) => group.id));
   const [period, setPeriod] = useState<"all" | "custom">("all");
   const [fromDate, setFromDate] = useState("");
@@ -206,8 +206,7 @@ export default function FullDataExport() {
       const backup = payload as ExportBackup;
       const files: { name: string; content: string | Uint8Array }[] = [];
       const clinicName = String(backup.clinic?.name || backup.clinic?.name_en || "Prime Physio");
-      const folder = latinNames ? safeFileName(clinicName) : clinicName.replace(/[\\/:*?"<>|]/g, "_");
-      const selectedData: Record<string, Record<string, any>[]> = {};
+          const selectedData: Record<string, Record<string, any>[]> = {};
       const counts: Record<string, number> = {};
       for (const tableName of selectedTables) {
         let rows = backup.tables?.[tableName] || [];
@@ -251,6 +250,7 @@ export default function FullDataExport() {
         clinic: backup.clinic,
         clinicId: backup.clinicId,
         period: period === "all" ? "All available dates" : { from: fromDate || null, to: toDate || null },
+        exportLanguage,
         selectedGroups: selected,
         tableCounts: counts,
         totalRows: Object.values(counts).reduce((sum, count) => sum + count, 0),
@@ -262,7 +262,7 @@ export default function FullDataExport() {
         "PRIME PHYSIO — FULL DATA EXPORT",
         "================================",
         `Center: ${clinicName}`,
-        `Exported: ${new Date().toLocaleString(ar ? "ar-EG" : "en-US")}`,
+        `Exported: ${new Date().toLocaleString(exportAr ? "ar-EG" : "en-US")}`,
         `Rows: ${summary.totalRows}`,
         "",
         "01-Data contains CSV and Excel XML Spreadsheet (.xls) copies of each selected database table.",
@@ -272,7 +272,7 @@ export default function FullDataExport() {
         "IMPORTANT: Uploaded patient attachments are included under each case folder. Password-encrypted ZIP is not included in this release.",
         "Keep this file secure: it may contain confidential patient information."
       ].join("\n") });
-      files.push({ name: "00-Contents.html", content: `<!doctype html><html lang="${ar ? "ar" : "en"}" dir="${ar ? "rtl" : "ltr"}"><meta charset="utf-8"><title>Prime Physio Export Contents</title><body style="font-family:Arial,sans-serif;padding:32px;line-height:1.8"><h1>Prime Physio — Export Contents</h1><p>${xmlEscape(clinicName)}</p><p>${summary.totalRows} records</p><ul>${Object.entries(counts).map(([key,count])=>`<li>${xmlEscape(key)}: ${count}</li>`).join("")}</ul><p>CSV and Excel-compatible workbooks are stored under 01-Data.</p><p>Uploaded patient attachments are stored in each case folder. Patient PDF reports are included when selected. Password-encrypted ZIP is not included in this release.</p></body></html>` });
+      files.push({ name: "00-Contents.html", content: `<!doctype html><html lang="${exportAr ? "ar" : "en"}" dir="${exportAr ? "rtl" : "ltr"}"><meta charset="utf-8"><title>Prime Physio Export Contents</title><body style="font-family:Arial,sans-serif;padding:32px;line-height:1.8"><h1>Prime Physio — Export Contents</h1><p>${xmlEscape(clinicName)}</p><p>${summary.totalRows} records</p><ul>${Object.entries(counts).map(([key,count])=>`<li>${xmlEscape(key)}: ${count}</li>`).join("")}</ul><p>CSV and Excel-compatible workbooks are stored under 01-Data.</p><p>Uploaded patient attachments are stored in each case folder. Patient PDF reports are included when selected. Password-encrypted ZIP is not included in this release.</p></body></html>` });
       if (includeCaseReports && selected.includes("cases")) {
         const patients = selectedData.patients || [];
         for (const patient of patients) {
@@ -281,7 +281,7 @@ export default function FullDataExport() {
           const related = Object.fromEntries(Object.entries(selectedData).filter(([table]) => !["patients"].includes(table)).map(([table, rows]) => [table, rows.filter((row) => String(row.patient_id || row.patientId || "") === id)]).filter(([, rows]) => (rows as any[]).length));
           const report = `<!doctype html><html lang="${ar ? "ar" : "en"}" dir="${ar ? "rtl" : "ltr"}"><meta charset="utf-8"><title>${xmlEscape(name)}</title><body style="font-family:Arial,sans-serif;padding:28px;line-height:1.7"><h1>Prime Physio — ${ar ? "ملف الحالة" : "Case file"}</h1><h2>${xmlEscape(name)}</h2><p>${ar ? "رقم الملف" : "File ID"}: ${xmlEscape(id)}</p><pre style="white-space:pre-wrap;font-family:Arial,sans-serif">${xmlEscape(JSON.stringify(patient,null,2))}</pre>${Object.entries(related).map(([table,rows])=>`<h3>${xmlEscape(table)}</h3><pre style="white-space:pre-wrap;font-family:Arial,sans-serif">${xmlEscape(JSON.stringify(rows,null,2))}</pre>`).join("")}</body></html>`;
           files.push({ name: `02-Cases/Case-Files/${safeFileName(id)}_${safeFileName(name)}.html`, content: report });
-          const pdf = await createPatientPdf(patient, related, clinicName, ar);
+          const pdf = await createPatientPdf(patient, related, clinicName, exportAr);
           files.push({ name: `02-Cases/Case-Files/${safeFileName(id)}_${safeFileName(name)}.pdf`, content: pdf });
         }
       }
@@ -335,7 +335,7 @@ export default function FullDataExport() {
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
           <div className="mb-5 flex items-center gap-3"><div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600"><FileSpreadsheet className="h-5 w-5" /></div><div><h2 className="font-extrabold text-slate-800">{ar ? "اللغة وأسماء الملفات" : "Language & filenames"}</h2><p className="mt-1 text-xs text-slate-500">{ar ? "بيانات Excel وCSV تحفظ النصوص العربية بترميز UTF-8." : "Excel and CSV exports preserve Unicode text."}</p></div></div>
           <div className="flex flex-wrap gap-3">
-            <div className="inline-flex rounded-xl border border-slate-200 p-1"><span className="rounded-lg bg-[#F1EFFF] px-4 py-2 text-sm font-bold text-[#5B50C7]">{ar ? "العربية" : "Arabic"}</span><span className="px-4 py-2 text-sm text-slate-400">English</span></div>
+            <div className="inline-flex rounded-xl border border-slate-200 p-1"><button type="button" onClick={() => setExportLanguage("ar")} className={`rounded-lg px-4 py-2 text-sm font-bold ${exportLanguage === "ar" ? "bg-[#F1EFFF] text-[#5B50C7]" : "text-slate-400"}`}>العربية</button><button type="button" onClick={() => setExportLanguage("en")} className={`rounded-lg px-4 py-2 text-sm font-bold ${exportLanguage === "en" ? "bg-[#F1EFFF] text-[#5B50C7]" : "text-slate-400"}`}>English</button></div>
             <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-sm"><input type="checkbox" checked={latinNames} onChange={(e) => setLatinNames(e.target.checked)} className="accent-[#5B50C7]" />{ar ? "حروف لاتينية فقط في أسماء الملفات" : "Latin characters in filenames only"}</label>
           </div>
           <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl bg-slate-50 p-4"><input type="checkbox" checked={includeCaseReports} onChange={(e) => setIncludeCaseReports(e.target.checked)} className="mt-1 accent-[#5B50C7]" /><span><b className="block text-sm text-slate-700">{ar ? "إضافة ملخص HTML لكل حالة" : "Include an HTML summary for each patient"}</b><small className="text-xs text-slate-500">{ar ? "يمكن فتحه وطباعته أو حفظه PDF من المتصفح." : "Can be opened, printed or saved as PDF from your browser."}</small></span></label>
