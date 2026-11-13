@@ -73,10 +73,10 @@ export async function GET(req: NextRequest) {
       const ci = invoices.filter((i) => i.clinic_id === clinic.id);
       const cs = staff.filter((s) => s.clinic_id === clinic.id);
       const cp = patients.filter((p) => p.clinic_id === clinic.id);
-      const monthAppointments = ca.filter((a) => a.starts_at >= monthStart);
+      const monthAppointments = ca.filter((a) => new Date(a.starts_at).getTime() >= new Date(monthStart).getTime());
       const due = monthAppointments.filter((a) => new Date(a.starts_at).getTime() <= now.getTime() && !cancelledStatuses.includes(String(a.status || "").toLowerCase()));
       const attended = due.filter((a) => attendedStatuses.includes(String(a.status || "").toLowerCase()));
-      const paid = ci.filter((i) => i.created_at >= monthStart && paidStatuses.includes(String(i.status || "").toLowerCase()));
+      const paid = ci.filter((i) => new Date(i.created_at).getTime() >= new Date(monthStart).getTime() && paidStatuses.includes(String(i.status || "").toLowerCase()));
       const branch = (branchesQ.data || []).find((b) => b.clinic_id === clinic.id);
       const subscription = (subscriptionsQ.data || []).find((s) => s.clinic_id === clinic.id);
       const settings = (settingsQ.data || []).find((s) => s.clinic_id === clinic.id);
@@ -92,11 +92,11 @@ export async function GET(req: NextRequest) {
         ca.length > 0,
         ci.some((i) => paidStatuses.includes(String(i.status || "").toLowerCase())),
       ];
-      const previousAppointments = ca.filter((a) => a.starts_at >= previousStart && a.starts_at < monthStart).length;
-      const previousPaid = ci.filter((i) => i.created_at >= previousStart && i.created_at < monthStart && paidStatuses.includes(String(i.status || "").toLowerCase())).reduce((sum, i) => sum + money(i.amount), 0);
+      const previousAppointments = ca.filter((a) => new Date(a.starts_at).getTime() >= new Date(previousStart).getTime() && new Date(a.starts_at).getTime() < new Date(monthStart).getTime()).length;
+      const previousPaid = ci.filter((i) => new Date(i.created_at).getTime() >= new Date(previousStart).getTime() && new Date(i.created_at).getTime() < new Date(monthStart).getTime() && paidStatuses.includes(String(i.status || "").toLowerCase())).reduce((sum, i) => sum + money(i.amount), 0);
       return {
         id: clinic.id, name: clinic.name, slug: clinic.slug, logoUrl: branch?.logo_url || clinic.logo_url || settings?.logo_url || null,
-        todayAppointments: ca.filter((a) => a.starts_at >= todayStart && a.starts_at < tomorrow).length,
+        todayAppointments: ca.filter((a) => new Date(a.starts_at).getTime() >= new Date(todayStart).getTime() && new Date(a.starts_at).getTime() < new Date(tomorrow).getTime()).length,
         monthAppointments: monthAppointments.length, previousAppointments,
         attendanceRate: due.length ? Math.round(attended.length / due.length * 100) : null,
         receivedPayments: paid.reduce((sum, i) => sum + money(i.amount), 0), previousPayments: previousPaid,
@@ -114,7 +114,7 @@ export async function GET(req: NextRequest) {
     const dueAll = appointments.filter((a) => a.starts_at >= monthStart && new Date(a.starts_at).getTime() <= now.getTime() && !cancelledStatuses.includes(String(a.status || "").toLowerCase()));
     const attendedAll = dueAll.filter((a) => attendedStatuses.includes(String(a.status || "").toLowerCase()));
     const currentPaid = invoices.filter((i) => i.created_at >= monthStart && paidStatuses.includes(String(i.status || "").toLowerCase()));
-    const previousPaid = invoices.filter((i) => i.created_at < monthStart && paidStatuses.includes(String(i.status || "").toLowerCase()));
+    const previousPaid = invoices.filter((i) => new Date(i.created_at).getTime() < new Date(monthStart).getTime() && paidStatuses.includes(String(i.status || "").toLowerCase()));
     return NextResponse.json({
       centers,
       totals: {
