@@ -41,6 +41,7 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 type TabType = "profile" | "clinic" | "verification" | "security" | "delete_account";
+type ClinicService = { id: string; name: string; name_en: string | null; duration_minutes: number; price: number | null; is_active: boolean };
 
 export default function ProfileSettingsPage() {
   const [activeTab, setActiveTab] = useState<TabType>("profile");
@@ -101,6 +102,16 @@ export default function ProfileSettingsPage() {
   const [defaultSessionPrice, setDefaultSessionPrice] = useState("100");
   const [pricingSaved, setPricingSaved] = useState(false);
 
+  const [clinicServices, setClinicServices] = useState<ClinicService[]>([]);
+  const [serviceName, setServiceName] = useState("");
+  const [serviceNameEn, setServiceNameEn] = useState("");
+  const [serviceDuration, setServiceDuration] = useState("60");
+  const [servicePrice, setServicePrice] = useState("");
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [servicesLoading, setServicesLoading] = useState(false);
+  const [serviceSaving, setServiceSaving] = useState(false);
+  const [serviceMessage, setServiceMessage] = useState("");
+
   useEffect(() => {
     let active = true;
 
@@ -138,7 +149,21 @@ export default function ProfileSettingsPage() {
         if (data.city) setCity(data.city);
         if (data.country) setCountry(data.country);
         if (data.description) setDescription(data.description);
-        if (data.branches && data.branches.length > 0) setBranches(data.branches);
+        if (data.branches && data.branches.length > 0) {
+          const savedBranches = data.branches;
+          if (data.working_hours && savedBranches[0]) {
+            try {
+              const parsedHours = typeof data.working_hours === "string" ? JSON.parse(data.working_hours) : data.working_hours;
+              if (Array.isArray(parsedHours) && parsedHours.length) savedBranches[0] = { ...savedBranches[0], hours: parsedHours };
+            } catch { /* Keep existing branch hours. */ }
+          }
+          setBranches(savedBranches);
+        } else if (data.working_hours) {
+          try {
+            const parsedHours = typeof data.working_hours === "string" ? JSON.parse(data.working_hours) : data.working_hours;
+            if (Array.isArray(parsedHours) && parsedHours.length) setBranches((current) => current.map((branch, index) => index === 0 ? { ...branch, hours: parsedHours } : branch));
+          } catch { /* Ignore legacy plain-text working hours. */ }
+        }
         if (data.default_exam_price) setDefaultExamPrice(String(data.default_exam_price));
         if (data.default_session_price) setDefaultSessionPrice(String(data.default_session_price));
       } catch (err) {
@@ -151,7 +176,64 @@ export default function ProfileSettingsPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [clinicId]);
+
+  useEffect(() => {
+    if (!clinicId) return;
+    let active = true;
+    const loadClinicServices = async () => {
+      setServicesLoading(true);
+      const { data, error } = await supabase.from("clinic_services")
+        .select("id, name, name_en, duration_minutes, price, is_active")
+        .eq("clinic_id", clinicId).order("name", { ascending: true });
+      if (!active) return;
+      if (error) {
+        console.error("Failed to load clinic services", error);
+        setServiceMessage(isRtl ? "تعذر تحميل الخدمات. تحقق من صلاحيات قاعدة البيانات." : "Could not load services. Check database permissions.");
+      } else setClinicServices((data || []) as ClinicService[]);
+      setServicesLoading(false);
+    };
+    loadClinicServices();
+    return () => { active = false; };
+  }, [clinicId, isRtl]);
+
+  const resetServiceForm = () => {
+    setServiceName(""); setServiceNameEn(""); setServiceDuration("60"); setServicePrice(""); setEditingServiceId(null);
+  };
+  const handleServiceEdit = (service: ClinicService) => {
+    setEditingServiceId(service.id); setServiceName(service.name || ""); setServiceNameEn(service.name_en || "");
+    setServiceDuration(String(service.duration_minutes || 60)); setServicePrice(service.price == null ? "" : String(service.price)); setServiceMessage("");
+  };
+  const handleServiceSave = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!clinicId || !serviceName.trim()) { setServiceMessage(isRtl ? "اكتب اسم الخدمة أولاً." : "Enter a service name first."); return; }
+    const duration = Number(serviceDuration);
+    const price = servicePrice.trim() === "" ? null : Number(servicePrice);
+    if (!Number.isInteger(duration) || duration < 5 || duration > 600 || (price !== null && (!Number.isFinite(price) || price < 0))) {
+      setServiceMessage(isRtl ? "راجع مدة الخدمة والسعر المدخل." : "Check the service duration and price."); return;
+    }
+    setServiceSaving(true); setServiceMessage("");
+    const payload = { clinic_id: clinicId, name: serviceName.trim(), name_en: serviceNameEn.trim() || null, duration_minutes: duration, price, is_active: true };
+    const result = editingServiceId
+      ? await supabase.from("clinic_services").update(payload).eq("id", editingServiceId).eq("clinic_id", clinicId).select("id, name, name_en, duration_minutes, price, is_active").single()
+      : await supabase.from("clinic_services").insert(payload).select("id, name, name_en, duration_minutes, price, is_active").single();
+    if (result.error) {
+      console.error("Failed to save clinic service", result.error);
+      setServiceMessage(isRtl ? "تعذر حفظ الخدمة. تحقق من صلاحيات قاعدة البيانات." : "Could not save service. Check database permissions.");
+    } else {
+      setClinicServices((current) => (editingServiceId ? current.map((item) => item.id === editingServiceId ? result.data as ClinicService : item) : [...current, result.data as ClinicService]).sort((a, b) => a.name.localeCompare(b.name)));
+      setServiceMessage(isRtl ? "تم حفظ الخدمة بنجاح." : "Service saved successfully."); resetServiceForm();
+    }
+    setServiceSaving(false);
+  };
+  const handleServiceDelete = async (serviceId: string) => {
+    if (!clinicId || !window.confirm(isRtl ? "هل تريد حذف هذه الخدمة من صفحة المركز؟" : "Remove this service from the clinic page?")) return;
+    const { error } = await supabase.from("clinic_services").delete().eq("id", serviceId).eq("clinic_id", clinicId);
+    if (error) { console.error("Failed to delete clinic service", error); setServiceMessage(isRtl ? "تعذر حذف الخدمة." : "Could not delete service."); return; }
+    setClinicServices((current) => current.filter((item) => item.id !== serviceId));
+    if (editingServiceId === serviceId) resetServiceForm();
+    setServiceMessage(isRtl ? "تم حذف الخدمة." : "Service removed.");
+  };
 
   // Branch States
   const [branches, setBranches] = useState([
@@ -184,14 +266,18 @@ export default function ProfileSettingsPage() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        await supabase.from('clinic_settings').upsert({
-          clinic_id: clinicId,
-          user_id: user.id,
-          branches: updated,
+        const { error } = await supabase.from("clinic_settings").upsert({
+          clinic_id: clinicId, user_id: user.id, branches: updated,
+          ...(idx === 0 ? { working_hours: JSON.stringify(updated[0].hours) } : {}),
           updated_at: new Date().toISOString()
-        }, { onConflict: 'clinic_id' });
+        }, { onConflict: "clinic_id" });
+        if (error) throw error;
       }
-    } catch (err) {}
+    } catch (err) {
+      console.error("Failed to save branch working hours", err);
+      alert(isRtl ? "تعذر حفظ مواعيد العمل. حاول مرة أخرى." : "Could not save working hours. Please try again.");
+      return;
+    }
 
     setTimeout(() => {
       const reset = [...branches];
@@ -847,6 +933,50 @@ export default function ProfileSettingsPage() {
                     {isRtl ? "إضافة فرع آخر" : "Add Another Branch"}
                   </Button>
                 </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-6 border border-slate-200/70 shadow-xs space-y-6">
+              <div className="flex items-center justify-between gap-3 pb-3 border-b">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-[#4F46BA]" />
+                  <div>
+                    <h3 className="text-base font-extrabold text-slate-800">{isRtl ? "خدمات المركز ومدد الجلسات" : "Clinic Services & Durations"}</h3>
+                    <p className="text-xs text-slate-500 mt-1">{isRtl ? "الخدمات النشطة هنا تظهر تلقائياً في صفحة المركز العامة." : "Active services appear automatically on the public clinic page."}</p>
+                  </div>
+                </div>
+                <span className="text-xs font-bold rounded-full bg-indigo-50 text-[#4F46BA] px-3 py-1">{clinicServices.length} {isRtl ? "خدمة" : "services"}</span>
+              </div>
+              <form onSubmit={handleServiceSave} className="rounded-xl bg-slate-50 border border-slate-200 p-4 space-y-4">
+                <div className="flex items-center justify-between gap-2">
+                  <h4 className="text-sm font-bold text-slate-800">{editingServiceId ? (isRtl ? "تعديل الخدمة" : "Edit Service") : (isRtl ? "إضافة خدمة جديدة" : "Add a Service")}</h4>
+                  {editingServiceId && <button type="button" onClick={resetServiceForm} className="text-xs text-slate-500 hover:text-slate-800">{isRtl ? "إلغاء التعديل" : "Cancel edit"}</button>}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5"><label className="text-xs font-bold text-slate-600">{isRtl ? "اسم الخدمة بالعربية *" : "Service name *"}</label><Input value={serviceName} onChange={(e) => setServiceName(e.target.value)} required placeholder={isRtl ? "مثال: جلسة علاج طبيعي" : "e.g. Physiotherapy session"} className="bg-white" /></div>
+                  <div className="space-y-1.5"><label className="text-xs font-bold text-slate-600">{isRtl ? "الاسم بالإنجليزية (اختياري)" : "English name (optional)"}</label><Input value={serviceNameEn} onChange={(e) => setServiceNameEn(e.target.value)} placeholder="Physiotherapy Session" dir="ltr" className="bg-white text-left" /></div>
+                  <div className="space-y-1.5"><label className="text-xs font-bold text-slate-600">{isRtl ? "المدة بالدقائق *" : "Duration (minutes) *"}</label><Input type="number" min="5" max="600" step="5" value={serviceDuration} onChange={(e) => setServiceDuration(e.target.value)} required dir="ltr" className="bg-white text-left" /></div>
+                  <div className="space-y-1.5"><label className="text-xs font-bold text-slate-600">{isRtl ? "السعر بالجنيه المصري (اختياري)" : "Price in EGP (optional)"}</label><Input type="number" min="0" step="0.01" value={servicePrice} onChange={(e) => setServicePrice(e.target.value)} placeholder={isRtl ? "اتركه فارغاً إذا لم تحدد سعراً" : "Leave blank if not set"} dir="ltr" className="bg-white text-left" /></div>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button type="submit" disabled={serviceSaving} className="bg-[#4F46BA] hover:bg-[#4338ca] text-white rounded-xl text-xs gap-2"><Save className="w-4 h-4" />{serviceSaving ? (isRtl ? "جارٍ الحفظ..." : "Saving...") : editingServiceId ? (isRtl ? "حفظ التعديل" : "Save Changes") : (isRtl ? "إضافة الخدمة" : "Add Service")}</Button>
+                  {serviceMessage && <span className="text-xs font-semibold text-slate-600">{serviceMessage}</span>}
+                </div>
+              </form>
+              <div className="overflow-x-auto rounded-xl border border-slate-200">
+                <table className="w-full min-w-[520px] text-sm" dir={isRtl ? "rtl" : "ltr"}>
+                  <thead className="bg-slate-50 text-xs text-slate-500"><tr><th className="px-4 py-3 text-start font-bold">{isRtl ? "الخدمة" : "Service"}</th><th className="px-4 py-3 text-center font-bold">{isRtl ? "المدة" : "Duration"}</th><th className="px-4 py-3 text-center font-bold">{isRtl ? "السعر" : "Price"}</th><th className="px-4 py-3 text-center font-bold">{isRtl ? "الإجراءات" : "Actions"}</th></tr></thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {servicesLoading ? <tr><td colSpan={4} className="px-4 py-6 text-center text-slate-400">{isRtl ? "جارٍ تحميل الخدمات..." : "Loading services..."}</td></tr>
+                    : clinicServices.length === 0 ? <tr><td colSpan={4} className="px-4 py-6 text-center text-slate-400">{isRtl ? "لم تتم إضافة خدمات بعد." : "No services have been added yet."}</td></tr>
+                    : clinicServices.map((service) => <tr key={service.id} className="text-slate-700">
+                      <td className="px-4 py-3 font-semibold">{isRtl ? service.name : (service.name_en || service.name)}</td>
+                      <td className="px-4 py-3 text-center tabular-nums">{service.duration_minutes} {isRtl ? "دقيقة" : "min"}</td>
+                      <td className="px-4 py-3 text-center tabular-nums">{service.price == null ? (isRtl ? "غير محدد" : "Not set") : `${service.price} ${isRtl ? "ج.م" : "EGP"}`}</td>
+                      <td className="px-4 py-3"><div className="flex items-center justify-center gap-2"><button type="button" onClick={() => handleServiceEdit(service)} className="text-xs font-bold text-[#4F46BA] hover:underline">{isRtl ? "تعديل" : "Edit"}</button><button type="button" onClick={() => handleServiceDelete(service.id)} className="text-xs font-bold text-rose-600 hover:underline">{isRtl ? "حذف" : "Delete"}</button></div></td>
+                    </tr>)}
+                  </tbody>
+                </table>
               </div>
             </div>
 
