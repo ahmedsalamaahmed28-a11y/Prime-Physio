@@ -118,12 +118,21 @@ export default function BrandedClinicPage() {
     setLoginError("");
     setLoginLoading(true);
     try {
+      if (!clinic?.id) throw new Error(isRtl ? "بيانات المركز غير متاحة" : "Clinic information is unavailable");
+
+      // Set the selected tenant BEFORE NextAuth establishes the session.
+      // The global auth listener may enrich/route immediately after sign-in;
+      // setting this afterward causes owner accounts to be briefly treated as
+      // unscoped center managers and redirected to /overview.php/.
+      sessionStorage.setItem("preferred_clinic_id", clinic.id);
+
       const result = await signIn("credentials", {
         email: email.trim().toLowerCase(), password, clinicSlug: slug, redirect: false,
       });
-      if (!result || result.error) throw new Error(isRtl ? "البريد الإلكتروني أو كلمة المرور غير صحيحة" : "Invalid email or password");
-      if (!clinic?.id) throw new Error(isRtl ? "بيانات المركز غير متاحة" : "Clinic information is unavailable");
-      sessionStorage.setItem("preferred_clinic_id", clinic.id);
+      if (!result || result.error) {
+        sessionStorage.removeItem("preferred_clinic_id");
+        throw new Error(isRtl ? "البريد الإلكتروني أو كلمة المرور غير صحيحة" : "Invalid email or password");
+      }
       const response = await fetch(`/api/auth/supabase-session?clinic_id=${encodeURIComponent(clinic.id)}`, { cache: "no-store" });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload.session?.access_token || !payload.session?.refresh_token) {
@@ -135,6 +144,9 @@ export default function BrandedClinicPage() {
       if (error) throw error;
       window.location.replace("/dashboard");
     } catch (error) {
+      if (clinic?.id && sessionStorage.getItem("preferred_clinic_id") === clinic.id) {
+        sessionStorage.removeItem("preferred_clinic_id");
+      }
       setLoginError(error instanceof Error ? error.message : (isRtl ? "حدث خطأ في الاتصال. حاول مرة أخرى." : "Connection error. Please try again."));
       setLoginLoading(false);
     }
