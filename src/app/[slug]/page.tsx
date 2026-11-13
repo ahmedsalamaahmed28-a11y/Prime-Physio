@@ -43,6 +43,7 @@ export default function BrandedClinicPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [bookingName, setBookingName] = useState("");
   const [bookingAge, setBookingAge] = useState("");
+  const [bookingPhone, setBookingPhone] = useState("");
   const [bookingAddress, setBookingAddress] = useState("");
   const [bookingTime, setBookingTime] = useState("");
   const [availableSlots, setAvailableSlots] = useState<string[]>([]);
@@ -155,7 +156,7 @@ export default function BrandedClinicPage() {
       const response = await fetch("/api/public/booking-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, name: bookingName.trim(), age, address: bookingAddress.trim(), time: bookingTime }),
+        body: JSON.stringify({ slug, name: bookingName.trim(), age, phone: bookingPhone.trim(), address: bookingAddress.trim(), time: bookingTime }),
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload.success) throw new Error(payload.error || (isRtl ? "تعذر إرسال طلب الموعد." : "Could not submit appointment request."));
@@ -172,6 +173,7 @@ export default function BrandedClinicPage() {
         : `Your booking request was recorded and the clinic was notified. The patient is assigned to ${payload.category}; the time is pending WhatsApp confirmation.`);
       setBookingName("");
       setBookingAge("");
+      setBookingPhone("");
       setBookingAddress("");
       setBookingTime("");
     } catch (error) {
@@ -302,6 +304,7 @@ export default function BrandedClinicPage() {
             <form onSubmit={handleBooking} className="grid gap-4 sm:grid-cols-2">
               <label className="block"><span className="mb-2 block text-xs font-extrabold text-slate-700">{sectionTitle("الاسم بالكامل","Full name")}</span><input required minLength={2} maxLength={120} value={bookingName} onChange={e=>setBookingName(e.target.value)} placeholder={sectionTitle("اكتب اسم المريض","Enter patient name")} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"/></label>
               <label className="block"><span className="mb-2 block text-xs font-extrabold text-slate-700">{sectionTitle("السن","Age")}</span><input required type="number" min="1" max="120" step="1" inputMode="numeric" value={bookingAge} onChange={e=>setBookingAge(e.target.value)} placeholder={sectionTitle("العمر بالسنوات","Age in years")} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"/>{bookingAge && Number(bookingAge)>0 && <span className="mt-1 block text-[11px] font-bold" style={{color:primary}}>{Number(bookingAge)<18?sectionTitle("سيتم توجيه الطلب إلى قسم الأطفال","Automatically assigned to Pediatrics"):sectionTitle("سيتم توجيه الطلب إلى قسم الكبار","Automatically assigned to Adults")}</span>}</label>
+              <label className="block"><span className="mb-2 block text-xs font-extrabold text-slate-700">{sectionTitle("رقم الهاتف","Phone number")}</span><input required type="tel" inputMode="tel" autoComplete="tel" minLength={7} maxLength={20} value={bookingPhone} onChange={e=>setBookingPhone(e.target.value)} placeholder={sectionTitle("01xxxxxxxxx أو +20...","01xxxxxxxxx or +20...")} dir="ltr" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"/><span className="mt-1 block text-[11px] text-slate-500">{sectionTitle("يُفضّل أن يكون الرقم عليه واتساب لسهولة التواصل.","Preferably, this number should have WhatsApp for easier communication.")}</span></label>
               <label className="block sm:col-span-2"><span className="mb-2 block text-xs font-extrabold text-slate-700">{sectionTitle("العنوان","Address")}</span><input required minLength={3} maxLength={300} value={bookingAddress} onChange={e=>setBookingAddress(e.target.value)} placeholder={sectionTitle("اكتب عنوان المريض","Enter patient address")} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"/></label>
               <label className="block sm:col-span-2"><span className="mb-2 block text-xs font-extrabold text-slate-700">{sectionTitle("المواعيد المتاحة اليوم","Available times today")}</span><select required value={bookingTime} onChange={e=>setBookingTime(e.target.value)} disabled={availabilityLoading || availableSlots.length===0} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"><option value="">{availabilityLoading?sectionTitle("جاري تحميل المواعيد...","Loading available times..."):availableSlots.length?sectionTitle("اختر الموعد المناسب","Choose a time"):availabilityConfigured?sectionTitle("لا توجد مواعيد متاحة متبقية اليوم","No available times left today"):sectionTitle("مواعيد المركز غير محددة لهذا اليوم","Today's working hours are not configured")}</option>{availableSlots.map(slot=><option key={slot} value={slot}>{new Date(`2000-01-01T${slot}:00`).toLocaleTimeString(isRtl?"ar-EG":"en-US",{hour:"numeric",minute:"2-digit"})}</option>)}</select><span className="mt-1 block text-[11px] text-slate-500">{sectionTitle("الموعد طلب مبدئي ويحتاج تأكيد المركز عبر واتساب.","This is a requested time and must be confirmed by the clinic via WhatsApp.")}</span></label>
               <button type="submit" disabled={bookingSubmitting || availabilityLoading || availableSlots.length===0} className="mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2" style={{background:primary}}>{bookingSubmitting?<Loader size={18} color="white"/>:<><CalendarDays size={17}/>{sectionTitle("إرسال طلب الموعد عبر واتساب","Send appointment request via WhatsApp")}<ArrowLeft size={17}/></>}</button>
