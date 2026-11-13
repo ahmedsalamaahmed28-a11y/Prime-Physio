@@ -6,8 +6,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import {
-  ArrowLeft, ArrowRight, Activity, Activity, Building, CalendarDays, Check,
-  ChevronDown, Clock, Eye, EyeOff, Globe, Activity, Lock, Mail,
+  ArrowLeft, ArrowRight, Activity, Building, CalendarDays, Check,
+  ChevronDown, Clock, Eye, EyeOff, Globe, Lock, Mail,
   MapPin, Menu, Phone, ShieldCheck, Sparkles, Stethoscope, Users, X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
