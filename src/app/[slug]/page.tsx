@@ -47,6 +47,19 @@ export default function BrandedClinicPage() {
   const whatsappNumber = (clinic?.whatsapp || clinic?.phone || "").replace(/[^0-9]/g, "");
   const mapsHref = clinic?.maps_url || (addressText ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressText)}` : "");
   const displayName = isRtl ? clinic?.name : (clinic?.name_en || clinic?.name);
+  const workingHoursRows = (() => {
+    if (!clinic?.working_hours) return [];
+    try {
+      const parsed = JSON.parse(clinic.working_hours);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  })();
+  const weekdayLabels: Record<string, string> = {
+    "الأحد": "Sunday", "الاثنين": "Monday", "الثلاثاء": "Tuesday", "الأربعاء": "Wednesday",
+    "الخميس": "Thursday", "الجمعة": "Friday", "السبت": "Saturday",
+  };
 
   useEffect(() => {
     if (!slug) return;
@@ -205,7 +218,7 @@ export default function BrandedClinicPage() {
         <div className="grid gap-5 md:grid-cols-3">
           {addressText && <div className="flex items-start gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><span className="rounded-xl bg-violet-50 p-3 text-[#4F46BA]"><MapPin size={20} /></span><div className="min-w-0"><h3 className="text-sm font-extrabold">{sectionTitle("عنوان المركز", "Clinic address")}</h3><p className="mt-1 text-sm leading-6 text-slate-500">{addressText}</p>{mapsHref && <a href={mapsHref} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-xs font-bold text-[#4F46BA]">{sectionTitle("عرض الاتجاهات", "Get directions")} ↗</a>}</div></div>}
           {clinic.phone && <div className="flex items-start gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><span className="rounded-xl bg-violet-50 p-3 text-[#4F46BA]"><Phone size={20} /></span><div><h3 className="text-sm font-extrabold">{sectionTitle("التواصل", "Contact")}</h3><a href={`tel:${clinic.phone}`} className="mt-1 block text-sm text-slate-500" dir="ltr">{clinic.phone}</a>{clinic.whatsapp && <a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer" className="mt-2 inline-flex text-xs font-bold text-[#4F46BA]">WhatsApp ↗</a>}</div></div>}
-          {clinic.working_hours && <div className="flex items-start gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><span className="rounded-xl bg-violet-50 p-3 text-[#4F46BA]"><Clock size={20} /></span><div><h3 className="text-sm font-extrabold">{sectionTitle("ساعات العمل", "Working hours")}</h3><p className="mt-1 whitespace-pre-line text-sm leading-6 text-slate-500">{clinic.working_hours}</p></div></div>}
+          {clinic.working_hours && <div className="flex items-start gap-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm"><span className="rounded-xl bg-violet-50 p-3 text-[#4F46BA]"><Clock size={20} /></span><div className="min-w-0 flex-1"><h3 className="text-sm font-extrabold">{sectionTitle("مواعيد العمل", "Working Hours")}</h3>{workingHoursRows.length > 0 ? <div className="mt-3 overflow-x-auto"><table className="w-full min-w-[250px] text-sm"><tbody className="divide-y divide-slate-100">{workingHoursRows.map((item: any, index: number) => <tr key={item.day || index}><td className="py-2 pe-4 font-semibold text-slate-700">{isRtl ? item.day : (weekdayLabels[item.day] || item.day)}</td><td className="py-2 text-end text-slate-500" dir="ltr">{item.isOpen ? `${item.from} – ${item.to}` : sectionTitle("مغلق", "Closed")}</td></tr>)}</tbody></table></div> : <p className="mt-1 whitespace-pre-line text-sm leading-6 text-slate-500">{clinic.working_hours}</p>}</div></div>}
         </div>
 
         {services.length > 0 && <section id="services" className="scroll-mt-24 py-14">
