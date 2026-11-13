@@ -24,7 +24,7 @@ const pageCopy: Record<string, { ar: string; en: string; descAr: string; descEn:
   "/notices.php": { ar: "الإشعارات", en: "Notifications", descAr: "صفحة الإشعارات قيد التجهيز. سنصممها معًا لاحقًا.", descEn: "The notifications page is being prepared. We’ll design it together later." },
 };
 
-export default function CenterAdminPlaceholder() {
+export default function CenterAdminPlaceholder({ children }: { children?: React.ReactNode }) {
   const { language, toggleLanguage } = useLanguage();
   const { user, logout, isLoading, isEnriching } = useAuth();
   const pathname = usePathname() || "/";
@@ -105,13 +105,17 @@ export default function CenterAdminPlaceholder() {
               </div>
             </div>
           </header>
-          <div className="flex flex-1 items-center justify-center p-5 sm:p-8">
-            <div className="w-full max-w-3xl rounded-2xl border border-[#E8EBEF] bg-white px-6 py-16 text-center shadow-sm sm:px-10">
-              <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F1EFFF] text-[#5B50C7]"><Building className="h-7 w-7" /></div>
-              <h1 className="text-2xl font-extrabold text-[#24364A]">{isRtl ? copy.ar : copy.en}</h1>
-              <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-[#8994A2]">{isRtl ? copy.descAr : copy.descEn}</p>
-              <Link href="/centers.php/" className="mt-7 inline-flex h-11 items-center justify-center rounded-full bg-[#5B50C7] px-6 text-sm font-bold text-white transition hover:bg-[#4338A8]">{isRtl ? "العودة إلى مراكزي" : "Back to My Centers"}</Link>
-            </div>
+          <div className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
+            {children ?? (
+              <div className="flex min-h-[calc(100vh-140px)] items-center justify-center">
+                <div className="w-full max-w-3xl rounded-2xl border border-[#E8EBEF] bg-white px-6 py-16 text-center shadow-sm sm:px-10">
+                  <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F1EFFF] text-[#5B50C7]"><Building className="h-7 w-7" /></div>
+                  <h1 className="text-2xl font-extrabold text-[#24364A]">{isRtl ? copy.ar : copy.en}</h1>
+                  <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-[#8994A2]">{isRtl ? copy.descAr : copy.descEn}</p>
+                  <Link href="/centers.php/" className="mt-7 inline-flex h-11 items-center justify-center rounded-full bg-[#5B50C7] px-6 text-sm font-bold text-white transition hover:bg-[#4338A8]">{isRtl ? "العودة إلى مراكزي" : "Back to My Centers"}</Link>
+                </div>
+              </div>
+            )}
           </div>
         </section>
       </div>
