@@ -318,7 +318,32 @@ export default function BrandedClinicPage() {
         <article className="rounded-[22px] border border-slate-100 bg-[#f8f9ff] p-6"><span className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm" style={{color:primary}}><MapPin size={23}/></span><h3 className="font-black text-slate-900">{sectionTitle("عنوان المركز","Clinic address")}</h3><p className="mt-2 text-sm font-medium leading-7 text-slate-500">{addressText || sectionTitle("تواصل مع المركز لمعرفة العنوان.","Contact the clinic for its address.")}</p>{mapsHref&&<a href={mapsHref} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold" style={{color:primary}}>{sectionTitle("عرض الموقع على الخريطة","View on map")}<ArrowLeft size={15}/></a>}</article>
         <article className="rounded-[22px] border border-slate-100 bg-[#f8f9ff] p-6"><span className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm" style={{color:primary}}><Phone size={23}/></span><h3 className="font-black text-slate-900">{sectionTitle("التواصل المباشر","Direct contact")}</h3>{clinic.phone?<a href={`tel:${clinic.phone}`} dir="ltr" className="mt-3 block text-base font-black" style={{color:primary}}>{clinic.phone}</a>:<p className="mt-2 text-sm text-slate-500">{sectionTitle("رقم الهاتف غير متاح حاليًا.","Phone number unavailable.")}</p>}{whatsappNumber&&<a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-extrabold text-white">WhatsApp</a>}</article>
         <article id="hours" className="scroll-mt-24 rounded-[22px] border border-slate-100 bg-[#f8f9ff] p-6"><span className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-white shadow-sm" style={{color:primary}}><Clock size={23}/></span><h3 className="font-black text-slate-900">{sectionTitle("مواعيد العمل","Working hours")}</h3>{workingHoursRows.length?<ul className="mt-3 space-y-2">{workingHoursRows.filter((x:any)=>x.isOpen).map((x:any,i:number)=><li key={i} className="flex justify-between gap-3 text-xs font-semibold text-slate-600"><span>{isRtl?x.day:(weekdayLabels[x.day]||x.day)}</span><span dir="ltr">{x.from} – {x.to}</span></li>)}</ul>:<p className="mt-2 whitespace-pre-line text-sm font-medium leading-7 text-slate-500">{clinic.working_hours || sectionTitle("يرجى التواصل مع المركز لمعرفة المواعيد.","Please contact the clinic for opening hours.")}</p>}</article>
-      </div></div></section>
+      </div>
+        {(addressText || clinic.maps_url) && <div className="mt-7 overflow-hidden rounded-[28px] border border-slate-200/80 bg-white p-2.5 shadow-[0_18px_55px_rgba(24,31,75,.10)] sm:p-3">
+          <div className="relative overflow-hidden rounded-[21px] bg-slate-100">
+            <iframe
+              title={sectionTitle("موقع المركز على خرائط Google","Clinic location on Google Maps")}
+              src={`https://www.google.com/maps?q=${encodeURIComponent(addressText || displayName || clinic.slug)}&output=embed`}
+              className="h-[280px] w-full border-0 sm:h-[360px] lg:h-[390px]"
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+            <div className="pointer-events-none absolute inset-x-3 top-3 flex justify-start sm:inset-x-5 sm:top-5">
+              <div className="max-w-[min(100%,420px)] rounded-2xl border border-white/70 bg-white/95 px-4 py-3 shadow-[0_8px_28px_rgba(15,23,42,.14)] backdrop-blur-xl sm:px-5 sm:py-4">
+                <span className="mb-1.5 inline-flex items-center gap-1.5 text-[10px] font-black tracking-wider" style={{color:primary}}><MapPin size={13}/>{sectionTitle("موقعنا على الخريطة","FIND OUR CLINIC")}</span>
+                <h3 className="text-sm font-black leading-6 text-slate-900 sm:text-base">{displayName}</h3>
+                <p className="mt-0.5 line-clamp-2 text-[11px] font-medium leading-5 text-slate-500 sm:text-xs">{addressText || sectionTitle("افتح الخريطة لمعرفة موقع المركز.","Open the map to explore the clinic location.")}</p>
+              </div>
+            </div>
+            {mapsHref && <a href={mapsHref} target="_blank" rel="noreferrer" className="absolute bottom-3 end-3 inline-flex items-center gap-2 rounded-xl px-4 py-3 text-xs font-extrabold text-white shadow-xl transition hover:-translate-y-0.5 sm:bottom-5 sm:end-5 sm:px-5" style={{backgroundColor:primary}}><MapPin size={15}/>{sectionTitle("الاتجاهات إلى المركز","Get directions")}<ArrowLeft size={14}/></a>}
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3 pb-1 pt-3 sm:px-4">
+            <span className="inline-flex items-center gap-2 text-[11px] font-bold text-slate-500"><ShieldCheck size={14} style={{color:primary}}/>{sectionTitle("الموقع المعروض وفق بيانات المركز المسجلة","Location based on the clinic's registered details")}</span>
+            {mapsHref && <a href={mapsHref} target="_blank" rel="noreferrer" className="text-[11px] font-extrabold transition hover:underline" style={{color:primary}}>{sectionTitle("فتح في Google Maps","Open in Google Maps")}</a>}
+          </div>
+        </div>}
+      </div></section>
 
       <section className="mx-auto max-w-[1280px] px-4 py-14 sm:px-6"><div className="flex flex-col items-center justify-between gap-6 rounded-[28px] bg-gradient-to-r from-[#21175f] via-[#4f46ba] to-[#3621b3] p-7 text-center text-white shadow-xl sm:flex-row sm:text-start sm:p-10"><div><span className="mb-2 inline-flex items-center gap-2 text-xs font-black text-violet-200"><Lock size={14}/>{sectionTitle("بوابة المركز","CLINIC PORTAL")}</span><h2 className="text-xl font-black sm:text-2xl">{sectionTitle("هل أنت من فريق المركز الطبي أو الإداري؟","Are you part of the clinic team?")}</h2><p className="mt-2 text-sm font-medium leading-7 text-violet-100">{sectionTitle("سجّل الدخول للوصول إلى لوحة الإدارة ومتابعة ملفات المرضى والجلسات.","Sign in to manage the clinic, patient records, and sessions.")}</p></div><a href="#clinic-login" className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-6 py-3.5 text-sm font-black shadow-lg transition hover:-translate-y-0.5" style={{color:primary}}>{sectionTitle("تسجيل الدخول","Sign in")}<ArrowLeft size={17}/></a></div></section>
 
