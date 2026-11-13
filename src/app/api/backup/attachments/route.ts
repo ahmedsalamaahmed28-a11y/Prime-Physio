@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     for (const item of data || []) {
       const { data: signed, error: signError } = await admin.storage
         .from("patient-files")
-        .createSignedUrl(item.file_path, 300);
+        .createSignedUrl(item.file_path, 3600);
 
       if (signError || !signed?.signedUrl) {
         console.error("Export attachment signing failed:", item.id, signError?.message);
