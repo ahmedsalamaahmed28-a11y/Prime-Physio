@@ -190,7 +190,21 @@ export default function ProfileSettingsPage() {
       if (error) {
         console.error("Failed to load clinic services", error);
         setServiceMessage(isRtl ? "تعذر تحميل الخدمات. تحقق من صلاحيات قاعدة البيانات." : "Could not load services. Check database permissions.");
-      } else setClinicServices((data || []) as ClinicService[]);
+      } else if (!data || data.length === 0) {
+        const defaults = [
+          { clinic_id: clinicId, name: "تقييم", name_en: "Initial Assessment", duration_minutes: 30, price: null, is_active: true },
+          { clinic_id: clinicId, name: "إعادة تقييم", name_en: "Reassessment", duration_minutes: 30, price: null, is_active: true },
+          { clinic_id: clinicId, name: "جلسة علاج طبيعي", name_en: "Physiotherapy Session", duration_minutes: 60, price: null, is_active: true },
+          { clinic_id: clinicId, name: "علاج يدوي", name_en: "Manual Therapy", duration_minutes: 30, price: null, is_active: true },
+          { clinic_id: clinicId, name: "علاج وظيفي", name_en: "Occupational Therapy", duration_minutes: 60, price: null, is_active: true },
+        ];
+        const seeded = await supabase.from("clinic_services").insert(defaults).select("id, name, name_en, duration_minutes, price, is_active");
+        if (seeded.error) {
+          console.error("Failed to add default clinic services", seeded.error);
+          setClinicServices([]);
+          setServiceMessage(isRtl ? "تعذر إعداد الخدمات الافتراضية. تحقق من صلاحيات قاعدة البيانات." : "Could not initialize default services. Check database permissions.");
+        } else setClinicServices((seeded.data || []) as ClinicService[]);
+      } else setClinicServices(data as ClinicService[]);
       setServicesLoading(false);
     };
     loadClinicServices();
