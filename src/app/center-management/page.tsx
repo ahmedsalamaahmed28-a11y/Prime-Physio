@@ -339,9 +339,9 @@ export default function CenterManagementPage() {
                           <button type="button" disabled={!center.slug} onClick={() => setQrCenter(center)} className="inline-flex h-[62px] flex-1 items-center justify-center gap-2 rounded-full border border-[#E5E9EF] bg-white text-[15px] font-extrabold text-[#174D7B] transition hover:bg-[#F7FAFD] disabled:opacity-40"><ActionIcon kind="qr" className="h-6 w-6" />{isRtl ? "ملصق QR" : "QR sticker"}</button>
                         </div>
 
-                        <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#F0F2F5] pt-4">
-                          <button type="button" onClick={() => openEdit(center)} className="inline-flex min-h-[42px] items-center gap-2 px-2 text-[15px] font-bold text-[#303846] transition hover:text-[#1262A8]"><ActionIcon kind="edit" className="h-5 w-5" />{isRtl ? "تعديل" : "Edit"}</button>
-                          <button type="button" onClick={() => downloadCenterExport(center.id)} className="inline-flex min-h-[42px] items-center gap-2 px-2 text-[15px] font-bold text-[#303846] transition hover:text-[#1262A8]"><Download className="h-5 w-5" />{isRtl ? "التصدير الكامل" : "Full export"}</button>
+                        <div className="mt-5 grid grid-cols-2 gap-2.5 border-t border-[#F0F2F5] pt-4">
+                          <button type="button" onClick={() => openEdit(center)} className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full border border-[#DCE8F3] bg-white px-3 text-[14px] font-extrabold text-[#174D7B] transition hover:border-[#1262A8] hover:bg-[#F5F9FD]"><ActionIcon kind="edit" className="h-5 w-5" />{isRtl ? "تعديل" : "Edit"}</button>
+                          <button type="button" onClick={() => downloadCenterExport(center.id)} className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full border border-[#DCE8F3] bg-white px-3 text-[14px] font-extrabold text-[#174D7B] transition hover:border-[#1262A8] hover:bg-[#F5F9FD]"><Download className="h-5 w-5" />{isRtl ? "التصدير الكامل" : "Full export"}</button>
                         </div>
                       </div>
                     </article>
