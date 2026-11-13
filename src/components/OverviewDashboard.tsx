@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Activity, CalendarDays, Check, ChevronLeft, HelpCircle,
   ExternalLink, RefreshCw, Users, User, CreditCard, Building,
-  Stethoscope, Check
+  Stethoscope
 } from "lucide-react";
 
 type Center = {
