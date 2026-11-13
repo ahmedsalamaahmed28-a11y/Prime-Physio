@@ -257,9 +257,15 @@ export default function CenterManagementPage() {
                     <h1 className="text-[30px] font-extrabold leading-[1.35] tracking-tight text-[#202B38] max-sm:text-[25px]">{isRtl ? "مراكزي" : "My Centers"}</h1>
                     <p className="mt-[5px] text-[14px] text-[#8A929C]">{isRtl ? `${centers.length} مركز في حسابك. شارك رابط كل مركز مع فريقك؛ فهم يدخلون منه` : `${centers.length} centers in your account. Share each center link with your team so they can access it.`}</p>
                   </div>
-                  <button onClick={startSetup} className="order-2 inline-flex h-[42px] shrink-0 items-center justify-center gap-2 self-start rounded-full bg-[#5B50C7] px-[19px] text-[14px] font-bold text-white shadow-[0_4px_12px_rgba(91,80,199,.18)] transition hover:bg-[#4338A8] max-sm:self-stretch">
-                    <Building className="h-[17px] w-[17px]" />{isRtl ? "+ أضف مركزاً" : "+ Add a center"}
-                  </button>
+                  {centers.length > 0 && centers.some((center) => ["basic", "free", "الأساسية", "مجاني"].includes(String(center.planName || "").trim().toLowerCase())) ? (
+                    <Link href="/plans.php/" className="order-2 inline-flex h-[42px] shrink-0 items-center justify-center gap-2 self-start rounded-full bg-[#5B50C7] px-[19px] text-[14px] font-bold text-white shadow-[0_4px_12px_rgba(91,80,199,.18)] transition hover:bg-[#4338A8] max-sm:self-stretch">
+                      <CreditCard className="h-[17px] w-[17px]" />{isRtl ? "رقِّ باقتك لإضافة مراكز" : "Upgrade your plan to add centers"}
+                    </Link>
+                  ) : (
+                    <button onClick={startSetup} className="order-2 inline-flex h-[42px] shrink-0 items-center justify-center gap-2 self-start rounded-full bg-[#5B50C7] px-[19px] text-[14px] font-bold text-white shadow-[0_4px_12px_rgba(91,80,199,.18)] transition hover:bg-[#4338A8] max-sm:self-stretch">
+                      <Building className="h-[17px] w-[17px]" />{isRtl ? "+ أضف مركزاً" : "+ Add a center"}
+                    </button>
+                  )}
                 </>
               ) : (
                 <>
