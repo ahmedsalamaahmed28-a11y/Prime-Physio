@@ -4,9 +4,9 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Activity, CalendarDays, Check, ChevronLeft, CircleHelp,
-  ExternalLink, RefreshCw, Users, UserRound, Wallet, Building2,
-  Stethoscope, BadgeCheck
+  Activity, CalendarDays, Check, ChevronLeft, HelpCircle,
+  ExternalLink, RefreshCw, Users, User, CreditCard, Building,
+  Stethoscope, Check
 } from "lucide-react";
 
 type Center = {
@@ -106,8 +106,8 @@ export default function OverviewDashboard() {
             <button onClick={() => load(true)} disabled={refreshing} className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 shadow-sm transition hover:border-blue-200 hover:text-[#1262A8] disabled:opacity-60">
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} /> تحديث
             </button>
-            <button type="button" title="مساعدة حول النظرة العامة" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-[#1262A8]"><CircleHelp className="h-[18px] w-[18px]" /></button>
-            <Link href="/centers.php/" className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#1262A8] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#0D528E]"><Building2 className="h-4 w-4" /> مراكزي</Link>
+            <button type="button" title="مساعدة حول النظرة العامة" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-[#1262A8]"><HelpCircle className="h-[18px] w-[18px]" /></button>
+            <Link href="/centers.php/" className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#1262A8] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#0D528E]"><Building className="h-4 w-4" /> مراكزي</Link>
           </div>
         </header>
 
@@ -116,16 +116,16 @@ export default function OverviewDashboard() {
         <section className="mb-9">
           <div className="mb-4 flex items-center gap-2">
             <h2 className="text-[19px] font-extrabold text-[#20364D] sm:text-[21px]">هذا الشهر، كل المراكز</h2>
-            <button title="تعرض هذه المؤشرات ملخص جميع المراكز التابعة لحسابك" className="text-slate-400 hover:text-[#1262A8]"><CircleHelp className="h-4 w-4" /></button>
+            <button title="تعرض هذه المؤشرات ملخص جميع المراكز التابعة لحسابك" className="text-slate-400 hover:text-[#1262A8]"><HelpCircle className="h-4 w-4" /></button>
           </div>
           {loading ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{Array.from({length:8}).map((_,i)=><div key={i} className="h-[126px] animate-pulse rounded-2xl border border-slate-100 bg-white" />)}</div> : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
               <MetricCard title="جلسات اليوم" value={totals?.todayAppointments ?? 0} icon={CalendarDays} tone="blue" />
               <MetricCard title="جلسات هذا الشهر" value={totals?.monthAppointments ?? 0} note={`الشهر الماضي: ${totals?.previousAppointments ?? 0}`} icon={Activity} tone="violet" />
-              <MetricCard title="نسبة الحضور" value={totals?.attendanceRate == null ? "—" : `${totals.attendanceRate}%`} note="من الجلسات المستحقة حتى اليوم، دون الملغاة" icon={BadgeCheck} tone="green" />
-              <MetricCard title="المدفوعات المستلمة (EGP)" value={currency(totals?.receivedPayments ?? 0)} note={`الشهر الماضي: ${currency(totals?.previousPayments ?? 0)} EGP`} icon={Wallet} tone="amber" />
+              <MetricCard title="نسبة الحضور" value={totals?.attendanceRate == null ? "—" : `${totals.attendanceRate}%`} note="من الجلسات المستحقة حتى اليوم، دون الملغاة" icon={Check} tone="green" />
+              <MetricCard title="المدفوعات المستلمة (EGP)" value={currency(totals?.receivedPayments ?? 0)} note={`الشهر الماضي: ${currency(totals?.previousPayments ?? 0)} EGP`} icon={CreditCard} tone="amber" />
               <MetricCard title="الأخصائيون النشطون" value={totals?.activeStaff ?? 0} icon={Stethoscope} />
-              <MetricCard title="الحالات النشطة" value={totals?.activePatients ?? 0} icon={UserRound} tone="green" />
+              <MetricCard title="الحالات النشطة" value={totals?.activePatients ?? 0} icon={User} tone="green" />
               <MetricCard title="حسابات المستخدمين النشطة" value={`${totals?.activeUsers ?? 0} / ${totals?.userLimit ?? 20}`} icon={Users} tone="violet" />
               <article className="flex min-h-[126px] flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_2px_10px_rgba(15,23,42,.025)] sm:p-5">
                 <span className="text-[13px] font-semibold text-slate-500 sm:text-sm">من باقتك</span>
@@ -138,18 +138,18 @@ export default function OverviewDashboard() {
         <section className="mb-10">
           <div className="mb-4 flex items-center gap-2">
             <h2 className="text-[19px] font-extrabold text-[#20364D] sm:text-[21px]">الفروع جنباً إلى جنب</h2>
-            <button title="مقارنة الجلسات والحضور والمدفوعات والفرق بين الفروع" className="text-slate-400 hover:text-[#1262A8]"><CircleHelp className="h-4 w-4" /></button>
+            <button title="مقارنة الجلسات والحضور والمدفوعات والفرق بين الفروع" className="text-slate-400 hover:text-[#1262A8]"><HelpCircle className="h-4 w-4" /></button>
           </div>
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_2px_10px_rgba(15,23,42,.025)]">
             <div className="hidden grid-cols-[minmax(190px,1.7fr)_repeat(6,minmax(75px,.7fr))_minmax(90px,.8fr)] items-center gap-3 border-b border-slate-100 bg-slate-50/80 px-5 py-3 text-[11px] font-bold text-slate-500 lg:grid">
               <span>المركز</span><span>اليوم</span><span>هذا الشهر</span><span>الحضور</span><span>المدفوعات</span><span>الأخصائيون</span><span>الحالات</span><span>إجراء</span>
             </div>
             {loading ? <div className="h-24 animate-pulse bg-white" /> : !data?.centers?.length ? (
-              <div className="px-5 py-12 text-center"><Building2 className="mx-auto h-9 w-9 text-slate-300" /><p className="mt-3 font-bold text-slate-700">لا توجد مراكز مرتبطة بحسابك</p><Link href="/addcenter.php/" className="mt-3 inline-flex text-sm font-bold text-[#1262A8] hover:underline">إنشاء مركز جديد</Link></div>
+              <div className="px-5 py-12 text-center"><Building className="mx-auto h-9 w-9 text-slate-300" /><p className="mt-3 font-bold text-slate-700">لا توجد مراكز مرتبطة بحسابك</p><Link href="/addcenter.php/" className="mt-3 inline-flex text-sm font-bold text-[#1262A8] hover:underline">إنشاء مركز جديد</Link></div>
             ) : data.centers.map((center, index) => (
               <div key={center.id} className={`grid grid-cols-2 gap-x-4 gap-y-3 px-4 py-4 sm:px-5 lg:grid-cols-[minmax(190px,1.7fr)_repeat(6,minmax(75px,.7fr))_minmax(90px,.8fr)] lg:items-center lg:gap-3 ${index ? "border-t border-slate-100" : ""}`}>
                 <div className="col-span-2 flex min-w-0 items-center gap-3 lg:col-span-1">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-100 bg-white">{center.logoUrl ? <img src={center.logoUrl} alt="" className="h-full w-full object-contain" /> : <Building2 className="h-5 w-5 text-[#1262A8]" />}</div>
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-100 bg-white">{center.logoUrl ? <img src={center.logoUrl} alt="" className="h-full w-full object-contain" /> : <Building className="h-5 w-5 text-[#1262A8]" />}</div>
                   <div className="min-w-0"><p className="truncate text-sm font-extrabold text-slate-800">{center.name}</p><p dir="ltr" className="mt-1 truncate text-left text-[11px] text-slate-400">{center.slug ? `primephysio.vercel.app/${center.slug}` : "—"}</p></div>
                 </div>
                 <div className="flex items-center justify-between text-xs lg:block"><span className="text-slate-400 lg:hidden">جلسات اليوم</span><strong className="text-sm tabular-nums text-slate-700">{center.todayAppointments}</strong></div>
@@ -171,7 +171,7 @@ export default function OverviewDashboard() {
         <section className="mb-10">
           <div className="mb-4 flex items-center gap-2">
             <h2 className="text-[19px] font-extrabold text-[#20364D] sm:text-[21px]">أكمل تجهيز مراكزك</h2>
-            <button title="أكمل الخطوات لمساعدة مركزك على البدء" className="text-slate-400 hover:text-[#1262A8]"><CircleHelp className="h-4 w-4" /></button>
+            <button title="أكمل الخطوات لمساعدة مركزك على البدء" className="text-slate-400 hover:text-[#1262A8]"><HelpCircle className="h-4 w-4" /></button>
           </div>
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
             {(data?.centers || []).map((center) => {
