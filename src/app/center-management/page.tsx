@@ -316,43 +316,43 @@ export default function CenterManagementPage() {
                     const shareUrl = center.slug ? `/${center.slug}` : "";
                     const setupSteps = center.setupProgress || { completed: 0, total: 7 };
                     return (
-                      <article key={center.id} className="overflow-hidden rounded-[26px] border border-[#E7E9ED] bg-white shadow-[0_3px_14px_rgba(25,48,75,.035)]">
-                      <div className="p-5 sm:p-6">
-                        <div className="flex items-center gap-4">
-                          <div className="flex h-[76px] w-[76px] shrink-0 items-center justify-center overflow-hidden rounded-[19px] border border-[#EEF0F3] bg-white shadow-[0_2px_8px_rgba(25,48,75,.05)]">
-                            {center.logoUrl ? <img src={center.logoUrl} alt="" className="h-full w-full object-contain" /> : <img src="/logo.png" alt="Prime Physio" className="h-[58px] w-[58px] object-contain" />}
+                      <article key={center.id} className="aspect-square overflow-hidden rounded-[22px] border border-[#E7E9ED] bg-white shadow-[0_3px_14px_rgba(25,48,75,.035)]">
+                      <div className="flex h-full flex-col justify-between p-3 sm:p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-[54px] w-[54px] shrink-0 items-center justify-center overflow-hidden rounded-[15px] border border-[#EEF0F3] bg-white shadow-[0_2px_8px_rgba(25,48,75,.05)]">
+                            {center.logoUrl ? <img src={center.logoUrl} alt="" className="h-full w-full object-contain" /> : <img src="/logo.png" alt="Prime Physio" className="h-[44px] w-[44px] object-contain" />}
                           </div>
                           <div className="min-w-0 flex-1">
-                            <h3 className="text-[19px] font-extrabold leading-[1.5] text-[#202B38] sm:text-[21px]">{center.name}</h3>
-                            <div className="mt-2 inline-flex items-center rounded-full bg-[#FFF5D9] px-4 py-2 text-[13px] font-extrabold text-[#946B22]">
+                            <h3 className="line-clamp-1 text-[16px] font-extrabold leading-[1.4] text-[#202B38] sm:text-[18px]">{center.name}</h3>
+                            <div className="mt-1.5 inline-flex items-center rounded-full bg-[#FFF5D9] px-3 py-1 text-[11px] font-extrabold text-[#946B22]">
                               {isRtl ? `التجهيز ${setupSteps.completed}/${setupSteps.total}` : `Setup ${setupSteps.completed}/${setupSteps.total}`}
                             </div>
                           </div>
                         </div>
 
-                        <div className="mt-6 flex min-h-[66px] items-center gap-2 rounded-[16px] bg-[#F5F8FC] px-3 py-2.5 sm:px-4">
-                          <span className="min-w-0 flex-1 truncate text-left text-[13px] font-medium text-[#52647A] sm:text-[15px]" dir="ltr">{center.slug ? `${typeof window !== "undefined" ? window.location.host : "primephysio.vercel.app"}${shareUrl}` : "—"}</span>
-                          <button type="button" disabled={!center.slug} onClick={() => center.slug && copyCenterUrl(center.slug)} className="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl border border-[#E8EBF1] bg-white px-3.5 text-[13px] font-bold text-[#303846] shadow-sm transition hover:bg-[#F8FAFD] disabled:opacity-40"><Copy className="h-[18px] w-[18px]" />{isRtl ? "نسخ" : "Copy"}</button>
+                        <div className="mt-3 flex min-h-[44px] items-center gap-2 rounded-[13px] bg-[#F5F8FC] px-2.5 py-1.5 sm:px-3">
+                          <span className="min-w-0 flex-1 truncate text-left text-[11px] font-medium text-[#52647A] sm:text-[12px]" dir="ltr">{center.slug ? `${typeof window !== "undefined" ? window.location.host : "primephysio.vercel.app"}${shareUrl}` : "—"}</span>
+                          <button type="button" disabled={!center.slug} onClick={() => center.slug && copyCenterUrl(center.slug)} className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-lg border border-[#E8EBF1] bg-white px-2.5 text-[11px] font-bold text-[#303846] shadow-sm transition hover:bg-[#F8FAFD] disabled:opacity-40"><Copy className="h-[18px] w-[18px]" />{isRtl ? "نسخ" : "Copy"}</button>
                         </div>
 
-                        <div className="mt-6 grid grid-cols-3 divide-x divide-x-reverse divide-[#EEF0F3] text-center">
-                          <div className="px-2 py-3"><strong className="block text-[25px] font-extrabold tabular-nums text-[#202B38] sm:text-[29px]">{center.todayAppointments ?? 0}</strong><span className="mt-2 block text-[14px] text-[#9299A2] sm:text-[16px]">{isRtl ? "اليوم" : "Today"}</span></div>
+                        <div className="mt-2 grid grid-cols-3 divide-x divide-x-reverse divide-[#EEF0F3] text-center">
+                          <div className="px-1 py-1"><strong className="block text-[20px] font-extrabold tabular-nums text-[#202B38] sm:text-[23px]">{center.todayAppointments ?? 0}</strong><span className="mt-0.5 block text-[11px] text-[#9299A2] sm:text-[12px]">{isRtl ? "اليوم" : "Today"}</span></div>
                           <div className="border-x border-[#EEF0F3] px-2 py-3"><strong className="block text-[25px] font-extrabold tabular-nums text-[#202B38] sm:text-[29px]">{center.monthAppointments ?? 0}</strong><span className="mt-2 block text-[14px] text-[#9299A2] sm:text-[16px]">{isRtl ? "هذا الشهر" : "This month"}</span></div>
                           <div className="px-2 py-3"><strong className="block text-[25px] font-extrabold tabular-nums text-[#202B38] sm:text-[29px]">{center.activeUsers ?? 0}</strong><span className="mt-2 block text-[14px] text-[#9299A2] sm:text-[16px]">{isRtl ? "مستخدم نشط" : "Active users"}</span></div>
                         </div>
 
-                        <div className="mt-5 flex items-center gap-2.5">
-                          <div className="flex-1 rounded-[17px] border-[2px] border-[#F9E7A8] p-[4px]">
-                            <a href={`/dashboard/?clinicId=${encodeURIComponent(center.id)}`} target="_blank" rel="noopener noreferrer" className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full bg-[#1262A8] text-[16px] font-extrabold text-white shadow-[0_5px_13px_rgba(18,98,168,.2)] transition hover:bg-[#0E548F]"><ActionIcon kind="open" className="h-6 w-6" />{isRtl ? "فتح" : "Open"}</a>
+                        <div className="mt-2 flex items-center gap-2">
+                          <div className="flex-1 rounded-[14px] border-[2px] border-[#F9E7A8] p-[3px]">
+                            <a href={`/dashboard/?clinicId=${encodeURIComponent(center.id)}`} target="_blank" rel="noopener noreferrer" className="inline-flex h-[44px] w-full items-center justify-center gap-1.5 rounded-full bg-[#1262A8] text-[13px] font-extrabold text-white shadow-[0_5px_13px_rgba(18,98,168,.2)] transition hover:bg-[#0E548F]"><ActionIcon kind="open" className="h-6 w-6" />{isRtl ? "فتح" : "Open"}</a>
                           </div>
-                          <button type="button" disabled={!center.slug} onClick={() => setQrCenter(center)} className="inline-flex h-[62px] flex-1 items-center justify-center gap-2 rounded-full border border-[#E5E9EF] bg-white text-[15px] font-extrabold text-[#174D7B] transition hover:bg-[#F7FAFD] disabled:opacity-40"><ActionIcon kind="qr" className="h-6 w-6" />{isRtl ? "ملصق QR" : "QR sticker"}</button>
+                          <button type="button" disabled={!center.slug} onClick={() => setQrCenter(center)} className="inline-flex h-[50px] flex-1 items-center justify-center gap-1.5 rounded-full border border-[#E5E9EF] bg-white text-[12px] font-extrabold text-[#174D7B] transition hover:bg-[#F7FAFD] disabled:opacity-40"><ActionIcon kind="qr" className="h-6 w-6" />{isRtl ? "ملصق QR" : "QR sticker"}</button>
                         </div>
 
-                        <div className="mt-5 grid grid-cols-2 gap-2.5 border-t border-[#F0F2F5] pt-4">
-                          <button type="button" onClick={() => openEdit(center)} className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full border border-[#DCE8F3] bg-white px-3 text-[14px] font-extrabold text-[#174D7B] transition hover:border-[#1262A8] hover:bg-[#F5F9FD]"><ActionIcon kind="edit" className="h-5 w-5" />{isRtl ? "تعديل" : "Edit"}</button>
-                          <button type="button" onClick={() => downloadCenterExport(center.id)} className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full border border-[#DCE8F3] bg-white px-3 text-[14px] font-extrabold text-[#174D7B] transition hover:border-[#1262A8] hover:bg-[#F5F9FD]"><Download className="h-5 w-5" />{isRtl ? "التصدير الكامل" : "Full export"}</button>
+                        <div className="mt-2 grid grid-cols-2 gap-2 border-t border-[#F0F2F5] pt-2.5">
+                          <button type="button" onClick={() => openEdit(center)} className="inline-flex h-[40px] w-full items-center justify-center gap-1.5 rounded-full border border-[#DCE8F3] bg-white px-2 text-[12px] font-extrabold text-[#174D7B] transition hover:border-[#1262A8] hover:bg-[#F5F9FD]"><ActionIcon kind="edit" className="h-4 w-4" />{isRtl ? "تعديل" : "Edit"}</button>
+                          <button type="button" onClick={() => downloadCenterExport(center.id)} className="inline-flex h-[54px] w-full items-center justify-center gap-2 rounded-full border border-[#DCE8F3] bg-white px-3 text-[14px] font-extrabold text-[#174D7B] transition hover:border-[#1262A8] hover:bg-[#F5F9FD]"><Download className="h-4 w-4" />{isRtl ? "التصدير الكامل" : "Full export"}</button>
                         </div>
-                        <p className="mt-3 px-1 text-center text-[12px] leading-6 text-[#8994A2]">{isRtl ? "انسخ الرابط لإرساله على واتساب، أو اطبع ملصق QR لمكتب الاستقبال." : "Copy the link to share it on WhatsApp, or print a QR sticker for the reception desk."}</p>
+                        <p className="mt-1.5 px-1 text-center text-[10px] leading-4 text-[#8994A2]">{isRtl ? "انسخ الرابط لإرساله على واتساب، أو اطبع ملصق QR لمكتب الاستقبال." : "Copy the link to share it on WhatsApp, or print a QR sticker for the reception desk."}</p>
                       </div>
                     </article>
                     );
