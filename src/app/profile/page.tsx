@@ -149,7 +149,7 @@ export default function ProfileSettingsPage() {
         if (data.phone) setPhone(data.phone);
         if (data.address) setAddress(data.address);
         if (data.maps_url) {
-          const coordinates = String(data.maps_url).match(/[?&]q=(-?\\d+(?:\\.\\d+)?),\\s*(-?\\d+(?:\\.\\d+)?)/);
+          const coordinates = String(data.maps_url).match(/[?&]q=(-?[0-9]+(?:[.][0-9]+)?),[ ]*(-?[0-9]+(?:[.][0-9]+)?)/);
           if (coordinates) { setMapLat(coordinates[1]); setMapLng(coordinates[2]); }
         }
         if (data.city) setCity(data.city);
