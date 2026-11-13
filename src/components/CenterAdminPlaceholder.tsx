@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Bell, Building, CreditCard, Download, LayoutDashboard, Menu, User, X } from "lucide-react";
+import { Bell, Building, CreditCard, Download, LayoutDashboard, Menu, User, X, Wifi, Globe, ChevronDown, LogOut, KeyRound } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
+import { useAuth } from "@/lib/auth";
 
 const items = [
   { href: "/overview.php/", key: "overview", ar: "نظرة عامة", en: "Overview", icon: LayoutDashboard },
@@ -25,11 +26,19 @@ const pageCopy: Record<string, { ar: string; en: string; descAr: string; descEn:
 
 export default function CenterAdminPlaceholder() {
   const { language, toggleLanguage } = useLanguage();
+  const { user, logout, isLoading, isEnriching } = useAuth();
   const pathname = usePathname() || "/";
+  const router = useRouter();
   const normalized = pathname.replace(new RegExp("/+$"), "") || "/";
   const isRtl = language === "ar";
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const copy = pageCopy[normalized] || pageCopy["/overview.php"];
+  const displayName = user?.name?.replace(/^د\\.\\s*/, "").trim() || user?.email?.split("@")[0] || (isRtl ? "صاحب الحساب" : "Account owner");
+
+  if (isLoading || isEnriching || !user) {
+    return <main className="flex min-h-screen items-center justify-center bg-white"><div className="h-9 w-9 animate-spin rounded-full border-4 border-[#5B50C7] border-t-transparent" /></main>;
+  }
 
   const navigation = (
     <>
@@ -66,9 +75,35 @@ export default function CenterAdminPlaceholder() {
           </div>
         )}
         <section className="flex min-w-0 flex-1 flex-col">
-          <header className="flex h-[68px] shrink-0 items-center justify-between border-b border-[#E8EBEF] bg-white px-4 sm:px-6">
-            <button onClick={() => setMobileOpen(true)} aria-label={isRtl ? "فتح القائمة" : "Open menu"} className="rounded-lg p-2 text-[#5B50C7] hover:bg-[#F1EFFF] lg:hidden"><Menu className="h-5 w-5" /></button>
-            <button onClick={toggleLanguage} className="rounded-lg border border-[#5B50C7]/20 bg-[#F1EFFF] px-3 py-2 text-xs font-bold text-[#5B50C7]">{isRtl ? "ENG" : "عربي"}</button>
+          <header className="sticky top-0 z-30 flex h-[68px] shrink-0 items-center justify-between gap-3 border-b border-[#E8EBEF] bg-white px-4 sm:px-6">
+            <div className="flex min-w-0 flex-1 items-center gap-3">
+              <button onClick={() => setMobileOpen(true)} aria-label={isRtl ? "فتح القائمة" : "Open menu"} className="rounded-lg p-2 text-[#5B50C7] hover:bg-[#F1EFFF] lg:hidden"><Menu className="h-5 w-5" /></button>
+              <span className="hidden text-sm font-bold text-[#26364A] sm:inline">{isRtl ? copy.ar : copy.en}</span>
+            </div>
+            <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+              <span className="hidden items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-2 text-[12px] font-semibold text-emerald-700 sm:inline-flex"><Wifi className="h-4 w-4" />{isRtl ? "متصل" : "Online"}</span>
+              <button onClick={toggleLanguage} aria-label={isRtl ? "Switch to English" : "التبديل إلى العربية"} className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-[#5B50C7]/20 bg-[#F1EFFF] px-3 text-[12px] font-bold text-[#5B50C7]"><Globe className="h-4 w-4" />{isRtl ? "ENG" : "عربي"}</button>
+              <Link href="/notices.php/" aria-label={isRtl ? "الإشعارات" : "Notifications"} className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#5B50C7]/20 bg-white text-[#5B50C7] hover:bg-[#F1EFFF]"><Bell className="h-[18px] w-[18px]" /></Link>
+              <div className="relative">
+                <button type="button" aria-haspopup="menu" aria-expanded={accountMenuOpen} onClick={() => setAccountMenuOpen((open) => !open)} className="flex max-w-[200px] items-center gap-2 rounded-lg border border-[#E8EBEF] bg-white px-2 py-1.5 text-start hover:border-[#5B50C7]/40 hover:bg-[#F1EFFF]">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#5B50C7] text-[12px] font-bold text-white">{(displayName.trim().charAt(0) || "A").toUpperCase()}</span>
+                  <span className="hidden min-w-0 sm:block"><span className="block truncate text-[12px] font-bold text-[#303846]">{displayName}</span><span className="block text-[10px] text-[#8A929C]">{isRtl ? "صاحب الحساب" : "Account owner"}</span></span>
+                  <ChevronDown className="h-4 w-4 text-[#5B50C7]" />
+                </button>
+                {accountMenuOpen && (
+                  <>
+                    <button type="button" aria-label={isRtl ? "إغلاق قائمة الحساب" : "Close account menu"} className="fixed inset-0 z-40 cursor-default" onClick={() => setAccountMenuOpen(false)} />
+                    <div role="menu" className="absolute end-0 top-[calc(100%+8px)] z-50 w-60 overflow-hidden rounded-xl border border-[#E8EBEF] bg-white py-1.5 shadow-xl">
+                      <div className="border-b border-[#F0F2F6] px-4 py-3"><p className="truncate text-xs font-bold text-[#303846]">{displayName}</p><p className="mt-0.5 truncate text-[10px] text-[#8A929C]">{user.email}</p></div>
+                      <button type="button" role="menuitem" onClick={() => { setAccountMenuOpen(false); router.push("/account.php/"); }} className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-[#4B5563] hover:bg-[#F7F6FF] hover:text-[#5B50C7]"><CreditCard className="h-4 w-4" />{isRtl ? "الحساب والاشتراك" : "Account & subscription"}</button>
+                      <button type="button" role="menuitem" onClick={() => { setAccountMenuOpen(false); router.push("/forgot-password"); }} className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-[#4B5563] hover:bg-[#F7F6FF] hover:text-[#5B50C7]"><KeyRound className="h-4 w-4" />{isRtl ? "تغيير كلمة المرور" : "Change password"}</button>
+                      <div className="my-1 border-t border-[#F0F2F6]" />
+                      <button type="button" role="menuitem" onClick={async () => { setAccountMenuOpen(false); await logout(); }} className="flex w-full items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50"><LogOut className="h-4 w-4" />{isRtl ? "تسجيل الخروج" : "Log out"}</button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </header>
           <div className="flex flex-1 items-center justify-center p-5 sm:p-8">
             <div className="w-full max-w-3xl rounded-2xl border border-[#E8EBEF] bg-white px-6 py-16 text-center shadow-sm sm:px-10">
