@@ -1,7 +1,7 @@
 "use client";
 
-import OverviewDashboard from "@/components/OverviewDashboard";
+import CenterManagementPage from "@/app/center-management/page";
 
 export default function OverviewPhpPage() {
-  return <OverviewDashboard />;
+  return <CenterManagementPage />;
 }
