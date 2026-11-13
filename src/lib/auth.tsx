@@ -274,7 +274,20 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
         // Sync NextAuth session to Supabase so RLS policies work!
         try {
-          const preferredClinicId = typeof window !== "undefined" ? sessionStorage.getItem("preferred_clinic_id") : null;
+          // A dashboard opened from the account overview can request a specific
+          // clinic in its URL. Persist it before syncing Supabase so this tab
+          // uses the same verified tenant for RLS and subsequent enrichment.
+          const requestedClinicId =
+            typeof window !== "undefined" &&
+            (window.location.pathname.replace(/\\/+$/, "") || "/") === "/dashboard"
+              ? new URLSearchParams(window.location.search).get("clinicId")
+              : null;
+          if (requestedClinicId) {
+            sessionStorage.setItem("preferred_clinic_id", requestedClinicId);
+          }
+          const preferredClinicId =
+            requestedClinicId ||
+            (typeof window !== "undefined" ? sessionStorage.getItem("preferred_clinic_id") : null);
           const sessionUrl = preferredClinicId
             ? `/api/auth/supabase-session?clinic_id=${encodeURIComponent(preferredClinicId)}`
             : "/api/auth/supabase-session";
