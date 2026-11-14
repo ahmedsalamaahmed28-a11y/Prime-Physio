@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bell, Smartphone, Monitor, Download, CheckCircle2, Info } from "lucide-react";
+import { Bell, Smartphone, Monitor, Download, CheckCircle2 } from "lucide-react";
 
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
@@ -136,7 +136,7 @@ export default function NoticesPhpPage() {
 
         {message && (
           <p role="status" className="mt-4 flex items-start gap-2 rounded-xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600">
-            <Info className="mt-1 h-4 w-4 shrink-0 text-[#4F46BA]" />
+            <Bell className="mt-1 h-4 w-4 shrink-0 text-[#4F46BA]" />
             {message}
           </p>
         )}
