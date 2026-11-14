@@ -62,7 +62,7 @@ BEGIN
     CROSS JOIN LATERAL (
       SELECT CASE
         WHEN pg_catalog.btrim(a.time) ~ '^([01]?\d|2[0-3]):[0-5]\d$'
-          THEN split_part(pg_catalog.btrim(a.time), ':', 1)::integer * 60 + pg_catalog.substring(pg_catalog.btrim(a.time) from ':(\d{2})')::integer
+          THEN split_part(pg_catalog.btrim(a.time), ':', 1)::integer * 60 + substring(pg_catalog.btrim(a.time) from ':(\d{2})')::integer
         WHEN pg_catalog.upper(pg_catalog.btrim(a.time)) ~ '^\d{1,2}:[0-5]\d\s*(AM|PM)$'
           THEN (
             CASE
@@ -72,7 +72,7 @@ BEGIN
                 THEN 0
               ELSE split_part(pg_catalog.btrim(a.time), ':', 1)::integer
             END
-          ) * 60 + pg_catalog.substring(pg_catalog.btrim(a.time) from ':(\d{2})')::integer
+          ) * 60 + substring(pg_catalog.btrim(a.time) from ':(\d{2})')::integer
         ELSE NULL
       END AS legacy_start_minute
     ) legacy
@@ -212,7 +212,7 @@ REVOKE ALL ON FUNCTION public.create_public_clinic_booking(uuid, text, integer, 
 GRANT EXECUTE ON FUNCTION public.create_public_clinic_booking(uuid, text, integer, text, text, text, text) TO service_role;
 REVOKE ALL ON FUNCTION public.prevent_public_booking_overlap() FROM PUBLIC, anon, authenticated;
 
-          THEN split_part(pg_catalog.btrim(a.time), ':', 1)::integer * 60 + pg_catalog.substring(pg_catalog.btrim(a.time) from ':(\d{2})')::integer
+          THEN split_part(pg_catalog.btrim(a.time), ':', 1)::integer * 60 + substring(pg_catalog.btrim(a.time) from ':(\d{2})')::integer
         WHEN pg_catalog.upper(pg_catalog.btrim(a.time)) ~ '^\d{1,2}:[0-5]\d\s*(AM|PM)$'
           THEN (
             CASE
@@ -222,7 +222,7 @@ REVOKE ALL ON FUNCTION public.prevent_public_booking_overlap() FROM PUBLIC, anon
                 THEN 0
               ELSE split_part(pg_catalog.btrim(a.time), ':', 1)::integer
             END
-          ) * 60 + pg_catalog.substring(pg_catalog.btrim(a.time) from ':(\d{2})')::integer
+          ) * 60 + substring(pg_catalog.btrim(a.time) from ':(\d{2})')::integer
         ELSE NULL
       END AS legacy_start_minute
     ) legacy
