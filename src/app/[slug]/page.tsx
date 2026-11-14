@@ -46,8 +46,9 @@ export default function BrandedClinicPage() {
   const [bookingAge, setBookingAge] = useState("");
   const [bookingPhone, setBookingPhone] = useState("");
   const [bookingAddress, setBookingAddress] = useState("");
-  const [bookingTime, setBookingTime] = useState("");
-  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
+  const [bookingGroup, setBookingGroup] = useState<"A" | "B" | "">("");
+  const [selectedGroupTimes, setSelectedGroupTimes] = useState<Record<string, string>>({});
+  const [groupAvailability, setGroupAvailability] = useState<Record<string, Array<{key:string;dayAr:string;dayEn:string;date:string;configured:boolean;slots:string[]}>>>({});
   const [availabilityConfigured, setAvailabilityConfigured] = useState(false);
   const [availabilityLoading, setAvailabilityLoading] = useState(true);
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
@@ -109,12 +110,12 @@ export default function BrandedClinicPage() {
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(payload.error || "Availability unavailable");
         if (!active) return;
-        setAvailableSlots(Array.isArray(payload.slots) ? payload.slots : []);
+        setGroupAvailability(payload.groups && typeof payload.groups === "object" ? payload.groups : {});
         setAvailabilityConfigured(Boolean(payload.configured));
       })
       .catch(() => {
         if (active) {
-          setAvailableSlots([]);
+          setGroupAvailability({});
           setAvailabilityConfigured(false);
         }
       })
@@ -165,57 +166,45 @@ export default function BrandedClinicPage() {
     event.preventDefault();
     setBookingNotice("");
     const age = Number(bookingAge);
-    if (!Number.isInteger(age) || age < 1 || age > 120 || !bookingTime) {
-      setBookingNotice(isRtl ? "يرجى مراجعة السن واختيار موعد متاح." : "Please check the age and choose an available time.");
+    const requiredDays = bookingGroup === "A" ? ["saturday", "monday", "wednesday"] : ["sunday", "tuesday", "thursday"];
+    if (!Number.isInteger(age) || age < 1 || age > 120 || !bookingGroup || requiredDays.some(day => !selectedGroupTimes[day])) {
+      setBookingNotice(isRtl ? "يرجى مراجعة البيانات واختيار موعد لكل يوم من أيام المجموعة." : "Please check the details and choose a time for all three group days.");
       return;
     }
-
     setBookingSubmitting(true);
     try {
       const response = await fetch("/api/public/booking-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          slug,
-          name: bookingName.trim(),
-          age,
-          phone: bookingPhone.trim(),
-          address: bookingAddress.trim(),
-          time: bookingTime,
+          slug, name: bookingName.trim(), age, phone: bookingPhone.trim(), address: bookingAddress.trim(),
+          groupCode: bookingGroup, selectedTimes: selectedGroupTimes,
         }),
       });
       const payload = await response.json().catch(() => ({}));
-
       if (response.status === 409) {
         const availabilityResponse = await fetch("/api/public/booking-request?slug=" + encodeURIComponent(slug), { cache: "no-store" });
         const availability = await availabilityResponse.json().catch(() => ({}));
-        if (availabilityResponse.ok) {
-          setAvailableSlots(Array.isArray(availability.slots) ? availability.slots : []);
-          setAvailabilityConfigured(Boolean(availability.configured));
-        }
-        setBookingTime("");
+        if (availabilityResponse.ok) setGroupAvailability(availability.groups || {});
+        setSelectedGroupTimes({});
         setBookingStep("time");
-        const conflictMessage = payload.error || (isRtl ? "الموعد لم يعد متاحًا. اختار موعدًا آخر." : "That time is no longer available. Please choose another.");
+        const conflictMessage = payload.error || (isRtl ? "أحد المواعيد لم يعد متاحًا. اختر وقتًا آخر." : "One of the selected times is no longer available.");
         setBookingNotice(conflictMessage);
         setBookingMessages(current => [...current, { role: "assistant", text: conflictMessage }]);
         return;
       }
-
-      if (!response.ok || !payload.success || !payload.confirmed) {
-        throw new Error(payload.error || (isRtl ? "تعذر تأكيد الحجز." : "Could not confirm the appointment."));
+      if (!response.ok || !payload.success || !payload.pending) {
+        throw new Error(payload.error || (isRtl ? "تعذر إرسال طلب المجموعة." : "Could not submit the group request."));
       }
-
       const successMessage = isRtl
-        ? "تم تأكيد حجزك بنجاح! رقم ملف المريض: " + payload.patientId + "، ورقم الموعد: " + payload.appointmentId + ". أصبح الموعد ظاهرًا الآن لموظفي ومدير المركز."
-        : "Your appointment is confirmed! Patient record: " + payload.patientId + ", appointment: " + payload.appointmentId + ". The clinic team can now see it in the platform.";
+        ? "تم إرسال طلب الانضمام للمجموعة بنجاح. رقم الطلب: " + payload.requestId + "، ورقم ملف المريض: " + payload.patientId + ". سيقوم الأخصائي بتقييم الحالة داخل المنصة ثم تحديد عدد الجلسات واعتماد الجدول."
+        : "Your group request was submitted. Request: " + payload.requestId + ", patient record: " + payload.patientId + ". A specialist will evaluate the patient and set the number of sessions before approving the schedule.";
       setBookingNotice(successMessage);
       setBookingMessages(current => [...current, { role: "assistant", text: successMessage }]);
       setBookingStep("done");
       setBookingInput("");
     } catch (error) {
-      const message = error instanceof Error
-        ? error.message
-        : (isRtl ? "حدث خطأ أثناء تأكيد الحجز. حاول مرة أخرى." : "An error occurred while confirming the appointment. Please try again.");
+      const message = error instanceof Error ? error.message : (isRtl ? "حدث خطأ أثناء إرسال الطلب. حاول مرة أخرى." : "An error occurred while submitting the request.");
       setBookingNotice(message);
       setBookingMessages(current => [...current, { role: "assistant", text: message }]);
     } finally {
@@ -268,34 +257,47 @@ export default function BrandedClinicPage() {
         return;
       }
       setBookingAddress(value);
+      setBookingGroup("");
+      setSelectedGroupTimes({});
       reply(value, availabilityLoading
-        ? (isRtl ? "لحظة واحدة، بفحص المواعيد المتاحة..." : "One moment, I'm checking available times...")
+        ? (isRtl ? "لحظة واحدة، بفحص مواعيد المجموعات..." : "One moment, checking group availability...")
         : !availabilityConfigured
-          ? (isRtl ? "المركز لم يسجل أيام وساعات العمل على المنصة بعد. من فضلك تواصل مع المركز لتحديد موعد." : "The clinic has not configured its weekly working hours yet. Please contact the clinic to arrange an appointment.")
-          : availableSlots.length
-            ? (isRtl ? "دي المواعيد المتاحة النهارده. اختار الموعد المناسب ليك:" : "These are today's available times. Choose the one that works for you:")
-            : (isRtl ? "المركز مغلق اليوم أو لا توجد فترات حجز متاحة." : "The clinic is closed today or has no bookable slots."));
+          ? (isRtl ? "المركز لم يسجل ساعات العمل الأسبوعية بعد. من فضلك تواصل مع المركز." : "The clinic has not configured its weekly working hours yet.")
+          : (isRtl ? "اختار المجموعة المناسبة أولًا، ثم اختار وقتًا مستقلًا لكل يوم من أيامها الثلاثة." : "Choose a group, then select a separate time for each of its three weekdays."));
       setBookingStep("time");
     }
     setBookingInput("");
     setBookingNotice("");
   };
 
-  const handleSlotChoice = (slot: string) => {
+  const handleGroupChoice = (group: "A" | "B") => {
     if (bookingStep !== "time" || bookingSubmitting) return;
-    setBookingTime(slot);
-    const label = new Date(`2000-01-01T${slot}:00`).toLocaleTimeString(isRtl ? "ar-EG" : "en-US", { hour: "numeric", minute: "2-digit" });
-    setBookingMessages(current => [
-      ...current,
-      { role: "user", text: label },
-      {
-        role: "assistant",
-        text: isRtl
-          ? `راجع بيانات طلب الموعد:\nالاسم: ${bookingName}\nالسن: ${bookingAge}\nالهاتف: ${bookingPhone}\nالعنوان: ${bookingAddress}\nالموعد المطلوب اليوم: ${label}\n\nهل تؤكد إرسال الطلب إلى المركز؟`
-          : `Please review your request:\nName: ${bookingName}\nAge: ${bookingAge}\nPhone: ${bookingPhone}\nAddress: ${bookingAddress}\nRequested time today: ${label}\n\nDo you confirm sending this request to the clinic?`,
-      },
-    ]);
-    setBookingStep("confirm");
+    setBookingGroup(group);
+    setSelectedGroupTimes({});
+    setBookingNotice("");
+  };
+
+  const handleGroupTimeChoice = (dayKey: string, slot: string) => {
+    if (bookingStep !== "time" || bookingSubmitting || !bookingGroup) return;
+    const nextTimes = { ...selectedGroupTimes, [dayKey]: slot };
+    setSelectedGroupTimes(nextTimes);
+    const requiredDays = bookingGroup === "A" ? ["saturday", "monday", "wednesday"] : ["sunday", "tuesday", "thursday"];
+    if (requiredDays.every(day => Boolean(nextTimes[day]))) {
+      const days = groupAvailability[bookingGroup] || [];
+      const summary = requiredDays.map(key => {
+        const day = days.find(item => item.key === key);
+        const time = nextTimes[key];
+        const label = time ? new Date("2000-01-01T" + time + ":00").toLocaleTimeString(isRtl ? "ar-EG" : "en-US", { hour: "numeric", minute: "2-digit" }) : "";
+        return (isRtl ? day?.dayAr : day?.dayEn) + ": " + label;
+      }).join("\\n");
+      setBookingMessages(current => [...current,
+        { role: "user", text: isRtl ? "تم اختيار أوقات المجموعة" : "Group times selected" },
+        { role: "assistant", text: isRtl
+          ? "راجع طلب الانضمام للمجموعة " + bookingGroup + ":\\n" + summary + "\\n\\nسيتم إرسال الطلب للأخصائي لتقييم الحالة وتحديد عدد الجلسات قبل اعتماد الجدول."
+          : "Review group " + bookingGroup + ":\\n" + summary + "\\n\\nThe specialist will evaluate the patient and determine the session count before approving the schedule." },
+      ]);
+      setBookingStep("confirm");
+    }
   };
 
   const restartBookingChat = () => {
@@ -305,7 +307,8 @@ export default function BrandedClinicPage() {
     setBookingAge("");
     setBookingPhone("");
     setBookingAddress("");
-    setBookingTime("");
+    setBookingGroup("");
+    setSelectedGroupTimes({});
     setBookingNotice("");
     setBookingMessages([{
       role: "assistant",
@@ -457,19 +460,35 @@ export default function BrandedClinicPage() {
                 </div>
               ))}
               {bookingStep === "time" && (
-                <div className="flex flex-wrap gap-2 ps-9">
-                  {availabilityLoading ? (
-                    <span className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-500">{sectionTitle("جاري فحص المواعيد...","Checking available times...")}</span>
-                  ) : availableSlots.length ? availableSlots.map(slot => (
-                    <button key={slot} type="button" onClick={() => handleSlotChoice(slot)} className="rounded-xl border px-3 py-2 text-xs font-extrabold transition hover:-translate-y-0.5 hover:shadow-sm" style={{borderColor:primary,color:primary,backgroundColor:"#fff"}}>
-                      {new Date(`2000-01-01T${slot}:00`).toLocaleTimeString(isRtl ? "ar-EG" : "en-US", {hour:"numeric",minute:"2-digit"})}
-                    </button>
-                  )) : (
-                    <span className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-500">
-                      {availabilityConfigured
-                        ? sectionTitle("المركز مغلق اليوم أو لا توجد فترات حجز متاحة.","The clinic is closed today or has no bookable slots.")
-                        : sectionTitle("لم يسجل المركز ساعات العمل الأسبوعية بعد. يُرجى التواصل مع المركز.","The clinic has not configured its weekly working hours yet. Please contact the clinic.")}
-                    </span>
+                <div className="ms-9 space-y-3 rounded-2xl border border-slate-100 bg-white p-3">
+                  {availabilityLoading ? <p className="text-xs font-semibold text-slate-500">{sectionTitle("جاري فحص المواعيد...","Checking group availability...")}</p> : (
+                    <>
+                      <p className="text-xs font-extrabold text-slate-700">{sectionTitle("1. اختر المجموعة","1. Choose a group")}</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        <button type="button" onClick={() => handleGroupChoice("A")} className="rounded-xl border p-3 text-start text-xs font-extrabold" style={{borderColor:bookingGroup === "A" ? primary : "#e2e8f0",background:bookingGroup === "A" ? "#eef2ff" : "#fff",color:primary}}>
+                          {sectionTitle("المجموعة A","Group A")}<span className="mt-1 block text-[10px] font-semibold text-slate-500">{sectionTitle("السبت • الاثنين • الأربعاء","Sat • Mon • Wed")}</span>
+                        </button>
+                        <button type="button" onClick={() => handleGroupChoice("B")} className="rounded-xl border p-3 text-start text-xs font-extrabold" style={{borderColor:bookingGroup === "B" ? primary : "#e2e8f0",background:bookingGroup === "B" ? "#eef2ff" : "#fff",color:primary}}>
+                          {sectionTitle("المجموعة B","Group B")}<span className="mt-1 block text-[10px] font-semibold text-slate-500">{sectionTitle("الأحد • الثلاثاء • الخميس","Sun • Tue • Thu")}</span>
+                        </button>
+                      </div>
+                      {bookingGroup && <div className="space-y-3">
+                        <p className="text-xs font-extrabold text-slate-700">{sectionTitle("2. اختر وقتًا لكل يوم","2. Select a time for each weekday")}</p>
+                        {(groupAvailability[bookingGroup] || []).map(day => (
+                          <div key={day.key} className="rounded-xl bg-slate-50 p-3">
+                            <div className="mb-2 flex items-center justify-between gap-2">
+                              <span className="text-xs font-extrabold text-slate-700">{isRtl ? day.dayAr : day.dayEn}</span>
+                              <span className="text-[10px] text-slate-400">{day.date}</span>
+                            </div>
+                            {day.slots.length ? <div className="flex flex-wrap gap-2">
+                              {day.slots.map(slot => <button key={slot} type="button" onClick={() => handleGroupTimeChoice(day.key,slot)} className="rounded-lg border px-2.5 py-2 text-[11px] font-bold" style={{borderColor:selectedGroupTimes[day.key] === slot ? primary : "#dbe2ea",background:selectedGroupTimes[day.key] === slot ? primary : "#fff",color:selectedGroupTimes[day.key] === slot ? "#fff" : "#334155"}}>
+                                {new Date("2000-01-01T" + slot + ":00").toLocaleTimeString(isRtl ? "ar-EG" : "en-US",{hour:"numeric",minute:"2-digit"})}
+                              </button>)}
+                            </div> : <p className="text-[11px] font-semibold text-rose-600">{day.configured ? sectionTitle("لا توجد أوقات متاحة في هذا اليوم.","No available times on this day.") : sectionTitle("المركز لا يعمل في هذا اليوم أو لم يحدد ساعاته.","The clinic is closed or has no hours configured for this day.")}</p>}
+                          </div>
+                        ))}
+                      </div>}
+                    </>
                   )}
                 </div>
               )}
@@ -518,7 +537,7 @@ export default function BrandedClinicPage() {
               </form>
             )}
             <p className="mt-3 text-center text-[10px] font-medium leading-5 text-slate-400">
-              {sectionTitle("بمجرد تأكيدك، يتم إنشاء ملف المريض والموعد مباشرة داخل المنصة.","Once you confirm, the patient record and appointment are created directly in the platform.")}
+              {sectionTitle("بعد إرسال الطلب يُنشأ ملف المريض، ويعتمد الأخصائي الجدول وعدد الجلسات بعد التقييم.","Submitting creates the patient record; the specialist approves the schedule and session count after evaluation.")}
             </p>
           </div>
         </div>
