@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase-admin";
-import { requireAuthOnly } from "../utils/auth";
+import { requireAuthOnly, requireRole } from "../utils/auth";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -38,9 +38,14 @@ export async function GET(req: NextRequest) {
     const { data: ownerships, error: ownershipError } = await admin
       .from("clinic_owners").select("clinic_id").eq("owner_email", email);
     if (ownershipError) throw ownershipError;
-    const clinicIds = [...new Set((ownerships || []).map((x) => x.clinic_id).filter(Boolean))];
+    let clinicIds = [...new Set((ownerships || []).map((x) => x.clinic_id).filter(Boolean))];
     if (!clinicIds.length) {
-      return NextResponse.json({ centers: [], totals: null, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, private" } });
+      // Staff members should see only the center selected in their verified session.
+      const member = await requireRole(req, ["admin", "doctor", "receptionist"]);
+      if (!member.clinicId) {
+        return NextResponse.json({ centers: [], totals: null, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, private" } });
+      }
+      clinicIds = [member.clinicId];
     }
 
     const now = new Date();
