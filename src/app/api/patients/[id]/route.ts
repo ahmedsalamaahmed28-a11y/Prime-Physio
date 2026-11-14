@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase-admin";
 import { getClinicContext } from "@/lib/server/clinic-context";
 import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
 
@@ -23,7 +22,7 @@ async function getAuthorizedClinic(req: NextRequest) {
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await getAuthorizedClinic(request);
-  if ("error" in auth) return auth.error;
+  if ("response" in auth) return auth.response;
   if (!hasStaffPermission(auth.staff, "edit_patient") && !canViewPatientHistory(auth.staff)) {
     return NextResponse.json({ error: "ليس لديك صلاحية الاطلاع على ملف المريض" }, { status: 403 });
   }
@@ -70,8 +69,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 }
 
 export async function PATCH(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const auth = await getAuthorizedClinic();
-  if ("error" in auth) return auth.error;
+  const auth = await getAuthorizedClinic(request);
+  if ("response" in auth) return auth.response;
   const { id } = await context.params;
 
   try {
@@ -199,9 +198,9 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 }
 
 
-export async function DELETE(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await getAuthorizedClinic();
-  if ("error" in auth) return auth.error;
+  if ("response" in auth) return auth.response;
   if (!hasStaffPermission(auth.staff, "delete_patient")) {
     return NextResponse.json({ error: "ليس لديك صلاحية حذف المرضى" }, { status: 403 });
   }
