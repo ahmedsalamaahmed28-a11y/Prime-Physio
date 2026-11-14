@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase-admin";
+import { getClinicContext } from "@/lib/server/clinic-context";
 import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
@@ -34,25 +33,14 @@ const PATIENT_FIELDS = [
   "doctor",
 ] as const;
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    const email = session?.user?.email?.toLowerCase().trim();
-    if (!email) return NextResponse.json({ error: "يجب تسجيل الدخول أولاً" }, { status: 401 });
-
-    const admin = getAdminClient();
-    const { data: staff, error: staffError } = await admin
-      .from("staff").select("clinic_id,status,role,permissions").eq("email", email).limit(1).maybeSingle();
-    if (staffError) {
-      console.error("[Patients API] Staff lookup failed:", staffError);
-      return NextResponse.json({ error: "تعذر التحقق من صلاحية الحساب" }, { status: 503 });
-    }
-    if (!staff?.clinic_id || staff.status === "محذوف") {
-      return NextResponse.json({ error: "لا توجد صلاحية نشطة لهذه العيادة" }, { status: 403 });
-    }
+    const auth = await getClinicContext(req);
+    if ("response" in auth) return auth.response;
+    const { admin, clinicId } = auth;
 
     const { data, error } = await admin
-      .from("patients").select(LIST_FIELDS.join(",")).eq("clinic_id", staff.clinic_id).order("id", { ascending: true });
+      .from("patients").select(LIST_FIELDS.join(",")).eq("clinic_id", clinicId).order("id", { ascending: true });
     if (error) {
       console.error("[Patients API] List query failed:", error);
       return NextResponse.json({ error: "تعذر تحميل قائمة المرضى" }, { status: 500 });
@@ -66,38 +54,16 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    const email = session?.user?.email?.toLowerCase().trim();
-    if (!email) {
-      return NextResponse.json({ error: "يجب تسجيل الدخول قبل إضافة مريض" }, { status: 401 });
-    }
+    const auth = await getClinicContext(request);
+    if ("response" in auth) return auth.response;
+    const { admin, clinicId, staff } = auth;
 
     const body = await request.json();
     if (!body || typeof body !== "object" || Array.isArray(body)) {
       return NextResponse.json({ error: "بيانات المريض غير صالحة" }, { status: 400 });
     }
 
-    const admin = getAdminClient();
-    let staffQuery = admin
-      .from("staff")
-      .select("clinic_id,status,role,permissions")
-      .eq("email", email);
-    if (typeof body.clinic_id === "string" && body.clinic_id) {
-      staffQuery = staffQuery.eq("clinic_id", body.clinic_id);
-    }
-    const { data: staff, error: staffError } = await staffQuery
-      .limit(1)
-      .maybeSingle();
-
-    if (staffError) {
-      console.error("[Patients API] Staff lookup failed:", staffError);
-      return NextResponse.json({ error: "تعذر التحقق من صلاحية الحساب" }, { status: 503 });
-    }
-    if (!staff?.clinic_id || staff.status === "محذوف") {
-      return NextResponse.json({ error: "لا توجد صلاحية نشطة لإضافة مرضى لهذه العيادة" }, { status: 403 });
-    }
-
-    if (body.clinic_id && body.clinic_id !== staff.clinic_id) {
+    if (body.clinic_id && body.clinic_id !== clinicId) {
       return NextResponse.json({ error: "لا يمكن إضافة مريض إلى عيادة أخرى" }, { status: 403 });
     }
     if (!hasStaffPermission(staff, "edit_patient")) {
@@ -105,7 +71,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { data: activeBranches, error: branchesError } = await admin.from("branches")
-      .select("id").eq("clinic_id", staff.clinic_id).eq("status", "active");
+      .select("id").eq("clinic_id", clinicId).eq("status", "active");
     if (branchesError) throw branchesError;
     let branchId: string | null = null;
     if (body.branchId) {
@@ -125,7 +91,7 @@ export async function POST(request: NextRequest) {
 
     if (
       typeof patient.id !== "string" ||
-      !patient.id.startsWith(String(staff.clinic_id).substring(0, 4).toUpperCase() + "-") ||
+      !patient.id.startsWith(String(clinicId).substring(0, 4).toUpperCase() + "-") ||
       typeof patient.nameAr !== "string" ||
       !patient.nameAr.trim() ||
       typeof patient.phone !== "string" ||
@@ -134,7 +100,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "الاسم ورقم الهاتف ورقم ملف صحيح مطلوبة" }, { status: 400 });
     }
 
-    patient.clinic_id = staff.clinic_id;
+    patient.clinic_id = clinicId;
     patient.branch_id = branchId;
 
     const { data, error } = await admin
@@ -163,7 +129,7 @@ export async function POST(request: NextRequest) {
       } else {
         const { error: medicalError } = await admin.from("patient_medical_records").upsert({
           patient_id: data.id,
-          clinic_id: staff.clinic_id,
+          clinic_id: clinicId,
           medical_history: medicalAtCreation,
         }, { onConflict: "patient_id" });
         if (medicalError) {
@@ -176,7 +142,7 @@ export async function POST(request: NextRequest) {
     if (body.invoice && typeof body.invoice === "object" && hasStaffPermission(staff, "create_invoice")) {
       const invoice = {
         id: body.invoice.id,
-        clinic_id: staff.clinic_id,
+        clinic_id: clinicId,
         patient_id: data.id,
         patient_name: patient.nameAr,
         description: body.invoice.description,
@@ -196,7 +162,7 @@ export async function POST(request: NextRequest) {
     if (body.appointment && typeof body.appointment === "object" && hasStaffPermission(staff, "edit_appointments")) {
       const appointment = {
         id: body.appointment.id,
-        clinic_id: staff.clinic_id,
+        clinic_id: clinicId,
         patient_id: data.id,
         patient_name: patient.nameAr,
         doctor_name: body.appointment.doctor_name || null,
