@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   Activity, ArrowLeft, ArrowRight, Bell, Building, Check, CheckCircle2,
-  ChevronLeft, HelpCircle, CreditCard, Crown, Database, Download,
+  ChevronLeft, CreditCard, Crown, Database, Download,
   ExternalLink, FileText, Key, Loader2, Lock, LogOut,
   Mail, MessageSquare, Save, ShieldCheck, Smartphone, Users, User,
   X,
@@ -239,7 +239,7 @@ export default function AccountPhpPage() {
 
         <SectionCard>
           <SectionHeading icon={Activity} title="الاستخدام في كل مراكزك" description="ملخص استخدام موارد المنصة حسب باقتك الحالية."
-            action={<span className="inline-flex items-center gap-1 text-xs text-slate-400"><HelpCircle size={15} /> الاستخدام الحالي</span>} />
+            action={<span className="inline-flex items-center gap-1 text-xs text-slate-400">الاستخدام الحالي</span>} />
           <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4 sm:p-5">
             {usageCards.map((item) => {
               const Icon = item.icon;
@@ -297,7 +297,7 @@ export default function AccountPhpPage() {
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <label className="block space-y-2"><span className="text-xs font-bold text-slate-700">الاسم الأول</span><input value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="given-name" className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10" placeholder="الاسم الأول" /></label>
               <label className="block space-y-2"><span className="text-xs font-bold text-slate-700">اسم العائلة</span><input value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="family-name" className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10" placeholder="اسم العائلة" /></label>
-              <label className="block space-y-2"><span className="flex items-center gap-1 text-xs font-bold text-slate-700">رقم الهاتف المحمول <HelpCircle size={13} className="text-slate-400" /></span><div className="flex h-11 overflow-hidden rounded-xl border border-slate-200 focus-within:border-teal-500 focus-within:ring-4 focus-within:ring-teal-500/10" dir="ltr"><span className="flex items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500">+20</span><input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" autoComplete="tel-national" className="min-w-0 flex-1 px-3 text-sm outline-none" placeholder="10XXXXXXXX" /></div></label>
+              <label className="block space-y-2"><span className="flex items-center gap-1 text-xs font-bold text-slate-700">رقم الهاتف المحمول</span><div className="flex h-11 overflow-hidden rounded-xl border border-slate-200 focus-within:border-teal-500 focus-within:ring-4 focus-within:ring-teal-500/10" dir="ltr"><span className="flex items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500">+20</span><input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" autoComplete="tel-national" className="min-w-0 flex-1 px-3 text-sm outline-none" placeholder="10XXXXXXXX" /></div></label>
               <label className="block space-y-2"><span className="text-xs font-bold text-slate-700">البريد الإلكتروني</span><input value={email} readOnly dir="ltr" className="h-11 w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 px-3 text-left text-sm text-slate-500 outline-none" /><span className="block text-[11px] text-slate-400">لتغيير بريد حسابك تواصل مع الدعم.</span></label>
             </div>
             <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
