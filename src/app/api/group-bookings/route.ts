@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   }
   try {
     const { data: requests, error } = await auth.admin.from("group_booking_requests")
-      .select("id,patient_id,group_code,selected_times,status,created_at,sessions_total")
+      .select("id,patient_id,group_code,selected_times,selected_dates,status,created_at,sessions_total")
       .eq("clinic_id", auth.clinicId).order("created_at", { ascending: false }).limit(100);
     if (error) throw error;
     const patientIds = [...new Set((requests || []).map((item: any) => item.patient_id))];
