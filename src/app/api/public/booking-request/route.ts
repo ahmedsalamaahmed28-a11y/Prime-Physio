@@ -81,8 +81,13 @@ export async function GET(request: NextRequest) {
   try {
     const clinic = await getClinic(slug);
     if (!clinic) return NextResponse.json({ error: "Clinic not found" }, { status: 404, headers: noStore });
-    const hours = getTodayHours(getWeeklyHours(clinic.settings?.working_hours, clinic.settings?.branches));
-    if (!hours) return NextResponse.json({ slots: [], configured: false }, { headers: noStore });
+    const weeklyHours = getWeeklyHours(clinic.settings?.working_hours, clinic.settings?.branches);
+    const hours = getTodayHours(weeklyHours);
+    if (!hours) return NextResponse.json({
+      slots: [],
+      configured: weeklyHours.length > 0,
+      closed: weeklyHours.length > 0,
+    }, { headers: noStore });
 
     const today = cairoDate();
     const admin = getAdminClient();
