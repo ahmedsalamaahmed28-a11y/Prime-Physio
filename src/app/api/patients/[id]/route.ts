@@ -199,7 +199,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
 
 
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const auth = await getAuthorizedClinic();
+  const auth = await getAuthorizedClinic(request);
   if ("response" in auth) return auth.response;
   if (!hasStaffPermission(auth.staff, "delete_patient")) {
     return NextResponse.json({ error: "ليس لديك صلاحية حذف المرضى" }, { status: 403 });
