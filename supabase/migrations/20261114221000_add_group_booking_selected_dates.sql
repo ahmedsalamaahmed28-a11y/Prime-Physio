@@ -1,0 +1,1 @@
+ALTER TABLE public.group_booking_requests ADD COLUMN IF NOT EXISTS selected_dates jsonb NOT NULL DEFAULT '{}'::jsonb;
