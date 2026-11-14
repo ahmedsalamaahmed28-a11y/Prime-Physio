@@ -61,7 +61,7 @@ BEGIN
     FROM public.appointments a
     CROSS JOIN LATERAL (
       SELECT CASE
-        WHEN pg_catalog.btrim(a.time) ~ '^([01]?\d|2[0-3]):[0-5]\d
+        WHEN pg_catalog.btrim(a.time) ~ '^([01]?\d|2[0-3]):[0-5]\d$'
           THEN split_part(pg_catalog.btrim(a.time), ':', 1)::integer * 60 + pg_catalog.substring(pg_catalog.btrim(a.time) from ':(\d{2})')::integer
         WHEN pg_catalog.upper(pg_catalog.btrim(a.time)) ~ '^\d{1,2}:[0-5]\d\s*(AM|PM)$'
           THEN (
