@@ -83,7 +83,12 @@ export async function POST(req: NextRequest) {
       // Rollback auth_accounts
       try { await admin.from("auth_accounts").delete().eq("email", email); } catch {}
       console.error("[StaffInvite] Failed to create staff:", staffError.message);
-      return NextResponse.json({ error: "فشل إنشاء بيانات الموظف" }, { status: 500 });
+      const activeLimit = /PLAN_LIMIT_ACTIVE_USERS/i.test(staffError.message || "");
+      const totalLimit = /PLAN_LIMIT_TOTAL_USERS/i.test(staffError.message || "");
+      return NextResponse.json(
+        { error: activeLimit ? "وصلت إلى الحد الأقصى للمستخدمين النشطين في باقتك. رقِّ الباقة أو عطّل حسابًا آخر." : totalLimit ? "وصلت إلى الحد الأقصى لإجمالي المستخدمين في باقتك." : "فشل إنشاء بيانات الموظف" },
+        { status: activeLimit || totalLimit ? 403 : 500 }
+      );
     }
 
     return NextResponse.json({ success: true });
