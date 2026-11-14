@@ -22,7 +22,7 @@ async function verifyPatient(admin: ReturnType<typeof getAdminClient>, patientId
 
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await getAuthorizedClinic(request);
-  if ("error" in auth) return auth.error;
+  if ("response" in auth) return auth.response;
   const { id } = await context.params;
 
   try {
@@ -58,8 +58,8 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 }
 
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const auth = await getAuthorizedClinic();
-  if ("error" in auth) return auth.error;
+  const auth = await getAuthorizedClinic(request);
+  if ("response" in auth) return auth.response;
   const { id } = await context.params;
 
   const inserted: { table: string; id: string }[] = [];
