@@ -140,7 +140,12 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
     return NextResponse.json({ success: true, attachment }, { status: 201 });
   } catch (error) {
     console.error("[Patient Attachments] Upload failed:", error);
-    return NextResponse.json({ error: "تعذر رفع الملف. حاول مرة أخرى." }, { status: 500 });
+    const message = error instanceof Error ? error.message : "";
+    const storageLimit = /PLAN_LIMIT_STORAGE/i.test(message);
+    return NextResponse.json(
+      { error: storageLimit ? "وصلت إلى الحد الأقصى لمساحة التخزين في باقتك. احذف ملفات غير ضرورية أو رقِّ الباقة." : "تعذر رفع الملف. حاول مرة أخرى." },
+      { status: storageLimit ? 413 : 500 }
+    );
   }
 }
 
