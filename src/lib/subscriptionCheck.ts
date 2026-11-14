@@ -66,13 +66,20 @@ export async function checkSubscriptionLimit(
   if (resource === "active_users" || resource === "total_users") {
     const { data, error } = await admin
       .from("staff")
-      .select("status")
+      .select("status,email")
       .eq("clinic_id", clinicId);
     if (error) throw error;
-    const rows = data || [];
-    current = resource === "active_users"
+    const { data: owners, error: ownersError } = await admin
+      .from("clinic_owners")
+      .select("owner_email")
+      .eq("clinic_id", clinicId);
+    if (ownersError) throw ownersError;
+    const ownerEmails = new Set((owners || []).map((owner) => String(owner.owner_email || "").trim().toLowerCase()));
+    const rows = (data || []).filter((row) => !ownerEmails.has(String(row.email || "").trim().toLowerCase()));
+    const ownerCount = ownerEmails.size;
+    current = ownerCount + (resource === "active_users"
       ? rows.filter((row) => ACTIVE_STATUSES.has(String(row.status || "").trim().toLowerCase())).length
-      : rows.filter((row) => !DELETED_STATUSES.has(String(row.status || "").trim().toLowerCase())).length;
+      : rows.filter((row) => !DELETED_STATUSES.has(String(row.status || "").trim().toLowerCase())).length);
     limit = resource === "active_users" ? limits.activeUsers : limits.totalUsers;
   } else if (resource === "sessions") {
     const now = new Date();
