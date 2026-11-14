@@ -331,8 +331,8 @@ export default function CenterManagementPage() {
                         </div>
 
                         <div className="flex min-h-[40px] items-center gap-2.5 rounded-[10px] bg-[#F5F8FC] px-3 py-2">
-                          <span className="min-w-0 flex-1 truncate text-left text-[12px] font-semibold text-[#52647A] sm:text-[13px]" dir="ltr">{center.slug ? `${typeof window !== "undefined" ? window.location.host : "primephysio.vercel.app"}${shareUrl}` : "—"}</span>
                           <button type="button" disabled={!center.slug} onClick={() => center.slug && copyCenterUrl(center.slug)} className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-[#E8EBF1] bg-white px-2.5 text-[10px] font-bold text-[#303846] shadow-sm transition hover:bg-[#F8FAFD] disabled:opacity-40"><Copy className="h-3.5 w-3.5" />{isRtl ? "نسخ" : "Copy"}</button>
+                          <span className="min-w-0 flex-1 truncate text-left text-[12px] font-semibold text-[#52647A] sm:text-[13px]" dir="ltr">{center.slug ? `${typeof window !== "undefined" ? window.location.host : "primephysio.vercel.app"}${shareUrl}` : "—"}</span>
                         </div>
 
                         <div className="grid grid-cols-3 divide-x divide-x-reverse divide-[#EEF0F3] text-center">
