@@ -17,10 +17,13 @@ import {
 } from "@/components/ui/dialog";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/LanguageContext";
+import { useAuth } from "@/lib/auth";
 
 export default function UsersPermissionsPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
+  const { user } = useAuth();
+  const clinicId = user?.clinicId;
   const tr = (value: string) => {
     if (isRtl) return value;
     const translations: Record<string, string> = {
@@ -112,7 +115,8 @@ export default function UsersPermissionsPage() {
 
   useEffect(() => {
     async function loadUsers() {
-      const { data, error } = await supabase.from("staff").select("*").order("created_at", { ascending: true });
+      if (!clinicId) { setUsers([]); return; }
+      const { data, error } = await supabase.from("staff").select("*").eq("clinic_id", clinicId).order("created_at", { ascending: true });
       if (error) {
         console.error("Failed to load staff from Supabase", error);
         setUsers([]);
@@ -129,10 +133,11 @@ export default function UsersPermissionsPage() {
       })));
     }
     loadUsers();
-  }, []);
+  }, [clinicId]);
 
   const saveUsers = async () => {
-    const { data, error } = await supabase.from("staff").select("*").order("created_at", { ascending: true });
+    if (!clinicId) return;
+    const { data, error } = await supabase.from("staff").select("*").eq("clinic_id", clinicId).order("created_at", { ascending: true });
     if (error) {
       console.error("Failed to refresh staff from Supabase", error);
       return;
@@ -172,6 +177,7 @@ export default function UsersPermissionsPage() {
 
   const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!clinicId) { alert(isRtl ? "اختر مركزًا أولاً." : "Select a center first."); return; }
     if (!formData.name || !formData.email) {
       alert("الرجاء إدخال الاسم والبريد الإلكتروني");
       return;
@@ -191,6 +197,7 @@ export default function UsersPermissionsPage() {
       phone: formData.phone,
       date_joined: formData.dateJoined,
       status: formData.status,
+      clinic_id: clinicId,
     });
     if (error) {
       console.error("Failed to add user to Supabase", error);
@@ -226,6 +233,7 @@ export default function UsersPermissionsPage() {
 
   const handleEditUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!clinicId || !editingUserEmail) return;
     if (!editFormData.name || !editFormData.email) {
       alert("الرجاء إدخال الاسم والبريد الإلكتروني");
       return;
@@ -241,6 +249,7 @@ export default function UsersPermissionsPage() {
         date_joined: editFormData.dateJoined,
         status: editFormData.status,
       })
+      .eq("clinic_id", clinicId)
       .eq("email", editingUserEmail);
     if (error) {
       console.error("Failed to update user in Supabase", error);
@@ -257,8 +266,8 @@ export default function UsersPermissionsPage() {
   };
 
   const executeDeleteUser = async () => {
-    if (!deleteUserEmail) return;
-    const { error } = await supabase.from("staff").delete().eq("email", deleteUserEmail);
+    if (!deleteUserEmail || !clinicId) return;
+    const { error } = await supabase.from("staff").delete().eq("clinic_id", clinicId).eq("email", deleteUserEmail);
     if (error) {
       console.error("Failed to delete user from Supabase", error);
       alert("فشل حذف المستخدم");
