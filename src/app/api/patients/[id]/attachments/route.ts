@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase-admin";
 import { getClinicContext } from "@/lib/server/clinic-context";
 import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
 
@@ -17,7 +16,7 @@ async function authorize(req: NextRequest) {
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await authorize(_request);
-  if ("error" in auth) return auth.error;
+  if ("response" in auth) return auth.response;
   if (!canViewPatientHistory(auth.staff)) {
     return NextResponse.json({ error: "ليس لديك صلاحية الاطلاع على المرفقات الطبية" }, { status: 403 });
   }
@@ -56,8 +55,8 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
 }
 
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const auth = await authorize();
-  if ("error" in auth) return auth.error;
+  const auth = await authorize(request);
+  if ("response" in auth) return auth.response;
   if (!hasStaffPermission(auth.staff, "edit_emr")) {
     return NextResponse.json({ error: "ليس لديك صلاحية رفع المرفقات الطبية" }, { status: 403 });
   }
@@ -129,7 +128,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await authorize();
-  if ("error" in auth) return auth.error;
+  if ("response" in auth) return auth.response;
   if (!hasStaffPermission(auth.staff, "delete_emr")) {
     return NextResponse.json({ error: "ليس لديك صلاحية حذف المرفقات الطبية" }, { status: 403 });
   }
