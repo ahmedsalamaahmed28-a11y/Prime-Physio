@@ -75,7 +75,7 @@ export default function BrandedClinicPage() {
       const parsed = JSON.parse(clinic.working_hours);
       return Array.isArray(parsed) ? parsed : [];
     } catch { return []; }
-  }, [clinic?.working_hours]);
+  }, [clinic]);
   const weekdayLabels: Record<string, string> = {
     "الأحد": "Sunday", "الاثنين": "Monday", "الثلاثاء": "Tuesday", "الأربعاء": "Wednesday",
     "الخميس": "Thursday", "الجمعة": "Friday", "السبت": "Saturday",
