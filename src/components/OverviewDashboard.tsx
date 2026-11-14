@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/lib/auth";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Activity, CalendarDays, Check, ChevronLeft, HelpCircle,
+  Activity, CalendarDays, Check, ChevronLeft,
   ExternalLink, RefreshCw, Users, User, CreditCard, Building,
   Stethoscope
 } from "lucide-react";
@@ -106,7 +106,6 @@ export default function OverviewDashboard() {
             <button onClick={() => load(true)} disabled={refreshing} className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 shadow-sm transition hover:border-blue-200 hover:text-[#1262A8] disabled:opacity-60">
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} /> تحديث
             </button>
-            <button type="button" title="مساعدة حول النظرة العامة" className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-[#1262A8]"><HelpCircle className="h-[18px] w-[18px]" /></button>
             <Link href="/centers.php/" className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#1262A8] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#0D528E]"><Building className="h-4 w-4" /> مراكزي</Link>
           </div>
         </header>
@@ -116,7 +115,6 @@ export default function OverviewDashboard() {
         <section className="mb-9">
           <div className="mb-4 flex items-center gap-2">
             <h2 className="text-[19px] font-extrabold text-[#20364D] sm:text-[21px]">هذا الشهر، كل المراكز</h2>
-            <button title="تعرض هذه المؤشرات ملخص جميع المراكز التابعة لحسابك" className="text-slate-400 hover:text-[#1262A8]"><HelpCircle className="h-4 w-4" /></button>
           </div>
           {loading ? <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">{Array.from({length:8}).map((_,i)=><div key={i} className="h-[126px] animate-pulse rounded-2xl border border-slate-100 bg-white" />)}</div> : (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
@@ -141,7 +139,6 @@ export default function OverviewDashboard() {
         <section className="mb-10">
           <div className="mb-4 flex items-center gap-2">
             <h2 className="text-[19px] font-extrabold text-[#20364D] sm:text-[21px]">الفروع جنباً إلى جنب</h2>
-            <button title="مقارنة الجلسات والحضور والمدفوعات والفرق بين الفروع" className="text-slate-400 hover:text-[#1262A8]"><HelpCircle className="h-4 w-4" /></button>
           </div>
           <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_2px_10px_rgba(15,23,42,.025)]">
             <div className="hidden grid-cols-[minmax(190px,1.7fr)_repeat(6,minmax(75px,.7fr))_minmax(90px,.8fr)] items-center gap-3 border-b border-slate-100 bg-slate-50/80 px-5 py-3 text-[11px] font-bold text-slate-500 lg:grid">
@@ -174,7 +171,6 @@ export default function OverviewDashboard() {
         <section className="mb-10">
           <div className="mb-4 flex items-center gap-2">
             <h2 className="text-[19px] font-extrabold text-[#20364D] sm:text-[21px]">أكمل تجهيز مراكزك</h2>
-            <button title="أكمل الخطوات لمساعدة مركزك على البدء" className="text-slate-400 hover:text-[#1262A8]"><HelpCircle className="h-4 w-4" /></button>
           </div>
           <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
             {(data?.centers || []).map((center) => {
