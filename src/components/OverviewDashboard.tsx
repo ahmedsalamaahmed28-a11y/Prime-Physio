@@ -62,8 +62,16 @@ export default function OverviewDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [currentTime, setCurrentTime] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const month = useMemo(() => new Intl.DateTimeFormat("ar-EG", { month: "long", year: "numeric", timeZone: "Africa/Cairo" }).format(new Date()), []);
+  const month = useMemo(() => currentTime === null ? "" : new Intl.DateTimeFormat("ar-EG", { month: "long", year: "numeric", timeZone: "Africa/Cairo" }).format(new Date(currentTime)), [currentTime]);
+
+  useEffect(() => {
+    const updateCurrentTime = () => setCurrentTime(Date.now());
+    updateCurrentTime();
+    const intervalId = window.setInterval(updateCurrentTime, 60_000);
+    return () => window.clearInterval(intervalId);
+  }, []);
   const displayName = user?.name?.replace(/^د\\.\\s*/, "").trim() || user?.email?.split("@")[0] || "Ahmed";
   const load = useCallback(async (manual = false) => {
     if (manual) setRefreshing(true);
@@ -92,7 +100,8 @@ export default function OverviewDashboard() {
 
   const totals = data?.totals;
   const currency = (value: number) => new Intl.NumberFormat("en-EG", { maximumFractionDigits: 0 }).format(value);
-  const ago = lastUpdated ? (Math.max(0, Math.floor((Date.now() - lastUpdated.getTime()) / 60000)) <= 1 ? "منذ دقيقة" : `منذ ${Math.floor((Date.now() - lastUpdated.getTime()) / 60000)} دقيقة`) : "—";
+  const minutesAgo = currentTime !== null && lastUpdated ? Math.max(0, Math.floor((currentTime - lastUpdated.getTime()) / 60000)) : null;
+  const ago = minutesAgo === null ? "—" : minutesAgo <= 1 ? "منذ دقيقة" : `منذ ${minutesAgo} دقيقة`;
 
   return (
     <main dir="rtl" className="min-h-screen bg-[#F7F9FC] font-sans text-[#263445]">
