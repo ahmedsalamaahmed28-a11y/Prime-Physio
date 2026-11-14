@@ -45,7 +45,7 @@ function getWeeklyHours(workingHours: unknown, branches: unknown): any[] {
 }
 
 function normalizeDay(value: unknown): string {
-  return String(value || "").trim().replace(/[إأآ]/g, "ا").replace(/\\s+/g, "");
+  return String(value || "").trim().replace(/[إأآ]/g, "ا").replace(/\s+/g, "");
 }
 
 function getTodayHours(rows: any[]) {
@@ -55,7 +55,7 @@ function getTodayHours(rows: any[]) {
   if (!row || row.isOpen === false || !row.from || !row.to) return null;
   const from = normalizeTime(row.from);
   const to = normalizeTime(row.to);
-  if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(from) || !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(to)) return null;
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(from) || !/^([01]\d|2[0-3]):[0-5]\d$/.test(to)) return null;
   return { from, to };
 }
 
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
   try {
     const clinic = await getClinic(slug);
     if (!clinic) return NextResponse.json({ error: "Clinic not found" }, { status: 404, headers: noStore });
-    const hours = getTodayHours(clinic.settings?.working_hours);
+    const hours = getTodayHours(getWeeklyHours(clinic.settings?.working_hours, clinic.settings?.branches));
     if (!hours) return NextResponse.json({ slots: [], configured: false }, { headers: noStore });
 
     const today = cairoDate();
