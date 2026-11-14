@@ -1,31 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase-admin";
+import { getClinicContext } from "@/lib/server/clinic-context";
 import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
 import { checkSubscriptionLimit } from "@/lib/subscriptionCheck";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-async function authorize() {
-  const session = await getServerSession(authOptions);
-  const email = session?.user?.email?.toLowerCase().trim();
-  if (!email) return { response: NextResponse.json({ error: "يجب تسجيل الدخول أولاً" }, { status: 401 }) };
-  const admin = getAdminClient();
-  const { data: staff, error } = await admin.from("staff").select("clinic_id,status,role,permissions").eq("email", email).limit(1).maybeSingle();
-  if (error) {
-    console.error("[Calendar API] Staff lookup failed:", error);
-    return { response: NextResponse.json({ error: "تعذر التحقق من صلاحية الحساب" }, { status: 503 }) };
-  }
-  if (!staff?.clinic_id || staff.status === "محذوف") {
-    return { response: NextResponse.json({ error: "لا توجد صلاحية نشطة لهذه العيادة" }, { status: 403 }) };
-  }
-  return { admin, clinicId: staff.clinic_id, staff };
+async function authorize(req: NextRequest) {
+  return getClinicContext(req);
 }
 
-export async function GET() {
-  const auth = await authorize();
+export async function GET(req: NextRequest) {
+  const auth = await authorize(req);
   if ("response" in auth) return auth.response;
   try {
     const [patients, appointments, doctors, rooms, participants] = await Promise.all([
