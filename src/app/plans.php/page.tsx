@@ -50,7 +50,7 @@ const faqs = [
   { q: "هل يمكنني إيقاف التجديد التلقائي؟", a: "نعم، يمكنك إيقافه في أي وقت من صفحة الحساب والاشتراك. لن يتم خصم أي مبلغ آخر، وتبقى باقتك فعالة حتى نهاية المدة المدفوعة، مع الاحتفاظ ببياناتك وإمكانية التجديد لاحقاً." },
   { q: "هل يمكنني تغيير باقتي لاحقاً؟", a: "نعم، يمكنك طلب ترقية باقتك في أي وقت. تظل مراكزك وبياناتك كما هي." },
   { q: "هل بياناتي محفوظة احتياطياً؟ وهل يمكنني أخذها معي؟", a: "يمكنك في كل الباقات تصدير بياناتك إلى Excel في أي وقت. وتشمل الباقات المدفوعة نسخاً احتياطية وفق الجدول الموضح في المقارنة. كما يمكنك طلب التصدير الكامل لبيانات المركز، شاملاً الحالات وملفاتها وتقييماتها والجلسات والمدفوعات والموظفين؛ أول تصدير لكل مركز مجاناً، ثم 100 دولار لكل مرة." },
-  { q: "من هو المستخدم النشط؟", a: "أي موظف أو حالة حسابه مفعّل في مركزك. الحسابات التي توقفها لا تُحسب ضمن المستخدمين النشطين." },
+  { q: "من هو المستخدم النشط؟", a: "يُحتسب مالك المركز وكل فرد من فريق العمل ضمن إجمالي المستخدمين. ويُحتسب الحساب ضمن المستخدمين النشطين إذا كانت حالته نشطة؛ أما الحسابات المحذوفة فلا تُحتسب." },
   { q: "هل يوجد اشتراك سنوي أو دفع بالجنيه المصري؟", a: "نعم، يمكنك الدفع بالجنيه المصري عبر إنستاباي، مع عرض 12 شهراً بسعر 10 أشهر. للاستفسارات والتنسيق تواصل معنا عبر واتساب." },
 ];
 
@@ -113,7 +113,7 @@ export default function PlansPhpPage() {
                     <div className="my-4 h-px bg-slate-100" />
                     <ul className="flex-1 space-y-3 text-xs leading-5 text-slate-700">
                       {["مستخدم نشط", "مستخدم إجمالاً", "مركز", "جلسة شهرياً", "مساحة تخزين"].map((label, i) => <li key={label} className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b className="font-extrabold text-slate-900">{plan.limits[i]}</b> {label}{i === 0 || i === 1 ? "" : ""}</span></li>)}
-                      <li className="flex items-start gap-2"><HelpCircle size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b>الدعم:</b> {plan.support}</span></li>
+                      <li className="flex items-start gap-2"><HelpCircle size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b>الدعم:</b> {plan.name === "المجانية" ? <a href="mailto:support@prime-physio.com" className="font-bold text-[#5B50C7] underline underline-offset-2">البريد الإلكتروني</a> : plan.support}</span></li>
                       <li className="flex items-start gap-2"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{plan.backup}</span></li>
                       <li className="flex items-start gap-2"><Download size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>تصدير بياناتك إلى Excel في أي وقت</span></li>
                     </ul>
@@ -122,6 +122,9 @@ export default function PlansPhpPage() {
                 );
               })}
             </div>
+            <p className="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs leading-6 text-slate-500">
+              تُحتسب حسابات مالك المركز وفريق العمل ضمن المستخدمين. الجلسات تُحسب شهرياً، ومساحة التخزين تشمل ملفات ومرفقات المرضى، وعدد المراكز يُحسب على مستوى مالك الحساب.
+            </p>
           </section>
 
           <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.035)]">
