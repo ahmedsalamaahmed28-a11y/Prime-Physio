@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase-admin";
+import { getClinicContext } from "@/lib/server/clinic-context";
 import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
@@ -12,33 +11,12 @@ const MAX_FILE_SIZE = 20 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["application/pdf", "image/jpeg", "image/png", "image/webp"]);
 const ALLOWED_CATEGORIES = new Set(["imaging", "lab", "report", "other"]);
 
-async function authorize() {
-  const session = await getServerSession(authOptions);
-  const email = session?.user?.email?.toLowerCase().trim();
-  if (!email) {
-    return { error: NextResponse.json({ error: "يجب تسجيل الدخول أولاً" }, { status: 401 }) };
-  }
-
-  const admin = getAdminClient();
-  const { data: staff, error } = await admin
-    .from("staff")
-    .select("id,clinic_id,status,role,permissions")
-    .eq("email", email)
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    console.error("[Patient Attachments] Staff lookup failed:", error);
-    return { error: NextResponse.json({ error: "تعذر التحقق من صلاحية الحساب" }, { status: 503 }) };
-  }
-  if (!staff?.clinic_id || staff.status === "محذوف") {
-    return { error: NextResponse.json({ error: "لا توجد صلاحية نشطة لهذه العيادة" }, { status: 403 }) };
-  }
-  return { admin, clinicId: staff.clinic_id, staff };
+async function authorize(req: NextRequest) {
+  return getClinicContext(req);
 }
 
 export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const auth = await authorize();
+  const auth = await authorize(_request);
   if ("error" in auth) return auth.error;
   if (!canViewPatientHistory(auth.staff)) {
     return NextResponse.json({ error: "ليس لديك صلاحية الاطلاع على المرفقات الطبية" }, { status: 403 });
@@ -122,7 +100,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
         clinic_id: auth.clinicId,
         branch_id: patient.branch_id,
         patient_id: id,
-        uploaded_by_staff_id: auth.staff.id,
+        uploaded_by_staff_id: auth.staff.id || null,
         file_path: filePath,
         file_name: file.name.slice(0, 255),
         mime_type: file.type,
