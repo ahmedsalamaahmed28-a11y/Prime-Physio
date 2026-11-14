@@ -71,7 +71,7 @@ function hoursForDay(rows: any[], day: { ar: string; en: string }) {
 async function availabilityForClinic(clinic: any) {
   const rows = getWeeklyHours(clinic.settings?.working_hours, clinic.settings?.branches);
   const admin = getAdminClient();
-  const { data: appointments, error } = await admin.from("appointments").select("date,time,status,starts_at,ends_at,start_time,end_time,duration").eq("clinic_id", clinic.id);
+  const { data: appointments, error } = await admin.from("appointments").select("date,time,status,starts_at,ends_at,start_time,end_time,duration,is_group_session").eq("clinic_id", clinic.id);
   if (error) throw error;
   const groups: Record<string, any[]> = { A: [], B: [] };
   for (const [groupCode, days] of Object.entries(GROUP_DAYS)) {
@@ -81,6 +81,7 @@ async function availabilityForClinic(clinic: any) {
       const occupied: Array<{ start: number; end: number }> = [];
       for (const appointment of appointments || []) {
         const status = String(appointment.status || "").toLowerCase();
+        if (appointment.is_group_session) continue;
         if (["cancelled", "canceled", "ملغي", "ملغى", "rejected", "منتهي", "completed"].includes(status)) continue;
         let appointmentDate = String(appointment.date || ""), start = -1, end = -1;
         if (appointment.starts_at) {
