@@ -24,7 +24,7 @@ The test performs four read-only REST requests:
 - Tenant B can read its own synthetic patient.
 - Tenant B cannot read Tenant A's synthetic patient.
 
-It refuses to run against the production project reference `crrhrjhftwostjomzmfj`. It does not create, update, or delete records and never prints patient values or access tokens.
+It obtains fresh short-lived access tokens at runtime by signing in with two dedicated test accounts. It refuses to run against the production project reference `crrhrjhftwostjomzmfj`. It does not create, update, or delete records and never prints patient values, passwords, or access tokens.
 
 Configure these GitHub repository variables/secrets before expecting a real integration test:
 
@@ -34,10 +34,12 @@ Configure these GitHub repository variables/secrets before expecting a real inte
 | `TENANT_A_TEST_PATIENT_ID` | Variable | Synthetic patient ID owned by test clinic A |
 | `TENANT_B_TEST_PATIENT_ID` | Variable | Synthetic patient ID owned by test clinic B |
 | `SUPABASE_TEST_ANON_KEY` | Secret | Publishable/anon key for the test project |
-| `TENANT_A_ACCESS_TOKEN` | Secret | Authenticated access token for test user A |
-| `TENANT_B_ACCESS_TOKEN` | Secret | Authenticated access token for test user B |
+| `TENANT_A_TEST_EMAIL` | Secret | Email for confirmed test user A |
+| `TENANT_A_TEST_PASSWORD` | Secret | Password for test user A |
+| `TENANT_B_TEST_EMAIL` | Secret | Email for confirmed test user B |
+| `TENANT_B_TEST_PASSWORD` | Secret | Password for test user B |
 
-If these values are absent, the workflow explicitly reports **SKIPPED** rather than pretending that isolation was tested. Never use real patient records as test fixtures.
+Create two synthetic test clinics, two confirmed test users, and one synthetic patient in each clinic in that separate project. Keep its schema/migrations aligned with production. If these values are absent, the workflow explicitly reports **SKIPPED** rather than pretending that isolation was tested. Never use real patient records as test fixtures.
 
 ## 3. Database integrity monitor
 

@@ -29,8 +29,10 @@ jobs:
         env:
           SUPABASE_TEST_PROJECT_REF: ${{ vars.SUPABASE_TEST_PROJECT_REF }}
           SUPABASE_TEST_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
-          TENANT_A_ACCESS_TOKEN: ${{ secrets.TENANT_A_ACCESS_TOKEN }}
-          TENANT_B_ACCESS_TOKEN: ${{ secrets.TENANT_B_ACCESS_TOKEN }}
+          TENANT_A_TEST_EMAIL: ${{ secrets.TENANT_A_TEST_EMAIL }}
+          TENANT_A_TEST_PASSWORD: ${{ secrets.TENANT_A_TEST_PASSWORD }}
+          TENANT_B_TEST_EMAIL: ${{ secrets.TENANT_B_TEST_EMAIL }}
+          TENANT_B_TEST_PASSWORD: ${{ secrets.TENANT_B_TEST_PASSWORD }}
           TENANT_A_TEST_PATIENT_ID: ${{ vars.TENANT_A_TEST_PATIENT_ID }}
           TENANT_B_TEST_PATIENT_ID: ${{ vars.TENANT_B_TEST_PATIENT_ID }}
         run: node scripts/check-tenant-isolation.mjs

@@ -1,8 +1,10 @@
 const required = [
   "SUPABASE_TEST_PROJECT_REF",
   "SUPABASE_TEST_ANON_KEY",
-  "TENANT_A_ACCESS_TOKEN",
-  "TENANT_B_ACCESS_TOKEN",
+  "TENANT_A_TEST_EMAIL",
+  "TENANT_A_TEST_PASSWORD",
+  "TENANT_B_TEST_EMAIL",
+  "TENANT_B_TEST_PASSWORD",
   "TENANT_A_TEST_PATIENT_ID",
   "TENANT_B_TEST_PATIENT_ID",
 ];
@@ -12,7 +14,7 @@ if (missing.length) {
   console.log(
     `SKIPPED: tenant isolation integration test is not configured. Missing repository variables/secrets: ${missing.join(", ")}.`,
   );
-  console.log("Configure a dedicated non-production Supabase test project and two synthetic patient fixtures before enabling this test.");
+  console.log("Configure a dedicated non-production Supabase test project and two synthetic test users/patients before enabling this test.");
   process.exit(0);
 }
 
@@ -32,11 +34,34 @@ if (!patientA || !patientB || patientA === patientB) {
   throw new Error("Tenant A and Tenant B must use two different synthetic patient IDs.");
 }
 
-const baseUrl = `https://${projectRef}.supabase.co/rest/v1/patients`;
+const projectUrl = `https://${projectRef}.supabase.co`;
 const anonKey = process.env.SUPABASE_TEST_ANON_KEY;
 
+async function signIn(email, password) {
+  const response = await fetch(`${projectUrl}/auth/v1/token?grant_type=password`, {
+    method: "POST",
+    headers: {
+      apikey: anonKey,
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({ email, password }),
+    signal: AbortSignal.timeout(15000),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Supabase test sign-in failed with HTTP ${response.status}; verify the synthetic test account and project Auth settings.`);
+  }
+
+  const payload = await response.json();
+  if (typeof payload.access_token !== "string" || !payload.access_token) {
+    throw new Error("Supabase did not return a test access token.");
+  }
+  return payload.access_token;
+}
+
 async function canReadPatient(token, patientId) {
-  const url = new URL(baseUrl);
+  const url = new URL(`${projectUrl}/rest/v1/patients`);
   url.search = new URLSearchParams({
     select: "id",
     id: `eq.${patientId}`,
@@ -64,11 +89,16 @@ async function canReadPatient(token, patientId) {
   return rows.length > 0;
 }
 
+const [tokenA, tokenB] = await Promise.all([
+  signIn(process.env.TENANT_A_TEST_EMAIL, process.env.TENANT_A_TEST_PASSWORD),
+  signIn(process.env.TENANT_B_TEST_EMAIL, process.env.TENANT_B_TEST_PASSWORD),
+]);
+
 const checks = [
-  ["Tenant A can read its own synthetic patient", process.env.TENANT_A_ACCESS_TOKEN, patientA, true],
-  ["Tenant A cannot read Tenant B's synthetic patient", process.env.TENANT_A_ACCESS_TOKEN, patientB, false],
-  ["Tenant B can read its own synthetic patient", process.env.TENANT_B_ACCESS_TOKEN, patientB, true],
-  ["Tenant B cannot read Tenant A's synthetic patient", process.env.TENANT_B_ACCESS_TOKEN, patientA, false],
+  ["Tenant A can read its own synthetic patient", tokenA, patientA, true],
+  ["Tenant A cannot read Tenant B's synthetic patient", tokenA, patientB, false],
+  ["Tenant B can read its own synthetic patient", tokenB, patientB, true],
+  ["Tenant B cannot read Tenant A's synthetic patient", tokenB, patientA, false],
 ];
 
 let failed = 0;
@@ -85,4 +115,4 @@ for (const [label, token, patientId, expected] of checks) {
 if (failed) {
   throw new Error(`${failed} tenant isolation assertion(s) failed. No records were changed.`);
 }
-console.log("Tenant isolation checks passed. The test performed read-only requests and returned no patient details.");
+console.log("Tenant isolation checks passed. The test used short-lived tokens and read-only requests; no patient details were returned.");
