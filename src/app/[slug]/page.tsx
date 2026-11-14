@@ -166,44 +166,58 @@ export default function BrandedClinicPage() {
     setBookingNotice("");
     const age = Number(bookingAge);
     if (!Number.isInteger(age) || age < 1 || age > 120 || !bookingTime) {
-      setBookingNotice(isRtl ? "يرجى إدخال سن صحيح واختيار موعد متاح." : "Enter a valid age and choose an available time.");
-      return;
-    }
-    if (!whatsappNumber) {
-      setBookingNotice(isRtl ? "رقم واتساب المركز غير متاح حاليًا. يُرجى التواصل مع المركز مباشرة." : "The clinic WhatsApp number is unavailable.");
+      setBookingNotice(isRtl ? "يرجى مراجعة السن واختيار موعد متاح." : "Please check the age and choose an available time.");
       return;
     }
 
-    const whatsappWindow = window.open("about:blank", "_blank");
     setBookingSubmitting(true);
     try {
       const response = await fetch("/api/public/booking-request", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, name: bookingName.trim(), age, phone: bookingPhone.trim(), address: bookingAddress.trim(), time: bookingTime }),
+        body: JSON.stringify({
+          slug,
+          name: bookingName.trim(),
+          age,
+          phone: bookingPhone.trim(),
+          address: bookingAddress.trim(),
+          time: bookingTime,
+        }),
       });
       const payload = await response.json().catch(() => ({}));
-      if (!response.ok || !payload.success) throw new Error(payload.error || (isRtl ? "تعذر إرسال طلب الموعد." : "Could not submit appointment request."));
 
-      const message = isRtl
-        ? `مرحبًا، أرغب في طلب جلسة في ${displayName}.\nالاسم بالكامل: ${bookingName.trim()}\nالسن: ${age} سنة\nرقم الهاتف: ${bookingPhone.trim()}\nالقسم: ${payload.categoryAr}\nالعنوان: ${bookingAddress.trim()}\nالموعد المطلوب اليوم: ${bookingTime}\nبرجاء تأكيد توافر الموعد.`
-        : `Hello, I would like to request a session at ${displayName}.\nFull name: ${bookingName.trim()}\nAge: ${age}\nPhone: ${bookingPhone.trim()}\nDepartment: ${payload.category}\nAddress: ${bookingAddress.trim()}\nRequested time today: ${bookingTime}\nPlease confirm the appointment.`;
-      const waUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-      if (whatsappWindow) whatsappWindow.location.href = waUrl;
-      else window.location.href = waUrl;
+      if (response.status === 409) {
+        const availabilityResponse = await fetch("/api/public/booking-request?slug=" + encodeURIComponent(slug), { cache: "no-store" });
+        const availability = await availabilityResponse.json().catch(() => ({}));
+        if (availabilityResponse.ok) {
+          setAvailableSlots(Array.isArray(availability.slots) ? availability.slots : []);
+          setAvailabilityConfigured(Boolean(availability.configured));
+        }
+        setBookingTime("");
+        setBookingStep("time");
+        const conflictMessage = payload.error || (isRtl ? "الموعد لم يعد متاحًا. اختار موعدًا آخر." : "That time is no longer available. Please choose another.");
+        setBookingNotice(conflictMessage);
+        setBookingMessages(current => [...current, { role: "assistant", text: conflictMessage }]);
+        return;
+      }
 
-      setBookingNotice(isRtl
-        ? `تم تسجيل طلب الحجز وإرسال إشعار داخل المنصة. المريض مُصنّف تلقائيًا ضمن ${payload.categoryAr}، والموعد بانتظار تأكيد المركز عبر واتساب.`
-        : `Your booking request was recorded and the clinic was notified. The patient is assigned to ${payload.category}; the time is pending WhatsApp confirmation.`);
+      if (!response.ok || !payload.success || !payload.confirmed) {
+        throw new Error(payload.error || (isRtl ? "تعذر تأكيد الحجز." : "Could not confirm the appointment."));
+      }
+
+      const successMessage = isRtl
+        ? "تم تأكيد حجزك بنجاح! رقم ملف المريض: " + payload.patientId + "، ورقم الموعد: " + payload.appointmentId + ". أصبح الموعد ظاهرًا الآن لموظفي ومدير المركز."
+        : "Your appointment is confirmed! Patient record: " + payload.patientId + ", appointment: " + payload.appointmentId + ". The clinic team can now see it in the platform.";
+      setBookingNotice(successMessage);
+      setBookingMessages(current => [...current, { role: "assistant", text: successMessage }]);
       setBookingStep("done");
-      setBookingName("");
-      setBookingAge("");
-      setBookingPhone("");
-      setBookingAddress("");
-      setBookingTime("");
+      setBookingInput("");
     } catch (error) {
-      if (whatsappWindow) whatsappWindow.close();
-      setBookingNotice(error instanceof Error ? error.message : (isRtl ? "حدث خطأ. حاول مرة أخرى." : "Something went wrong. Please try again."));
+      const message = error instanceof Error
+        ? error.message
+        : (isRtl ? "حدث خطأ أثناء تأكيد الحجز. حاول مرة أخرى." : "An error occurred while confirming the appointment. Please try again.");
+      setBookingNotice(message);
+      setBookingMessages(current => [...current, { role: "assistant", text: message }]);
     } finally {
       setBookingSubmitting(false);
     }
@@ -494,7 +508,7 @@ export default function BrandedClinicPage() {
               </form>
             )}
             <p className="mt-3 text-center text-[10px] font-medium leading-5 text-slate-400">
-              {sectionTitle("طلب الموعد مبدئي، ولا يصبح حجزًا مؤكدًا إلا بعد تأكيد المركز عبر واتساب.","This is a preliminary request, not a confirmed booking until the clinic confirms via WhatsApp.")}
+              {sectionTitle("بمجرد تأكيدك، يتم إنشاء ملف المريض والموعد مباشرة داخل المنصة.","Once you confirm, the patient record and appointment are created directly in the platform.")}
             </p>
           </div>
         </div>
