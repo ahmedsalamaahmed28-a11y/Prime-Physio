@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  Check, X, Crown, HelpCircle, CreditCard, ShieldCheck, Download,
+  Check, X, Crown, CreditCard, ShieldCheck, Download,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
@@ -113,7 +113,7 @@ export default function PlansPhpPage() {
                     <div className="my-4 h-px bg-slate-100" />
                     <ul className="flex-1 space-y-3 text-xs leading-5 text-slate-700">
                       {["مستخدم نشط", "مستخدم إجمالاً", "مركز", "جلسة شهرياً", "مساحة تخزين"].map((label, i) => <li key={label} className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b className="font-extrabold text-slate-900">{plan.limits[i]}</b> {label}{i === 0 || i === 1 ? "" : ""}</span></li>)}
-                      <li className="flex items-start gap-2"><HelpCircle size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b>الدعم:</b> {plan.name === "المجانية" ? <a href="mailto:support@prime-physio.com" className="font-bold text-[#5B50C7] underline underline-offset-2">البريد الإلكتروني</a> : plan.support}</span></li>
+                      <li className="flex items-start gap-2"><span><b>الدعم:</b> {plan.name === "المجانية" ? <a href="mailto:support@prime-physio.com" className="font-bold text-[#5B50C7] underline underline-offset-2">البريد الإلكتروني</a> : plan.support}</span></li>
                       <li className="flex items-start gap-2"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{plan.backup}</span></li>
                       <li className="flex items-start gap-2"><Download size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>تصدير بياناتك إلى Excel في أي وقت</span></li>
                     </ul>
@@ -138,7 +138,7 @@ export default function PlansPhpPage() {
           </section>
 
           <section>
-            <div className="mb-4 flex items-center gap-2"><HelpCircle size={21} className="text-[#5B50C7]" /><h2 className="text-xl font-extrabold text-[#153B60]">أسئلة عن الاشتراك</h2></div>
+            <div className="mb-4 flex items-center gap-2"><h2 className="text-xl font-extrabold text-[#153B60]">أسئلة عن الاشتراك</h2></div>
             <div className="grid gap-3 md:grid-cols-2">
               {faqs.map((faq) => <details key={faq.q} className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm open:border-[#C9C4F2]"><summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-extrabold text-slate-800"><span>{faq.q}</span><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#F1EFFF] text-[#5B50C7] transition group-open:rotate-45"><span className="text-lg leading-none">+</span></span></summary><p className="mt-3 border-t border-slate-100 pt-3 text-xs leading-7 text-slate-600">{faq.a}</p></details>)}
             </div>
@@ -146,7 +146,7 @@ export default function PlansPhpPage() {
 
           <section className="flex flex-col items-center justify-between gap-4 rounded-2xl bg-gradient-to-l from-[#153B60] to-[#5B50C7] px-6 py-6 text-center text-white sm:flex-row sm:text-right">
             <div><h2 className="text-lg font-extrabold">هل تحتاج مساعدة في اختيار باقتك؟</h2><p className="mt-1 text-xs leading-6 text-white/80">تواصل معنا وسنساعدك في اختيار الأنسب لمركزك.</p></div>
-            <a href="https://wa.me/201222688400" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-[#5B50C7] transition hover:bg-[#F1EFFF]"><HelpCircle size={17} /> تواصل عبر واتساب</a>
+            <a href="https://wa.me/201222688400" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-[#5B50C7] transition hover:bg-[#F1EFFF]">تواصل عبر واتساب</a>
           </section>
 
           <footer className="flex flex-col items-center justify-between gap-3 border-t border-slate-200 py-5 text-xs text-slate-400 sm:flex-row">
