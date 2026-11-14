@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { CalendarDays, Clock, ClipboardCheck, RefreshCw, UserRound, CheckCircle2, AlertCircle } from "lucide-react";
+import { CalendarDays, Clock, ClipboardCheck, RefreshCw, User, CheckCircle2, AlertCircle } from "lucide-react";
 
 type GroupRequest = {
   id: string; patient_id: string; group_code: "A" | "B"; selected_times: Record<string, string>; selected_dates?: Record<string, string>;
@@ -62,7 +62,7 @@ export default function GroupBookingsPage() {
             const patient = item.patient; const pending = item.status === "pending";
             return <article key={item.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700"><UserRound size={21}/></span><div><h2 className="font-black text-slate-900">{patient?.nameAr || "مريض غير متاح"}</h2><p className="mt-1 text-xs text-slate-500">ملف المريض: {item.patient_id}{patient?.phone ? " • " + patient.phone : ""}</p></div></div>
+                <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700"><User size={21}/></span><div><h2 className="font-black text-slate-900">{patient?.nameAr || "مريض غير متاح"}</h2><p className="mt-1 text-xs text-slate-500">ملف المريض: {item.patient_id}{patient?.phone ? " • " + patient.phone : ""}</p></div></div>
                 <span className={"rounded-full px-3 py-1.5 text-xs font-extrabold " + (pending ? "bg-amber-50 text-amber-700" : item.status === "approved" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600")}>{pending ? "بانتظار اعتماد الأخصائي" : item.status === "approved" ? "تم الاعتماد" : "مرفوض"}</span>
               </div>
               <div className="mt-4 grid gap-3 sm:grid-cols-3">{GROUP_DAYS[item.group_code].map(day => <div key={day} className="rounded-xl bg-slate-50 p-3"><p className="text-xs font-bold text-slate-500">{DAY_LABELS[day]}</p><p className="mt-1 flex items-center gap-2 font-black text-slate-800"><Clock size={15} className="text-indigo-600"/>{item.selected_times?.[day] || "—"}</p><p className="mt-1 text-[10px] font-semibold text-slate-400">{item.selected_dates?.[day] || ""}</p></div>)}</div>
