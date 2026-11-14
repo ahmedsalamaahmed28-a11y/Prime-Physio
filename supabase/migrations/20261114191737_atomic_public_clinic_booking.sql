@@ -59,23 +59,35 @@ BEGIN
   IF EXISTS (
     SELECT 1
     FROM public.appointments a
+    CROSS JOIN LATERAL (
+      SELECT CASE
+        WHEN a.time ~ '^([01]?\d|2[0-3]):[0-5]\d$'
+          THEN split_part(a.time, ':', 1)::integer * 60 + split_part(a.time, ':', 2)::integer
+        WHEN pg_catalog.upper(a.time) ~ '^\d{1,2}:[0-5]\d\s*(AM|PM)$'
+          THEN (
+            CASE
+              WHEN pg_catalog.upper(a.time) ~ 'PM$' AND split_part(a.time, ':', 1)::integer < 12
+                THEN split_part(a.time, ':', 1)::integer + 12
+              WHEN pg_catalog.upper(a.time) ~ 'AM$' AND split_part(a.time, ':', 1)::integer = 12
+                THEN 0
+              ELSE split_part(a.time, ':', 1)::integer
+            END
+          ) * 60 + split_part(a.time, ':', 2)::integer
+        ELSE NULL
+      END AS legacy_start_minute
+    ) legacy
     WHERE a.clinic_id = p_clinic_id
-      AND pg_catalog.lower(coalesce(a.status, '')) NOT IN
-        ('cancelled', 'canceled', 'ملغي', 'ملغى', 'rejected', 'منتهي', 'completed')
+      AND pg_catalog.lower(coalesce(a.status, '')) NOT IN ('cancelled', 'canceled', 'ملغي', 'ملغى', 'rejected', 'منتهي', 'completed')
       AND (
-        (a.starts_at IS NOT NULL
-          AND a.starts_at < v_end_at
+        (a.starts_at IS NOT NULL AND a.starts_at < v_end_at
           AND coalesce(a.ends_at, a.starts_at + interval '30 minutes') > v_start_at)
         OR
-        (a.starts_at IS NULL
-          AND a.date = p_local_date
-          AND (
-            a.time = p_local_time
-            OR pg_catalog.lower(pg_catalog.btrim(a.time)) =
-               pg_catalog.lower(pg_catalog.to_char(v_start_at AT TIME ZONE 'Africa/Cairo', 'HH12:MI AM'))
-            OR pg_catalog.lower(pg_catalog.btrim(a.time)) =
-               pg_catalog.lower(pg_catalog.to_char(v_start_at AT TIME ZONE 'Africa/Cairo', 'HH24:MI'))
-          ))
+        (a.starts_at IS NULL AND a.date = p_local_date
+          AND legacy.legacy_start_minute IS NOT NULL
+          AND legacy.legacy_start_minute < (split_part(p_local_time, ':', 1)::integer * 60 + split_part(p_local_time, ':', 2)::integer + 30)
+          AND legacy.legacy_start_minute
+            + greatest(30, least(480, coalesce(nullif(pg_catalog.regexp_replace(a.duration, '[^0-9]', '', 'g'), ''), '30')::integer))
+            > (split_part(p_local_time, ':', 1)::integer * 60 + split_part(p_local_time, ':', 2)::integer))
       )
   ) THEN
     RAISE EXCEPTION 'PUBLIC_BOOKING_TIME_CONFLICT' USING ERRCODE = '23P01';
