@@ -12,28 +12,40 @@ export async function getClinicContext(req: NextRequest) {
     }
 
     const admin = getAdminClient();
-    const { data: staff, error } = await admin
-      .from("staff")
-      .select("id,clinic_id,status,role,permissions")
-      .eq("email", user.email)
+    const { data: owner, error: ownerError } = await admin
+      .from("clinic_owners")
+      .select("clinic_id")
+      .eq("owner_email", user.email)
       .eq("clinic_id", user.clinicId)
-      .limit(1)
       .maybeSingle();
 
-    if (error) {
-      console.error("[Clinic Context] Staff lookup failed:", error);
+    if (ownerError) {
+      console.error("[Clinic Context] Owner lookup failed:", ownerError);
       return { response: NextResponse.json({ error: "تعذر التحقق من صلاحية الحساب" }, { status: 503 }) };
     }
 
-    // A verified clinic owner may not have a staff row. Treat the owner as
-    // clinic admin, but keep all subsequent queries scoped to this clinic ID.
-    const clinicStaff = staff || {
-      clinic_id: user.clinicId,
-      status: "active",
-      role: "admin",
-      permissions: null,
-      id: undefined,
-    };
+    let clinicStaff: { id?: string; clinic_id: string; status: string; role: string; permissions: unknown } | null = null;
+    if (owner) {
+      clinicStaff = { clinic_id: user.clinicId, status: "active", role: "admin", permissions: null };
+    } else {
+      const { data: staff, error: staffError } = await admin
+        .from("staff")
+        .select("id,clinic_id,status,role,permissions")
+        .eq("email", user.email)
+        .eq("clinic_id", user.clinicId)
+        .limit(1)
+        .maybeSingle();
+
+      if (staffError) {
+        console.error("[Clinic Context] Staff lookup failed:", staffError);
+        return { response: NextResponse.json({ error: "تعذر التحقق من صلاحية الحساب" }, { status: 503 }) };
+      }
+      if (staff) clinicStaff = staff;
+    }
+
+    if (!clinicStaff) {
+      return { response: NextResponse.json({ error: "لا توجد عضوية نشطة لهذا المركز" }, { status: 403 }) };
+    }
 
     return { admin, clinicId: user.clinicId, staff: clinicStaff };
   } catch (error) {
