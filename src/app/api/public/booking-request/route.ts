@@ -73,6 +73,57 @@ function hoursForDay(rows: any[], day: { ar: string; en: string }) {
   if (!from || !to || minutes(to) <= minutes(from)) return null;
   return { from, to };
 }
+async function legacyTodayAvailability(clinic: any) {
+  const weekday = new Intl.DateTimeFormat("en-US", { timeZone: TZ, weekday: "long" }).format(new Date());
+  const labels: Record<string, {ar:string;en:string}> = {
+    Sunday:{ar:"الأحد",en:"Sunday"}, Monday:{ar:"الاثنين",en:"Monday"}, Tuesday:{ar:"الثلاثاء",en:"Tuesday"},
+    Wednesday:{ar:"الأربعاء",en:"Wednesday"}, Thursday:{ar:"الخميس",en:"Thursday"},
+    Friday:{ar:"الجمعة",en:"Friday"}, Saturday:{ar:"السبت",en:"Saturday"},
+  };
+  const rows = getWeeklyHours(clinic.settings?.working_hours, clinic.settings?.branches);
+  const hours = hoursForDay(rows, labels[weekday]);
+  if (!hours) return { slots: [], configured: rows.length > 0, closed: rows.length > 0 };
+  const admin = getAdminClient();
+  const { data: appointments, error } = await admin.from("appointments")
+    .select("date,time,status,starts_at,ends_at,duration,is_group_session").eq("clinic_id", clinic.id);
+  if (error) throw error;
+  const today = cairoDate();
+  const occupied: Array<{start:number;end:number}> = [];
+  for (const appointment of appointments || []) {
+    if (appointment.is_group_session) continue;
+    const status = String(appointment.status || "").toLowerCase();
+    if (["cancelled","canceled","ملغي","ملغى","rejected","منتهي","completed"].includes(status)) continue;
+    let date = String(appointment.date || "");
+    let start = -1, end = -1;
+    if (appointment.starts_at) {
+      const starts = new Date(appointment.starts_at);
+      date = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year:"numeric", month:"2-digit", day:"2-digit" }).format(starts);
+      const localStart = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour:"2-digit", minute:"2-digit", hourCycle:"h23" }).format(starts);
+      start = minutes(localStart);
+      if (appointment.ends_at) {
+        const localEnd = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour:"2-digit", minute:"2-digit", hourCycle:"h23" }).format(new Date(appointment.ends_at));
+        end = minutes(localEnd);
+        if (end <= start) end += 1440;
+      }
+    } else start = minutes(String(appointment.time || ""));
+    if (end <= start) {
+      const duration = Number.parseInt(String(appointment.duration || "30"),10);
+      end = start + (Number.isFinite(duration) && duration > 0 ? Math.min(duration,480) : 30);
+    }
+    if (date === today && start >= 0 && end > start) occupied.push({start,end});
+  }
+  const now = cairoNowMinute();
+  const startAt = Math.max(minutes(hours.from),Math.ceil((now+15)/30)*30);
+  const closeAt = minutes(hours.to);
+  const slots: string[] = [];
+  for(let minute=startAt;minute+30<=closeAt;minute+=30) {
+    if(!occupied.some(item=>minute<item.end && minute+30>item.start)) {
+      slots.push(String(Math.floor(minute/60)).padStart(2,"0")+":"+String(minute%60).padStart(2,"0"));
+    }
+  }
+  return { slots, configured:true, closed:slots.length===0 };
+}
+
 async function availabilityForClinic(clinic: any) {
   const rows = getWeeklyHours(clinic.settings?.working_hours, clinic.settings?.branches);
   const admin = getAdminClient();
@@ -126,7 +177,9 @@ export async function GET(request: NextRequest) {
   try {
     const clinic = await getClinic(slug);
     if (!clinic) return NextResponse.json({ error: "Clinic not found" }, { status: 404, headers: noStore });
-    return NextResponse.json(await availabilityForClinic(clinic), { headers: noStore });
+    const availability = await availabilityForClinic(clinic);
+    const legacy = await legacyTodayAvailability(clinic);
+    return NextResponse.json({ ...availability, ...legacy }, { headers: noStore });
   } catch (error) {
     console.error("Public group availability failed:", error);
     return NextResponse.json({ error: "تعذر تحميل مواعيد المجموعات حاليًا." }, { status: 503, headers: noStore });
@@ -140,6 +193,33 @@ export async function POST(request: NextRequest) {
     const age = Number(body.age);
     const phone = String(body.phone || "").trim().slice(0, 20);
     const address = String(body.address || "").trim().slice(0, 300);
+    if (!body.groupCode && body.time) {
+      const slugValid = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && slug.length <= 80;
+      const legacyTime = normalizeTime(body.time);
+      if (!slugValid || name.length < 2 || !Number.isInteger(age) || age < 1 || age > 120 ||
+          phone.length < 7 || phone.length > 20 || !/^[+0-9()\s.-]+$/.test(phone) ||
+          address.length < 3 || !/^([01]\d|2[0-3]):[0-5]\d$/.test(legacyTime)) {
+        return NextResponse.json({ error: "يرجى مراجعة البيانات واختيار موعد صحيح." }, { status: 400, headers: noStore });
+      }
+      const legacyClinic = await getClinic(slug);
+      if (!legacyClinic) return NextResponse.json({ error: "Clinic not found" }, { status: 404, headers: noStore });
+      const legacy = await legacyTodayAvailability(legacyClinic);
+      if (!legacy.slots.includes(legacyTime)) {
+        return NextResponse.json({ error: "الموعد لم يعد متاحًا. حدّث المواعيد واختر وقتًا آخر." }, { status: 409, headers: noStore });
+      }
+      const admin = getAdminClient();
+      const { data, error } = await admin.rpc("create_public_clinic_booking", {
+        p_clinic_id: legacyClinic.id, p_patient_name: name, p_age: age, p_phone: phone,
+        p_address: address, p_local_date: cairoDate(), p_local_time: legacyTime,
+      });
+      if (error) {
+        const conflict = error.code === "23P01" || error.message?.includes("PUBLIC_BOOKING_TIME_CONFLICT");
+        return NextResponse.json({ error: conflict ? "هذا الموعد تم حجزه للتو. اختر وقتًا آخر." : "تعذر تأكيد الحجز حاليًا." }, { status: conflict ? 409 : 500, headers: noStore });
+      }
+      const booking = Array.isArray(data) ? data[0] : data;
+      if (!booking?.patient_id || !booking?.appointment_id) return NextResponse.json({ error: "تعذر تأكيد الحجز حاليًا." }, { status: 500, headers: noStore });
+      return NextResponse.json({ success:true, confirmed:true, patientId:booking.patient_id, appointmentId:booking.appointment_id, reusedPatient:Boolean(booking.reused_patient), date:cairoDate(), time:legacyTime }, { status:201, headers:noStore });
+    }
     const groupCode = String(body.groupCode || "");
     const selectedTimes = body.selectedTimes && typeof body.selectedTimes === "object" && !Array.isArray(body.selectedTimes) ? body.selectedTimes : {};
     const days = GROUP_DAYS[groupCode];
