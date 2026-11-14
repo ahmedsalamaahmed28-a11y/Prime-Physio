@@ -1,0 +1,36 @@
+name: Prime Physio tenant isolation tests
+
+on:
+  schedule:
+    - cron: "15 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prime-physio-tenant-isolation
+  cancel-in-progress: false
+
+jobs:
+  cross-tenant-read-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Verify tenant isolation using dedicated test fixtures
+        env:
+          SUPABASE_TEST_PROJECT_REF: ${{ vars.SUPABASE_TEST_PROJECT_REF }}
+          SUPABASE_TEST_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
+          TENANT_A_ACCESS_TOKEN: ${{ secrets.TENANT_A_ACCESS_TOKEN }}
+          TENANT_B_ACCESS_TOKEN: ${{ secrets.TENANT_B_ACCESS_TOKEN }}
+          TENANT_A_TEST_PATIENT_ID: ${{ vars.TENANT_A_TEST_PATIENT_ID }}
+          TENANT_B_TEST_PATIENT_ID: ${{ vars.TENANT_B_TEST_PATIENT_ID }}
+        run: node scripts/check-tenant-isolation.mjs
