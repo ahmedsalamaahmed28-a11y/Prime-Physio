@@ -42,10 +42,15 @@ function getWeeklyHours(workingHours: unknown, branches: unknown): any[] {
   }
   return [];
 }
-function dateForWeekday(dow: number) {
+function dateForGroupDay(groupCode: string, key: string) {
+  const days = GROUP_DAYS[groupCode];
+  const anchorDow = days[0].dow;
   const [y, m, d] = cairoDate().split("-").map(Number);
   const date = new Date(Date.UTC(y, m - 1, d));
-  date.setUTCDate(date.getUTCDate() + ((dow - date.getUTCDay() + 7) % 7));
+  let delta = (anchorDow - date.getUTCDay() + 7) % 7;
+  if (delta === 0) delta = 7;
+  const dayIndex = days.findIndex(item => item.key === key);
+  date.setUTCDate(date.getUTCDate() + delta + Math.max(0, dayIndex) * 2);
   return date.toISOString().slice(0, 10);
 }
 function cairoNowMinute() {
@@ -76,7 +81,7 @@ async function availabilityForClinic(clinic: any) {
   const groups: Record<string, any[]> = { A: [], B: [] };
   for (const [groupCode, days] of Object.entries(GROUP_DAYS)) {
     for (const day of days) {
-      const date = dateForWeekday(day.dow);
+      const date = dateForGroupDay(groupCode, day.key);
       const hours = hoursForDay(rows, day);
       const occupied: Array<{ start: number; end: number }> = [];
       for (const appointment of appointments || []) {
@@ -154,6 +159,8 @@ export async function POST(request: NextRequest) {
       }
     }
     const admin = getAdminClient();
+    const selectedDates: Record<string, string> = {};
+    for (const day of availability.groups[groupCode]) selectedDates[day.key] = day.date;
     const { data, error } = await admin.rpc("create_public_group_booking_request", {
       p_clinic_id: clinic.id, p_patient_name: name, p_age: age, p_phone: phone, p_address: address,
       p_group_code: groupCode, p_selected_times: normalizedTimes,
@@ -165,6 +172,10 @@ export async function POST(request: NextRequest) {
     }
     const result = Array.isArray(data) ? data[0] : data;
     if (!result?.request_id || !result?.patient_id) throw new Error("Group request RPC returned incomplete data");
+    const { error: dateError } = await admin.from("group_booking_requests")
+      .update({ selected_dates: selectedDates })
+      .eq("id", result.request_id).eq("clinic_id", clinic.id);
+    if (dateError) throw dateError;
     return NextResponse.json({ success: true, pending: true, requestId: result.request_id, patientId: result.patient_id, reusedPatient: Boolean(result.reused_patient), clinicName: clinic.name, groupCode }, { status: 201, headers: noStore });
   } catch (error) {
     console.error("Public group booking submission failed:", error);
