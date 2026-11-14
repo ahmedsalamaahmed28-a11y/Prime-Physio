@@ -22,10 +22,10 @@ type Plan = {
 
 const plans: Plan[] = [
   { name: "المجانية", price: "مجاناً", annual: "مجاناً", description: "لتجهيز مركزك وتجربة كل شيء.", limits: ["20", "100", "1", "2,000", "1 GB"], support: "البريد الإلكتروني", backup: "تصدير Excel في أي وقت" },
-  { name: "الأساسية", price: "750 جنيه", annual: "7,500 جنيه سنوياً بدلاً من 9,000 جنيه", description: "لمركز ينمو بفريق أكبر.", limits: ["100", "500", "1", "غير محدود", "10 GB"], support: "البريد الإلكتروني والمحادثة الفورية", backup: "نسخة Excel شهرية تلقائية بالبريد", featured: true },
-  { name: "المتوسطة", price: "1,500 جنيه", annual: "15,000 جنيه سنوياً بدلاً من 18,000 جنيه", description: "لملاك الفروع المتعددة.", limits: ["500", "1,000", "2", "غير محدود", "20 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل 6 أشهر لكل مركز", backup: "نسخة Excel شهرية + نسخة قاعدة بيانات أسبوعية" },
-  { name: "Advanced", price: "3,000 جنيه", annual: "30,000 جنيه سنوياً بدلاً من 36,000 جنيه", description: "للمراكز متعددة الفروع والفرق الكبيرة.", limits: ["5,000", "غير محدود", "5", "غير محدود", "30 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
-  { name: "Maximum", price: "7,500 جنيه", annual: "75,000 جنيه سنوياً بدلاً من 90,000 جنيه", description: "لشبكات المراكز والعمليات الكبيرة.", limits: ["غير محدود", "غير محدود", "10", "غير محدود", "50 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
+  { name: "الأساسية", price: "750 جنيه", annual: "", description: "لمركز ينمو بفريق أكبر.", limits: ["100", "500", "1", "غير محدود", "10 GB"], support: "البريد الإلكتروني والمحادثة الفورية", backup: "نسخة Excel شهرية تلقائية بالبريد", featured: true },
+  { name: "المتوسطة", price: "1,500 جنيه", annual: "", description: "لملاك الفروع المتعددة.", limits: ["500", "1,000", "2", "غير محدود", "20 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل 6 أشهر لكل مركز", backup: "نسخة Excel شهرية + نسخة قاعدة بيانات أسبوعية" },
+  { name: "Advanced", price: "3,000 جنيه", annual: "", description: "للمراكز متعددة الفروع والفرق الكبيرة.", limits: ["5,000", "غير محدود", "5", "غير محدود", "30 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
+  { name: "Maximum", price: "7,500 جنيه", annual: "", description: "لشبكات المراكز والعمليات الكبيرة.", limits: ["غير محدود", "غير محدود", "10", "غير محدود", "50 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
 ];
 
 const comparisonRows = [
@@ -107,7 +107,7 @@ export default function PlansPhpPage() {
                     {plan.featured && <span className="absolute -top-3 right-1/2 -translate-x-1/2 translate-x-1/2 whitespace-nowrap rounded-full bg-[#5B50C7] px-3 py-1 text-[11px] font-extrabold text-white shadow">الأكثر اختياراً</span>}
                     <h2 className="text-lg font-extrabold text-[#153B60]">{plan.name === "المجانية" ? "الباقة المجانية" : plan.name === "الأساسية" ? "الباقة الأساسية" : plan.name === "المتوسطة" ? "الباقة المتوسطة" : plan.name}</h2>
                     <div className="mt-4 flex items-end gap-1"><strong className="text-3xl font-black tracking-tight text-[#5B50C7]">{plan.price}</strong>{plan.name !== "المجانية" && <span className="pb-1 text-xs text-slate-500">/ شهرياً</span>}</div>
-                    {plan.name !== "المجانية" && <p className="mt-2 text-xs font-bold leading-5 text-slate-600">{plan.annual}</p>}
+                    {plan.name !== "المجانية" && plan.annual && <p className="mt-2 text-xs font-bold leading-5 text-slate-600">{plan.annual}</p>}
                     {plan.name !== "المجانية" && <p className="mt-1 text-[11px] font-semibold text-emerald-700">ادفع 12 شهراً بسعر 10 أشهر فقط عبر إنستاباي</p>}
                     <p className="mt-3 min-h-10 text-xs leading-5 text-slate-500">{plan.description}</p>
                     <div className="my-4 h-px bg-slate-100" />
