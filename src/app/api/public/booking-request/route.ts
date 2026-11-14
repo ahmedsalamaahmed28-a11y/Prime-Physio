@@ -26,18 +26,37 @@ function normalizeTime(value: unknown): string {
   return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
-function getTodayHours(workingHours: unknown) {
-  if (typeof workingHours !== "string" || !workingHours.trim()) return null;
-  try {
-    const rows = JSON.parse(workingHours);
-    if (!Array.isArray(rows)) return null;
-    const today = new Intl.DateTimeFormat("ar-EG", { timeZone: CAIRO_TZ, weekday: "long" }).format(new Date());
-    const row = rows.find((item: any) => item?.day === today);
-    if (!row || row.isOpen === false || !row.from || !row.to) return null;
-    return { from: normalizeTime(row.from), to: normalizeTime(row.to) };
-  } catch {
-    return null;
+function getWeeklyHours(workingHours: unknown, branches: unknown): any[] {
+  // Newer settings store the weekly schedule under branches[0].hours.
+  // Older deployments may store the schedule directly as JSON in working_hours.
+  if (typeof workingHours === "string" && workingHours.trim()) {
+    try {
+      const parsed = JSON.parse(workingHours);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {
+      // Legacy free-text working_hours is not a weekly schedule.
+    }
   }
+  if (Array.isArray(branches)) {
+    const mainBranch = branches.find((branch: any) => branch?.id === "main") || branches[0];
+    if (Array.isArray(mainBranch?.hours)) return mainBranch.hours;
+  }
+  return [];
+}
+
+function normalizeDay(value: unknown): string {
+  return String(value || "").trim().replace(/[إأآ]/g, "ا").replace(/\\s+/g, "");
+}
+
+function getTodayHours(rows: any[]) {
+  if (!Array.isArray(rows) || !rows.length) return null;
+  const today = new Intl.DateTimeFormat("ar-EG", { timeZone: CAIRO_TZ, weekday: "long" }).format(new Date());
+  const row = rows.find((item: any) => normalizeDay(item?.day) === normalizeDay(today));
+  if (!row || row.isOpen === false || !row.from || !row.to) return null;
+  const from = normalizeTime(row.from);
+  const to = normalizeTime(row.to);
+  if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(from) || !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(to)) return null;
+  return { from, to };
 }
 
 async function getClinic(slug: string) {
@@ -48,7 +67,7 @@ async function getClinic(slug: string) {
   if (error) throw error;
   if (!clinic) return null;
   const { data: settings, error: settingsError } = await admin.from("clinic_settings")
-    .select("working_hours,phone,whatsapp")
+    .select("working_hours,branches,phone,whatsapp")
     .eq("clinic_id", clinic.id).maybeSingle();
   if (settingsError) throw settingsError;
   return { ...clinic, settings };
