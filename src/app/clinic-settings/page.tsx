@@ -46,7 +46,7 @@ export default function ClinicSettingsPage() {
   const [weeklyHours, setWeeklyHours] = useState<any[]>([]);
 
   const toTimeInput = (value: string) => {
-    const match = String(value || "").trim().match(/^(\\d{1,2}):(\\d{2})(?:\\s*(AM|PM))?$/i);
+    const match = String(value || "").trim().match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i);
     if (!match) return "09:00";
     let hour = Number(match[1]);
     const minute = Number(match[2]);
