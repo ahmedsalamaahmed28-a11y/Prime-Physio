@@ -7,7 +7,7 @@ import {
   ChevronLeft, HelpCircle, CreditCard, Crown, Database, Download,
   ExternalLink, FileText, Key, Loader2, Lock, LogOut,
   Mail, MessageSquare, Save, ShieldCheck, Smartphone, Users, User,
-  CreditCard, X,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
