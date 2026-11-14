@@ -6,8 +6,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import {
-  ArrowLeft, ArrowRight, Activity, Building, CalendarDays, Check,
-  Clock, Eye, EyeOff, Globe, Lock, Mail,
+  ArrowLeft, ArrowRight, Activity, Building, CalendarDays, Check, MessageCircle,
+  Clock, Eye, EyeOff, Globe, Lock, Mail, Bot, Send, UserRound,
   MapPin, Menu, Phone, ShieldCheck, Sparkles, Stethoscope, Users, X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -24,6 +24,7 @@ type ClinicProfile = {
 };
 type PublicService = { id: string; name: string; name_en?: string | null; duration_minutes?: number | null; price?: number | null; is_package?: boolean; package_sessions?: number | null };
 type PublicTeamMember = { id: string; name: string; role?: string | null; specialty?: string | null };
+type BookingChatMessage = { role: "assistant" | "user"; text: string };
 
 export default function BrandedClinicPage() {
   const params = useParams();
@@ -51,6 +52,9 @@ export default function BrandedClinicPage() {
   const [availabilityLoading, setAvailabilityLoading] = useState(true);
   const [bookingSubmitting, setBookingSubmitting] = useState(false);
   const [bookingNotice, setBookingNotice] = useState("");
+  const [bookingStep, setBookingStep] = useState<"name" | "age" | "phone" | "address" | "time" | "confirm" | "done">("name");
+  const [bookingInput, setBookingInput] = useState("");
+  const [bookingMessages, setBookingMessages] = useState<BookingChatMessage[]>([]);
 
   const primary = clinic?.primary_color || "#372ba2";
   const addressText = [clinic?.address, clinic?.city, clinic?.country].filter(Boolean).join("، ");
@@ -186,6 +190,7 @@ export default function BrandedClinicPage() {
       setBookingNotice(isRtl
         ? `تم تسجيل طلب الحجز وإرسال إشعار داخل المنصة. المريض مُصنّف تلقائيًا ضمن ${payload.categoryAr}، والموعد بانتظار تأكيد المركز عبر واتساب.`
         : `Your booking request was recorded and the clinic was notified. The patient is assigned to ${payload.category}; the time is pending WhatsApp confirmation.`);
+      setBookingStep("done");
       setBookingName("");
       setBookingAge("");
       setBookingPhone("");
@@ -197,6 +202,101 @@ export default function BrandedClinicPage() {
     } finally {
       setBookingSubmitting(false);
     }
+  };
+
+  useEffect(() => {
+    setBookingStep("name");
+    setBookingInput("");
+    setBookingMessages([{
+      role: "assistant",
+      text: isRtl
+        ? `أهلًا بيك في ${displayName || "المركز"} 👋 أنا مساعد الحجز. هساعدك تختار موعد مناسب وهنسجل بياناتك خطوة بخطوة. إيه اسم المريض بالكامل؟`
+        : `Welcome to ${displayName || "the clinic"} 👋 I'm the booking assistant. I'll help you choose a time and collect your details step by step. What is the patient's full name?`,
+    }]);
+  }, [slug, isRtl, displayName]);
+
+  const handleChatInput = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const value = bookingInput.trim();
+    if (!value || bookingSubmitting) return;
+    const reply = (userText: string, assistantText: string) => setBookingMessages(current => [
+      ...current,
+      { role: "user", text: userText },
+      { role: "assistant", text: assistantText },
+    ]);
+
+    if (bookingStep === "name") {
+      if (value.length < 2 || value.length > 120) {
+        setBookingNotice(isRtl ? "اكتب الاسم بشكل صحيح من فضلك." : "Please enter a valid name.");
+        return;
+      }
+      setBookingName(value);
+      reply(value, isRtl ? "تشرفنا بيك. كم سنة عمر المريض؟" : "Nice to meet you. How old is the patient?");
+      setBookingStep("age");
+    } else if (bookingStep === "age") {
+      const age = Number(value);
+      if (!/^\\d{1,3}$/.test(value) || !Number.isInteger(age) || age < 1 || age > 120) {
+        setBookingNotice(isRtl ? "اكتب السن بالأرقام من 1 إلى 120." : "Enter an age between 1 and 120.");
+        return;
+      }
+      setBookingAge(value);
+      reply(value, isRtl ? "تمام. ما رقم الهاتف الذي يمكن للمركز التواصل معك عليه؟" : "Great. What phone number can the clinic use to contact you?");
+      setBookingStep("phone");
+    } else if (bookingStep === "phone") {
+      if (value.length < 7 || value.length > 20 || !/^[+0-9()\\s.-]+$/.test(value)) {
+        setBookingNotice(isRtl ? "راجع رقم الهاتف واكتبه بشكل صحيح." : "Please enter a valid phone number.");
+        return;
+      }
+      setBookingPhone(value);
+      reply(value, isRtl ? "ما عنوان المريض أو المنطقة التي يسكن فيها؟" : "What is the patient's address or area?");
+      setBookingStep("address");
+    } else if (bookingStep === "address") {
+      if (value.length < 3 || value.length > 300) {
+        setBookingNotice(isRtl ? "اكتب العنوان بشكل أوضح من فضلك." : "Please enter a more complete address.");
+        return;
+      }
+      setBookingAddress(value);
+      reply(value, availabilityLoading
+        ? (isRtl ? "لحظة واحدة، بفحص المواعيد المتاحة..." : "One moment, I'm checking available times...")
+        : availableSlots.length
+          ? (isRtl ? "دي المواعيد المتاحة النهارده. اختار الموعد المناسب ليك:" : "These are today's available times. Choose the one that works for you:")
+          : (isRtl ? "للأسف مفيش مواعيد متاحة حاليًا اليوم." : "There are no available times today."));
+      setBookingStep("time");
+    }
+    setBookingInput("");
+    setBookingNotice("");
+  };
+
+  const handleSlotChoice = (slot: string) => {
+    if (bookingStep !== "time" || bookingSubmitting) return;
+    setBookingTime(slot);
+    const label = new Date(`2000-01-01T${slot}:00`).toLocaleTimeString(isRtl ? "ar-EG" : "en-US", { hour: "numeric", minute: "2-digit" });
+    setBookingMessages(current => [
+      ...current,
+      { role: "user", text: label },
+      {
+        role: "assistant",
+        text: isRtl
+          ? `راجع بيانات طلب الموعد:\nالاسم: ${bookingName}\nالسن: ${bookingAge}\nالهاتف: ${bookingPhone}\nالعنوان: ${bookingAddress}\nالموعد المطلوب اليوم: ${label}\n\nهل تؤكد إرسال الطلب إلى المركز؟`
+          : `Please review your request:\nName: ${bookingName}\nAge: ${bookingAge}\nPhone: ${bookingPhone}\nAddress: ${bookingAddress}\nRequested time today: ${label}\n\nDo you confirm sending this request to the clinic?`,
+      },
+    ]);
+    setBookingStep("confirm");
+  };
+
+  const restartBookingChat = () => {
+    setBookingStep("name");
+    setBookingInput("");
+    setBookingName("");
+    setBookingAge("");
+    setBookingPhone("");
+    setBookingAddress("");
+    setBookingTime("");
+    setBookingNotice("");
+    setBookingMessages([{
+      role: "assistant",
+      text: isRtl ? "نبدأ طلب جديد 😊 إيه اسم المريض بالكامل؟" : "Let's start a new request 😊 What is the patient's full name?",
+    }]);
   };
 
   const sectionTitle = (ar: string, en: string) => isRtl ? ar : en;
@@ -311,25 +411,102 @@ export default function BrandedClinicPage() {
         <div className="grid overflow-hidden rounded-[30px] bg-white shadow-[0_16px_55px_rgba(24,31,75,.09)] lg:grid-cols-2">
           <div className="relative flex min-h-[300px] flex-col justify-between overflow-hidden bg-gradient-to-br from-[#21175f] via-[#4f46ba] to-[#3621b3] p-7 text-white sm:p-10">
             {clinic.cover_url && <img src={clinic.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20"/>}
-            <div className="relative"><span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10"><CalendarDays size={24}/></span><p className="mb-2 text-xs font-black tracking-widest text-violet-200">{sectionTitle("ابدأ رحلتك","START YOUR JOURNEY")}</p><h2 className="max-w-md text-3xl font-black leading-tight sm:text-4xl">{sectionTitle("احجز موعدك بسهولة","Request your appointment")}</h2><p className="mt-4 max-w-md text-sm font-medium leading-8 text-violet-100">{sectionTitle("املأ بياناتك وسنساعدك في التواصل مع المركز لتأكيد الموعد المناسب.","Share your details and contact the clinic to confirm a suitable appointment.")}</p></div>
-            <div className="relative mt-10 flex flex-wrap gap-4 text-xs font-semibold text-white/80"><span className="inline-flex items-center gap-2"><Check size={15}/> {sectionTitle("تواصل مباشر","Direct contact")}</span><span className="inline-flex items-center gap-2"><Check size={15}/> {sectionTitle("تأكيد الموعد من المركز","Clinic confirmation")}</span></div>
+            <div className="relative">
+              <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10"><MessageCircle size={24}/></span>
+              <p className="mb-2 text-xs font-black tracking-widest text-violet-200">{sectionTitle("مساعد الحجز","BOOKING ASSISTANT")}</p>
+              <h2 className="max-w-md text-3xl font-black leading-tight sm:text-4xl">{sectionTitle("احجز موعدك بالمحادثة","Book through a conversation")}</h2>
+              <p className="mt-4 max-w-md text-sm font-medium leading-8 text-violet-100">{sectionTitle("جاوب على أسئلة بسيطة، واختار من المواعيد المتاحة، وسنرسل طلبك للمركز.","Answer a few simple questions, choose an available time, and send your request to the clinic.")}</p>
+            </div>
+            <div className="relative mt-10 flex flex-wrap gap-4 text-xs font-semibold text-white/80">
+              <span className="inline-flex items-center gap-2"><Check size={15}/> {sectionTitle("خطوات بسيطة وواضحة","Simple guided steps")}</span>
+              <span className="inline-flex items-center gap-2"><Check size={15}/> {sectionTitle("اختيار من المواعيد المتاحة","Choose from available times")}</span>
+            </div>
           </div>
-          <div className="p-6 sm:p-9">
-            <div className="mb-6"><h3 className="text-xl font-black text-slate-900">{sectionTitle("طلب موعد مبدئي","Appointment request")}</h3><p className="mt-1 text-xs font-medium leading-6 text-slate-500">{sectionTitle("لن يتم تأكيد الحجز إلا بعد التواصل مع المركز.","Your appointment is not confirmed until the clinic contacts you.")}</p></div>
-            <form onSubmit={handleBooking} className="grid gap-4 sm:grid-cols-2">
-              <label className="block"><span className="mb-2 block text-xs font-extrabold text-slate-700">{sectionTitle("الاسم بالكامل","Full name")}</span><input required minLength={2} maxLength={120} value={bookingName} onChange={e=>setBookingName(e.target.value)} placeholder={sectionTitle("اكتب اسم المريض","Enter patient name")} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"/></label>
-              <label className="block"><span className="mb-2 block text-xs font-extrabold text-slate-700">{sectionTitle("السن","Age")}</span><input required type="number" min="1" max="120" step="1" inputMode="numeric" value={bookingAge} onChange={e=>setBookingAge(e.target.value)} placeholder={sectionTitle("العمر بالسنوات","Age in years")} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"/>{bookingAge && Number(bookingAge)>0 && <span className="mt-1 block text-[11px] font-bold" style={{color:primary}}>{Number(bookingAge)<18?sectionTitle("سيتم توجيه الطلب إلى قسم الأطفال","Automatically assigned to Pediatrics"):sectionTitle("سيتم توجيه الطلب إلى قسم الكبار","Automatically assigned to Adults")}</span>}</label>
-              <label className="block"><span className="mb-2 block text-xs font-extrabold text-slate-700">{sectionTitle("رقم الهاتف","Phone number")}</span><input required type="tel" inputMode="tel" autoComplete="tel" minLength={7} maxLength={20} value={bookingPhone} onChange={e=>setBookingPhone(e.target.value)} placeholder={sectionTitle("01xxxxxxxxx أو +20...","01xxxxxxxxx or +20...")} dir="ltr" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"/><span className="mt-1 block text-[11px] text-slate-500">{sectionTitle("يُفضّل أن يكون الرقم عليه واتساب لسهولة التواصل.","Preferably, this number should have WhatsApp for easier communication.")}</span></label>
-              <label className="block sm:col-span-2"><span className="mb-2 block text-xs font-extrabold text-slate-700">{sectionTitle("العنوان","Address")}</span><input required minLength={3} maxLength={300} value={bookingAddress} onChange={e=>setBookingAddress(e.target.value)} placeholder={sectionTitle("اكتب عنوان المريض","Enter patient address")} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"/></label>
-              <label className="block sm:col-span-2"><span className="mb-2 block text-xs font-extrabold text-slate-700">{sectionTitle("المواعيد المتاحة اليوم","Available times today")}</span><select required value={bookingTime} onChange={e=>setBookingTime(e.target.value)} disabled={availabilityLoading || availableSlots.length===0} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100 disabled:cursor-not-allowed disabled:opacity-60"><option value="">{availabilityLoading?sectionTitle("جاري تحميل المواعيد...","Loading available times..."):availableSlots.length?sectionTitle("اختر الموعد المناسب","Choose a time"):availabilityConfigured?sectionTitle("لا توجد مواعيد متاحة متبقية اليوم","No available times left today"):sectionTitle("مواعيد المركز غير محددة لهذا اليوم","Today's working hours are not configured")}</option>{availableSlots.map(slot=><option key={slot} value={slot}>{new Date(`2000-01-01T${slot}:00`).toLocaleTimeString(isRtl?"ar-EG":"en-US",{hour:"numeric",minute:"2-digit"})}</option>)}</select><span className="mt-1 block text-[11px] text-slate-500">{sectionTitle("الموعد طلب مبدئي ويحتاج تأكيد المركز عبر واتساب.","This is a requested time and must be confirmed by the clinic via WhatsApp.")}</span></label>
-              <button type="submit" disabled={bookingSubmitting || availabilityLoading || availableSlots.length===0} className="mt-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-2" style={{background:primary}}>{bookingSubmitting?<Loader size={18} color="white"/>:<><CalendarDays size={17}/>{sectionTitle("إرسال طلب الموعد عبر واتساب","Send appointment request via WhatsApp")}<ArrowLeft size={17}/></>}</button>
-            </form>
-            {bookingNotice && <p role="status" className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-xs font-semibold leading-6 text-emerald-800">{bookingNotice}</p>}
+          <div className="flex min-h-[580px] flex-col p-4 sm:p-7">
+            <div className="mb-4 flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-sm" style={{backgroundColor:primary}}><Bot size={22}/></span>
+                <div>
+                  <h3 className="text-base font-black text-slate-900">{sectionTitle("مساعد المواعيد","Appointment assistant")}</h3>
+                  <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500"/>{sectionTitle("متاح لمساعدتك","Here to help")}</p>
+                </div>
+              </div>
+              <button type="button" onClick={restartBookingChat} className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-[11px] font-bold text-slate-500 transition hover:bg-slate-50"><ArrowRight size={14}/>{sectionTitle("طلب جديد","New request")}</button>
+            </div>
+
+            <div className="flex-1 space-y-3 overflow-y-auto rounded-2xl bg-slate-50 p-3 sm:p-4" aria-live="polite">
+              {bookingMessages.map((message, index) => (
+                <div key={index} className={`flex items-end gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
+                  {message.role === "assistant" && <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white" style={{backgroundColor:primary}}><Bot size={15}/></span>}
+                  <div className={`max-w-[88%] whitespace-pre-line rounded-2xl px-3.5 py-3 text-sm leading-6 shadow-sm ${message.role === "user" ? "rounded-ee-sm bg-indigo-600 text-white" : "rounded-es-sm border border-slate-100 bg-white text-slate-700"}`}>{message.text}</div>
+                  {message.role === "user" && <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-600"><UserRound size={14}/></span>}
+                </div>
+              ))}
+              {bookingStep === "time" && (
+                <div className="flex flex-wrap gap-2 ps-9">
+                  {availabilityLoading ? (
+                    <span className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-500">{sectionTitle("جاري فحص المواعيد...","Checking available times...")}</span>
+                  ) : availableSlots.length ? availableSlots.map(slot => (
+                    <button key={slot} type="button" onClick={() => handleSlotChoice(slot)} className="rounded-xl border px-3 py-2 text-xs font-extrabold transition hover:-translate-y-0.5 hover:shadow-sm" style={{borderColor:primary,color:primary,backgroundColor:"#fff"}}>
+                      {new Date(`2000-01-01T${slot}:00`).toLocaleTimeString(isRtl ? "ar-EG" : "en-US", {hour:"numeric",minute:"2-digit"})}
+                    </button>
+                  )) : (
+                    <span className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-500">{sectionTitle("لا توجد مواعيد متاحة اليوم. يُرجى التواصل مع المركز.","No available times today. Please contact the clinic.")}</span>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {bookingNotice && <p role="alert" className="mt-3 rounded-xl border border-rose-100 bg-rose-50 p-3 text-xs font-semibold leading-6 text-rose-700">{bookingNotice}</p>}
+
+            {bookingStep === "confirm" ? (
+              <form onSubmit={handleBooking} className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <button type="submit" disabled={bookingSubmitting} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-0.5 disabled:opacity-60" style={{backgroundColor:primary}}>
+                  {bookingSubmitting ? <Loader size={18} color="white"/> : <><Check size={17}/>{sectionTitle("تأكيد وإرسال الطلب","Confirm and send request")}</>}
+                </button>
+                <button type="button" onClick={restartBookingChat} disabled={bookingSubmitting} className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 text-sm font-bold text-slate-600 transition hover:bg-slate-50 disabled:opacity-60">
+                  {sectionTitle("إعادة إدخال البيانات","Start over")}
+                </button>
+              </form>
+            ) : bookingStep === "done" ? (
+              <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-center text-xs font-bold leading-6 text-emerald-800">
+                {sectionTitle("تم إرسال طلبك. سيقوم المركز بالتواصل معك لتأكيد الموعد.","Request sent. The clinic will contact you to confirm the appointment.")}
+              </div>
+            ) : bookingStep === "time" ? (
+              <div className="mt-4 rounded-xl border border-slate-100 bg-white p-3 text-center text-xs font-semibold leading-6 text-slate-500">
+                {sectionTitle("اختار أحد الأوقات الظاهرة في المحادثة للمتابعة.","Choose one of the times shown above to continue.")}
+              </div>
+            ) : (
+              <form onSubmit={handleChatInput} className="mt-4 flex items-center gap-2">
+                <input
+                  value={bookingInput}
+                  onChange={event => {setBookingInput(event.target.value);setBookingNotice("");}}
+                  disabled={bookingSubmitting}
+                  autoComplete="off"
+                  inputMode={bookingStep === "age" ? "numeric" : bookingStep === "phone" ? "tel" : "text"}
+                  type={bookingStep === "phone" ? "tel" : "text"}
+                  placeholder={
+                    bookingStep === "name" ? sectionTitle("اكتب اسم المريض...","Enter patient name...")
+                    : bookingStep === "age" ? sectionTitle("اكتب السن...","Enter age...")
+                    : bookingStep === "phone" ? sectionTitle("اكتب رقم الهاتف...","Enter phone number...")
+                    : sectionTitle("اكتب العنوان أو المنطقة...","Enter address or area...")
+                  }
+                  className="h-12 min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition focus:border-indigo-400 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                  dir={bookingStep === "phone" || bookingStep === "age" ? "ltr" : undefined}
+                />
+                <button type="submit" disabled={!bookingInput.trim() || bookingSubmitting} aria-label={sectionTitle("إرسال","Send")} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white shadow-md transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50" style={{backgroundColor:primary}}>
+                  <Send size={18}/>
+                </button>
+              </form>
+            )}
+            <p className="mt-3 text-center text-[10px] font-medium leading-5 text-slate-400">
+              {sectionTitle("طلب الموعد مبدئي، ولا يصبح حجزًا مؤكدًا إلا بعد تأكيد المركز عبر واتساب.","This is a preliminary request, not a confirmed booking until the clinic confirms via WhatsApp.")}
+            </p>
           </div>
         </div>
       </section>
 
-      <section id="contact" className="scroll-mt-24 bg-white py-16"><div className="mx-auto max-w-[1280px] px-4 sm:px-6"><div className="mb-8"><span className="text-xs font-black tracking-widest" style={{color:primary}}>{sectionTitle("نحن هنا لمساعدتك","WE ARE HERE TO HELP")}</span><h2 className="mt-2 text-2xl font-black text-slate-900 sm:text-3xl">{sectionTitle("تواصل مع المركز","Contact the clinic")}</h2></div><div className="grid gap-6 md:grid-cols-3">
+<section id="contact" className="scroll-mt-24 bg-white py-16"><div className="mx-auto max-w-[1280px] px-4 sm:px-6"><div className="mb-8"><span className="text-xs font-black tracking-widest" style={{color:primary}}>{sectionTitle("نحن هنا لمساعدتك","WE ARE HERE TO HELP")}</span><h2 className="mt-2 text-2xl font-black text-slate-900 sm:text-3xl">{sectionTitle("تواصل مع المركز","Contact the clinic")}</h2></div><div className="grid gap-6 md:grid-cols-3">
         <article className="flex items-start justify-between gap-4 rounded-2xl bg-white p-5 shadow-md transition hover:shadow-xl"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#dce9ff] text-[#372ba2]" style={{color:primary}}><MapPin size={23}/></span><h3 className="font-black text-slate-900">{sectionTitle("عنوان المركز","Clinic address")}</h3><p className="mt-2 text-sm font-medium leading-7 text-slate-500">{addressText || sectionTitle("تواصل مع المركز لمعرفة العنوان.","Contact the clinic for its address.")}</p>{mapsHref&&<a href={mapsHref} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 text-xs font-extrabold" style={{color:primary}}>{sectionTitle("عرض الموقع على الخريطة","View on map")}<ArrowLeft size={15}/></a>}</article>
         <article className="flex items-start justify-between gap-4 rounded-2xl bg-white p-5 shadow-md transition hover:shadow-xl"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#dce9ff] text-[#372ba2]" style={{color:primary}}><Phone size={23}/></span><h3 className="font-black text-slate-900">{sectionTitle("التواصل المباشر","Direct contact")}</h3>{clinic.phone?<a href={`tel:${clinic.phone}`} dir="ltr" className="mt-3 block text-base font-black" style={{color:primary}}>{clinic.phone}</a>:<p className="mt-2 text-sm text-slate-500">{sectionTitle("رقم الهاتف غير متاح حاليًا.","Phone number unavailable.")}</p>}{whatsappNumber&&<a href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-4 py-2.5 text-xs font-extrabold text-white">WhatsApp</a>}</article>
         <article id="hours" className="scroll-mt-24 rounded-[22px] border border-slate-100 bg-[#f8f9ff] p-6"><span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#dce9ff] text-[#372ba2]" style={{color:primary}}><Clock size={23}/></span><h3 className="font-black text-slate-900">{sectionTitle("مواعيد العمل","Working hours")}</h3>{workingHoursRows.length?<ul className="mt-3 space-y-2">{workingHoursRows.filter((x:any)=>x.isOpen).map((x:any,i:number)=><li key={i} className="flex justify-between gap-3 text-xs font-semibold text-slate-600"><span>{isRtl?x.day:(weekdayLabels[x.day]||x.day)}</span><span dir="ltr">{x.from} – {x.to}</span></li>)}</ul>:<p className="mt-2 whitespace-pre-line text-sm font-medium leading-7 text-slate-500">{clinic.working_hours || sectionTitle("يرجى التواصل مع المركز لمعرفة المواعيد.","Please contact the clinic for opening hours.")}</p>}</article>
