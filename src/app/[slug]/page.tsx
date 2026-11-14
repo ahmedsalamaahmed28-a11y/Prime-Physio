@@ -270,9 +270,11 @@ export default function BrandedClinicPage() {
       setBookingAddress(value);
       reply(value, availabilityLoading
         ? (isRtl ? "لحظة واحدة، بفحص المواعيد المتاحة..." : "One moment, I'm checking available times...")
-        : availableSlots.length
-          ? (isRtl ? "دي المواعيد المتاحة النهارده. اختار الموعد المناسب ليك:" : "These are today's available times. Choose the one that works for you:")
-          : (isRtl ? "للأسف مفيش مواعيد متاحة حاليًا اليوم." : "There are no available times today."));
+        : !availabilityConfigured
+          ? (isRtl ? "المركز لم يسجل أيام وساعات العمل على المنصة بعد. من فضلك تواصل مع المركز لتحديد موعد." : "The clinic has not configured its weekly working hours yet. Please contact the clinic to arrange an appointment.")
+          : availableSlots.length
+            ? (isRtl ? "دي المواعيد المتاحة النهارده. اختار الموعد المناسب ليك:" : "These are today's available times. Choose the one that works for you:")
+            : (isRtl ? "المركز مغلق اليوم أو لا توجد فترات حجز متاحة." : "The clinic is closed today or has no bookable slots."));
       setBookingStep("time");
     }
     setBookingInput("");
@@ -463,7 +465,11 @@ export default function BrandedClinicPage() {
                       {new Date(`2000-01-01T${slot}:00`).toLocaleTimeString(isRtl ? "ar-EG" : "en-US", {hour:"numeric",minute:"2-digit"})}
                     </button>
                   )) : (
-                    <span className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-500">{sectionTitle("لا توجد مواعيد متاحة اليوم. يُرجى التواصل مع المركز.","No available times today. Please contact the clinic.")}</span>
+                    <span className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-500">
+                      {availabilityConfigured
+                        ? sectionTitle("المركز مغلق اليوم أو لا توجد فترات حجز متاحة.","The clinic is closed today or has no bookable slots.")
+                        : sectionTitle("لم يسجل المركز ساعات العمل الأسبوعية بعد. يُرجى التواصل مع المركز.","The clinic has not configured its weekly working hours yet. Please contact the clinic.")}
+                    </span>
                   )}
                 </div>
               )}
