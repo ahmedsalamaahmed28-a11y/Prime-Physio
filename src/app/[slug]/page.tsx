@@ -54,7 +54,12 @@ export default function BrandedClinicPage() {
   const [bookingNotice, setBookingNotice] = useState("");
   const [bookingStep, setBookingStep] = useState<"name" | "age" | "phone" | "address" | "time" | "confirm" | "done">("name");
   const [bookingInput, setBookingInput] = useState("");
-  const [bookingMessages, setBookingMessages] = useState<BookingChatMessage[]>([]);
+  const [bookingMessages, setBookingMessages] = useState<BookingChatMessage[]>([{
+    role: "assistant",
+    text: language === "ar"
+      ? "أهلًا بيك 👋 أنا مساعد الحجز. هساعدك تختار موعد مناسب وهنسجل بياناتك خطوة بخطوة. إيه اسم المريض بالكامل؟"
+      : "Welcome 👋 I'm the booking assistant. I'll help you choose a time and collect your details step by step. What is the patient's full name?",
+  }]);
 
   const primary = clinic?.primary_color || "#372ba2";
   const addressText = [clinic?.address, clinic?.city, clinic?.country].filter(Boolean).join("، ");
@@ -203,17 +208,6 @@ export default function BrandedClinicPage() {
       setBookingSubmitting(false);
     }
   };
-
-  useEffect(() => {
-    setBookingStep("name");
-    setBookingInput("");
-    setBookingMessages([{
-      role: "assistant",
-      text: isRtl
-        ? `أهلًا بيك في ${displayName || "المركز"} 👋 أنا مساعد الحجز. هساعدك تختار موعد مناسب وهنسجل بياناتك خطوة بخطوة. إيه اسم المريض بالكامل؟`
-        : `Welcome to ${displayName || "the clinic"} 👋 I'm the booking assistant. I'll help you choose a time and collect your details step by step. What is the patient's full name?`,
-    }]);
-  }, [slug, isRtl, displayName]);
 
   const handleChatInput = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
