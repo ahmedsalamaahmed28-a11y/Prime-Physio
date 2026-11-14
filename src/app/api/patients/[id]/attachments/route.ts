@@ -127,7 +127,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 }
 
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const auth = await authorize();
+  const auth = await authorize(request);
   if ("response" in auth) return auth.response;
   if (!hasStaffPermission(auth.staff, "delete_emr")) {
     return NextResponse.json({ error: "ليس لديك صلاحية حذف المرفقات الطبية" }, { status: 403 });
