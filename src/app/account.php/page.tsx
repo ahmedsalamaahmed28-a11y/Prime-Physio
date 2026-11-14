@@ -12,6 +12,7 @@ import {
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
+import CenterAdminPlaceholder from "@/components/CenterAdminPlaceholder";
 
 type SubscriptionRow = {
   id: string;
@@ -188,7 +189,8 @@ export default function AccountPhpPage() {
   ], [staffActive, staffTotal, userLimit, clinicId]);
 
   return (
-    <main dir="rtl" className="min-h-screen bg-[#f6f8fb] px-3 pb-10 pt-5 sm:px-6 lg:px-8">
+    <CenterAdminPlaceholder>
+    <div dir="rtl" className="w-full bg-[#f6f8fb] px-3 pb-10 pt-5 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-6">
         <header className="flex flex-col justify-between gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-end">
           <div>
@@ -347,6 +349,7 @@ export default function AccountPhpPage() {
           </nav>
         </footer>
       </div>
-    </main>
+    </div>
+    </CenterAdminPlaceholder>
   );
 }
