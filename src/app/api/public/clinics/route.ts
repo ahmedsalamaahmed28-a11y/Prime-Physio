@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
         { data: team, error: teamError },
       ] = await Promise.all([
         admin.from("clinic_settings")
-          .select("clinic_name, phone, address, working_hours, city, country, logo_url, public_description, cover_url, whatsapp, website_url, instagram_url, facebook_url, maps_url, primary_color, cta_text")
+          .select("clinic_name, phone, address, working_hours, branches, city, country, logo_url, public_description, cover_url, whatsapp, website_url, instagram_url, facebook_url, maps_url, primary_color, cta_text")
           .eq("clinic_id", clinic.id).maybeSingle(),
         admin.from("branches")
           .select("id, short_name, full_name, slug, logo_url, specializations")
@@ -67,6 +67,20 @@ export async function GET(request: NextRequest) {
         throw settingsError || branchError || servicesError || teamError;
       }
 
+      let publicWeeklyHours: any[] = [];
+      if (typeof settings?.working_hours === "string" && settings.working_hours.trim()) {
+        try {
+          const parsed = JSON.parse(settings.working_hours);
+          if (Array.isArray(parsed)) publicWeeklyHours = parsed;
+        } catch {
+          // Keep legacy free-text working hours as a fallback.
+        }
+      }
+      if (!publicWeeklyHours.length && Array.isArray(settings?.branches)) {
+        const mainBranch = settings.branches.find((item: any) => item?.id === "main") || settings.branches[0];
+        if (Array.isArray(mainBranch?.hours)) publicWeeklyHours = mainBranch.hours;
+      }
+
       const profile = {
         ...clinic,
         name: settings?.clinic_name || clinic.name,
@@ -78,7 +92,7 @@ export async function GET(request: NextRequest) {
         public_description: settings?.public_description || "",
         cover_url: settings?.cover_url || "",
         whatsapp: settings?.whatsapp || "",
-        working_hours: settings?.working_hours || "",
+        working_hours: publicWeeklyHours.length ? JSON.stringify(publicWeeklyHours) : (settings?.working_hours || ""),
         website_url: safeHttpUrl(settings?.website_url),
         instagram_url: safeHttpUrl(settings?.instagram_url),
         facebook_url: safeHttpUrl(settings?.facebook_url),
