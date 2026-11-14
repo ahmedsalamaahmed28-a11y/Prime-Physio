@@ -280,7 +280,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await authorize();
+  const auth = await authorize(request);
   if ("response" in auth) return auth.response;
   try {
     const body = await request.json();
