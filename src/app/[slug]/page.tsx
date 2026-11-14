@@ -6,8 +6,8 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import {
-  ArrowLeft, ArrowRight, Activity, Building, CalendarDays, Check, MessageCircle,
-  Clock, Eye, EyeOff, Globe, Lock, Mail, Bot, Send, UserRound,
+  ArrowLeft, ArrowRight, Activity, Building, CalendarDays, Check, MessageSquare,
+  Clock, Eye, EyeOff, Globe, Lock, Mail,
   MapPin, Menu, Phone, ShieldCheck, Sparkles, Stethoscope, Users, X,
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -412,7 +412,7 @@ export default function BrandedClinicPage() {
           <div className="relative flex min-h-[300px] flex-col justify-between overflow-hidden bg-gradient-to-br from-[#21175f] via-[#4f46ba] to-[#3621b3] p-7 text-white sm:p-10">
             {clinic.cover_url && <img src={clinic.cover_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20"/>}
             <div className="relative">
-              <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10"><MessageCircle size={24}/></span>
+              <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/20 bg-white/10"><MessageSquare size={24}/></span>
               <p className="mb-2 text-xs font-black tracking-widest text-violet-200">{sectionTitle("مساعد الحجز","BOOKING ASSISTANT")}</p>
               <h2 className="max-w-md text-3xl font-black leading-tight sm:text-4xl">{sectionTitle("احجز موعدك بالمحادثة","Book through a conversation")}</h2>
               <p className="mt-4 max-w-md text-sm font-medium leading-8 text-violet-100">{sectionTitle("جاوب على أسئلة بسيطة، واختار من المواعيد المتاحة، وسنرسل طلبك للمركز.","Answer a few simple questions, choose an available time, and send your request to the clinic.")}</p>
@@ -425,7 +425,7 @@ export default function BrandedClinicPage() {
           <div className="flex min-h-[580px] flex-col p-4 sm:p-7">
             <div className="mb-4 flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-sm" style={{backgroundColor:primary}}><Bot size={22}/></span>
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl text-white shadow-sm" style={{backgroundColor:primary}}><Sparkles size={22}/></span>
                 <div>
                   <h3 className="text-base font-black text-slate-900">{sectionTitle("مساعد المواعيد","Appointment assistant")}</h3>
                   <p className="mt-0.5 flex items-center gap-1.5 text-[11px] font-semibold text-emerald-600"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500"/>{sectionTitle("متاح لمساعدتك","Here to help")}</p>
@@ -437,9 +437,9 @@ export default function BrandedClinicPage() {
             <div className="flex-1 space-y-3 overflow-y-auto rounded-2xl bg-slate-50 p-3 sm:p-4" aria-live="polite">
               {bookingMessages.map((message, index) => (
                 <div key={index} className={`flex items-end gap-2 ${message.role === "user" ? "justify-end" : "justify-start"}`}>
-                  {message.role === "assistant" && <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white" style={{backgroundColor:primary}}><Bot size={15}/></span>}
+                  {message.role === "assistant" && <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white" style={{backgroundColor:primary}}><Sparkles size={15}/></span>}
                   <div className={`max-w-[88%] whitespace-pre-line rounded-2xl px-3.5 py-3 text-sm leading-6 shadow-sm ${message.role === "user" ? "rounded-ee-sm bg-indigo-600 text-white" : "rounded-es-sm border border-slate-100 bg-white text-slate-700"}`}>{message.text}</div>
-                  {message.role === "user" && <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-600"><UserRound size={14}/></span>}
+                  {message.role === "user" && <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-600"><Users size={14}/></span>}
                 </div>
               ))}
               {bookingStep === "time" && (
@@ -457,7 +457,7 @@ export default function BrandedClinicPage() {
               )}
             </div>
 
-            {bookingNotice && <p role="alert" className="mt-3 rounded-xl border border-rose-100 bg-rose-50 p-3 text-xs font-semibold leading-6 text-rose-700">{bookingNotice}</p>}
+            {bookingNotice && <p role="status" className={`mt-3 rounded-xl border p-3 text-xs font-semibold leading-6 ${bookingStep === "done" ? "border-emerald-100 bg-emerald-50 text-emerald-800" : "border-rose-100 bg-rose-50 text-rose-700"}`}>{bookingNotice}</p>}
 
             {bookingStep === "confirm" ? (
               <form onSubmit={handleBooking} className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -495,7 +495,7 @@ export default function BrandedClinicPage() {
                   dir={bookingStep === "phone" || bookingStep === "age" ? "ltr" : undefined}
                 />
                 <button type="submit" disabled={!bookingInput.trim() || bookingSubmitting} aria-label={sectionTitle("إرسال","Send")} className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-white shadow-md transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50" style={{backgroundColor:primary}}>
-                  <Send size={18}/>
+                  <ArrowRight size={18}/>
                 </button>
               </form>
             )}
