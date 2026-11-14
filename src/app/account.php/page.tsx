@@ -51,7 +51,7 @@ function SectionHeading({ icon: Icon, title, description, action }: {
   return (
     <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
       <div className="flex items-start gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 text-teal-700"><Icon size={19} /></span>
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F1EFFF] text-[#5B50C7]"><Icon size={19} /></span>
         <div>
           <h2 className="text-base font-bold text-slate-900">{title}</h2>
           {description && <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>}
@@ -190,34 +190,34 @@ export default function AccountPhpPage() {
 
   return (
     <CenterAdminPlaceholder>
-    <div dir="rtl" className="w-full bg-[#f6f8fb] px-3 pb-10 pt-5 sm:px-6 lg:px-8">
+    <div dir="rtl" className="w-full bg-[#F8FAFC] px-3 pb-10 pt-5 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl space-y-6">
         <header className="flex flex-col justify-between gap-3 border-b border-slate-200 pb-5 sm:flex-row sm:items-end">
           <div>
-            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-teal-700">
-              <span className="h-2 w-2 rounded-full bg-teal-500" />
+            <div className="mb-2 flex items-center gap-2 text-xs font-semibold text-[#5B50C7]">
+              <span className="h-2 w-2 rounded-full bg-[#5B50C7]" />
               إعدادات الحساب
             </div>
             <h1 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">الحساب والاشتراك</h1>
             <p className="mt-2 text-sm text-slate-500" dir="ltr">{email || user?.email || "—"}</p>
           </div>
           <div className="flex items-center gap-2 text-xs text-slate-500">
-            <ShieldCheck size={16} className="text-teal-600" />
+            <ShieldCheck size={16} className="text-[#5B50C7]" />
             بيانات حسابك وإعدادات اشتراكك في مكان واحد
           </div>
         </header>
 
         <SectionCard className="overflow-hidden">
-          <div className="flex flex-col gap-5 bg-gradient-to-l from-[#073f43] via-[#075b60] to-[#0b7778] p-5 text-white sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6">
+          <div className="flex flex-col gap-5 bg-gradient-to-l from-[#153B60] via-[#344A91] to-[#5B50C7] p-5 text-white sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-6">
             <div className="flex items-center gap-4">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10"><Crown size={27} /></div>
               <div>
-                <p className="text-sm font-medium text-teal-100">باقتك الحالية</p>
+                <p className="text-sm font-medium text-white/80">باقتك الحالية</p>
                 <h2 className="mt-1 text-2xl font-extrabold">الباقة {planLabel}</h2>
-                <p className="mt-1 text-sm text-teal-100">{isFree ? "$0 / شهرياً" : "اشتراك Prime Physio"}</p>
+                <p className="mt-1 text-sm text-white/80">{isFree ? "$0 / شهرياً" : "اشتراك Prime Physio"}</p>
               </div>
             </div>
-            <Link href="/subscription" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-[#075b60] shadow-sm transition hover:bg-teal-50">
+            <Link href="/subscription" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-bold text-[#5B50C7] shadow-sm transition hover:bg-[#F1EFFF]">
               تغيير الباقة <ChevronLeft size={17} />
             </Link>
           </div>
@@ -244,9 +244,9 @@ export default function AccountPhpPage() {
             {usageCards.map((item) => {
               const Icon = item.icon;
               return (
-                <div key={item.title} className="rounded-xl border border-slate-100 bg-white p-4 transition hover:border-teal-200 hover:shadow-sm">
+                <div key={item.title} className="rounded-xl border border-slate-100 bg-white p-4 transition hover:border-[#C9C4F2] hover:shadow-sm">
                   <div className="flex items-center justify-between">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-50 text-teal-700"><Icon size={18} /></span>
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#F1EFFF] text-[#5B50C7]"><Icon size={18} /></span>
                     <span className="text-[11px] font-medium text-slate-400">الاستخدام</span>
                   </div>
                   <p className="mt-4 text-xs font-medium text-slate-500">{item.title}</p>
@@ -254,7 +254,7 @@ export default function AccountPhpPage() {
                     <strong className="text-2xl font-extrabold tabular-nums text-slate-900">{loadingData ? "…" : item.value}</strong>
                     {item.limit && <span className="text-xs text-slate-400">/ {item.limit}</span>}
                   </div>
-                  {item.limit && item.progress > 0 && <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-teal-500 transition-all" style={{ width: `${item.progress}%` }} /></div>}
+                  {item.limit && item.progress > 0 && <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-[#5B50C7] transition-all" style={{ width: `${item.progress}%` }} /></div>}
                   {item.note && <p className="mt-2 text-[10px] leading-4 text-slate-400">{item.note}</p>}
                 </div>
               );
@@ -301,7 +301,7 @@ export default function AccountPhpPage() {
               <label className="block space-y-2"><span className="text-xs font-bold text-slate-700">البريد الإلكتروني</span><input value={email} readOnly dir="ltr" className="h-11 w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 px-3 text-left text-sm text-slate-500 outline-none" /><span className="block text-[11px] text-slate-400">لتغيير بريد حسابك تواصل مع الدعم.</span></label>
             </div>
             <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
-              <button type="submit" disabled={profileBusy} className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#087b7b] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#066565] disabled:opacity-60">{profileBusy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} حفظ</button>
+              <button type="submit" disabled={profileBusy} className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#5B50C7] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#493FB0] disabled:opacity-60">{profileBusy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} حفظ</button>
               {profileMessage && <p className={`text-xs ${profileMessage.startsWith("تم") ? "text-emerald-600" : "text-rose-600"}`}>{profileMessage}</p>}
             </div>
           </form>
@@ -317,11 +317,11 @@ export default function AccountPhpPage() {
             <label className="inline-flex cursor-pointer items-center gap-3 self-start sm:self-center">
               <span className="text-xs font-semibold text-slate-600">{newsletter ? "مفعّلة" : "متوقفة"}</span>
               <input type="checkbox" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} className="peer sr-only" />
-              <span className="relative h-6 w-11 rounded-full bg-slate-200 transition peer-checked:bg-teal-600 after:absolute after:right-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:-translate-x-5" />
+              <span className="relative h-6 w-11 rounded-full bg-slate-200 transition peer-checked:bg-[#5B50C7] after:absolute after:right-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:-translate-x-5" />
             </label>
           </div>
           <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 px-5 py-4 sm:px-6">
-            <button type="button" onClick={saveMailPreferences} disabled={mailBusy} className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 transition hover:border-teal-300 hover:text-teal-700 disabled:opacity-60">{mailBusy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} حفظ</button>
+            <button type="button" onClick={saveMailPreferences} disabled={mailBusy} className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 transition hover:border-[#5B50C7]/40 hover:text-[#5B50C7] disabled:opacity-60">{mailBusy ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} حفظ</button>
             {mailMessage && <p className={`text-xs ${mailMessage.startsWith("تم") ? "text-emerald-600" : "text-rose-600"}`}>{mailMessage}</p>}
           </div>
         </SectionCard>
@@ -334,7 +334,7 @@ export default function AccountPhpPage() {
               <div><p className="text-sm font-bold text-slate-800">استخدم كلمة مرور قوية</p><p className="mt-1 text-xs text-slate-500">لا تستخدم كلمة مرور حسابك في مواقع أخرى.</p></div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link href="/forgot-password" className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 px-4 text-xs font-bold text-slate-700 transition hover:border-teal-300 hover:text-teal-700"><Key size={15} /> تغيير كلمة المرور</Link>
+              <Link href="/forgot-password" className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 px-4 text-xs font-bold text-slate-700 transition hover:border-[#5B50C7]/40 hover:text-[#5B50C7]"><Key size={15} /> تغيير كلمة المرور</Link>
               <button type="button" onClick={handleLogout} className="inline-flex h-10 items-center gap-2 rounded-xl border border-rose-100 bg-rose-50 px-4 text-xs font-bold text-rose-700 transition hover:bg-rose-100"><LogOut size={15} /> تسجيل الخروج</button>
             </div>
           </div>
@@ -343,9 +343,9 @@ export default function AccountPhpPage() {
         <footer className="flex flex-col items-center justify-between gap-3 border-t border-slate-200 py-5 text-xs text-slate-400 sm:flex-row">
           <p>© 2026 Prime Physio. جميع الحقوق محفوظة.</p>
           <nav className="flex flex-wrap items-center justify-center gap-4">
-            <Link href="/support" className="transition hover:text-teal-700">مركز المساعدة</Link>
-            <Link href="/terms" className="transition hover:text-teal-700">الشروط</Link>
-            <Link href="/privacy" className="transition hover:text-teal-700">الخصوصية</Link>
+            <Link href="/support" className="transition hover:text-[#5B50C7]">مركز المساعدة</Link>
+            <Link href="/terms" className="transition hover:text-[#5B50C7]">الشروط</Link>
+            <Link href="/privacy" className="transition hover:text-[#5B50C7]">الخصوصية</Link>
           </nav>
         </footer>
       </div>
