@@ -1,32 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/pages/api/auth/[...nextauth]";
 import { getAdminClient } from "@/lib/supabase-admin";
+import { getClinicContext } from "@/lib/server/clinic-context";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-async function getAuthorizedClinic() {
-  const session = await getServerSession(authOptions);
-  const email = session?.user?.email?.toLowerCase().trim();
-  if (!email) return { error: NextResponse.json({ error: "يجب تسجيل الدخول أولاً" }, { status: 401 }) };
-
-  const admin = getAdminClient();
-  const { data: staff, error } = await admin
-    .from("staff")
-    .select("clinic_id,status")
-    .eq("email", email)
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    console.error("[Patient Clinical API] Staff lookup failed:", error);
-    return { error: NextResponse.json({ error: "تعذر التحقق من صلاحية الحساب" }, { status: 503 }) };
-  }
-  if (!staff?.clinic_id || staff.status === "محذوف") {
-    return { error: NextResponse.json({ error: "لا توجد صلاحية نشطة لهذه العيادة" }, { status: 403 }) };
-  }
-  return { admin, clinicId: staff.clinic_id };
+async function getAuthorizedClinic(req: NextRequest) {
+  return getClinicContext(req);
 }
 
 async function verifyPatient(admin: ReturnType<typeof getAdminClient>, patientId: string, clinicId: string) {
@@ -40,8 +20,8 @@ async function verifyPatient(admin: ReturnType<typeof getAdminClient>, patientId
   return Boolean(data);
 }
 
-export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
-  const auth = await getAuthorizedClinic();
+export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
+  const auth = await getAuthorizedClinic(request);
   if ("error" in auth) return auth.error;
   const { id } = await context.params;
 
