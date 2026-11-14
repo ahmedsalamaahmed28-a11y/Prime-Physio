@@ -89,7 +89,7 @@ BEGIN
   SELECT p.id INTO v_patient_id
   FROM public.patients p
   WHERE p.clinic_id = p_clinic_id
-    AND pg_catalog.lower(pg_catalog.btrim(p.nameAr)) = pg_catalog.lower(pg_catalog.btrim(p_patient_name))
+    AND pg_catalog.lower(pg_catalog.btrim(p."nameAr")) = pg_catalog.lower(pg_catalog.btrim(p_patient_name))
     AND pg_catalog.regexp_replace(coalesce(p.phone, ''), '[^0-9]', '', 'g') = v_phone_digits
   ORDER BY p.created_at DESC
   LIMIT 1
