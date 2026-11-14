@@ -12,7 +12,7 @@ import CenterAdminPlaceholder from "@/components/CenterAdminPlaceholder";
 type Plan = {
   name: string;
   price: string;
-  egp: string;
+  annual: string;
   description: string;
   limits: [string, string, string, string, string];
   support: string;
@@ -21,15 +21,15 @@ type Plan = {
 };
 
 const plans: Plan[] = [
-  { name: "المجانية", price: "$0", egp: "مجاناً", description: "لتجهيز مركزك وتجربة كل شيء.", limits: ["20", "100", "1", "2,000", "1 GB"], support: "البريد الإلكتروني", backup: "تصدير Excel في أي وقت" },
-  { name: "الأساسية", price: "$14", egp: "750 جنيه شهرياً عبر إنستاباي", description: "لمركز ينمو بفريق أكبر.", limits: ["100", "500", "1", "غير محدود", "10 GB"], support: "البريد الإلكتروني والمحادثة الفورية", backup: "نسخة Excel شهرية تلقائية بالبريد", featured: true },
-  { name: "المتوسطة", price: "$28", egp: "1,500 جنيه شهرياً عبر إنستاباي", description: "لملاك الفروع المتعددة.", limits: ["500", "1,000", "2", "غير محدود", "20 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل 6 أشهر لكل مركز", backup: "نسخة Excel شهرية + نسخة قاعدة بيانات أسبوعية" },
-  { name: "Advanced", price: "$60", egp: "3,000 جنيه شهرياً عبر إنستاباي", description: "للمراكز متعددة الفروع والفرق الكبيرة.", limits: ["5,000", "غير محدود", "5", "غير محدود", "30 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
-  { name: "Maximum", price: "$150", egp: "7,500 جنيه شهرياً عبر إنستاباي", description: "لشبكات المراكز والعمليات الكبيرة.", limits: ["غير محدود", "غير محدود", "10", "غير محدود", "50 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
+  { name: "المجانية", price: "مجاناً", annual: "مجاناً", description: "لتجهيز مركزك وتجربة كل شيء.", limits: ["20", "100", "1", "2,000", "1 GB"], support: "البريد الإلكتروني", backup: "تصدير Excel في أي وقت" },
+  { name: "الأساسية", price: "750 جنيه", annual: "7,500 جنيه سنوياً بدلاً من 9,000 جنيه", description: "لمركز ينمو بفريق أكبر.", limits: ["100", "500", "1", "غير محدود", "10 GB"], support: "البريد الإلكتروني والمحادثة الفورية", backup: "نسخة Excel شهرية تلقائية بالبريد", featured: true },
+  { name: "المتوسطة", price: "1,500 جنيه", annual: "15,000 جنيه سنوياً بدلاً من 18,000 جنيه", description: "لملاك الفروع المتعددة.", limits: ["500", "1,000", "2", "غير محدود", "20 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل 6 أشهر لكل مركز", backup: "نسخة Excel شهرية + نسخة قاعدة بيانات أسبوعية" },
+  { name: "Advanced", price: "3,000 جنيه", annual: "30,000 جنيه سنوياً بدلاً من 36,000 جنيه", description: "للمراكز متعددة الفروع والفرق الكبيرة.", limits: ["5,000", "غير محدود", "5", "غير محدود", "30 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
+  { name: "Maximum", price: "7,500 جنيه", annual: "75,000 جنيه سنوياً بدلاً من 90,000 جنيه", description: "لشبكات المراكز والعمليات الكبيرة.", limits: ["غير محدود", "غير محدود", "10", "غير محدود", "50 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
 ];
 
 const comparisonRows = [
-  ["السعر / شهرياً", "$0", "$14", "$28", "$60", "$150"],
+  ["السعر / شهرياً", "مجاناً", "750 جنيه", "1,500 جنيه", "3,000 جنيه", "7,500 جنيه"],
   ["المستخدمون النشطون", "20", "100", "500", "5,000", "غير محدود"],
   ["إجمالي المستخدمين", "100", "500", "1,000", "غير محدود", "غير محدود"],
   ["المراكز", "1", "1", "2", "5", "10"],
@@ -49,9 +49,9 @@ const faqs = [
   { q: "كيف أدفع؟", a: "سيكون الدفع للباقات المدفوعة عبر إنستاباي بالجنيه المصري. تفاصيل التحويل وإرسال إثبات الدفع وتأكيد الاشتراك ستظهر هنا بعد إعداد آلية الدفع." },
   { q: "هل يتجدد الاشتراك تلقائياً؟", a: "لا يوجد خصم أو تجديد تلقائي عبر بوابة دفع. يتم تجديد الاشتراك بعد إتمام تحويل إنستاباي وتأكيده وفق آلية الدفع التي سيتم توضيحها." },
   { q: "هل يمكنني تغيير باقتي لاحقاً؟", a: "نعم، يمكنك طلب ترقية باقتك في أي وقت. تظل مراكزك وبياناتك كما هي." },
-  { q: "هل بياناتي محفوظة احتياطياً؟ وهل يمكنني أخذها معي؟", a: "يمكنك في كل الباقات تصدير بياناتك إلى Excel في أي وقت. وتشمل الباقات المدفوعة نسخاً احتياطية وفق الجدول الموضح في المقارنة. كما يمكنك طلب التصدير الكامل لبيانات المركز، شاملاً الحالات وملفاتها وتقييماتها والجلسات والمدفوعات والموظفين؛ أول تصدير لكل مركز مجاناً، ثم 100 دولار لكل مرة." },
+  { q: "هل بياناتي محفوظة احتياطياً؟ وهل يمكنني أخذها معي؟", a: "يمكنك في كل الباقات تصدير بياناتك إلى Excel في أي وقت. وتشمل الباقات المدفوعة نسخاً احتياطية وفق الجدول الموضح في المقارنة. كما يمكنك طلب التصدير الكامل لبيانات المركز، شاملاً الحالات وملفاتها وتقييماتها والجلسات والمدفوعات والموظفين؛ أول تصدير لكل مركز مجاناً، وتُحدد أي رسوم إضافية بالجنيه المصري قبل تنفيذ الطلب." },
   { q: "من هو المستخدم النشط؟", a: "يُحتسب مالك المركز وكل فرد من فريق العمل ضمن إجمالي المستخدمين. ويُحتسب الحساب ضمن المستخدمين النشطين إذا كانت حالته نشطة؛ أما الحسابات المحذوفة فلا تُحتسب." },
-  { q: "هل يوجد اشتراك سنوي أو دفع بالجنيه المصري؟", a: "نعم، يمكنك الدفع بالجنيه المصري عبر إنستاباي، مع عرض 12 شهراً بسعر 10 أشهر. للاستفسارات والتنسيق تواصل معنا عبر واتساب." },
+  { q: "هل يوجد اشتراك سنوي؟", a: "نعم، يمكنك دفع قيمة 10 أشهر مقدماً والاستفادة من 12 شهراً. جميع الأسعار بالجنيه المصري، والدفع عبر إنستاباي فقط." },
 ];
 
 function CheckMark({ value }: { value: string }) {
@@ -94,7 +94,7 @@ export default function PlansPhpPage() {
           <header className="text-center">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#E4E1FA] bg-[#F1EFFF] px-3 py-1.5 text-xs font-bold text-[#5B50C7]"><Crown size={15} /> خطط تناسب نمو مركزك</div>
             <h1 className="text-3xl font-extrabold tracking-tight text-[#153B60] sm:text-4xl">باقات بسيطة لكل مركز</h1>
-            <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">ابدأ مجاناً، ورقِّ باقتك عندما يكبر فريقك أو عدد فروعك. الدفع للخطط المدفوعة سيكون عبر إنستاباي بالجنيه المصري.</p>
+            <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">ابدأ مجاناً، ورقِّ باقتك عندما يكبر فريقك أو عدد فروعك. جميع الأسعار بالجنيه المصري فقط، والدفع للباقات المدفوعة عبر إنستاباي.</p>
           </header>
 
           <section>
@@ -106,9 +106,9 @@ export default function PlansPhpPage() {
                   <article key={plan.name} className={`relative flex flex-col rounded-2xl border bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.045)] transition hover:-translate-y-1 hover:shadow-lg ${plan.featured ? "border-[#8C83E0] ring-2 ring-[#5B50C7]/10" : "border-slate-200"}`}>
                     {plan.featured && <span className="absolute -top-3 right-1/2 -translate-x-1/2 translate-x-1/2 whitespace-nowrap rounded-full bg-[#5B50C7] px-3 py-1 text-[11px] font-extrabold text-white shadow">الأكثر اختياراً</span>}
                     <h2 className="text-lg font-extrabold text-[#153B60]">{plan.name === "المجانية" ? "الباقة المجانية" : plan.name === "الأساسية" ? "الباقة الأساسية" : plan.name === "المتوسطة" ? "الباقة المتوسطة" : plan.name}</h2>
-                    <div className="mt-4 flex items-end gap-1" dir="ltr"><strong className="text-3xl font-black tracking-tight text-[#5B50C7]">{plan.price}</strong><span className="pb-1 text-xs text-slate-500">/ شهرياً</span></div>
-                    {plan.name !== "المجانية" && <p className="mt-2 text-xs font-bold leading-5 text-slate-600">{plan.egp}</p>}
-                    {plan.name !== "المجانية" && <p className="mt-1 text-[11px] font-semibold text-emerald-700">ادفع 12 شهراً بسعر 10 أشهر فقط</p>}
+                    <div className="mt-4 flex items-end gap-1"><strong className="text-3xl font-black tracking-tight text-[#5B50C7]">{plan.price}</strong>{plan.name !== "المجانية" && <span className="pb-1 text-xs text-slate-500">/ شهرياً</span>}</div>
+                    {plan.name !== "المجانية" && <p className="mt-2 text-xs font-bold leading-5 text-slate-600">{plan.annual}</p>}
+                    {plan.name !== "المجانية" && <p className="mt-1 text-[11px] font-semibold text-emerald-700">ادفع 12 شهراً بسعر 10 أشهر فقط عبر إنستاباي</p>}
                     <p className="mt-3 min-h-10 text-xs leading-5 text-slate-500">{plan.description}</p>
                     <div className="my-4 h-px bg-slate-100" />
                     <ul className="flex-1 space-y-3 text-xs leading-5 text-slate-700">
