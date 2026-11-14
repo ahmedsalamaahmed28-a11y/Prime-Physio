@@ -289,12 +289,12 @@ export default function BrandedClinicPage() {
         const time = nextTimes[key];
         const label = time ? new Date("2000-01-01T" + time + ":00").toLocaleTimeString(isRtl ? "ar-EG" : "en-US", { hour: "numeric", minute: "2-digit" }) : "";
         return (isRtl ? day?.dayAr : day?.dayEn) + ": " + label;
-      }).join("\\n");
+      }).join("\n");
       setBookingMessages(current => [...current,
         { role: "user", text: isRtl ? "تم اختيار أوقات المجموعة" : "Group times selected" },
         { role: "assistant", text: isRtl
-          ? "راجع طلب الانضمام للمجموعة " + bookingGroup + ":\\n" + summary + "\\n\\nسيتم إرسال الطلب للأخصائي لتقييم الحالة وتحديد عدد الجلسات قبل اعتماد الجدول."
-          : "Review group " + bookingGroup + ":\\n" + summary + "\\n\\nThe specialist will evaluate the patient and determine the session count before approving the schedule." },
+          ? "راجع طلب الانضمام للمجموعة " + bookingGroup + ":\n" + summary + "\n\nسيتم إرسال الطلب للأخصائي لتقييم الحالة وتحديد عدد الجلسات قبل اعتماد الجدول."
+          : "Review group " + bookingGroup + ":\n" + summary + "\n\nThe specialist will evaluate the patient and determine the session count before approving the schedule." },
       ]);
       setBookingStep("confirm");
     }
@@ -507,7 +507,7 @@ export default function BrandedClinicPage() {
               </form>
             ) : bookingStep === "done" ? (
               <div className="mt-4 rounded-xl border border-emerald-100 bg-emerald-50 p-3 text-center text-xs font-bold leading-6 text-emerald-800">
-                {sectionTitle("تم إرسال طلبك. سيقوم المركز بالتواصل معك لتأكيد الموعد.","Request sent. The clinic will contact you to confirm the appointment.")}
+                {sectionTitle("تم إرسال طلبك بنجاح. سيقيّم الأخصائي الحالة ويحدد عدد الجلسات قبل اعتماد الجدول.","Your request was sent. A specialist will evaluate the patient and set the session count before approving the schedule.")}
               </div>
             ) : bookingStep === "time" ? (
               <div className="mt-4 rounded-xl border border-slate-100 bg-white p-3 text-center text-xs font-semibold leading-6 text-slate-500">
