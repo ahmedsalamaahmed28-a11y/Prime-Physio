@@ -242,12 +242,16 @@ export default function BrandedClinicPage() {
       reply(value, isRtl ? "تشرفنا بيك. كم سنة عمر المريض؟" : "Nice to meet you. How old is the patient?");
       setBookingStep("age");
     } else if (bookingStep === "age") {
-      const age = Number(value);
-      if (!/^\\d{1,3}$/.test(value) || !Number.isInteger(age) || age < 1 || age > 120) {
+      // Accept Western, Arabic-Indic, and Eastern Arabic-Indic numerals.
+      const normalizedAge = value
+        .replace(/[٠-٩]/g, digit => String("٠١٢٣٤٥٦٧٨٩".indexOf(digit)))
+        .replace(/[۰-۹]/g, digit => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)));
+      const age = Number(normalizedAge);
+      if (!/^\d{1,3}$/.test(normalizedAge) || !Number.isInteger(age) || age < 1 || age > 120) {
         setBookingNotice(isRtl ? "اكتب السن بالأرقام من 1 إلى 120." : "Enter an age between 1 and 120.");
         return;
       }
-      setBookingAge(value);
+      setBookingAge(String(age));
       reply(value, isRtl ? "تمام. ما رقم الهاتف الذي يمكن للمركز التواصل معك عليه؟" : "Great. What phone number can the clinic use to contact you?");
       setBookingStep("phone");
     } else if (bookingStep === "phone") {
