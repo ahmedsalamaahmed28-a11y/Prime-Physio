@@ -65,7 +65,11 @@ export async function POST(req: NextRequest) {
     if (error) {
       await cleanupLogo();
       console.error("[IndependentCenter] Provisioning RPC failed:", error);
-      return NextResponse.json({ error: "تعذر إنشاء المركز حاليًا. حاول مرة أخرى." }, { status: 500 });
+      const isPlanLimit = /PLAN_LIMIT_CENTERS/i.test(error.message || "");
+      return NextResponse.json(
+        { error: isPlanLimit ? "وصلت إلى الحد الأقصى لعدد المراكز في باقتك. رقِّ الباقة لإضافة مركز آخر." : "تعذر إنشاء المركز حاليًا. حاول مرة أخرى.", code: isPlanLimit ? "PLAN_LIMIT_CENTERS" : "CENTER_CREATE_FAILED" },
+        { status: isPlanLimit ? 403 : 500 }
+      );
     }
     if (!data || data.error) {
       await cleanupLogo();
