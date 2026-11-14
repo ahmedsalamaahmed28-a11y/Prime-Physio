@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase-admin";
 import { getClinicContext } from "@/lib/server/clinic-context";
 import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
 import { checkSubscriptionLimit } from "@/lib/subscriptionCheck";
@@ -56,7 +55,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await authorize();
+  const auth = await authorize(request);
   if ("response" in auth) return auth.response;
   try {
     const body = await request.json();
