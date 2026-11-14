@@ -3,11 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  Activity, ArrowLeft, ArrowRight, Bell, Building2, Check, CheckCircle2,
-  ChevronLeft, CircleHelp, CreditCard, Crown, Database, Download,
-  ExternalLink, FileText, KeyRound, Loader2, LockKeyhole, LogOut,
-  Mail, MessageSquare, Save, ShieldCheck, Smartphone, Users, UserRound,
-  Wallet, X,
+  Activity, ArrowLeft, ArrowRight, Bell, Building, Check, CheckCircle2,
+  ChevronLeft, HelpCircle, CreditCard, Crown, Database, Download,
+  ExternalLink, FileText, Key, Loader2, Lock, LogOut,
+  Mail, MessageSquare, Save, ShieldCheck, Smartphone, Users, User,
+  CreditCard, X,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -172,7 +172,7 @@ export default function AccountPhpPage() {
       title: "المراكز",
       value: clinicId ? "1" : "—",
       limit: "1",
-      icon: Building2,
+      icon: Building,
       tone: "violet",
       progress: clinicId ? 100 : 0,
     },
@@ -237,7 +237,7 @@ export default function AccountPhpPage() {
 
         <SectionCard>
           <SectionHeading icon={Activity} title="الاستخدام في كل مراكزك" description="ملخص استخدام موارد المنصة حسب باقتك الحالية."
-            action={<span className="inline-flex items-center gap-1 text-xs text-slate-400"><CircleHelp size={15} /> الاستخدام الحالي</span>} />
+            action={<span className="inline-flex items-center gap-1 text-xs text-slate-400"><HelpCircle size={15} /> الاستخدام الحالي</span>} />
           <div className="grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 xl:grid-cols-4 sm:p-5">
             {usageCards.map((item) => {
               const Icon = item.icon;
@@ -261,7 +261,7 @@ export default function AccountPhpPage() {
         </SectionCard>
 
         <SectionCard>
-          <SectionHeading icon={Wallet} title="سجل المدفوعات" description={`تغييرات الباقة (${subscriptionRows.length})`}
+          <SectionHeading icon={CreditCard} title="سجل المدفوعات" description={`تغييرات الباقة (${subscriptionRows.length})`}
             action={<span className="text-xs text-slate-400">آخر العمليات أولاً</span>} />
           <div className="overflow-x-auto">
             <table className="w-full min-w-[620px] text-right text-sm">
@@ -290,12 +290,12 @@ export default function AccountPhpPage() {
         </SectionCard>
 
         <SectionCard>
-          <SectionHeading icon={UserRound} title="الملف الشخصي" description="حدّث بيانات التواصل المرتبطة بحسابك." />
+          <SectionHeading icon={User} title="الملف الشخصي" description="حدّث بيانات التواصل المرتبطة بحسابك." />
           <form onSubmit={saveProfile} className="space-y-5 p-5 sm:p-6">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <label className="block space-y-2"><span className="text-xs font-bold text-slate-700">الاسم الأول</span><input value={firstName} onChange={(e) => setFirstName(e.target.value)} autoComplete="given-name" className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10" placeholder="الاسم الأول" /></label>
               <label className="block space-y-2"><span className="text-xs font-bold text-slate-700">اسم العائلة</span><input value={lastName} onChange={(e) => setLastName(e.target.value)} autoComplete="family-name" className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none transition focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10" placeholder="اسم العائلة" /></label>
-              <label className="block space-y-2"><span className="flex items-center gap-1 text-xs font-bold text-slate-700">رقم الهاتف المحمول <CircleHelp size={13} className="text-slate-400" /></span><div className="flex h-11 overflow-hidden rounded-xl border border-slate-200 focus-within:border-teal-500 focus-within:ring-4 focus-within:ring-teal-500/10" dir="ltr"><span className="flex items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500">+20</span><input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" autoComplete="tel-national" className="min-w-0 flex-1 px-3 text-sm outline-none" placeholder="10XXXXXXXX" /></div></label>
+              <label className="block space-y-2"><span className="flex items-center gap-1 text-xs font-bold text-slate-700">رقم الهاتف المحمول <HelpCircle size={13} className="text-slate-400" /></span><div className="flex h-11 overflow-hidden rounded-xl border border-slate-200 focus-within:border-teal-500 focus-within:ring-4 focus-within:ring-teal-500/10" dir="ltr"><span className="flex items-center border-r border-slate-200 bg-slate-50 px-3 text-sm text-slate-500">+20</span><input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" autoComplete="tel-national" className="min-w-0 flex-1 px-3 text-sm outline-none" placeholder="10XXXXXXXX" /></div></label>
               <label className="block space-y-2"><span className="text-xs font-bold text-slate-700">البريد الإلكتروني</span><input value={email} readOnly dir="ltr" className="h-11 w-full cursor-not-allowed rounded-xl border border-slate-200 bg-slate-50 px-3 text-left text-sm text-slate-500 outline-none" /><span className="block text-[11px] text-slate-400">لتغيير بريد حسابك تواصل مع الدعم.</span></label>
             </div>
             <div className="flex flex-wrap items-center gap-3 border-t border-slate-100 pt-4">
@@ -325,14 +325,14 @@ export default function AccountPhpPage() {
         </SectionCard>
 
         <SectionCard>
-          <SectionHeading icon={LockKeyhole} title="الدخول والأمان" description="حافظ على أمان حسابك وبيانات مركزك." />
+          <SectionHeading icon={Lock} title="الدخول والأمان" description="حافظ على أمان حسابك وبيانات مركزك." />
           <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <div className="flex items-start gap-3">
               <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700"><ShieldCheck size={18} /></span>
               <div><p className="text-sm font-bold text-slate-800">استخدم كلمة مرور قوية</p><p className="mt-1 text-xs text-slate-500">لا تستخدم كلمة مرور حسابك في مواقع أخرى.</p></div>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Link href="/forgot-password" className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 px-4 text-xs font-bold text-slate-700 transition hover:border-teal-300 hover:text-teal-700"><KeyRound size={15} /> تغيير كلمة المرور</Link>
+              <Link href="/forgot-password" className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 px-4 text-xs font-bold text-slate-700 transition hover:border-teal-300 hover:text-teal-700"><Key size={15} /> تغيير كلمة المرور</Link>
               <button type="button" onClick={handleLogout} className="inline-flex h-10 items-center gap-2 rounded-xl border border-rose-100 bg-rose-50 px-4 text-xs font-bold text-rose-700 transition hover:bg-rose-100"><LogOut size={15} /> تسجيل الخروج</button>
             </div>
           </div>
