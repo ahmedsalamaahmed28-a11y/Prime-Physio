@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Bell, Smartphone, Monitor, Download, CheckCircle2, Building, LayoutDashboard, CreditCard, User, Globe, Wifi, Menu, X, LogOut, HelpCircle, Sparkles } from "lucide-react";
+import { Bell, Smartphone, Monitor, Download, CheckCircle2, Building, LayoutDashboard, CreditCard, User, Globe, Wifi, Menu, X, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 
@@ -11,15 +11,6 @@ type InstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 };
 
-function HelpLink({ label }: { label: string }) {
-  return (
-    <a href="https://ptset.com/img/icons/help.png" target="_blank" rel="noreferrer"
-      aria-label={`مساعدة: ${label}`} title={label}
-      className="inline-flex h-5 w-5 items-center justify-center rounded-full align-middle transition hover:bg-slate-100">
-      <img src="https://ptset.com/img/icons/help.png" alt="" className="h-4 w-4 object-contain" />
-    </a>
-  );
-}
 
 export default function NoticesPhpPage() {
   const { user, logout } = useAuth();
@@ -110,7 +101,7 @@ export default function NoticesPhpPage() {
         })}
       </nav>
       <div className="mt-auto space-y-[2px] border-t border-[#EEF0F2] pt-[15px]">
-        <Link href="/support" className="flex h-[42px] items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold text-[#737B85] hover:bg-[#F7F9FB]"><HelpCircle className="h-[18px] w-[18px]" /><span>{isRtl ? "مركز المساعدة" : "Help Center"}</span></Link>
+        <Link href="/support" className="flex h-[42px] items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold text-[#737B85] hover:bg-[#F7F9FB]"><span>{isRtl ? "مركز المساعدة" : "Help Center"}</span></Link>
         <Link href="/about" className="flex h-[42px] items-center gap-[12px] rounded-[9px] px-[14px] text-[14px] font-semibold text-[#737B85] hover:bg-[#F7F9FB]"><Sparkles className="h-[18px] w-[18px]" /><span>{isRtl ? "الجديد" : "What's New"}</span></Link>
       </div>
     </>
@@ -154,11 +145,11 @@ export default function NoticesPhpPage() {
           <div className="mx-auto w-full max-w-5xl flex-1 space-y-8 p-4 text-slate-800 sm:p-6 lg:p-8">
             <header className="flex items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#EEF2FF] text-[#4F46BA]"><Bell className="h-6 w-6" /></div>
-              <div><h1 className="flex items-center gap-2 text-2xl font-extrabold text-[#153B60]">الإشعارات <HelpLink label="الإشعارات" /></h1><p className="mt-1 text-sm text-slate-500">ما يبلغك به Prime Physio عن حسابك ومراكزك.</p></div>
+              <div><h1 className="flex items-center gap-2 text-2xl font-extrabold text-[#153B60]">الإشعارات</h1><p className="mt-1 text-sm text-slate-500">ما يبلغك به Prime Physio عن حسابك ومراكزك.</p></div>
             </header>
 
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-              <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#153B60]">الإشعارات على هذا الجهاز <HelpLink label="الإشعارات على هذا الجهاز" /></h2>
+              <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#153B60]">الإشعارات على هذا الجهاز</h2>
               <p className="mt-2 max-w-3xl text-sm leading-7 text-slate-600">استقبل إشعارات Prime Physio على هذا الهاتف أو الكمبيوتر حتى عندما يكون Prime Physio مغلقاً.</p>
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 <button type="button" onClick={activateNotifications} disabled={isActivating || permission === "granted"} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#4F46BA] px-5 py-2.5 text-sm font-bold text-white transition hover:bg-[#4338A8] disabled:cursor-not-allowed disabled:bg-emerald-600">
@@ -167,19 +158,19 @@ export default function NoticesPhpPage() {
                 <button type="button" onClick={installApp} disabled={isInstalled} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold text-slate-700 transition hover:border-[#4F46BA] hover:text-[#4F46BA] disabled:cursor-not-allowed disabled:opacity-60">
                   {isInstalled ? <CheckCircle2 className="h-4 w-4" /> : <Download className="h-4 w-4" />}{isInstalled ? "التطبيق مثبّت بالفعل" : "ثبّت التطبيق"}
                 </button>
-                <HelpLink label="تفعيل الإشعارات وتثبيت التطبيق" />
+               
               </div>
               {message && <p role="status" className="mt-4 flex items-start gap-2 rounded-xl bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-600"><Bell className="mt-1 h-4 w-4 shrink-0 text-[#4F46BA]" />{message}</p>}
               {permission === "denied" && <p className="mt-3 text-xs leading-6 text-amber-700">الإشعارات محظورة حالياً من إعدادات المتصفح لهذا الموقع. غيّر الإذن إلى «السماح» ثم أعد تحميل الصفحة.</p>}
             </section>
 
             <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div className="border-b border-slate-100 px-5 py-4 sm:px-6"><h2 className="flex items-center gap-2 text-lg font-extrabold text-[#153B60]">سجل الإشعارات <HelpLink label="سجل الإشعارات" /></h2></div>
+              <div className="border-b border-slate-100 px-5 py-4 sm:px-6"><h2 className="flex items-center gap-2 text-lg font-extrabold text-[#153B60]">سجل الإشعارات</h2></div>
               <div className="flex min-h-48 flex-col items-center justify-center px-5 py-10 text-center"><div className="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-slate-50 text-slate-300"><Bell className="h-7 w-7" /></div><p className="text-sm font-semibold text-slate-500">لا توجد إشعارات بعد.</p></div>
             </section>
 
             <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-              <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#153B60]">أجهزتي <HelpLink label="أجهزتي" /></h2>
+              <h2 className="flex items-center gap-2 text-lg font-extrabold text-[#153B60]">أجهزتي</h2>
               <div className="flex min-h-28 items-center justify-center gap-3 text-center text-sm text-slate-500"><div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50 text-slate-300">{typeof navigator !== "undefined" && /Mobi|Android|iPhone/i.test(navigator.userAgent) ? <Smartphone className="h-5 w-5" /> : <Monitor className="h-5 w-5" />}</div>لا يوجد جهاز يستقبل إشعاراتك بعد.</div>
             </section>
 
