@@ -27,6 +27,7 @@ import { useAuth } from "@/lib/auth";
 import AppointmentsCalendarView from "@/components/AppointmentsCalendarView";
 import SelectMenu from "@/components/SelectMenu";
 import AlertPopup from "@/components/AlertPopup";
+import CalendarModernSidebar from "@/components/CalendarModernSidebar";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1077,7 +1078,9 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background" dir={isRtl ? "rtl" : "ltr"}>
+    <>
+    <CalendarModernSidebar />
+    <div className={`min-h-screen bg-background ${isRtl ? "md:pr-[250px]" : "md:pl-[250px]"}`} dir={isRtl ? "rtl" : "ltr"}>
       {/* Header */}
       <div className="border-b bg-card sticky top-0 z-10 shadow-sm">
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4 flex-wrap ${isRtl ? "" : "flex-row-reverse"}`}>
@@ -1138,5 +1141,6 @@ export default function CalendarPage() {
       />
       <AlertPopup message={alertMsg} isOpen={!!alertMsg} onClose={() => setAlertMsg("")} />
     </div>
+    </>
   );
 }
