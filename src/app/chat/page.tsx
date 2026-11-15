@@ -9,7 +9,7 @@ import {
   Plus, ShieldCheck, ChevronLeft, Info,
 } from "lucide-react";
 
-type MessageSquareTab = "all" | "patients" | "team";
+type InboxTab = "all" | "patients" | "team";
 
 export default function ChatPage() {
   const { language } = useLanguage();
