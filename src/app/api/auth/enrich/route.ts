@@ -23,15 +23,26 @@ function roleLabels(roleKey: string) {
 }
 
 async function clinicPresentation(admin: ReturnType<typeof getAdminClient>, clinicId: string) {
-  const { data: branch, error } = await admin
-    .from("branches")
-    .select("short_name, logo_url")
-    .eq("clinic_id", clinicId)
-    .order("created_at", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return { shortName: branch?.short_name || null, logoUrl: branch?.logo_url || null };
+  const [{ data: branch, error: branchError }, { data: clinic, error: clinicError }] = await Promise.all([
+    admin
+      .from("branches")
+      .select("short_name, logo_url")
+      .eq("clinic_id", clinicId)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
+    admin
+      .from("clinics")
+      .select("slug")
+      .eq("id", clinicId)
+      .maybeSingle(),
+  ]);
+  if (branchError || clinicError) throw branchError || clinicError;
+  return {
+    shortName: branch?.short_name || null,
+    logoUrl: branch?.logo_url || null,
+    clinicSlug: clinic?.slug || null,
+  };
 }
 
 export async function GET(req: NextRequest) {
