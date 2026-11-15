@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import {
   Activity, AlertTriangle, BarChart3, Bell, Building, Calendar, Check, ChevronLeft,
   Clock, CreditCard, FileText, Home, LogOut, Menu, MessageSquare, Plus, Search,
-  Settings, Sparkles, User
+  Settings, Shield, ShieldAlert, Crown, Sparkles, User
 } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
