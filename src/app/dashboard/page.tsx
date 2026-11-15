@@ -342,19 +342,39 @@ export default function HomePage() {
   const branchName = activeBranchId
     ? (data.branches.find((item) => item.id === activeBranchId)?.short_name || data.branches.find((item) => item.id === activeBranchId)?.full_name)
     : (user?.shortName || (isRtl ? "الفرع الرئيسي" : "Main branch"));
+  // Keep the redesigned dashboard sidebar complete with every destination
+  // that existed in the legacy sidebar, while preserving the same role gates.
   const navItems = [
     { label: isRtl ? "لوحة التحكم" : "Dashboard", href: "/dashboard", icon: Home },
     { label: isRtl ? "جدول المواعيد" : "Appointments", href: "/calendar", icon: Calendar },
-    { label: isRtl ? "سجلات المرضى" : "Patient records", href: "/patients", icon: FileText },
-    { label: isRtl ? "خطط العلاج والتمارين" : "Treatment plans", href: "/clinical-library", icon: Activity },
-    { label: isRtl ? "الفواتير والمالية" : "Billing & finance", href: "/billing", icon: FileText },
-    { label: isRtl ? "تقارير الأداء" : "Performance reports", href: "/analytics", icon: BarChart3 },
-    { label: isRtl ? "إعدادات العيادة" : "Clinic settings", href: "/profile", icon: Settings },
+    { label: isRtl ? "سجلات المرضى" : "Patients", href: "/patients", icon: FileText },
+    { label: isRtl ? "المكتبة الإكلينيكية" : "Clinical library", href: "/clinical-library", icon: Activity },
+    { label: isRtl ? "التغذية العلاجية" : "Clinical nutrition", href: "/clinical-nutrition", icon: Activity },
+    { label: isRtl ? "الفواتير والمالية" : "Billing & finance", href: "/billing", icon: CreditCard },
+    { label: isRtl ? "الموارد البشرية" : "Human resources", href: "/hr", icon: Building },
+    { label: isRtl ? "إدارة فريق العمل" : "Staff management", href: "/staff", icon: User },
+    { label: isRtl ? "تقارير الأداء والتحليلات" : "Analytics & reports", href: "/analytics", icon: BarChart3 },
+    ...(user?.roleKey === "platform_admin" ? [
+      { label: isRtl ? "إدارة المنصة" : "Platform administration", href: "/platform", icon: ShieldAlert },
+      { label: isRtl ? "إدارة المحتوى" : "Content management", href: "/platform/cms", icon: FileText },
+    ] : []),
+    { label: isRtl ? "إعدادات المركز" : "Clinic settings", href: "/profile", icon: Settings },
+    { label: isRtl ? "الصلاحيات" : "Permissions", href: "/permissions", icon: Shield },
+    { label: isRtl ? "الاشتراك والباقات" : "Subscription & plans", href: "/subscription", icon: Crown },
+    { label: isRtl ? "الرسائل" : "Messages", href: "/chat", icon: MessageSquare },
+    { label: isRtl ? "الإشعارات" : "Notifications", href: "/notifications", icon: Bell },
   ].filter((item) => {
     if (item.href === "/analytics" && !hasPermission("view_analytics")) return false;
     if (item.href === "/profile" && !hasPermission("manage_settings")) return false;
-    if (user?.roleKey === "doctor") return !["/billing", "/analytics", "/profile"].includes(item.href);
-    if (user?.roleKey === "receptionist") return ["/dashboard", "/patients", "/billing", "/calendar"].includes(item.href);
+    if (item.href === "/permissions" && !hasPermission("manage_settings")) return false;
+    if (item.href === "/staff" && !hasPermission("manage_staff")) return false;
+    if (user?.roleKey === "admin") return true;
+    if (user?.roleKey === "doctor") {
+      return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
+    }
+    if (user?.roleKey === "receptionist") {
+      return ["/dashboard", "/patients", "/billing", "/calendar", "/chat", "/notifications"].includes(item.href);
+    }
     return true;
   });
 
