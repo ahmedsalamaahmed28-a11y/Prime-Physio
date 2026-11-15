@@ -29,13 +29,13 @@ export async function GET(req: NextRequest) {
 
     const { data: clinics, error: clinicsError } = await admin
       .from("clinics")
-      .select("id, name, email");
+      .select("id, name, admin_email");
 
     if (clinicsError) {
       return NextResponse.json({ error: clinicsError.message }, { status: 500 });
     }
 
-    const clinicsMap = new Map(clinics?.map((c: any) => [c.id, { name: c.name, email: c.email }]));
+    const clinicsMap = new Map(clinics?.map((c: any) => [c.id, { name: c.name, email: c.admin_email || "" }]));
 
     const enrichedSubs = subs?.map((sub: any) => ({
       ...sub,
