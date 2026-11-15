@@ -1,5 +1,7 @@
 "use client";
 
+import "@/app/workspace-design.css";
+
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -914,7 +916,7 @@ export default function DashboardLayout({
         )}
 
         {/* ─── MAIN CONTENT AREA ────────────────────────────────────────────── */}
-        <main className="pp-dashboard-content flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto print:p-0 min-h-[500px] contain-layout">
+        <main className={`pp-dashboard-content flex-grow p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto print:p-0 min-h-[500px] contain-layout ${p !== "/dashboard" ? "pp-consistent-pages" : ""}` }>
           {children}
         </main>
         
