@@ -68,11 +68,12 @@ function EventCard({ event, isRtl, onClick }: { event: CalendarEvent; isRtl: boo
     <button
       type="button"
       onClick={onClick}
-      className={`group relative z-[2] h-full w-full min-w-0 max-w-full box-border overflow-hidden whitespace-normal rounded-md border border-r-[3px] px-1 py-1 text-right shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 sm:rounded-lg sm:px-2 sm:py-1.5 ${colors} ${isRtl ? "text-right" : "text-left"}`}
+      className={`group relative z-[2] block h-full w-full min-w-0 max-w-full overflow-hidden whitespace-normal rounded-md border border-r-[3px] px-1 py-1 text-right shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 sm:rounded-lg sm:px-2 sm:py-1.5 ${colors} ${isRtl ? "text-right" : "text-left"}`}
+      style={{ width: "100%", maxWidth: "100%", minWidth: 0, boxSizing: "border-box" }}
       title={event.title}
     >
-      <div className="flex items-center justify-between gap-1">
-        <span className="min-w-0 flex-1 line-clamp-2 whitespace-normal break-words text-[9px] font-bold leading-tight sm:text-[11px]" title={event.patientName || event.title}>{event.patientName || event.title}</span>
+      <div className="grid w-full min-w-0 max-w-full grid-cols-[minmax(0,1fr)_6px] items-start gap-1 overflow-hidden">
+        <span className="block min-w-0 max-w-full overflow-hidden whitespace-normal text-[9px] font-bold leading-tight [overflow-wrap:anywhere] [word-break:break-word] sm:text-[11px]" title={event.patientName || event.title}>{event.patientName || event.title}</span>
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${status.dot}`} />
       </div>
       <div className="mt-0.5 flex min-w-0 items-center gap-0.5 overflow-hidden text-[8px] opacity-75 sm:mt-1 sm:gap-1 sm:text-[10px]">
@@ -272,7 +273,7 @@ export default function AppointmentsCalendarView({
                         const height = Math.max(46, (duration / 60) * 76 - 4);
                         if (event.start.getHours() < 8 || event.start.getHours() >= 24) return null;
                         return (
-                          <div key={event.id} className="absolute z-[1] box-border min-w-0 overflow-hidden" style={{ top: top + 2, height, insetInline: 4 }}>
+                          <div key={event.id} className="absolute z-[1] box-border min-w-0 max-w-full overflow-hidden" style={{ top: top + 2, height, left: 4, right: 4, width: "auto" }}>
                             <EventCard event={event} isRtl={isRtl} onClick={() => onSelectEvent(event)} />
                           </div>
                         );
