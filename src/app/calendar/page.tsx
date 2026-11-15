@@ -1078,9 +1078,9 @@ export default function CalendarPage() {
   };
 
   return (
-    <>
+    <div className="pp-calendar-shell" dir={isRtl ? "rtl" : "ltr"}>
     <CalendarModernSidebar />
-    <div className={`min-h-screen bg-background ${isRtl ? "md:pr-[250px]" : "md:pl-[250px]"}`} dir={isRtl ? "rtl" : "ltr"}>
+    <main className="pp-calendar-main">
       {/* Header */}
       <div className="border-b bg-card sticky top-0 z-10 shadow-sm">
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-4 flex-wrap ${isRtl ? "" : "flex-row-reverse"}`}>
@@ -1140,7 +1140,7 @@ export default function CalendarPage() {
         onComplete={handleComplete}
       />
       <AlertPopup message={alertMsg} isOpen={!!alertMsg} onClose={() => setAlertMsg("")} />
+    </main>
     </div>
-    </>
   );
 }
