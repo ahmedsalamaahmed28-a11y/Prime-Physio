@@ -344,7 +344,7 @@ export default function HomePage() {
     { label: isRtl ? "لوحة التحكم" : "Dashboard", href: "/dashboard", icon: Home },
     { label: isRtl ? "جدول المواعيد" : "Appointments", href: "/calendar", icon: Calendar },
     { label: isRtl ? "سجلات المرضى" : "Patient records", href: "/patients", icon: FileText },
-    { label: isRtl ? "خطط العلاج والتمارين" : "Treatment plans", href: "/protocols", icon: Activity },
+    { label: isRtl ? "خطط العلاج والتمارين" : "Treatment plans", href: "/clinical-library", icon: Activity },
     { label: isRtl ? "الفواتير والمالية" : "Billing & finance", href: "/billing", icon: FileText },
     { label: isRtl ? "تقارير الأداء" : "Performance reports", href: "/analytics", icon: BarChart3 },
     { label: isRtl ? "إعدادات العيادة" : "Clinic settings", href: "/profile", icon: Settings },
