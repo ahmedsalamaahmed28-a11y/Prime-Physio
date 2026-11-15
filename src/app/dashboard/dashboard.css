@@ -245,3 +245,18 @@ body:has(.pp-stitch-shell) header:not(.pp-stitch-topbar){display:none!important}
   .pp-stitch-account-actions button { width: 25px; height: 25px; }
 }
 
+/* Restore comfortable vertical rhythm and distribute navigation across the sidebar. */
+@media (min-width: 901px) {
+  .pp-stitch-nav {
+    justify-content: space-evenly;
+    gap: 2px;
+    padding-block: 10px;
+  }
+  .pp-stitch-nav a {
+    padding: 9px 12px;
+    min-height: 35px;
+    line-height: 1.4;
+  }
+  .pp-stitch-nav a > span { gap: 10px; }
+}
+
