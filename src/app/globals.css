@@ -686,3 +686,59 @@ table :is(button, a, select, input) {
     padding-inline: 0.35rem;
   }
 }
+
+
+/* ── Prime Physio global action-button brand: match the landing CTA exactly ── */
+:root {
+  --primary: #0B4C96;
+  --ring: #0B4C96;
+  --sidebar-primary: #0B4C96;
+  --sidebar-ring: #0B4C96;
+}
+.dark {
+  --primary: #0B4C96;
+  --ring: #0B4C96;
+  --sidebar-primary: #0B4C96;
+  --sidebar-ring: #0B4C96;
+}
+
+/* All interactive button surfaces across the application use the same brand blue.
+   Public landing-page buttons retain their own existing landing design. */
+button:not(.pp-landing button),
+[role="button"]:not(.pp-landing [role="button"]),
+input[type="button"]:not(.pp-landing input),
+input[type="submit"]:not(.pp-landing input),
+input[type="reset"]:not(.pp-landing input),
+a[role="button"]:not(.pp-landing a),
+a[class*="btn"]:not(.pp-landing a),
+a[class*="button"]:not(.pp-landing a),
+a[class*="inline-flex"][class*="rounded"]:not(.pp-landing a),
+a[class*="bg-"][class*="rounded"]:not(.pp-landing a) {
+  background-color: #0B4C96 !important;
+  background-image: none !important;
+  border-color: #0B4C96 !important;
+  color: #FFFFFF !important;
+  text-decoration-color: #FFFFFF !important;
+}
+button:not(:disabled):not(.pp-landing button):hover,
+[role="button"]:not([aria-disabled="true"]):not(.pp-landing [role="button"]):hover,
+input[type="button"]:not(:disabled):not(.pp-landing input):hover,
+input[type="submit"]:not(:disabled):not(.pp-landing input):hover,
+input[type="reset"]:not(:disabled):not(.pp-landing input):hover,
+a[role="button"]:not(.pp-landing a):hover,
+a[class*="btn"]:not(.pp-landing a):hover,
+a[class*="button"]:not(.pp-landing a):hover,
+a[class*="inline-flex"][class*="rounded"]:not(.pp-landing a):hover,
+a[class*="bg-"][class*="rounded"]:not(.pp-landing a):hover {
+  background-color: #083B76 !important;
+  border-color: #083B76 !important;
+  color: #FFFFFF !important;
+}
+button:focus-visible:not(.pp-landing button),
+[role="button"]:focus-visible:not(.pp-landing [role="button"]),
+a[role="button"]:focus-visible:not(.pp-landing a),
+a[class*="btn"]:focus-visible:not(.pp-landing a),
+a[class*="button"]:focus-visible:not(.pp-landing a) {
+  outline: 2px solid #0B4C96 !important;
+  outline-offset: 3px;
+}
