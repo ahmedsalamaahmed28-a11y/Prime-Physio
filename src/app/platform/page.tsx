@@ -17,21 +17,24 @@ export default function PlatformDashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadDashboard();
-  }, []);
-
-  const loadDashboard = async () => {
-    try {
-      const res = await fetch("/api/admin/dashboard");
-      if (res.ok) {
-        const d = await res.json();
-        setData(d);
+    let active = true;
+    const loadDashboard = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/admin/dashboard?lang=${language}`, { cache: "no-store" });
+        if (!res.ok) throw new Error("Unable to load platform dashboard");
+        const dashboard = await res.json();
+        if (active) setData(dashboard);
+      } catch (error) {
+        console.error(error);
+        if (active) setData(null);
+      } finally {
+        if (active) setLoading(false);
       }
-    } catch (e) {
-      console.error(e);
-    }
-    setLoading(false);
-  };
+    };
+    loadDashboard();
+    return () => { active = false; };
+  }, [language]);
 
   if (loading || !data) {
     return (
@@ -53,7 +56,7 @@ export default function PlatformDashboardPage() {
           { label: "الأطباء", en: "Doctors", value: stats.totalStaff, icon: Users, color: "text-indigo-600", bg: "bg-indigo-50" },
           { label: "المرضى", en: "Patients", value: stats.totalPatients, icon: Activity, color: "text-emerald-600", bg: "bg-emerald-50" },
           { label: "الجلسات", en: "Sessions", value: stats.totalSessions, icon: Calendar, color: "text-purple-600", bg: "bg-purple-50" },
-          { label: "الإيرادات", en: "Revenue", value: `$${(stats.totalRevenue/1000).toFixed(1)}k`, icon: DollarSign, color: "text-green-600", bg: "bg-green-50" },
+          { label: "الإيرادات", en: "Revenue", value: `${Number(stats.totalRevenue || 0).toLocaleString(isRtl ? "ar-EG" : "en-US")} ${isRtl ? "ج.م" : "EGP"}`, icon: DollarSign, color: "text-green-600", bg: "bg-green-50" },
           { label: "الاشتراكات", en: "Active Subs", value: stats.activeSubs, icon: CreditCard, color: "text-amber-600", bg: "bg-amber-50" },
           { label: "المستخدمين", en: "Users", value: stats.registeredUsers, icon: Users, color: "text-rose-600", bg: "bg-rose-50" }
         ].map((kpi, i) => (
@@ -100,7 +103,7 @@ export default function PlatformDashboardPage() {
         </div>
 
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-          <h3 className="font-bold text-slate-800 mb-4">{isRtl ? "الإيرادات الشهرية" : "Monthly Revenue"}</h3>
+          <h3 className="font-bold text-slate-800 mb-4">{isRtl ? "المبيعات المدفوعة شهريًا (ج.م)" : "Monthly Paid Sales (EGP)"}</h3>
           <div className="h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={charts.revenueGrowth}>
@@ -147,7 +150,7 @@ export default function PlatformDashboardPage() {
         <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
           <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
             <DollarSign className="w-5 h-5 text-emerald-500" />
-            {isRtl ? "أعلى الإيرادات" : "Top Revenue Clinics"}
+            {isRtl ? "أعلى المراكز في المبيعات المدفوعة" : "Top Clinics by Paid Sales"}
           </h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
@@ -155,7 +158,7 @@ export default function PlatformDashboardPage() {
                 <tr>
                   <th className={`px-4 py-3 ${isRtl ? "text-right" : ""}`}>{isRtl ? "العيادة" : "Clinic"}</th>
                   <th className={`px-4 py-3 ${isRtl ? "text-right" : ""}`}>{isRtl ? "الباقة" : "Plan"}</th>
-                  <th className={`px-4 py-3 ${isRtl ? "text-right" : ""}`}>{isRtl ? "الإيراد التقديري" : "Est. Revenue"}</th>
+                  <th className={`px-4 py-3 ${isRtl ? "text-right" : ""}`}>{isRtl ? "المبيعات المدفوعة" : "Paid sales"}</th>
                 </tr>
               </thead>
               <tbody>
@@ -163,7 +166,7 @@ export default function PlatformDashboardPage() {
                   <tr key={i} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
                     <td className="px-4 py-3 font-medium text-slate-800">{c.name || "Clinic"}</td>
                     <td className="px-4 py-3 text-slate-600 capitalize">{c.subscription?.plan_name || "Free"}</td>
-                    <td className="px-4 py-3 text-emerald-600 font-bold">${c.revenue}</td>
+                    <td className="px-4 py-3 text-emerald-600 font-bold">{Number(c.revenue || 0).toLocaleString(isRtl ? "ar-EG" : "en-US")} {isRtl ? "ج.م" : "EGP"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -217,27 +220,27 @@ export default function PlatformDashboardPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 relative z-10">
             <div>
               <p className="text-slate-400 text-xs mb-1 flex items-center gap-1"><Users className="w-3 h-3"/> Online Now</p>
-              <p className="text-xl font-bold">{health.onlineUsers}</p>
+              <p className="text-xl font-bold">{health.onlineUsers ?? (isRtl ? "غير متاح" : "N/A")}</p>
             </div>
             <div>
               <p className="text-slate-400 text-xs mb-1 flex items-center gap-1"><Zap className="w-3 h-3"/> Avg Speed</p>
-              <p className="text-xl font-bold">{health.avgResponseTime}ms</p>
+              <p className="text-xl font-bold">{health.avgResponseTime == null ? (isRtl ? "غير متاح" : "N/A") : `${health.avgResponseTime}ms`}</p>
             </div>
             <div>
               <p className="text-slate-400 text-xs mb-1 flex items-center gap-1"><AlertCircle className="w-3 h-3"/> Error Rate</p>
-              <p className="text-xl font-bold text-emerald-400">{health.errorRate}%</p>
+              <p className="text-xl font-bold text-emerald-400">{health.errorRate == null ? (isRtl ? "غير متاح" : "N/A") : `${health.errorRate}%`}</p>
             </div>
             <div>
               <p className="text-slate-400 text-xs mb-1 flex items-center gap-1"><Database className="w-3 h-3"/> DB Usage</p>
-              <p className="text-xl font-bold">{health.dbUsage}%</p>
+              <p className="text-xl font-bold">{health.dbUsage == null ? (isRtl ? "غير متاح" : "N/A") : `${health.dbUsage}%`}</p>
             </div>
             <div>
               <p className="text-slate-400 text-xs mb-1 flex items-center gap-1"><Database className="w-3 h-3"/> Storage</p>
-              <p className="text-xl font-bold">{health.storageUsage}%</p>
+              <p className="text-xl font-bold">{health.storageUsage == null ? (isRtl ? "غير متاح" : "N/A") : `${health.storageUsage}%`}</p>
             </div>
             <div>
               <p className="text-slate-400 text-xs mb-1 flex items-center gap-1"><RefreshCw className="w-3 h-3"/> Requests/Min</p>
-              <p className="text-xl font-bold text-blue-400">{health.rpm}</p>
+              <p className="text-xl font-bold text-blue-400">{health.rpm ?? (isRtl ? "غير متاح" : "N/A")}</p>
             </div>
           </div>
         </div>
@@ -246,7 +249,7 @@ export default function PlatformDashboardPage() {
         <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-5 rounded-2xl border border-indigo-100 shadow-sm">
           <h3 className="font-bold text-indigo-900 mb-4 flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-indigo-600" />
-            {isRtl ? "تحليلات الذكاء الاصطناعي (Platform AI Insights)" : "Platform AI Insights"}
+            {isRtl ? "مؤشرات المنصة" : "Platform Insights"}
           </h3>
           <div className="space-y-3">
             {aiInsights.map((insight: string, idx: number) => (
