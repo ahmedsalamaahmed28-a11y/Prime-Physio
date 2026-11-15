@@ -113,7 +113,7 @@ async function legacyTodayAvailability(clinic: any) {
     if (date === today && start >= 0 && end > start) occupied.push({start,end});
   }
   const now = cairoNowMinute();
-  const startAt = Math.max(minutes(hours.from),Math.ceil((now+15)/60)*60);
+  const startAt = Math.max(Math.ceil(minutes(hours.from)/60)*60,Math.ceil((now+15)/60)*60);
   const closeAt = minutes(hours.to);
   const slots: string[] = [];
   for(let minute=startAt;minute+60<=closeAt;minute+=60) {
@@ -158,7 +158,7 @@ async function availabilityForClinic(clinic: any) {
       }
       const slots: string[] = [];
       if (hours) {
-        const first = Math.max(minutes(hours.from), date === cairoDate() ? Math.ceil((cairoNowMinute() + 15) / 60) * 60 : minutes(hours.from));
+        const first = Math.max(Math.ceil(minutes(hours.from) / 60) * 60, date === cairoDate() ? Math.ceil((cairoNowMinute() + 15) / 60) * 60 : Math.ceil(minutes(hours.from) / 60) * 60);
         const close = minutes(hours.to);
         for (let minute = first; minute + 60 <= close; minute += 60) {
           if (!occupied.some(item => minute < item.end && minute + 60 > item.start)) {
