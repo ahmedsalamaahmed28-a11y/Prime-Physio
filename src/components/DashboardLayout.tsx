@@ -1,6 +1,7 @@
 "use client";
 
 import "@/app/workspace-design.css";
+import "@/app/dashboard/dashboard.css";
 
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
@@ -109,7 +110,9 @@ export default function DashboardLayout({
   const { hasPermission } = usePermissions();
   const { language, toggleLanguage, t } = useLanguage();
   const { isOnline, pendingCount, isSyncing, syncNow } = usePWA();
-  const [isOpen, setIsOpen] = useState(false); // Mobile sidebar state
+  const [isOpen, setIsOpen] = useState(false); // Shared responsive sidebar state
+  const [isBranchMenuOpen, setIsBranchMenuOpen] = useState(false);
+  const [availableBranches, setAvailableBranches] = useState<Array<{id:string; short_name:string|null; full_name:string|null}>>([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false); // Notifications popover state
   const [notifications, setNotifications] = useState<SystemNotification[]>([]);
   const [readNotificationKeys, setReadNotificationKeys] = useState<string[]>([]);
@@ -335,6 +338,22 @@ export default function DashboardLayout({
   }, []);
 
   useEffect(() => {
+    if (!user?.clinicId) {
+      setAvailableBranches([]);
+      return;
+    }
+    let cancelled = false;
+    supabase.from("branches")
+      .select("id, short_name, full_name")
+      .eq("clinic_id", user.clinicId)
+      .order("created_at", { ascending: true })
+      .then(({ data, error }) => {
+        if (!cancelled && !error) setAvailableBranches(data || []);
+      });
+    return () => { cancelled = true; };
+  }, [user?.clinicId]);
+
+  useEffect(() => {
     if (!user?.clinicId || !activeBranchId) {
       setBranchLogo(user?.logoUrl || null);
       setBranchName(user?.shortName || null);
@@ -499,115 +518,110 @@ export default function DashboardLayout({
         <div className={pathname === "/dashboard" && isDashboardPageLoading ? "invisible" : "visible"}>
     <div className={`min-h-screen bg-slate-50/50 flex flex-col ${isRtl ? "md:flex-row-reverse" : "md:flex-row"} text-slate-800`} dir={isRtl ? "rtl" : "ltr"}>
       
-      {/* ─── DESKTOP SIDEBAR ─────────────────────────────────── */}
-      {!isCenterCreationPage && <aside className={`hidden md:flex print:hidden flex-col w-[210px] ${
-        isRtl ? "border-l right-0" : "border-r left-0"
-      } border-white/10 bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] text-white fixed top-0 bottom-0 z-10 pt-4 pb-2 shadow-xl`}>
-        {/* Clinic Brand / Logo in Center */}
-        <div className="flex flex-col items-center justify-center mb-3 px-3">
-          <img 
-            src={branchLogo || "/logo.png"} 
-            alt={branchName || "Prime Physio"} 
-            className="h-12 object-contain mb-1" 
-            onError={(e) => {
-              e.currentTarget.classList.add("hidden");
-              e.currentTarget.nextElementSibling?.classList.remove("hidden");
-            }}
+      {/* Shared sidebar — same component styling and layout as the redesigned dashboard. */}
+      <aside className={"pp-stitch-sidebar print:hidden " + (isOpen ? "is-open" : "")} dir={isRtl ? "rtl" : "ltr"}>
+        <div className="pp-stitch-brand">
+          <img
+            src={branchLogo || "/logo.png"}
+            alt={branchName || "Prime Physio"}
+            onError={(event) => { event.currentTarget.src = "/logo.png"; }}
           />
-          <div id="brand-fallback" className="hidden text-center">
-            <h1 className="text-base font-bold tracking-wider text-white">{branchName || platformBranding?.brandName || "PRIME PHYSIO"}</h1>
-            <p className="text-[10px] text-white/60">{branchName ? "" : (platformBranding?.sidebarTitle || "Clinic Management")}</p>
+          <div>
+            <strong>{platformBranding?.brandName || "برايم فيزيو"}</strong>
+            <span>{platformBranding?.sidebarTitle || (isRtl ? "تأهيل وعلاج طبيعي متقدم" : "Advanced physiotherapy")}</span>
           </div>
-          {branchName && (
-            <span className="text-[10px] text-white/70 text-center leading-tight max-w-full truncate px-1 mt-1">
-              {branchName}
+          <button className="md:hidden ms-auto rounded-lg p-2 text-slate-500 hover:bg-slate-100" onClick={closeSidebar} aria-label={isRtl ? "إغلاق القائمة" : "Close menu"}>
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="pp-stitch-branch-wrap">
+          <button className="pp-stitch-branch" onClick={() => setIsBranchMenuOpen((value) => !value)} aria-expanded={isBranchMenuOpen}>
+            <span className="pp-stitch-branch-icon"><Building size={18} /></span>
+            <span className="min-w-0 flex-1 text-start">
+              <small>{isRtl ? "الفرع الحالي" : "Current branch"}</small>
+              <b className="block truncate">{branchName || (isRtl ? "الفرع الرئيسي" : "Main branch")}</b>
             </span>
+            <ChevronLeft size={17} />
+          </button>
+          {isBranchMenuOpen && (
+            <div className="pp-stitch-branch-menu">
+              <button onClick={() => { setActiveBranchId(null); setIsBranchMenuOpen(false); setIsOpen(false); }}>
+                {isRtl ? "كل الفروع" : "All branches"}
+              </button>
+              {availableBranches.map((branch) => (
+                <button key={branch.id} onClick={() => { setActiveBranchId(branch.id); setIsBranchMenuOpen(false); setIsOpen(false); }}>
+                  {branch.short_name || branch.full_name || (isRtl ? "فرع" : "Branch")}
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
-        {/* Divider line */}
-        <div className="border-b border-white/10 mb-3 mx-4" />
-
-        {/* Section Heading */}
-        <div className="px-5 mb-1.5">
-          <h3 className={`text-white/80 text-xs font-semibold ${isRtl ? "text-right" : "text-left"}`}>
-            {t("nav_section_title")}
-          </h3>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 px-3 flex flex-col gap-y-0.5 overflow-y-auto pb-4 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
+        <nav className="pp-stitch-nav">
           {SIDEBAR_ITEMS.filter((item) => {
             if (item.href === "/platform" && activeAccount?.roleKey !== "platform_admin") return false;
             if (item.href === "/analytics" && !hasPermission("view_analytics")) return false;
             if (item.href === "/profile" && !hasPermission("manage_settings")) return false;
             if (item.href === "/permissions" && !hasPermission("manage_settings")) return false;
             if (item.href === "/staff" && !hasPermission("manage_staff")) return false;
-            
             const role = activeAccount?.roleKey || "doctor";
             if (role === "admin") return true;
-            if (role === "doctor") {
-              return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
-            }
-            if (role === "receptionist") {
-              return ["/dashboard", "/patients", "/billing", "/calendar", "/ai-assistant", "/logout"].includes(item.href);
-            }
+            if (role === "doctor") return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
+            if (role === "receptionist") return ["/dashboard", "/patients", "/billing", "/calendar", "/ai-assistant", "/logout"].includes(item.href);
+            return true;
+          }).filter((item) => item.href !== "/logout").concat([
+            { nameKey: "nav_messages", href: "/chat", icon: MessageSquare },
+            { nameKey: "nav_notifications", href: "/notifications", icon: Bell },
+          ]).filter((item) => {
+            const role = activeAccount?.roleKey || "doctor";
+            if (role === "doctor") return item.href !== "/chat" ? true : true;
+            if (role === "receptionist") return ["/chat", "/notifications"].includes(item.href);
             return true;
           }).map((item) => {
-            const active = isActive(item.href);
             const Icon = item.icon;
-            const isLogout = item.href === "/logout";
+            const active = item.href === "/dashboard" ? pathname === "/dashboard" : pathname === item.href || pathname?.startsWith(item.href + "/");
+            const label = item.nameKey === "nav_messages"
+              ? (isRtl ? "الرسائل" : "Messages")
+              : item.nameKey === "nav_notifications"
+                ? (isRtl ? "الإشعارات" : "Notifications")
+                : t(item.nameKey);
             return (
-              <Link 
-                key={item.href} 
-                href={isLogout ? "#" : item.href}
-                onClick={(e) => {
-                  if (isLogout) {
-                    e.preventDefault();
-                    logout();
-                  }
-                }}
-              >
-                <div
-                  className={`flex items-center justify-between px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                    isRtl ? "" : "gap-3"
-                  } ${
-                    active
-                      ? "border border-white/30 bg-white/5 font-bold"
-                      : "font-medium hover:bg-white/10"
-                  }`}
-                >
-                  <span className={`text-[13px] ${isRtl ? "text-right" : "text-left"} ${isRtl ? "" : "flex-1"}`}>{t(item.nameKey)}</span>
-                  <Icon 
-                    className={`w-3.5 h-3.5 shrink-0 transition-colors duration-200 ${isRtl ? "" : "ml-1"} ${active ? "text-white" : "text-white/90"}`} 
-                  />
-                </div>
+              <Link key={item.href} href={item.href} onClick={closeSidebar} className={active ? "active" : ""}>
+                <span><item.icon size={19} />{label}</span>
               </Link>
             );
           })}
+          <button type="button" onClick={() => { closeSidebar(); logout(); }} className="w-full flex items-center gap-3 rounded-xl px-[13px] py-[11px] text-start text-[13px] text-[#464555] hover:bg-[#eff4ff]">
+            <span><LogOut size={19} />{isRtl ? "تسجيل الخروج" : "Log out"}</span>
+          </button>
         </nav>
 
-        {/* User profile footer */}
-        <div className="p-3 border-t border-white/10 bg-white/5 text-white">
-          <div className={`flex items-center gap-2.5 ${isRtl ? "" : "flex-row-reverse"}`}>
+        <div className="pp-stitch-account">
+          <div className="pp-stitch-account-user">
             {activeAccount.image ? (
-              <img src={activeAccount.image} alt={activeAccount.name} className="w-8 h-8 rounded-full object-cover shadow-sm border border-white/10" />
+              <img src={activeAccount.image} alt={activeAccount.name} className="pp-stitch-avatar object-cover" />
             ) : (
-              <div className={`w-8 h-8 rounded-full shrink-0 ${activeAccount.bg} flex items-center justify-center text-xs font-bold text-white shadow-sm border border-white/10`}>
+              <div className="pp-stitch-avatar text-xs font-bold">
                 {isRtl ? activeAccount.initials : (activeAccount.initialsEn || activeAccount.initials)}
               </div>
             )}
-            <div className={`flex-1 min-w-0 ${isRtl ? "text-right" : "text-left"}`}>
-              <p className={`text-[11px] font-semibold truncate ${isRtl ? "" : "font-sans"}`}>{isRtl ? displayAccountName : displayAccountNameEn}</p>
-              <p className={`text-[9px] text-white/70 truncate ${isRtl ? "" : "font-sans"}`}>{isRtl ? activeAccount.role : (activeAccount.roleEn || activeAccount.role)}</p>
+            <div className="min-w-0 flex-1">
+              <b className="block truncate">{isRtl ? displayAccountName : displayAccountNameEn}</b>
+              <small className="block truncate">{isRtl ? activeAccount.role : (activeAccount.roleEn || activeAccount.role)}</small>
             </div>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+          </div>
+          <div className="pp-stitch-account-actions">
+            <span className="pp-stitch-online"><i />{isRtl ? "متصل" : "Online"}</span>
+            <Link href="/profile" title={isRtl ? "إعدادات الحساب" : "Account settings"}><Settings size={17} /></Link>
+            <button onClick={logout} title={isRtl ? "تسجيل الخروج" : "Log out"}><LogOut size={17} /></button>
           </div>
         </div>
-      </aside>}
+      </aside>
+      {isOpen && <button className="pp-stitch-backdrop md:hidden" aria-label={isRtl ? "إغلاق القائمة" : "Close menu"} onClick={closeSidebar} />}
 
       {/* ─── MAIN CONTENT CONTAINER ────────────────────────────────────────── */}
-      <div className={`flex-1 flex flex-col print:pr-0 print:pl-0 ${isCenterCreationPage ? "" : (isRtl ? "md:pr-[210px]" : "md:pl-[210px]")}`}>
+      <div className={`pp-stitch-main flex-1 flex flex-col print:pr-0 print:pl-0 ${isCenterCreationPage ? "" : ""}`}>
         
         {/* ─── GLOBAL HEADER ────────── */}
         {!isCenterCreationPage && (
@@ -798,121 +812,6 @@ export default function DashboardLayout({
             </div>
         </div>
       </header>
-        )}
-
-        {/* ─── MOBILE DRAWER (Slide-in RTL/LTR Overlay) ─────────────────────────── */}
-        {isOpen && (
-          <div className="md:hidden fixed inset-0 z-40 flex">
-            {/* Backdrop */}
-            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity" onClick={closeSidebar} />
-
-            {/* Drawer content */}
-            <div className={`relative flex-1 flex flex-col max-w-xs w-full bg-gradient-to-b from-[#4F46BA] to-[#7c3aed] border-white/10 h-full pt-8 pb-4 shadow-2xl duration-200 pr-0 text-white ${
-              isRtl ? "border-l mr-auto animate-in slide-in-from-right" : "border-r ml-auto animate-in slide-in-from-left"
-            }`}>
-              <div className={`flex items-center justify-between px-3 mb-5 ${isRtl ? "" : "flex-row-reverse"}`}>
-                {/* Logo or Title */}
-                <div className="flex flex-col items-center justify-center w-full">
-                  <img 
-                    src={branchLogo || "/logo.png"} 
-                    alt="Prime Physio" 
-                    className="h-14 object-contain mb-1.5" 
-                    onError={(e) => {
-                      e.currentTarget.classList.add("hidden");
-                      e.currentTarget.nextElementSibling?.classList.remove("hidden");
-                    }}
-                  />
-                  <div id="mobile-brand-fallback" className="hidden text-center">
-                    <span className="font-bold text-base text-white">{platformBranding?.brandName || "PRIME PHYSIO"}</span>
-                  </div>
-                  {branchName && (
-                    <span className="text-[11px] text-white/70 text-center leading-tight max-w-full truncate px-1">
-                      {branchName}
-                    </span>
-                  )}
-                </div>
-                <button 
-                  onClick={closeSidebar}
-                  className="p-1.5 rounded-lg border border-white/10 hover:bg-white/10 text-white/80 shrink-0"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              {/* Divider line */}
-              <div className="border-b border-white/10 mb-6 mx-4" />
-
-              {/* Section Heading */}
-              <div className="px-5 mb-3">
-                <h3 className={`text-white/80 text-sm font-semibold ${isRtl ? "text-right" : "text-left"}`}>{t("nav_section_title")}</h3>
-              </div>
-
-              <nav className="flex-1 px-3 flex flex-col gap-y-1 overflow-y-auto pb-20 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
-                {SIDEBAR_ITEMS.filter((item) => {
-                  if (item.href === "/platform" && activeAccount?.roleKey !== "platform_admin") return false;
-                  if (item.href === "/analytics" && !hasPermission("view_analytics")) return false;
-                  if (item.href === "/profile" && !hasPermission("manage_settings")) return false;
-                  if (item.href === "/permissions" && !hasPermission("manage_settings")) return false;
-                  if (item.href === "/staff" && !hasPermission("manage_staff")) return false;
-
-                  const role = activeAccount?.roleKey || "doctor";
-                  if (role === "admin") return true;
-                  if (role === "doctor") {
-                    return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
-                  }
-                  if (role === "receptionist") {
-                    return ["/dashboard", "/patients", "/billing", "/calendar", "/chat", "/logout"].includes(item.href);
-                  }
-                  return true;
-                }).map((item) => {
-                  const active = isActive(item.href);
-                  const Icon = item.icon;
-                  const isLogout = item.href === "/logout";
-                  return (
-                    <Link 
-                      key={item.href} 
-                      href={isLogout ? "#" : item.href} 
-                      onClick={(e) => {
-                        closeSidebar();
-                        if (isLogout) {
-                          e.preventDefault();
-                          logout();
-                        }
-                      }}
-                    >
-                      <div
-                        className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer ${
-                          isRtl ? "" : "gap-3"
-                        } ${
-                          active
-                            ? "border border-white/30 bg-white/5 font-bold"
-                            : "font-medium hover:bg-white/10"
-                        }`}
-                      >
-                        <span className={`text-sm ${isRtl ? "text-right" : "text-left"} ${isRtl ? "" : "flex-1"}`}>{t(item.nameKey)}</span>
-                        <Icon 
-                          className={`w-4 h-4 shrink-0 transition-colors duration-200 ${isRtl ? "" : "ml-1"} ${active ? "text-white" : "text-white/90"}`} 
-                        />
-                      </div>
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              <div className="p-4 border-t border-white/10 bg-white/5 text-white">
-                <div className={`flex items-center gap-3 ${isRtl ? "" : "flex-row-reverse"}`}>
-                  <div className={`w-8 h-8 rounded-full ${activeAccount.bg} flex items-center justify-center text-xs font-bold text-white shadow-sm border border-white/10`}>
-                    {isRtl ? activeAccount.initials : activeAccount.initialsEn}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`text-xs font-semibold truncate ${isRtl ? "text-right" : "text-left"} ${isRtl ? "" : "font-sans"}`}>{isRtl ? displayAccountName : displayAccountNameEn}</p>
-                    <p className={`text-[10px] text-white/70 truncate ${isRtl ? "text-right" : "text-left"} ${isRtl ? "" : "font-sans"}`}>{isRtl ? activeAccount.role : activeAccount.roleEn}</p>
-                  </div>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                </div>
-              </div>
-            </div>
-          </div>
         )}
 
         {/* ─── MAIN CONTENT AREA ────────────────────────────────────────────── */}
