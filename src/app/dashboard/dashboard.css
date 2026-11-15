@@ -184,3 +184,64 @@ body:has(.pp-stitch-shell) header:not(.pp-stitch-topbar){display:none!important}
 [dir="ltr"] .pp-stitch-topbar{right:0;left:288px}
 [dir="ltr"] .pp-stitch-sidebar.is-open{transform:translateX(0)}
 @media(max-width:900px){[dir="ltr"] .pp-stitch-sidebar{left:0;right:auto;transform:translateX(-105%)}[dir="ltr"] .pp-stitch-main{margin-left:0}[dir="ltr"] .pp-stitch-topbar{left:0;right:0}}
+
+/* Compact desktop sidebar: keep the complete navigation visible without an inner scrollbar. */
+@media (min-width: 901px) {
+  .pp-stitch-sidebar {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden;
+    padding-bottom: 8px;
+  }
+  .pp-stitch-brand {
+    height: 64px;
+    min-height: 64px;
+    padding-inline: 18px;
+    gap: 9px;
+  }
+  .pp-stitch-brand img {
+    width: 36px;
+    height: 36px;
+  }
+  .pp-stitch-brand strong { font-size: 15px; }
+  .pp-stitch-brand span { font-size: 10px; }
+  .pp-stitch-branch-wrap { padding: 8px 12px 3px; }
+  .pp-stitch-branch { gap: 8px; padding: 7px 9px; }
+  .pp-stitch-branch-icon { width: 30px; height: 30px; }
+  .pp-stitch-branch small { font-size: 9px; margin-bottom: 1px; }
+  .pp-stitch-branch b { font-size: 11px; }
+  .pp-stitch-nav {
+    min-height: 0;
+    overflow: hidden;
+    gap: 1px;
+    padding: 3px 12px;
+  }
+  .pp-stitch-nav a {
+    min-height: 0;
+    padding: 6px 10px;
+    border-radius: 9px;
+    font-size: 12px;
+    line-height: 1.25;
+  }
+  .pp-stitch-nav a > span { gap: 8px; }
+  .pp-stitch-nav a > span svg {
+    width: 17px;
+    height: 17px;
+    flex: 0 0 17px;
+  }
+  .pp-stitch-nav a small { font-size: 9px; padding: 2px 6px; }
+  .pp-stitch-account {
+    flex: 0 0 auto;
+    margin: 6px 12px 0;
+    padding: 8px 9px;
+  }
+  .pp-stitch-avatar { width: 34px; height: 34px; }
+  .pp-stitch-account-actions {
+    gap: 7px;
+    margin-top: 6px;
+    padding-top: 6px;
+  }
+  .pp-stitch-account-actions a,
+  .pp-stitch-account-actions button { width: 25px; height: 25px; }
+}
+
