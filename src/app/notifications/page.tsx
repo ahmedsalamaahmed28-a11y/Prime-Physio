@@ -178,22 +178,25 @@ export default function NotificationsPage() {
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-6xl space-y-5 sm:space-y-6" dir={isRtl ? "rtl" : "ltr"}>
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#3525cd] via-[#4338ca] to-[#4f46e5] p-6 text-white shadow-lg sm:p-8">
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#4f46e5] via-[#4f46e5] to-[#4338ca] p-6 text-white shadow-lg sm:p-8">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
-          <div className="flex items-start gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
+          <div className="flex min-w-0 items-start gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-indigo-950/25 text-white">
               <Bell className="h-7 w-7" />
             </div>
-            <div>
-              <p className="mb-1 text-xs font-bold tracking-wide text-indigo-100">{isRtl ? "مركز التنبيهات" : "NOTIFICATION CENTER"}</p>
-              <h1 className="text-2xl font-extrabold sm:text-3xl">{isRtl ? "الإشعارات" : "Notifications"}</h1>
-              <p className="mt-2 max-w-xl text-sm leading-6 text-indigo-100">{isRtl ? "تابع تحديثات مركزك وإعلانات المنصة وسجل النشاط في مكان واحد." : "Keep up with clinic updates, platform announcements, and activity in one place."}</p>
+            <div className="min-w-0">
+              <p className="mb-1 text-xs font-bold tracking-wide text-white/85">{isRtl ? "مركز التنبيهات" : "NOTIFICATION CENTER"}</p>
+              <h1 className="text-2xl font-extrabold text-white sm:text-3xl">{isRtl ? "الإشعارات" : "Notifications"}</h1>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-white/85">{isRtl ? "تابع تحديثات مركزك وإعلانات المنصة وسجل النشاط في مكان واحد." : "Keep up with clinic updates, platform announcements, and activity in one place."}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 self-start rounded-2xl border border-white/15 bg-white/10 px-4 py-3 sm:self-auto">
-            <div><p className="text-2xl font-black tabular-nums">{notifications.length}</p><p className="text-[11px] text-indigo-100">{isRtl ? "إجمالي التنبيهات" : "Total notifications"}</p></div>
-            <div className="h-9 w-px bg-white/20" />
-            <button onClick={() => loadNotifications(true)} disabled={refreshing} className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/15 text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 disabled:cursor-not-allowed disabled:opacity-60" aria-label={isRtl ? "تحديث الإشعارات" : "Refresh notifications"}>
+          <div className="flex w-full shrink-0 items-center justify-between gap-3 self-start rounded-2xl border border-white/20 bg-[#312e81] px-4 py-3 text-white shadow-inner sm:w-auto sm:justify-start sm:self-auto">
+            <div className="min-w-0">
+              <p className="text-2xl font-black leading-tight tabular-nums text-white">{notifications.length}</p>
+              <p className="mt-0.5 text-[11px] font-semibold leading-5 text-indigo-100">{isRtl ? "إجمالي التنبيهات" : "Total notifications"}</p>
+            </div>
+            <div className="h-9 w-px shrink-0 bg-white/25" />
+            <button onClick={() => loadNotifications(true)} disabled={refreshing} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/25 bg-white/15 text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 disabled:cursor-not-allowed disabled:opacity-60" aria-label={isRtl ? "تحديث الإشعارات" : "Refresh notifications"}>
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
             </button>
           </div>
