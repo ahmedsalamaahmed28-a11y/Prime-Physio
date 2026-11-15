@@ -713,6 +713,7 @@ a[role="button"]:not(.pp-landing a),
 a[class*="btn"]:not(.pp-landing a),
 a[class*="button"]:not(.pp-landing a),
 a[class*="inline-flex"][class*="rounded"]:not(.pp-landing a),
+a[class*="rounded"][class*="px-"]:not(.pp-landing a),
 a[class*="bg-"][class*="rounded"]:not(.pp-landing a) {
   background-color: #0B4C96 !important;
   background-image: none !important;
@@ -729,6 +730,7 @@ a[role="button"]:not(.pp-landing a):hover,
 a[class*="btn"]:not(.pp-landing a):hover,
 a[class*="button"]:not(.pp-landing a):hover,
 a[class*="inline-flex"][class*="rounded"]:not(.pp-landing a):hover,
+a[class*="rounded"][class*="px-"]:not(.pp-landing a):hover,
 a[class*="bg-"][class*="rounded"]:not(.pp-landing a):hover {
   background-color: #083B76 !important;
   border-color: #083B76 !important;
