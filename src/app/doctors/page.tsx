@@ -312,7 +312,7 @@ export default function DoctorsPage() {
       </Dialog>
 
       {/* Doctor weekly schedule modal */}
-      <Dialog open={scheduleDoctor !== null} onOpenChange={(open) => !open && !scheduleSaving && setScheduleDoctor(null)}>
+      <Dialog open={scheduleDoctor !== null} onOpenChange={(open: boolean) => !open && !scheduleSaving && setScheduleDoctor(null)}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto" showCloseButton={!scheduleSaving}>
           <DialogHeader>
             <DialogTitle className={isRtl ? "text-right" : "text-left"}>{isRtl ? "جدول عمل الطبيب" : "Doctor Working Schedule"}</DialogTitle>
