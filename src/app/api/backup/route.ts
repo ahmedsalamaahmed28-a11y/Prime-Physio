@@ -12,7 +12,7 @@ const PAGE_SIZE = 1000;
 // platform-wide records, and previous backup blobs are intentionally excluded.
 const CLINIC_TABLES = [
   "appointments", "assessments", "audit_logs", "balance_tests", "branches",
-  "clinic_services", "clinic_settings", "clinical_protocols", "daily_reports",
+  "clinic_services", "clinic_settings", "clinical_protocols", "doctor_working_hours", "group_booking_requests", "daily_reports",
   "discharges", "executive_reports", "exercises", "gait_tests", "hr_attendance",
   "insurance_claims", "invoices", "leads", "marketing_campaigns", "mmt_assessments",
   "notifications", "patient_evaluations", "patient_medical_records", "patient_nutrition", "patient_programs",
