@@ -177,23 +177,23 @@ export default function NotificationsPage() {
   ];
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6" dir={isRtl ? "rtl" : "ltr"}>
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#172F55] via-[#263F79] to-[#5B50C7] p-6 text-white shadow-lg sm:p-8">
+    <div className="mx-auto w-full min-w-0 max-w-6xl space-y-5 sm:space-y-6" dir={isRtl ? "rtl" : "ltr"}>
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#07565B] via-[#0D777A] to-[#119094] p-6 text-white shadow-lg sm:p-8">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
           <div className="flex items-start gap-4">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
               <Bell className="h-7 w-7" />
             </div>
             <div>
-              <p className="mb-1 text-xs font-bold tracking-wide text-indigo-100">{isRtl ? "مركز التنبيهات" : "NOTIFICATION CENTER"}</p>
+              <p className="mb-1 text-xs font-bold tracking-wide text-teal-100">{isRtl ? "مركز التنبيهات" : "NOTIFICATION CENTER"}</p>
               <h1 className="text-2xl font-extrabold sm:text-3xl">{isRtl ? "الإشعارات" : "Notifications"}</h1>
-              <p className="mt-2 max-w-xl text-sm leading-6 text-indigo-100">{isRtl ? "تابع تحديثات مركزك وإعلانات المنصة وسجل النشاط في مكان واحد." : "Keep up with clinic updates, platform announcements, and activity in one place."}</p>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-teal-100">{isRtl ? "تابع تحديثات مركزك وإعلانات المنصة وسجل النشاط في مكان واحد." : "Keep up with clinic updates, platform announcements, and activity in one place."}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 self-start rounded-2xl border border-white/15 bg-white/10 px-4 py-3 sm:self-auto">
-            <div><p className="text-2xl font-black tabular-nums">{notifications.length}</p><p className="text-[11px] text-indigo-100">{isRtl ? "إجمالي التنبيهات" : "Total notifications"}</p></div>
+            <div><p className="text-2xl font-black tabular-nums">{notifications.length}</p><p className="text-[11px] text-teal-100">{isRtl ? "إجمالي التنبيهات" : "Total notifications"}</p></div>
             <div className="h-9 w-px bg-white/20" />
-            <button onClick={() => loadNotifications(true)} disabled={refreshing} className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 transition hover:bg-white/20 disabled:opacity-60" aria-label={isRtl ? "تحديث الإشعارات" : "Refresh notifications"}>
+            <button onClick={() => loadNotifications(true)} disabled={refreshing} className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/15 text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 disabled:cursor-not-allowed disabled:opacity-60" aria-label={isRtl ? "تحديث الإشعارات" : "Refresh notifications"}>
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
             </button>
           </div>
@@ -204,14 +204,14 @@ export default function NotificationsPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative min-w-0 flex-1 lg:max-w-md">
             <Search className={`pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 ${isRtl ? "right-3" : "left-3"}`} />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={isRtl ? "ابحث في الإشعارات..." : "Search notifications..."} className={`h-11 w-full rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#7770D2] focus:bg-white focus:ring-4 focus:ring-indigo-50 ${isRtl ? "pr-10 pl-4" : "pl-10 pr-4"}`} />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={isRtl ? "ابحث في الإشعارات..." : "Search notifications..."} className={`h-11 w-full rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#119094] focus:bg-white focus:ring-4 focus:ring-teal-100 ${isRtl ? "pr-10 pl-4" : "pl-10 pr-4"}`} />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-1 text-xs font-bold text-slate-400"><Filter size={14} />{isRtl ? "تصفية:" : "Filter:"}</span>
             {filterOptions.map((option) => {
               const Icon = option.icon;
               const active = filter === option.key;
-              return <button key={option.key} onClick={() => setFilter(option.key)} className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold transition ${active ? "bg-[#554BC0] text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}><Icon size={14} />{isRtl ? option.ar : option.en}<span className={`rounded-md px-1.5 py-0.5 text-[10px] ${active ? "bg-white/15 text-white" : "bg-white text-slate-500"}`}>{counts[option.key]}</span></button>;
+              return <button key={option.key} onClick={() => setFilter(option.key)} aria-pressed={active} className={`inline-flex min-h-9 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#119094] focus-visible:ring-offset-2 ${active ? "bg-[#119094] text-white shadow-sm" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}><Icon size={14} />{isRtl ? option.ar : option.en}<span className={`rounded-md px-1.5 py-0.5 text-[10px] ${active ? "bg-white/15 text-white" : "bg-white text-slate-500"}`}>{counts[option.key]}</span></button>;
             })}
           </div>
         </div>
@@ -224,11 +224,11 @@ export default function NotificationsPage() {
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center gap-3 px-6 py-20 text-slate-400"><Activity className="h-8 w-8 animate-spin text-[#5B50C7]" /><p className="text-sm">{isRtl ? "جاري تحميل الإشعارات..." : "Loading notifications..."}</p></div>
+          <div className="flex flex-col items-center justify-center gap-3 px-6 py-20 text-slate-400"><Activity className="h-8 w-8 animate-spin text-[#119094]" /><p className="text-sm">{isRtl ? "جاري تحميل الإشعارات..." : "Loading notifications..."}</p></div>
         ) : error ? (
-          <div className="flex flex-col items-center px-6 py-16 text-center"><ShieldAlert className="mb-3 h-10 w-10 text-rose-400" /><p className="font-bold text-slate-700">{error}</p><button onClick={() => loadNotifications()} className="mt-4 rounded-xl bg-[#554BC0] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#453BAA]">{isRtl ? "إعادة المحاولة" : "Try again"}</button></div>
+          <div className="flex flex-col items-center px-6 py-16 text-center"><ShieldAlert className="mb-3 h-10 w-10 text-rose-400" /><p className="font-bold text-slate-700">{error}</p><button onClick={() => loadNotifications()} className="mt-4 rounded-xl bg-[#119094] px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#0e7578] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-300">{isRtl ? "إعادة المحاولة" : "Try again"}</button></div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center px-6 py-20 text-center"><div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-[#5B50C7]"><MessageSquare className="h-8 w-8" /></div><h3 className="font-extrabold text-slate-800">{search || filter !== "all" ? (isRtl ? "لا توجد نتائج مطابقة" : "No matching notifications") : (isRtl ? "لا توجد إشعارات حتى الآن" : "You're all caught up")}</h3><p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">{search || filter !== "all" ? (isRtl ? "جرّب تغيير كلمات البحث أو نوع الإشعار." : "Try changing your search or selected filter.") : (isRtl ? "ستظهر هنا التنبيهات الجديدة المتعلقة بمركزك والنظام." : "New clinic and system notifications will appear here.")}</p>{(search || filter !== "all") && <button onClick={() => { setSearch(""); setFilter("all"); }} className="mt-4 text-sm font-bold text-[#554BC0] hover:underline">{isRtl ? "مسح التصفية" : "Clear filters"}</button>}</div>
+          <div className="flex flex-col items-center px-6 py-20 text-center"><div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-teal-50 text-[#119094]"><MessageSquare className="h-8 w-8" /></div><h3 className="font-extrabold text-slate-800">{search || filter !== "all" ? (isRtl ? "لا توجد نتائج مطابقة" : "No matching notifications") : (isRtl ? "لا توجد إشعارات حتى الآن" : "You're all caught up")}</h3><p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">{search || filter !== "all" ? (isRtl ? "جرّب تغيير كلمات البحث أو نوع الإشعار." : "Try changing your search or selected filter.") : (isRtl ? "ستظهر هنا التنبيهات الجديدة المتعلقة بمركزك والنظام." : "New clinic and system notifications will appear here.")}</p>{(search || filter !== "all") && <button onClick={() => { setSearch(""); setFilter("all"); }} className="mt-4 text-sm font-bold text-[#0e7578] hover:underline">{isRtl ? "مسح التصفية" : "Clear filters"}</button>}</div>
         ) : (
           <div className="divide-y divide-slate-100">
             {filtered.map((item) => {
@@ -238,11 +238,11 @@ export default function NotificationsPage() {
               const title = isRtl ? item.titleAr : item.titleEn;
               const details = isRtl ? item.detailsAr : item.detailsEn;
               return (
-                <article key={item.readKey} className="group flex gap-3 px-5 py-4 transition hover:bg-slate-50/80 sm:gap-4 sm:px-6">
-                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${isBroadcast ? "bg-amber-50 text-amber-600" : isClinic ? "bg-emerald-50 text-emerald-600" : "bg-indigo-50 text-[#554BC0]"}`}><Icon className="h-5 w-5" /></div>
+                <article key={item.readKey} className="group flex min-w-0 gap-3 px-4 py-4 transition hover:bg-slate-50/80 sm:gap-4 sm:px-6">
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${isBroadcast ? "bg-amber-50 text-amber-600" : isClinic ? "bg-emerald-50 text-emerald-600" : "bg-teal-50 text-[#0e7578]"}`}><Icon className="h-5 w-5" /></div>
                   <div className="min-w-0 flex-1">
-                    <div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-extrabold text-slate-800">{title}</h3><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isBroadcast ? "bg-amber-50 text-amber-700" : isClinic ? "bg-emerald-50 text-emerald-700" : "bg-indigo-50 text-indigo-700"}`}>{isBroadcast ? (isRtl ? "إعلان" : "Announcement") : isClinic ? (isRtl ? "المركز" : "Clinic") : (isRtl ? "نشاط" : "Activity")}</span></div>
-                    {details && <p className="mt-1.5 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">{details}</p>}
+                    <div className="flex flex-wrap items-center gap-2"><h3 className="min-w-0 break-words text-sm font-extrabold text-slate-800">{title}</h3><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isBroadcast ? "bg-amber-50 text-amber-700" : isClinic ? "bg-emerald-50 text-emerald-700" : "bg-teal-50 text-teal-800"}`}>{isBroadcast ? (isRtl ? "إعلان" : "Announcement") : isClinic ? (isRtl ? "المركز" : "Clinic") : (isRtl ? "نشاط" : "Activity")}</span></div>
+                    {details && <p className="mt-1.5 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600 [overflow-wrap:anywhere]">{details}</p>}
                     <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><Clock size={12} />{formatDate(item.createdAt)}</p>
                   </div>
                 </article>
