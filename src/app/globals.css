@@ -700,3 +700,16 @@ table :is(button, a, select, input) {
 @media (prefers-reduced-motion: reduce) {
   .otp-digit { animation: none !important; transition: none !important; }
 }
+
+/* High-contrast notification total card; independent of utility-class generation. */
+.notifications-total-card {
+  background: linear-gradient(135deg, #312e81 0%, #3730a3 52%, #4338ca 100%);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, .24);
+}
+.notifications-total-card p {
+  color: #fff;
+}
+.notifications-total-card p + p {
+  color: #e0e7ff;
+}
