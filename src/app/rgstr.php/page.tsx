@@ -458,17 +458,7 @@ function SignupPageContent() {
                     ))}
                   </div>
                   <p className={`text-center text-[11px] font-medium tracking-wide ${otpStatus === "valid" ? "text-emerald-600" : otpStatus === "invalid" && otpErrorVisible ? "text-red-600" : "text-slate-400"}`} role={otpStatus === "invalid" && otpErrorVisible ? "alert" : "status"}>{otpStatus === "valid" ? (isRtl ? "تم التحقق بنجاح، جارٍ إنشاء الحساب..." : "Code verified. Creating your account...") : otpStatus === "checking" ? (isRtl ? "جارٍ التحقق من الرمز..." : "Checking code...") : otpStatus === "invalid" && otpErrorVisible ? (isRtl ? "الكود خطأ، برجاء مراجعة الكود والمحاولة مرة أخرى." : "Incorrect code. Please check it and try again.") : (isRtl ? "أدخل الأرقام الستة — يمكنك لصق الرمز كاملًا مرة واحدة" : "Enter all six digits — you can paste the full code at once")}</p>
-                  <style jsx global>{`
-                    @keyframes otpDigitIn {
-                      0% { opacity: 0; transform: translateY(7px) scale(.88); }
-                      65% { opacity: 1; transform: translateY(-2px) scale(1.06); }
-                      100% { opacity: 1; transform: translateY(0) scale(1); }
-                    }
-                    .otp-digit { animation: otpDigitIn 260ms cubic-bezier(.2,.8,.2,1) both; caret-color: #6556D9; }
-                    @media (prefers-reduced-motion: reduce) {
-                      .otp-digit { animation: none !important; transition: none !important; }
-                    }
-                  `}</style>
+
                 </div>
                 <button type="submit" disabled={loading || code.length !== 6 || otpStatus === "valid"} className="flex min-h-[46px] w-full items-center justify-center rounded-full bg-gradient-to-r from-[#5146B8] to-[#7657D5] text-sm font-bold text-white transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#5B50C7]/20 disabled:opacity-60">{loading ? <Loader size={18} /> : isRtl ? "تأكيد وإنشاء الحساب" : "Verify and create account"}</button>
                 <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-500">{isRtl ? "لم يصلك الكود؟ انتظر دقيقة، وافحص مجلد الرسائل غير المرغوب فيها (Spam/Junk)، ثم أعد الإرسال. يمكنك الرجوع لتصحيح البريد الإلكتروني إذا لزم الأمر." : "Didn’t get the code? Wait a minute, check your Spam/Junk folder, then resend it. You can go back and correct your email address if needed."}</p><div className="flex items-center justify-between text-xs"><button type="button" onClick={() => { setStep("details"); setError(""); setNotice(""); }} className="font-semibold text-slate-500 hover:text-slate-800">{isRtl ? "العودة وتعديل البيانات" : "Back to edit details"}</button><button type="button" disabled={loading} onClick={() => requestCode()} className="font-bold text-[#5B50C7] hover:underline disabled:opacity-50">{isRtl ? "إعادة إرسال الكود" : "Resend code"}</button></div>
