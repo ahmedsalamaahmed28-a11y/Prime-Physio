@@ -172,6 +172,24 @@ export async function requireRole(
   const clinicId = await resolveActiveClinicId(req, authed, admin);
   if (!clinicId) throw new Error("يجب اختيار مركز قبل متابعة العملية");
 
+  // Enforce platform-level suspension for every clinic-scoped API.
+  // Otherwise toggling clinics.is_active in the platform admin panel would
+  // not actually revoke API access for existing staff sessions.
+  const { data: clinic, error: clinicError } = await admin
+    .from("clinics")
+    .select("id,is_active,status")
+    .eq("id", clinicId)
+    .maybeSingle();
+
+  if (clinicError) {
+    console.error("[auth] Clinic status lookup failed:", clinicError);
+    throw new Error("Unable to verify clinic status");
+  }
+  const blockedClinicStatuses = new Set(["inactive", "disabled", "suspended", "deleted", "غير نشط", "موقوف", "محذوف"]);
+  if (!clinic || clinic.is_active === false || blockedClinicStatuses.has(String(clinic.status || "").trim().toLowerCase())) {
+    throw new Error("Clinic is inactive");
+  }
+
   const { data: ownerMembership, error: ownerError } = await admin
     .from("clinic_owners")
     .select("clinic_id")
