@@ -5,16 +5,16 @@ import { useLanguage } from "@/lib/LanguageContext";
 import Link from "next/link";
 import { useState } from "react";
 import {
-  MessageSquare, Search, Users, User, Send,
-  Plus, ShieldCheck, ChevronLeft, Info,
+  MessageSquare, Search, Users, User, MessageSquare,
+  Plus, ShieldCheck, ChevronLeft, ShieldCheck,
 } from "lucide-react";
 
-type InboxTab = "all" | "patients" | "team";
+type MessageSquareTab = "all" | "patients" | "team";
 
 export default function ChatPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
-  const [tab, setTab] = useState<InboxTab>("all");
+  const [tab, setTab] = useState<MessageSquareTab>("all");
   const [search, setSearch] = useState("");
 
   return (
@@ -31,7 +31,7 @@ export default function ChatPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Link href="/patients" className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 transition hover:border-indigo-200 hover:bg-indigo-50 hover:text-[#554BC0]"><Users size={16} />{isRtl ? "سجلات المرضى" : "Patient records"}</Link>
-            <span className="inline-flex h-10 items-center gap-2 rounded-xl bg-amber-50 px-3 text-xs font-bold text-amber-700"><Info size={15} />{isRtl ? "الربط قيد التجهيز" : "Integration pending"}</span>
+            <span className="inline-flex h-10 items-center gap-2 rounded-xl bg-amber-50 px-3 text-xs font-bold text-amber-700"><ShieldCheck size={15} />{isRtl ? "الربط قيد التجهيز" : "Integration pending"}</span>
           </div>
         </section>
 
@@ -48,14 +48,14 @@ export default function ChatPage() {
               </div>
               <div className="mt-4 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">
                 {([
-                  ["all", isRtl ? "الكل" : "All", Inbox],
+                  ["all", isRtl ? "الكل" : "All", MessageSquare],
                   ["patients", isRtl ? "المرضى" : "Patients", User],
                   ["team", isRtl ? "الفريق" : "Team", Users],
                 ] as const).map(([key, label, Icon]) => <button key={key} onClick={() => setTab(key)} className={`flex h-9 items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition ${tab === key ? "bg-white text-[#554BC0] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}><Icon size={14} />{label}</button>)}
               </div>
             </div>
             <div className="flex flex-1 flex-col items-center justify-center px-6 py-12 text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400"><Inbox className="h-8 w-8" /></div>
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 text-slate-400"><MessageSquare className="h-8 w-8" /></div>
               <h3 className="font-extrabold text-slate-800">{search ? (isRtl ? "لا توجد محادثات مطابقة" : "No matching conversations") : (isRtl ? "صندوق الوارد فارغ" : "Your inbox is empty")}</h3>
               <p className="mt-2 max-w-[250px] text-xs leading-6 text-slate-400">{isRtl ? "ستظهر المحادثات هنا بعد ربط خدمة الرسائل وتفعيلها للمركز." : "Conversations will appear here once messaging is connected and enabled for your clinic."}</p>
               {search && <button onClick={() => setSearch("")} className="mt-3 text-xs font-bold text-[#554BC0] hover:underline">{isRtl ? "مسح البحث" : "Clear search"}</button>}
@@ -75,12 +75,12 @@ export default function ChatPage() {
               <h2 className="mt-4 text-2xl font-extrabold text-slate-900 sm:text-3xl">{isRtl ? "كل محادثاتك في مكان واحد" : "All your conversations in one place"}</h2>
               <p className="mt-3 text-sm leading-7 text-slate-500">{isRtl ? "الواجهة جاهزة، لكن خدمة المحادثات وإرسال الرسائل لم يتم ربطها بقاعدة البيانات بعد. لن نعرض محادثات تجريبية أو نُظهر أن الرسائل تُرسل قبل تفعيل الخدمة فعليًا." : "The workspace UI is ready, but message delivery and conversation storage are not connected to the database yet. No demo conversations are shown, and messages will not be presented as sent before the service is active."}</p>
               <div className="mt-7 grid w-full gap-3 text-start sm:grid-cols-2">
-                <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm"><div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><UserRound size={18} /></div><h3 className="text-sm font-extrabold text-slate-800">{isRtl ? "محادثات المرضى" : "Patient conversations"}</h3><p className="mt-1 text-xs leading-5 text-slate-400">{isRtl ? "متابعة الاستفسارات والتواصل المرتبط بملف المريض." : "Follow up on questions and patient-related communication."}</p></div>
+                <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm"><div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><User size={18} /></div><h3 className="text-sm font-extrabold text-slate-800">{isRtl ? "محادثات المرضى" : "Patient conversations"}</h3><p className="mt-1 text-xs leading-5 text-slate-400">{isRtl ? "متابعة الاستفسارات والتواصل المرتبط بملف المريض." : "Follow up on questions and patient-related communication."}</p></div>
                 <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm"><div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600"><Users size={18} /></div><h3 className="text-sm font-extrabold text-slate-800">{isRtl ? "محادثات فريق العمل" : "Team conversations"}</h3><p className="mt-1 text-xs leading-5 text-slate-400">{isRtl ? "تنسيق العمل والتواصل الداخلي بين أعضاء المركز." : "Coordinate work and communicate across your clinic team."}</p></div>
               </div>
               <Link href="/patients" className="mt-7 inline-flex h-11 items-center gap-2 rounded-xl bg-[#554BC0] px-5 text-sm font-extrabold text-white shadow-md shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-[#453BAA]">{isRtl ? "الانتقال إلى سجلات المرضى" : "Go to patient records"}{isRtl ? <ChevronLeft size={16} /> : <ChevronLeft size={16} />}</Link>
             </div>
-            <div className="absolute bottom-4 flex items-center gap-2 text-[10px] font-medium text-slate-300"><Send size={12} />{isRtl ? "لن يتم إرسال أي رسالة دون تفعيل الخدمة" : "No messages are sent until messaging is enabled"}</div>
+            <div className="absolute bottom-4 flex items-center gap-2 text-[10px] font-medium text-slate-300"><MessageSquare size={12} />{isRtl ? "لن يتم إرسال أي رسالة دون تفعيل الخدمة" : "No messages are sent until messaging is enabled"}</div>
           </div>
         </section>
       </div>
