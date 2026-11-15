@@ -187,7 +187,7 @@ export async function requireRole(
   }
   const blockedClinicStatuses = new Set(["inactive", "disabled", "suspended", "deleted", "غير نشط", "موقوف", "محذوف"]);
   if (!clinic || clinic.is_active === false || blockedClinicStatuses.has(String(clinic.status || "").trim().toLowerCase())) {
-    throw new Error("Clinic is inactive");
+    throw new Error("Forbidden: Clinic is inactive");
   }
 
   const { data: ownerMembership, error: ownerError } = await admin
