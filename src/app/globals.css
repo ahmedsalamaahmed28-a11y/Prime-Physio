@@ -686,33 +686,3 @@ table :is(button, a, select, input) {
     padding-inline: 0.35rem;
   }
 }
-
-
-/* ── Unified action-button brand: match Patients > Add Patient ── */
-:root {
-  --primary: #4F46BA;
-  --ring: #4F46BA;
-  --sidebar-primary: #4F46BA;
-  --sidebar-ring: #4F46BA;
-}
-.dark {
-  --primary: #4F46BA;
-  --ring: #4F46BA;
-  --sidebar-primary: #4F46BA;
-  --sidebar-ring: #4F46BA;
-}
-body :is(button, [role="button"], a[role="button"]):not(.pp-landing *):not(.checkbox-wrapper *) {
-  background-color: #4F46BA !important;
-  background-image: linear-gradient(to right, #4F46BA, #7c3aed) !important;
-  border-color: #4F46BA !important;
-  color: #ffffff !important;
-}
-body :is(button, [role="button"], a[role="button"]):not(.pp-landing *):not(.checkbox-wrapper *):hover:not(:disabled) {
-  background-image: linear-gradient(to right, #4338ca, #6d28d9) !important;
-  border-color: #4338ca !important;
-  color: #ffffff !important;
-}
-body :is(button, [role="button"], a[role="button"]):not(.pp-landing *):not(.checkbox-wrapper *):focus-visible {
-  outline: 2px solid #7c3aed !important;
-  outline-offset: 3px;
-}
