@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac } from "crypto";
 import { getAdminClient } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
@@ -10,6 +11,21 @@ const GROUP_DAYS: Record<string, Array<{ key: string; ar: string; en: string; do
   A: [{ key: "saturday", ar: "السبت", en: "Saturday", dow: 6 }, { key: "monday", ar: "الاثنين", en: "Monday", dow: 1 }, { key: "wednesday", ar: "الأربعاء", en: "Wednesday", dow: 3 }],
   B: [{ key: "sunday", ar: "الأحد", en: "Sunday", dow: 0 }, { key: "tuesday", ar: "الثلاثاء", en: "Tuesday", dow: 2 }, { key: "thursday", ar: "الخميس", en: "Thursday", dow: 4 }],
 };
+async function allowPublicBookingFromIp(clientIp: string, clinicSlug: string): Promise<boolean> {
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret || secret.length < 32) throw new Error("BOOKING_RATE_LIMIT_UNAVAILABLE");
+  const normalizedIp = (clientIp || "unknown").trim().slice(0, 128);
+  const ipHash = createHmac("sha256", secret)
+    .update(`public-booking:${clinicSlug}:${normalizedIp}`)
+    .digest("hex");
+  const admin = getAdminClient();
+  const { data, error } = await admin.rpc("check_auth_login_attempt", {
+    p_email: `public-booking-${clinicSlug}@prime-physio.internal`,
+    p_ip_hash: ipHash,
+  });
+  if (error) throw error;
+  return data === true;
+}
 function cairoDate() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 }
@@ -188,15 +204,32 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const slug = String(body.slug || "").trim().toLowerCase();
-    const name = String(body.name || "").trim().slice(0, 120);
+    const slug = String(body?.slug || "").trim().toLowerCase();
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 80) {
+      return NextResponse.json({ error: "Invalid clinic slug" }, { status: 400, headers: noStore });
+    }
+
+    const clientIp = request.headers.get("x-real-ip")
+      || request.headers.get("x-forwarded-for")?.split(",").pop()?.trim()
+      || "unknown";
+    let allowed: boolean;
+    try {
+      allowed = await allowPublicBookingFromIp(clientIp, slug);
+    } catch (rateLimitError) {
+      console.error("Public booking rate-limit check failed:", rateLimitError);
+      return NextResponse.json({ error: "خدمة الحجز غير متاحة مؤقتًا. حاول لاحقًا." }, { status: 503, headers: noStore });
+    }
+    if (!allowed) {
+      return NextResponse.json({ error: "تم تجاوز عدد محاولات الحجز من هذا الاتصال. حاول مرة أخرى بعد 15 دقيقة." }, { status: 429, headers: noStore });
+    }
+
+    const name = String(body?.name || "").trim().slice(0, 120);
     const age = Number(body.age);
     const phone = String(body.phone || "").trim().slice(0, 20);
     const address = String(body.address || "").trim().slice(0, 300);
     if (!body.groupCode && body.time) {
-      const slugValid = /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && slug.length <= 80;
       const legacyTime = normalizeTime(body.time);
-      if (!slugValid || name.length < 2 || !Number.isInteger(age) || age < 1 || age > 120 ||
+      if (name.length < 2 || !Number.isInteger(age) || age < 1 || age > 120 ||
           phone.length < 7 || phone.length > 20 || !/^[+0-9()\s.-]+$/.test(phone) ||
           address.length < 3 || !/^([01]\d|2[0-3]):[0-5]\d$/.test(legacyTime)) {
         return NextResponse.json({ error: "يرجى مراجعة البيانات واختيار موعد صحيح." }, { status: 400, headers: noStore });
@@ -223,7 +256,7 @@ export async function POST(request: NextRequest) {
     const groupCode = String(body.groupCode || "");
     const selectedTimes = body.selectedTimes && typeof body.selectedTimes === "object" && !Array.isArray(body.selectedTimes) ? body.selectedTimes : {};
     const days = GROUP_DAYS[groupCode];
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 80 || name.length < 2 || !Number.isInteger(age) || age < 1 || age > 120 ||
+    if (name.length < 2 || !Number.isInteger(age) || age < 1 || age > 120 ||
       phone.length < 7 || phone.length > 20 || !/^[+0-9()\s.-]+$/.test(phone) || address.length < 3 || !days ||
       days.some(day => !normalizeTime(selectedTimes[day.key]))) {
       return NextResponse.json({ error: "يرجى مراجعة البيانات واختيار وقت لكل يوم من أيام المجموعة." }, { status: 400, headers: noStore });
