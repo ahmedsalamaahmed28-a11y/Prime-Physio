@@ -69,7 +69,7 @@ function EventCard({ event, isRtl, onClick }: { event: CalendarEvent; isRtl: boo
     <button
       type="button"
       onClick={onClick}
-      className={`group w-full rounded-lg border border-r-[3px] border-r-solid px-2 py-1.5 text-right shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 ${colors} ${isRtl ? "text-right" : "text-left"}`}
+      className={`group w-full rounded-lg border border-r-[3px] px-2 py-1.5 text-right shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 ${colors} ${isRtl ? "text-right" : "text-left"}`}
       title={event.title}
     >
       <div className="flex items-center justify-between gap-1">
@@ -99,7 +99,7 @@ export default function AppointmentsCalendarView({
   const locale = isRtl ? ar : enUS;
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 6 });
-  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 6 });
+  const weekEnd = addDays(weekStart, 5);
   const weekDays = Array.from({ length: 6 }, (_, index) => addDays(weekStart, index));
   const filteredEvents = useMemo(() => events.filter((event) => {
     const matchesDoctor = doctorFilter === "all" || event.doctor === doctorFilter;
@@ -253,7 +253,7 @@ export default function AppointmentsCalendarView({
               <div className={`min-w-[850px] ${view === "day" ? "min-w-[520px]" : ""}`}>
                 <div className="grid border-b border-slate-100" style={{ gridTemplateColumns: `68px repeat(${dayList.length}, minmax(0, 1fr))` }}>
                   <div className="border-l border-slate-100 bg-slate-50" />
-                  {dayList.map((day, index) => <div key={day.toISOString()}>{weekDayLabel(day, view === "day" ? day.getDay() === 6 ? 0 : day.getDay() : index)}</div>)}
+                  {dayList.map((day, index) => <div key={day.toISOString()}>{weekDayLabel(day, view === "day" ? (day.getDay() + 1) % 7 : index)}</div>)}
                 </div>
                 <div className="grid" style={{ gridTemplateColumns: `68px repeat(${dayList.length}, minmax(0, 1fr))` }}>
                   <div className="bg-slate-50">
@@ -301,7 +301,7 @@ export default function AppointmentsCalendarView({
               {(isRtl ? ["س", "ح", "ن", "ث", "ر", "خ", "ج"] : ["S", "S", "M", "T", "W", "T", "F"]).map((day, index) => <span key={index} className="py-1 text-[10px] font-semibold text-slate-400">{day}</span>)}
               {miniDays.map((day) => {
                 const hasEvents = events.some((event) => isSameDay(event.start, day));
-                return <button key={day.toISOString()} type="button" onClick={() => onDateChange(day)} className={`mx-auto flex h-7 w-7 items-center justify-center rounded-full text-[10px] transition ${isSameDay(day, currentDate) ? "bg-[#4F46BA] font-bold text-white" : isSameDay(day, new Date()) ? "border border-indigo-400 font-bold text-indigo-700" : !isSameMonth(day, currentDate) ? "text-slate-300" : "text-slate-600 hover:bg-slate-100"}`}>{format(day, "d")}{hasEvents && !isSameDay(day, currentDate) && <span className="absolute mt-6 h-1 w-1 rounded-full bg-cyan-500" />}</button>;
+                return <button key={day.toISOString()} type="button" onClick={() => onDateChange(day)} className={`relative mx-auto flex h-7 w-7 items-center justify-center rounded-full text-[10px] transition ${isSameDay(day, currentDate) ? "bg-[#4F46BA] font-bold text-white" : isSameDay(day, new Date()) ? "border border-indigo-400 font-bold text-indigo-700" : !isSameMonth(day, currentDate) ? "text-slate-300" : "text-slate-600 hover:bg-slate-100"}`}>{format(day, "d")}{hasEvents && !isSameDay(day, currentDate) && <span className="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-cyan-500" />}</button>;
               })}
             </div>
           </section>
