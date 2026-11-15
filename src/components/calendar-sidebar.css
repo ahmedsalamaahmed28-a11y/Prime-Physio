@@ -1,0 +1,35 @@
+.pp-calendar-shell{--st-bg:#f8f9ff;position:relative;min-height:100vh;width:100%;background:var(--st-bg);color:#0b1c30;font-family:"IBM Plex Sans Arabic","Cairo",sans-serif}
+.pp-calendar-sidebar{position:fixed;z-index:70;inset-block:0;right:0;width:288px;background:#fff;box-shadow:0 1px 8px rgba(0,0,0,.05);display:flex;flex-direction:column;padding:0 0 14px;overflow:hidden}
+.pp-calendar-brand{height:64px;min-height:64px;padding:0 18px;display:flex;align-items:center;gap:9px;border-bottom:1px solid #f3f4f8}
+.pp-calendar-brand img{width:36px;height:36px;object-fit:contain}
+.pp-calendar-brand div{display:flex;flex-direction:column;min-width:0}
+.pp-calendar-brand strong{font-size:15px;line-height:1.35;font-weight:800;color:#0b1c30}
+.pp-calendar-brand span{font-size:10px;color:#777587}
+.pp-calendar-branch-wrap{position:relative;padding:8px 12px 3px}
+.pp-calendar-branch{width:100%;display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:12px;background:#eff4ff;text-align:start;color:#0b1c30}
+.pp-calendar-branch:hover{background:#e5eeff}
+.pp-calendar-branch-icon{width:30px;height:30px;border-radius:9px;background:#4f46e5;color:#fff;display:grid;place-items:center;flex-shrink:0}
+.pp-calendar-branch small{display:block;color:#777587;font-size:9px;margin-bottom:1px}
+.pp-calendar-branch b{font-size:11px;font-weight:700}
+.pp-calendar-branch-menu{position:absolute;z-index:80;top:calc(100% - 2px);left:12px;right:12px;background:#fff;border:1px solid #e2e6f0;box-shadow:0 12px 30px #18213b1c;border-radius:12px;padding:6px;max-height:240px;overflow:auto}
+.pp-calendar-branch-menu button{display:block;width:100%;text-align:start;padding:9px 10px;border-radius:8px;font-size:12px;color:#464555}
+.pp-calendar-branch-menu button:hover{background:#eff4ff}
+.pp-calendar-nav{display:flex;flex-direction:column;gap:3px;padding:8px 12px 14px;flex:1;min-height:0;overflow-y:auto}
+.pp-calendar-nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;min-height:35px;border-radius:9px;color:#464555;font-size:12px;line-height:1.4;transition:background .18s,color .18s}
+.pp-calendar-nav a:hover{background:#eff4ff;color:#0b1c30}
+.pp-calendar-nav a.active{background:#4f46e5;color:#fff;font-weight:700;box-shadow:0 1px 3px #1e1b4b12}
+.pp-calendar-account{flex:0 0 auto;margin:auto 12px 0;padding:8px 9px;border-radius:12px;background:#eff4ff}
+.pp-calendar-account-user{display:flex;align-items:center;gap:10px}
+.pp-calendar-avatar{width:34px;height:34px;border-radius:50%;background:#3525cd;color:#fff;display:grid;place-items:center;flex-shrink:0}
+.pp-calendar-account-user b{font-size:12px;font-weight:700}
+.pp-calendar-account-user small{font-size:10px;color:#777587;margin-top:3px}
+.pp-calendar-account-actions{display:flex;align-items:center;gap:7px;margin-top:6px;padding-top:6px;border-top:1px solid #dce5f5}
+.pp-calendar-account-actions a,.pp-calendar-account-actions button{width:25px;height:25px;display:grid;place-items:center;border-radius:8px;color:#777587}
+.pp-calendar-account-actions button:hover{background:#ffdad6;color:#ba1a1a}
+.pp-calendar-online{display:inline-flex;align-items:center;gap:6px;margin-inline-end:auto;color:#005338;font-size:10px;font-weight:700;background:#e3fff2;border-radius:20px;padding:4px 8px}
+.pp-calendar-online i{width:7px;height:7px;border-radius:50%;background:#00a66c;display:inline-block}
+.pp-calendar-main{min-height:100vh;margin-right:288px;min-width:0}
+.pp-calendar-mobile-menu{display:none}
+[dir="ltr"] .pp-calendar-sidebar{right:auto;left:0}
+[dir="ltr"] .pp-calendar-main{margin-right:0;margin-left:288px}
+@media(max-width:900px){.pp-calendar-sidebar{width:288px;transform:translateX(105%);transition:transform .22s ease}.pp-calendar-sidebar.is-open{transform:translateX(0)}.pp-calendar-main{margin:0}[dir="ltr"] .pp-calendar-sidebar{left:0;right:auto;transform:translateX(-105%)}[dir="ltr"] .pp-calendar-sidebar.is-open{transform:translateX(0)}.pp-calendar-mobile-menu{display:inline-flex;align-items:center;justify-content:center}}
