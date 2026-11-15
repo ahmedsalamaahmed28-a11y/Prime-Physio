@@ -27,8 +27,17 @@ export async function GET(req: NextRequest) {
       "treatment_plans", "patient_attachments", "discharges", "daily_reports", "executive_reports"
     ];
     const results = await Promise.all(tables.map(async (table) => {
-      const { data, error } = await admin.from(table).select("*").eq("clinic_id", clinicId);
-      if (error) throw new Error(`تعذر تصدير جدول ${table}: ${error.message}`);
+      // The clinics table is keyed by its primary key (id), not clinic_id.
+      // Every other table in this export list is tenant-scoped by clinic_id.
+      const query = admin.from(table).select("*");
+      const scopedQuery = table === "clinics"
+        ? query.eq("id", clinicId)
+        : query.eq("clinic_id", clinicId);
+      const { data, error } = await scopedQuery;
+      if (error) {
+        console.error(`[CenterManagement] Export query failed for ${table}:`, error);
+        throw new Error(`تعذر تصدير جدول ${table}.`);
+      }
       return [table, data || []] as const;
     }));
     const payload = {
