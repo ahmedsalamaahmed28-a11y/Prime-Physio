@@ -24,7 +24,8 @@ export async function GET(req: NextRequest) {
       "clinics", "branches", "subscriptions", "patients", "appointments", "sessions",
       "staff", "invoices", "clinic_services", "clinic_settings", "assessments",
       "patient_evaluations", "patient_programs", "patient_medical_records", "soap_notes",
-      "treatment_plans", "patient_attachments", "discharges", "daily_reports", "executive_reports"
+      "treatment_plans", "patient_attachments", "discharges", "daily_reports", "executive_reports",
+      "doctor_working_hours", "group_booking_requests"
     ];
     const results = await Promise.all(tables.map(async (table) => {
       // The clinics table is keyed by its primary key (id), not clinic_id.
