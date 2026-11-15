@@ -463,6 +463,26 @@ export default function DashboardLayout({
     (item) => !readNotificationKeys.includes(item.readKey)
   ).length;
 
+  // The dashboard page owns its redesigned sidebar and top bar. Bypass the
+  // legacy global dashboard chrome on this route, including while loading or
+  // when its data request fails, so the old sidebar can never flash/render.
+  if (p === "/dashboard") {
+    return (
+      <DashboardPageLoadingContext.Provider value={setIsDashboardPageLoading}>
+        <div className="relative min-h-screen">
+          {isDashboardPageLoading && (
+            <div className="fixed inset-0 z-[100] bg-slate-50">
+              <LoadingSpinner />
+            </div>
+          )}
+          <div className={isDashboardPageLoading ? "invisible" : "visible"}>
+            {children}
+          </div>
+        </div>
+      </DashboardPageLoadingContext.Provider>
+    );
+  }
+
   return (
     <DashboardPageLoadingContext.Provider value={setIsDashboardPageLoading}>
       <div className="relative min-h-screen">
