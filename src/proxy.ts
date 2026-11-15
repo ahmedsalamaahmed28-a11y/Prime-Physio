@@ -50,10 +50,11 @@ function buildCsp(nonce: string): string {
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https:`,
     "connect-src 'self' https: wss:",
     "img-src 'self' data: blob: https:",
-    // Inline style attributes are blocked; only external stylesheets and nonce-bearing style elements are allowed.
+    // React components use controlled inline style attributes for dynamic layout and branding.
+    // Allow style attributes only; scripts and style elements remain nonce-restricted.
     `style-src 'self' 'nonce-${nonce}' https:`,
     `style-src-elem 'self' 'nonce-${nonce}' https:`,
-    "style-src-attr 'none'",
+    "style-src-attr 'unsafe-inline'",
     "font-src 'self' data: https:",
     "object-src 'none'",
     "base-uri 'self'",
