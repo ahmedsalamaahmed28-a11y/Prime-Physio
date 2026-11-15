@@ -146,7 +146,7 @@ export default function HomePage() {
         .select("id,clinic_id,branch_id,patient_id,patient_name,description,amount,status,date,created_at")
         .eq("clinic_id", clinicId);
       let staffQuery = supabase.from("staff")
-        .select("id,clinic_id,name,role,specialty,status,branch_id")
+        .select("id,clinic_id,name,role,specialty,status")
         .eq("clinic_id", clinicId);
       let evaluationsQuery = supabase.from("patient_evaluations")
         .select("id,clinic_id,patient_id,evaluation_date,evaluation_type,vas_score,rom_data,mmt_data,notes")
@@ -162,7 +162,6 @@ export default function HomePage() {
         appointmentsQuery = appointmentsQuery.eq("branch_id", activeBranchId);
         patientsQuery = patientsQuery.eq("branch_id", activeBranchId);
         invoicesQuery = invoicesQuery.eq("branch_id", activeBranchId);
-        staffQuery = staffQuery.eq("branch_id", activeBranchId);
       }
       const [appointmentsResult, patientsResult, invoicesResult, staffResult, evaluationsResult, notificationsResult, branchesResult] = await Promise.all([
         appointmentsQuery, patientsQuery, invoicesQuery, staffQuery, evaluationsQuery, notificationsQuery,
