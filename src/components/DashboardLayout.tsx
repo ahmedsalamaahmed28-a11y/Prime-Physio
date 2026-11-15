@@ -519,7 +519,7 @@ export default function DashboardLayout({
     <div className={`min-h-screen bg-slate-50/50 flex flex-col ${isRtl ? "md:flex-row-reverse" : "md:flex-row"} text-slate-800`} dir={isRtl ? "rtl" : "ltr"}>
       
       {/* Shared sidebar — same component styling and layout as the redesigned dashboard. */}
-      <aside className={"pp-stitch-sidebar print:hidden " + (isOpen ? "is-open" : "")} dir={isRtl ? "rtl" : "ltr"}>
+      {!isCenterCreationPage && <aside className={"pp-stitch-sidebar print:hidden " + (isOpen ? "is-open" : "")} dir={isRtl ? "rtl" : "ltr"}>
         <div className="pp-stitch-brand">
           <img
             src={branchLogo || "/logo.png"}
@@ -592,9 +592,6 @@ export default function DashboardLayout({
               </Link>
             );
           })}
-          <button type="button" onClick={() => { closeSidebar(); logout(); }} className="w-full flex items-center gap-3 rounded-xl px-[13px] py-[11px] text-start text-[13px] text-[#464555] hover:bg-[#eff4ff]">
-            <span><LogOut size={19} />{isRtl ? "تسجيل الخروج" : "Log out"}</span>
-          </button>
         </nav>
 
         <div className="pp-stitch-account">
@@ -617,11 +614,11 @@ export default function DashboardLayout({
             <button onClick={logout} title={isRtl ? "تسجيل الخروج" : "Log out"}><LogOut size={17} /></button>
           </div>
         </div>
-      </aside>
-      {isOpen && <button className="pp-stitch-backdrop md:hidden" aria-label={isRtl ? "إغلاق القائمة" : "Close menu"} onClick={closeSidebar} />}
+      </aside>}
+      {!isCenterCreationPage && isOpen && <button className="pp-stitch-backdrop md:hidden" aria-label={isRtl ? "إغلاق القائمة" : "Close menu"} onClick={closeSidebar} />}
 
       {/* ─── MAIN CONTENT CONTAINER ────────────────────────────────────────── */}
-      <div className={`pp-stitch-main flex-1 flex flex-col print:pr-0 print:pl-0 ${isCenterCreationPage ? "" : ""}`}>
+      <div className={`${isCenterCreationPage ? "" : "pp-stitch-main"} flex-1 flex flex-col print:pr-0 print:pl-0`}>
         
         {/* ─── GLOBAL HEADER ────────── */}
         {!isCenterCreationPage && (
