@@ -68,19 +68,19 @@ function EventCard({ event, isRtl, onClick }: { event: CalendarEvent; isRtl: boo
     <button
       type="button"
       onClick={onClick}
-      className={`group w-full rounded-lg border border-r-[3px] px-2 py-1.5 text-right shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 ${colors} ${isRtl ? "text-right" : "text-left"}`}
+      className={`group w-full min-w-0 overflow-hidden rounded-md border border-r-[3px] px-1 py-1 text-right shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 sm:rounded-lg sm:px-2 sm:py-1.5 ${colors} ${isRtl ? "text-right" : "text-left"}`}
       title={event.title}
     >
       <div className="flex items-center justify-between gap-1">
-        <span className="min-w-0 truncate text-[11px] font-bold">{event.patientName || event.title}</span>
+        <span className="min-w-0 truncate text-[9px] font-bold sm:text-[11px]">{event.patientName || event.title}</span>
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${status.dot}`} />
       </div>
-      <div className="mt-1 flex items-center gap-1 text-[10px] opacity-75">
-        <Clock className="h-3 w-3 shrink-0" />
+      <div className="mt-0.5 flex min-w-0 items-center gap-0.5 overflow-hidden text-[8px] opacity-75 sm:mt-1 sm:gap-1 sm:text-[10px]">
+        <Clock className="h-2.5 w-2.5 shrink-0 sm:h-3 sm:w-3" />
         <span>{format(event.start, "h:mm a")}</span>
         <span className="truncate">· {event.doctor || (isRtl ? "غير محدد" : "Unassigned")}</span>
       </div>
-      {event.roomName && <div className="mt-0.5 truncate text-[10px] opacity-70">{event.roomName}</div>}
+      {event.roomName && <div className="mt-0.5 truncate text-[8px] opacity-70 sm:text-[10px]">{event.roomName}</div>}
     </button>
   );
 }
@@ -138,9 +138,9 @@ export default function AppointmentsCalendarView({
 
   const weekDayLabel = (day: Date, index: number) => (
     <div className={`min-w-0 border-b border-slate-100 px-2 py-3 text-center ${isSameDay(day, new Date()) ? "bg-indigo-50/70" : "bg-white"}`}>
-      <div className="text-[11px] font-semibold text-slate-500">{isRtl ? DAYS_AR[index] : DAYS_EN[index]}</div>
-      <div className={`mx-auto mt-1 flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${isSameDay(day, new Date()) ? "bg-[#4F46BA] text-white" : "text-slate-800"}`}>{format(day, "d")}</div>
-      <div className="mt-1 text-[10px] text-slate-400">{visibleEvents.filter((event) => isSameDay(event.start, day)).length} {isRtl ? "موعد" : "events"}</div>
+      <div className="truncate text-[9px] font-semibold text-slate-500 sm:text-[11px]">{isRtl ? DAYS_AR[index] : DAYS_EN[index]}</div>
+      <div className={`mx-auto mt-1 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold sm:h-8 sm:w-8 sm:text-sm ${isSameDay(day, new Date()) ? "bg-[#4F46BA] text-white" : "text-slate-800"}`}>{format(day, "d")}</div>
+      <div className="mt-1 truncate text-[8px] text-slate-400 sm:text-[10px]">{visibleEvents.filter((event) => isSameDay(event.start, day)).length} {isRtl ? "موعد" : "events"}</div>
     </div>
   );
 
@@ -248,18 +248,18 @@ export default function AppointmentsCalendarView({
               })}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <div className={`min-w-[850px] ${view === "day" ? "min-w-[520px]" : ""}`}>
-                <div className="grid border-b border-slate-100" style={{ gridTemplateColumns: `68px repeat(${dayList.length}, minmax(0, 1fr))` }}>
+            <div className="w-full min-w-0 overflow-visible">
+              <div className="w-full min-w-0">
+                <div className="grid w-full min-w-0 border-b border-slate-100" style={{ gridTemplateColumns: `clamp(38px, 6vw, 68px) repeat(${dayList.length}, minmax(0, 1fr))` }}>
                   <div className="border-l border-slate-100 bg-slate-50" />
                   {dayList.map((day, index) => <div key={day.toISOString()}>{weekDayLabel(day, view === "day" ? (day.getDay() + 1) % 7 : index)}</div>)}
                 </div>
-                <div className="grid" style={{ gridTemplateColumns: `68px repeat(${dayList.length}, minmax(0, 1fr))` }}>
+                <div className="grid w-full min-w-0" style={{ gridTemplateColumns: `clamp(38px, 6vw, 68px) repeat(${dayList.length}, minmax(0, 1fr))` }}>
                   <div className="bg-slate-50">
-                    {HOURS.map((hour) => <div key={hour} className="h-[76px] border-b border-l border-slate-100 px-2 pt-1 text-[10px] font-medium text-slate-400">{format(new Date(2020, 0, 1, hour), "h a")}</div>)}
+                    {HOURS.map((hour) => <div key={hour} className="h-[76px] overflow-hidden border-b border-l border-slate-100 px-0.5 pt-1 text-center text-[8px] font-medium text-slate-400 sm:px-2 sm:text-[10px]">{format(new Date(2020, 0, 1, hour), "h a")}</div>)}
                   </div>
                   {dayList.map((day) => (
-                    <div key={day.toISOString()} className="relative border-l border-slate-100">
+                    <div key={day.toISOString()} className="relative min-w-0 overflow-hidden border-l border-slate-100">
                       {HOURS.map((hour) => {
                         const slotDate = new Date(day);
                         slotDate.setHours(hour, 0, 0, 0);
