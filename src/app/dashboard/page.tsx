@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
+import { usePermissions } from "@/lib/usePermissions";
 import { supabase } from "@/lib/supabase";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { DashboardPageLoadingContext } from "@/lib/DashboardPageLoadingContext";
@@ -120,6 +121,7 @@ export default function HomePage() {
   const isRtl = language === "ar";
   const locale = isRtl ? "ar-EG" : "en-US";
   const { user, logout, activeBranchId, setActiveBranchId, isEnriching } = useAuth();
+  const { hasPermission } = usePermissions();
   const setDashboardPageLoading = useContext(DashboardPageLoadingContext);
   const clinicId = user?.clinicId;
   const [data, setData] = useState<DashboardData>(EMPTY_DATA);
@@ -235,10 +237,10 @@ export default function HomePage() {
   });
   const expectedIncome = todayInvoices.reduce((sum, invoice) => sum + amountValue(invoice.amount), 0);
   const collectedIncome = todayInvoices.filter((invoice) => isPaid(invoice.status)).reduce((sum, invoice) => sum + amountValue(invoice.amount), 0);
-  const activeClinicians = data.staff.filter((item) => !["inactive", "غير نشط", "موقوف", "إجازة", "في إجازة"].includes(String(item.status || "").toLowerCase())).length;
+  const activeClinicians = data.staff.filter((item) => ["مدير العياده", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي", "doctor", "physical therapist", "physiotherapist"].includes(String(item.role || "").trim().toLowerCase()) && !["inactive", "غير نشط", "موقوف", "إجازة", "في إجازة"].includes(String(item.status || "").toLowerCase())).length;
   const utilization = activeClinicians > 0 ? Math.min(100, Math.round((activeAppointments.length / activeClinicians) * 100)) : 0;
 
-  const patientNameById = useMemo(() => new Map(data.patients.map((patient) => [String(patient.id), patient.nameAr || patient.nameEn || String(patient.id)])), [data.patients]);
+  const patientNameById = useMemo(() => new Map(data.patients.map((patient) => [String(patient.id), (isRtl ? patient.nameAr : patient.nameEn) || patient.nameAr || patient.nameEn || String(patient.id)])), [data.patients, isRtl]);
   const evaluationsByPatient = useMemo(() => {
     const map = new Map<string, Row[]>();
     data.evaluations.forEach((item) => {
@@ -348,7 +350,13 @@ export default function HomePage() {
     { label: isRtl ? "الفواتير والمالية" : "Billing & finance", href: "/billing", icon: FileText },
     { label: isRtl ? "تقارير الأداء" : "Performance reports", href: "/analytics", icon: BarChart3 },
     { label: isRtl ? "إعدادات العيادة" : "Clinic settings", href: "/profile", icon: Settings },
-  ];
+  ].filter((item) => {
+    if (item.href === "/analytics" && !hasPermission("view_analytics")) return false;
+    if (item.href === "/profile" && !hasPermission("manage_settings")) return false;
+    if (user?.roleKey === "doctor") return !["/billing", "/analytics", "/profile"].includes(item.href);
+    if (user?.roleKey === "receptionist") return ["/dashboard", "/patients", "/billing", "/calendar"].includes(item.href);
+    return true;
+  });
 
   const handleSearch = () => {
     if (search.trim()) router.push("/patients?search=" + encodeURIComponent(search.trim()));
