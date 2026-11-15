@@ -5,16 +5,16 @@ import { useLanguage } from "@/lib/LanguageContext";
 import Link from "next/link";
 import { useState } from "react";
 import {
-  MessageSquare, Search, Users, User, MessageSquare,
-  Plus, ShieldCheck, ChevronLeft, ShieldCheck,
+  MessageSquare, Search, Users, User,
+  Plus, ShieldCheck, ChevronLeft,
 } from "lucide-react";
 
-type MessageSquareTab = "all" | "patients" | "team";
+type InboxTab = "all" | "patients" | "team";
 
 export default function ChatPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
-  const [tab, setTab] = useState<MessageSquareTab>("all");
+  const [tab, setTab] = useState<InboxTab>("all");
   const [search, setSearch] = useState("");
 
   return (
