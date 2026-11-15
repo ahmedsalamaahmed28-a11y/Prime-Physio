@@ -260,3 +260,48 @@ body:has(.pp-stitch-shell) header:not(.pp-stitch-topbar){display:none!important}
   .pp-stitch-nav a > span { gap: 10px; }
 }
 
+
+
+/* Keep the clinic-manager profile pinned below the navigation.
+   The navigation owns the remaining height and can scroll instead of
+   disappearing underneath the profile card on shorter screens. */
+.pp-stitch-sidebar {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+.pp-stitch-nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  justify-content: flex-start;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #c9c7df transparent;
+  padding-bottom: 14px;
+}
+.pp-stitch-nav::-webkit-scrollbar { width: 5px; }
+.pp-stitch-nav::-webkit-scrollbar-thumb {
+  background: #c9c7df;
+  border-radius: 10px;
+}
+.pp-stitch-account {
+  flex: 0 0 auto;
+  margin-top: auto;
+  position: relative;
+  z-index: 2;
+  background: #fff;
+}
+@media (min-width: 901px) {
+  .pp-stitch-nav {
+    gap: 3px;
+    padding-block: 8px 14px;
+  }
+  .pp-stitch-nav a {
+    flex: 0 0 auto;
+  }
+}
