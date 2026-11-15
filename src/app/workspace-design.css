@@ -1,42 +1,58 @@
-/* Shared Prime Physio visual system for clinic workspace pages.
-   Intentionally scoped to the authenticated content area so public pages,
-   the dashboard reference page, calendar and platform admin remain untouched. */
+/* Prime Physio shared workspace redesign.
+   Scoped to authenticated clinic routes only; dashboard, calendar and public pages
+   keep their own dedicated layouts and styling. */
 .pp-consistent-pages {
-  --pp-brand: #4f46ba;
-  --pp-brand-strong: #4338a8;
-  --pp-ink: #172033;
-  --pp-muted: #697386;
-  --pp-line: #e8eaf2;
+  --pp-brand: #4f46e5;
+  --pp-brand-deep: #3525cd;
+  --pp-brand-soft: #eff4ff;
+  --pp-ink: #0b1c30;
+  --pp-muted: #777587;
+  --pp-line: #e2e6f0;
   --pp-surface: #ffffff;
+  --pp-page: #f8f9ff;
+  width: 100%;
+  max-width: none !important;
+  min-width: 0;
+  padding: 28px clamp(16px, 2.2vw, 34px) 40px !important;
+  margin: 0 !important;
   color: var(--pp-ink);
+  background: var(--pp-page);
+  font-family: "IBM Plex Sans Arabic", "Cairo", sans-serif;
 }
 .pp-consistent-pages > * { min-width: 0; }
 .pp-consistent-pages h1 {
   color: var(--pp-ink);
-  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  font-size: clamp(1.45rem, 2vw, 1.9rem);
   font-weight: 800;
-  letter-spacing: -0.025em;
-  line-height: 1.35;
+  letter-spacing: -.035em;
+  line-height: 1.4;
+  margin-bottom: .35rem;
 }
 .pp-consistent-pages h2 {
   color: var(--pp-ink);
-  font-weight: 750;
-  letter-spacing: -0.015em;
+  font-weight: 800;
+  letter-spacing: -.02em;
 }
-.pp-consistent-pages h3 { color: var(--pp-ink); font-weight: 700; }
-.pp-consistent-pages p { line-height: 1.7; }
+.pp-consistent-pages h3 { color: var(--pp-ink); font-weight: 750; }
+.pp-consistent-pages p { line-height: 1.75; }
+.pp-consistent-pages [data-slot="card"],
 .pp-consistent-pages .bg-card,
-.pp-consistent-pages [data-slot="card"] {
+.pp-consistent-pages .rounded-xl.border,
+.pp-consistent-pages .rounded-2xl.border {
   background: var(--pp-surface);
-  border-color: var(--pp-line);
+  border: 1px solid var(--pp-line);
   border-radius: 17px;
-  box-shadow: 0 2px 10px rgba(31, 41, 72, .035), 0 12px 28px rgba(31, 41, 72, .025);
+  box-shadow: 0 1px 4px rgba(11, 28, 48, .045), 0 8px 24px rgba(11, 28, 48, .025);
 }
+.pp-consistent-pages [data-slot="card-header"] { padding: 19px 21px 12px; }
+.pp-consistent-pages [data-slot="card-content"] { padding: 12px 21px 21px; }
 .pp-consistent-pages [role="tablist"] {
+  display: flex;
+  flex-wrap: nowrap;
   border: 1px solid var(--pp-line);
   border-radius: 13px;
-  background: #f6f7fb;
-  padding: 4px;
+  background: #eff4ff;
+  padding: 5px;
   gap: 4px;
   max-width: 100%;
   overflow-x: auto;
@@ -45,23 +61,27 @@
 .pp-consistent-pages [role="tab"] {
   border-radius: 9px;
   white-space: nowrap;
+  padding: 9px 13px;
+  color: #666579;
   transition: background .18s ease, color .18s ease, box-shadow .18s ease;
 }
 .pp-consistent-pages [role="tab"][data-state="active"] {
-  color: var(--pp-brand);
+  color: var(--pp-brand-deep);
   background: #fff;
-  box-shadow: 0 1px 4px rgba(31, 41, 72, .10);
-  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(11, 28, 48, .12);
+  font-weight: 800;
 }
 .pp-consistent-pages input:not([type="checkbox"]):not([type="radio"]),
 .pp-consistent-pages select,
 .pp-consistent-pages textarea {
-  border-color: #dfe3ed;
-  border-radius: 10px;
+  border: 1px solid #dce2ee;
+  border-radius: 11px;
   background-color: #fff;
   color: var(--pp-ink);
+  min-height: 40px;
   transition: border-color .18s ease, box-shadow .18s ease;
 }
+.pp-consistent-pages textarea { min-height: 96px; }
 .pp-consistent-pages input:focus-visible,
 .pp-consistent-pages select:focus-visible,
 .pp-consistent-pages textarea:focus-visible {
@@ -69,35 +89,95 @@
   box-shadow: 0 0 0 3px rgba(79, 70, 186, .12);
   outline: none;
 }
-.pp-consistent-pages table { border-collapse: separate; border-spacing: 0; }
+.pp-consistent-pages table { width: 100%; border-collapse: separate; border-spacing: 0; }
 .pp-consistent-pages thead th {
-  background: #f7f8fc;
-  color: #596276;
-  font-size: .78rem;
-  font-weight: 750;
+  background: #eff4ff;
+  color: #666579;
+  font-size: .76rem;
+  font-weight: 800;
   white-space: nowrap;
+  padding: 12px 13px;
 }
 .pp-consistent-pages tbody tr { transition: background .15s ease; }
-.pp-consistent-pages tbody tr:hover { background: #f8f9fd; }
-.pp-consistent-pages th,
-.pp-consistent-pages td { border-color: #edf0f5; }
+.pp-consistent-pages tbody tr:hover { background: #f8faff; }
+.pp-consistent-pages th, .pp-consistent-pages td { border-color: #edf0f5; }
 .pp-consistent-pages button { transition: filter .16s ease, box-shadow .16s ease, transform .16s ease; }
 .pp-consistent-pages button:active { transform: translateY(1px); }
 .pp-consistent-pages button[class*="bg-[#4F46BA]"],
 .pp-consistent-pages button[class*="bg-indigo-600"],
+.pp-consistent-pages button[class*="bg-primary"],
 .pp-consistent-pages a[class*="bg-[#4F46BA]"] {
+  border-radius: 11px;
   box-shadow: 0 5px 13px rgba(79, 70, 186, .16);
 }
 .pp-consistent-pages .text-muted-foreground { color: var(--pp-muted); }
-.pp-consistent-pages .rounded-lg.border,
-.pp-consistent-pages .rounded-xl.border {
-  border-color: var(--pp-line);
+.pp-consistent-pages .rounded-lg.border { border-color: var(--pp-line); }
+.pp-consistent-pages .border-dashed { background: #fbfcff; border-color: #cbd5ee; }
+.pp-consistent-pages .grid { min-width: 0; }
+.pp-consistent-pages .overflow-x-auto { max-width: 100%; }
+.pp-consistent-pages [data-radix-collection-item] { border-radius: 9px; }
+
+/* Bring the shared workspace chrome in line with the Stitch dashboard/calendar. */
+body:has(.pp-consistent-pages) > div aside.fixed {
+  width: 210px !important;
+  background: #fff !important;
+  background-image: none !important;
+  color: #464555 !important;
+  border-color: #edf0f5 !important;
+  box-shadow: 0 1px 8px rgba(11, 28, 48, .055) !important;
+  padding-top: 14px !important;
 }
-@media (max-width: 640px) {
-  .pp-consistent-pages { width: 100%; min-width: 0; }
-  .pp-consistent-pages h1 { font-size: 1.3rem; }
+body:has(.pp-consistent-pages) > div aside.fixed h3,
+body:has(.pp-consistent-pages) > div aside.fixed span,
+body:has(.pp-consistent-pages) > div aside.fixed p { color: #666579; }
+body:has(.pp-consistent-pages) > div aside.fixed nav a > div {
+  color: #464555;
+  border-color: transparent !important;
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+}
+body:has(.pp-consistent-pages) > div aside.fixed nav a > div:hover {
+  background: #eff4ff !important;
+  color: #0b1c30 !important;
+}
+body:has(.pp-consistent-pages) > div aside.fixed nav a > div.border-white\/30,
+body:has(.pp-consistent-pages) > div aside.fixed nav a > div.bg-white\/5 {
+  background: #4f46e5 !important;
+  color: #fff !important;
+  border-color: transparent !important;
+  box-shadow: 0 2px 6px rgba(53, 37, 205, .16);
+}
+body:has(.pp-consistent-pages) > div aside.fixed nav a > div span,
+body:has(.pp-consistent-pages) > div aside.fixed nav a > div svg { color: inherit !important; }
+body:has(.pp-consistent-pages) > div aside.fixed > div:last-child {
+  margin: 10px 12px 0;
+  border-radius: 12px;
+  background: #eff4ff !important;
+  border: 0 !important;
+  color: #0b1c30 !important;
+}
+body:has(.pp-consistent-pages) > div aside.fixed > div:last-child p { color: #0b1c30 !important; }
+body:has(.pp-consistent-pages) > div header.sticky {
+  height: 72px !important;
+  background: rgba(248, 249, 255, .94) !important;
+  border-bottom: 1px solid #e9edf5 !important;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 1px 8px rgba(11, 28, 48, .035);
+  padding-inline: clamp(16px, 2.2vw, 34px) !important;
+}
+body:has(.pp-consistent-pages) > div header.sticky input {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+body:has(.pp-consistent-pages) .pp-dashboard-content { background: #f8f9ff; }
+@media (max-width: 767px) {
+  .pp-consistent-pages { padding: 18px 13px 28px !important; }
+  .pp-consistent-pages h1 { font-size: 1.35rem; }
   .pp-consistent-pages [role="tablist"] { width: 100%; }
-  .pp-consistent-pages .overflow-x-auto { max-width: 100%; }
+  .pp-consistent-pages [data-slot="card-header"] { padding: 15px 15px 9px; }
+  .pp-consistent-pages [data-slot="card-content"] { padding: 9px 15px 16px; }
+  body:has(.pp-consistent-pages) > div header.sticky { height: 60px !important; padding-inline: 12px !important; }
 }
 @media (prefers-reduced-motion: reduce) {
   .pp-consistent-pages *, .pp-consistent-pages *::before, .pp-consistent-pages *::after {
