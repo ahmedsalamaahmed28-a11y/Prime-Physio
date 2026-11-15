@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/LanguageContext";
-import { Bell, ShieldAlert, Activity, CalendarDays } from "lucide-react";
+import {
+  Bell, ShieldAlert, Activity, CalendarDays, Search, RefreshCw,
+  Megaphone, ClipboardList, CheckCheck, Inbox, Clock3, Filter,
+} from "lucide-react";
 
 interface NotificationItem {
   id: string;
@@ -17,165 +20,238 @@ interface NotificationItem {
   readKey: string;
 }
 
+type FilterKey = "all" | "clinic" | "broadcast" | "audit";
+
 export default function NotificationsPage() {
   const { user } = useAuth();
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<FilterKey>("all");
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    async function fetchAll() {
-      setLoading(true);
-      
-      // Fetch Broadcasts
-      const { data: broadcasts } = await supabase
-        .from("system_broadcasts")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(20);
+  const loadNotifications = useCallback(async (silent = false) => {
+    if (!user) {
+      setNotifications([]);
+      setLoading(false);
+      return;
+    }
+    if (silent) setRefreshing(true);
+    else setLoading(true);
+    setError("");
 
-      const mappedBroadcasts: NotificationItem[] = (broadcasts || []).map((b: any) => ({
-        id: b.id,
-        titleAr: `📢 إشعار عام: ${b.title}`,
-        titleEn: `📢 System Broadcast: ${b.title}`,
-        detailsAr: b.message,
-        detailsEn: b.message,
-        createdAt: b.created_at || new Date().toISOString(),
+    try {
+      const [broadcastResult, clinicResult, auditResult] = await Promise.all([
+        supabase.from("system_broadcasts")
+          .select("id, title, message, created_at")
+          .order("created_at", { ascending: false }).limit(30),
+        user.clinicId
+          ? supabase.from("notifications")
+              .select("id, title_ar, title_en, body_ar, body_en, created_at")
+              .eq("clinic_id", user.clinicId)
+              .order("created_at", { ascending: false }).limit(100)
+          : Promise.resolve({ data: [], error: null } as any),
+        user.clinicId
+          ? supabase.from("audit_logs")
+              .select("id, action, entity, entity_id, details, created_at")
+              .eq("clinic_id", user.clinicId)
+              .order("created_at", { ascending: false }).limit(100)
+          : Promise.resolve({ data: [], error: null } as any),
+      ]);
+
+      if (broadcastResult.error && clinicResult.error && auditResult.error) {
+        throw new Error(isRtl ? "تعذر تحميل الإشعارات. حاول مرة أخرى." : "Notifications could not be loaded. Please try again.");
+      }
+
+      const broadcasts: NotificationItem[] = (broadcastResult.data || []).map((item: any) => ({
+        id: String(item.id),
+        titleAr: `إشعار عام: ${item.title || "تنبيه"}`,
+        titleEn: `System announcement: ${item.title || "Notice"}`,
+        detailsAr: item.message || "",
+        detailsEn: item.message || "",
+        createdAt: item.created_at || new Date().toISOString(),
         type: "broadcast",
-        readKey: `broadcast:${b.id}`
+        readKey: `broadcast:${item.id}`,
       }));
 
-      // Fetch clinic-scoped notifications such as public appointment requests
-      let mappedClinicNotifications: NotificationItem[] = [];
-      if (user?.clinicId) {
-        const { data: clinicItems } = await supabase
-          .from("notifications")
-          .select("id, title_ar, title_en, body_ar, body_en, created_at")
-          .eq("clinic_id", user.clinicId)
-          .order("created_at", { ascending: false })
-          .limit(50);
+      const clinicItems: NotificationItem[] = (clinicResult.data || []).map((item: any) => ({
+        id: String(item.id),
+        titleAr: item.title_ar || "تنبيه جديد",
+        titleEn: item.title_en || "New notification",
+        detailsAr: item.body_ar || "",
+        detailsEn: item.body_en || "",
+        createdAt: item.created_at || new Date().toISOString(),
+        type: "clinic",
+        readKey: `clinic:${item.id}`,
+      }));
 
-        mappedClinicNotifications = (clinicItems || []).map((item: any) => ({
-          id: item.id,
-          titleAr: item.title_ar || "تنبيه جديد",
-          titleEn: item.title_en || "New notification",
-          detailsAr: item.body_ar || "",
-          detailsEn: item.body_en || "",
+      const auditItems: NotificationItem[] = (auditResult.data || []).map((item: any) => {
+        const action = String(item.action || "").toUpperCase();
+        let titleAr = "تحديث في النظام";
+        let titleEn = "System activity";
+        if (action.includes("CREATE")) { titleAr = "إضافة سجل جديد"; titleEn = "New record added"; }
+        else if (action.includes("UPDATE")) { titleAr = "تحديث بيانات"; titleEn = "Record updated"; }
+        else if (action.includes("DELETE")) { titleAr = "حذف سجل"; titleEn = "Record deleted"; }
+        else if (action.includes("LOGIN")) { titleAr = "تسجيل دخول"; titleEn = "New login"; }
+        const entity = String(item.entity || "");
+        const details = [entity, item.details || item.entity_id || ""].filter(Boolean).join(" • ");
+        return {
+          id: String(item.id),
+          titleAr,
+          titleEn,
+          detailsAr: details || "تم تنفيذ عملية داخل النظام",
+          detailsEn: details || "An action was performed in the system",
           createdAt: item.created_at || new Date().toISOString(),
-          type: "clinic",
-          readKey: `clinic:${item.id}`
-        }));
-      }
+          type: "audit" as const,
+          readKey: `audit:${item.id}`,
+        };
+      });
 
-      // Fetch Audit Logs if clinic
-      let mappedAudit: NotificationItem[] = [];
-      if (user?.clinicId) {
-        const { data: audit } = await supabase
-          .from("audit_logs")
-          .select("*")
-          .eq("clinic_id", user.clinicId)
-          .order("created_at", { ascending: false })
-          .limit(50);
-
-        mappedAudit = (audit || []).map((a: any) => {
-          let titleAr = "تحديث في النظام";
-          let titleEn = "System Update";
-          
-          if (a.action.includes("CREATE")) {
-            titleAr = "إضافة جديدة"; titleEn = "New addition";
-          } else if (a.action.includes("UPDATE")) {
-            titleAr = "تعديل بيانات"; titleEn = "Data update";
-          } else if (a.action.includes("DELETE")) {
-            titleAr = "حذف بيانات"; titleEn = "Data deletion";
-          } else if (a.action.includes("LOGIN")) {
-            titleAr = "تسجيل دخول"; titleEn = "Login";
-          }
-
-          return {
-            id: a.id,
-            titleAr,
-            titleEn,
-            detailsAr: a.details || "تم تنفيذ عملية داخل النظام",
-            detailsEn: a.details || "An action was performed",
-            createdAt: a.created_at,
-            type: "audit",
-            readKey: `audit:${a.id}`
-          };
-        });
-      }
-
-      const combined = [...mappedBroadcasts, ...mappedClinicNotifications, ...mappedAudit].sort(
+      const combined = [...broadcasts, ...clinicItems, ...auditItems].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
-
       setNotifications(combined);
 
-      // Viewing the full notifications history marks the displayed items as read.
+      // Keep the existing app-wide behavior: opening the notifications page
+      // marks the notifications currently displayed as read.
       const readKeys = combined.map((item) => item.readKey);
-      if (user?.email && readKeys.length > 0) {
+      if (user.email && readKeys.length) {
         const storageKey = `prime-physio:notifications:read:${user.clinicId || "no-clinic"}:${user.email.toLowerCase()}`;
         try {
           const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
           const existing = Array.isArray(saved) ? saved.filter((key): key is string => typeof key === "string") : [];
           localStorage.setItem(storageKey, JSON.stringify(Array.from(new Set([...existing, ...readKeys]))));
-        } catch (error) {
-          console.warn("Could not persist notification read state", error);
+        } catch (storageError) {
+          console.warn("Could not persist notification read state", storageError);
         }
         window.dispatchEvent(new CustomEvent("prime-physio:notifications-read", { detail: readKeys }));
       }
+    } catch (loadError) {
+      console.error("Failed to load notifications", loadError);
+      setError(loadError instanceof Error ? loadError.message : (isRtl ? "حدث خطأ غير متوقع." : "An unexpected error occurred."));
+    } finally {
       setLoading(false);
+      setRefreshing(false);
     }
+  }, [user, isRtl]);
 
-    if (user) {
-      fetchAll();
-    }
-  }, [user]);
+  useEffect(() => {
+    loadNotifications();
+  }, [loadNotifications]);
+
+  const filtered = useMemo(() => {
+    const term = search.trim().toLocaleLowerCase();
+    return notifications.filter((item) => {
+      const matchesFilter = filter === "all" || item.type === filter;
+      const title = isRtl ? item.titleAr : item.titleEn;
+      const details = isRtl ? item.detailsAr : item.detailsEn;
+      const matchesSearch = !term || `${title} ${details}`.toLocaleLowerCase().includes(term);
+      return matchesFilter && matchesSearch;
+    });
+  }, [notifications, filter, search, isRtl]);
+
+  const counts = useMemo(() => ({
+    all: notifications.length,
+    clinic: notifications.filter((item) => item.type === "clinic").length,
+    broadcast: notifications.filter((item) => item.type === "broadcast").length,
+    audit: notifications.filter((item) => item.type === "audit").length,
+  }), [notifications]);
+
+  const formatDate = (value: string) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleString(isRtl ? "ar-EG" : "en-US", {
+      day: "numeric", month: "short", year: "numeric",
+      hour: "numeric", minute: "2-digit",
+    });
+  };
+
+  const filterOptions: { key: FilterKey; ar: string; en: string; icon: any }[] = [
+    { key: "all", ar: "الكل", en: "All", icon: Inbox },
+    { key: "clinic", ar: "تنبيهات المركز", en: "Clinic", icon: CalendarDays },
+    { key: "broadcast", ar: "إعلانات النظام", en: "Announcements", icon: Megaphone },
+    { key: "audit", ar: "نشاط النظام", en: "Activity", icon: ClipboardList },
+  ];
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6" dir={isRtl ? "rtl" : "ltr"}>
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
-            <Bell className="w-6 h-6 text-[#4F46BA]" />
+    <div className="mx-auto w-full max-w-6xl space-y-6" dir={isRtl ? "rtl" : "ltr"}>
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#172F55] via-[#263F79] to-[#5B50C7] p-6 text-white shadow-lg sm:p-8">
+        <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
+          <div className="flex items-start gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10">
+              <Bell className="h-7 w-7" />
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-bold tracking-wide text-indigo-100">{isRtl ? "مركز التنبيهات" : "NOTIFICATION CENTER"}</p>
+              <h1 className="text-2xl font-extrabold sm:text-3xl">{isRtl ? "الإشعارات" : "Notifications"}</h1>
+              <p className="mt-2 max-w-xl text-sm leading-6 text-indigo-100">{isRtl ? "تابع تحديثات مركزك وإعلانات المنصة وسجل النشاط في مكان واحد." : "Keep up with clinic updates, platform announcements, and activity in one place."}</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">{isRtl ? "كافة الإشعارات" : "All Notifications"}</h1>
-            <p className="text-sm text-slate-500">{isRtl ? "سجل التنبيهات والأحداث الخاصة بالعيادة والنظام" : "History of all clinic and system alerts"}</p>
+          <div className="flex items-center gap-3 self-start rounded-2xl border border-white/15 bg-white/10 px-4 py-3 sm:self-auto">
+            <div><p className="text-2xl font-black tabular-nums">{notifications.length}</p><p className="text-[11px] text-indigo-100">{isRtl ? "إجمالي التنبيهات" : "Total notifications"}</p></div>
+            <div className="h-9 w-px bg-white/20" />
+            <button onClick={() => loadNotifications(true)} disabled={refreshing} className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 transition hover:bg-white/20 disabled:opacity-60" aria-label={isRtl ? "تحديث الإشعارات" : "Refresh notifications"}>
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+            </button>
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative min-w-0 flex-1 lg:max-w-md">
+            <Search className={`pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 ${isRtl ? "right-3" : "left-3"}`} />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={isRtl ? "ابحث في الإشعارات..." : "Search notifications..."} className={`h-11 w-full rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#7770D2] focus:bg-white focus:ring-4 focus:ring-indigo-50 ${isRtl ? "pr-10 pl-4" : "pl-10 pr-4"}`} />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-1 text-xs font-bold text-slate-400"><Filter size={14} />{isRtl ? "تصفية:" : "Filter:"}</span>
+            {filterOptions.map((option) => {
+              const Icon = option.icon;
+              const active = filter === option.key;
+              return <button key={option.key} onClick={() => setFilter(option.key)} className={`inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-bold transition ${active ? "bg-[#554BC0] text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`}><Icon size={14} />{isRtl ? option.ar : option.en}<span className={`rounded-md px-1.5 py-0.5 text-[10px] ${active ? "bg-white/15 text-white" : "bg-white text-slate-500"}`}>{counts[option.key]}</span></button>;
+            })}
+          </div>
+        </div>
+      </section>
+
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+          <div><h2 className="font-extrabold text-slate-800">{isRtl ? "سجل الإشعارات" : "Notification history"}</h2><p className="mt-1 text-xs text-slate-400">{isRtl ? `عرض ${filtered.length} من ${notifications.length} إشعار` : `Showing ${filtered.length} of ${notifications.length} notifications`}</p></div>
+          <span className="hidden items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-emerald-700 sm:inline-flex"><CheckCheck size={14} />{isRtl ? "تم تحديث حالة القراءة" : "Read status synced"}</span>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200/60 shadow-sm overflow-hidden">
-          {loading ? (
-            <div className="p-12 text-center text-slate-500">
-              <Activity className="w-8 h-8 mx-auto mb-3 animate-spin text-[#4F46BA]" />
-              <p>{isRtl ? "جاري تحميل الإشعارات..." : "Loading notifications..."}</p>
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="p-12 text-center text-slate-500">
-              <ShieldAlert className="w-12 h-12 mx-auto mb-3 text-slate-300" />
-              <p>{isRtl ? "لا توجد إشعارات حالياً" : "No notifications available"}</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {notifications.map((item) => (
-                <div key={item.id} className="p-4 hover:bg-slate-50 transition-colors flex gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                    item.type === "broadcast" ? "bg-rose-50 text-rose-600" : item.type === "clinic" ? "bg-emerald-50 text-emerald-600" : "bg-indigo-50 text-[#4F46BA]"
-                  }`}>
-                    {item.type === "broadcast" ? <Bell className="w-5 h-5" /> : item.type === "clinic" ? <CalendarDays className="w-5 h-5" /> : <Activity className="w-5 h-5" />}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center gap-3 px-6 py-20 text-slate-400"><Activity className="h-8 w-8 animate-spin text-[#5B50C7]" /><p className="text-sm">{isRtl ? "جاري تحميل الإشعارات..." : "Loading notifications..."}</p></div>
+        ) : error ? (
+          <div className="flex flex-col items-center px-6 py-16 text-center"><ShieldAlert className="mb-3 h-10 w-10 text-rose-400" /><p className="font-bold text-slate-700">{error}</p><button onClick={() => loadNotifications()} className="mt-4 rounded-xl bg-[#554BC0] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#453BAA]">{isRtl ? "إعادة المحاولة" : "Try again"}</button></div>
+        ) : filtered.length === 0 ? (
+          <div className="flex flex-col items-center px-6 py-20 text-center"><div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-[#5B50C7]"><Inbox className="h-8 w-8" /></div><h3 className="font-extrabold text-slate-800">{search || filter !== "all" ? (isRtl ? "لا توجد نتائج مطابقة" : "No matching notifications") : (isRtl ? "لا توجد إشعارات حتى الآن" : "You're all caught up")}</h3><p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">{search || filter !== "all" ? (isRtl ? "جرّب تغيير كلمات البحث أو نوع الإشعار." : "Try changing your search or selected filter.") : (isRtl ? "ستظهر هنا التنبيهات الجديدة المتعلقة بمركزك والنظام." : "New clinic and system notifications will appear here.")}</p>{(search || filter !== "all") && <button onClick={() => { setSearch(""); setFilter("all"); }} className="mt-4 text-sm font-bold text-[#554BC0] hover:underline">{isRtl ? "مسح التصفية" : "Clear filters"}</button>}</div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {filtered.map((item) => {
+              const isBroadcast = item.type === "broadcast";
+              const isClinic = item.type === "clinic";
+              const Icon = isBroadcast ? Megaphone : isClinic ? CalendarDays : Activity;
+              const title = isRtl ? item.titleAr : item.titleEn;
+              const details = isRtl ? item.detailsAr : item.detailsEn;
+              return (
+                <article key={item.readKey} className="group flex gap-3 px-5 py-4 transition hover:bg-slate-50/80 sm:gap-4 sm:px-6">
+                  <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${isBroadcast ? "bg-amber-50 text-amber-600" : isClinic ? "bg-emerald-50 text-emerald-600" : "bg-indigo-50 text-[#554BC0]"}`}><Icon className="h-5 w-5" /></div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-extrabold text-slate-800">{title}</h3><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isBroadcast ? "bg-amber-50 text-amber-700" : isClinic ? "bg-emerald-50 text-emerald-700" : "bg-indigo-50 text-indigo-700"}`}>{isBroadcast ? (isRtl ? "إعلان" : "Announcement") : isClinic ? (isRtl ? "المركز" : "Clinic") : (isRtl ? "نشاط" : "Activity")}</span></div>
+                    {details && <p className="mt-1.5 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">{details}</p>}
+                    <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><Clock3 size={12} />{formatDate(item.createdAt)}</p>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-800 mb-1">{isRtl ? item.titleAr : item.titleEn}</h3>
-                    <p className="text-xs text-slate-600 leading-relaxed mb-2">{isRtl ? item.detailsAr : item.detailsEn}</p>
-                    <span className="text-[10px] text-slate-400 font-medium">
-                      {new Date(item.createdAt).toLocaleString(isRtl ? "ar-EG" : "en-US")}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </section>
+      <p className="px-1 text-center text-[11px] leading-5 text-slate-400">{isRtl ? "يتم تمييز الإشعارات المعروضة كمقروءة تلقائيًا عند فتح هذه الصفحة." : "Notifications shown here are automatically marked as read when this page is opened."}</p>
     </div>
   );
 }
