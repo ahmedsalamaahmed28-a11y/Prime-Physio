@@ -456,16 +456,16 @@ export default function ClinicalLibraryPage() {
       <div className="space-y-4">
         <Tabs value={mainTab} onValueChange={(v: string) => setMainTab(v as typeof mainTab)} className="w-full">
           <TabsList className="grid w-full grid-cols-4 bg-muted/60 p-1">
-            <TabsTrigger value="nutrition" className="text-xs font-bold">
+            <TabsTrigger value="nutrition" className="text-xs font-bold rounded-md transition-colors data-[active]:bg-[#119094] data-[active]:text-white data-[active]:shadow-sm hover:bg-[#119094]/10 hover:text-[#0e7578]">
               {isRtl ? "تغذية علاجية 🍏" : "Clinical Nutrition 🍏"}
             </TabsTrigger>
-            <TabsTrigger value="exercise" className="text-xs font-bold">
+            <TabsTrigger value="exercise" className="text-xs font-bold rounded-md transition-colors data-[active]:bg-[#119094] data-[active]:text-white data-[active]:shadow-sm hover:bg-[#119094]/10 hover:text-[#0e7578]">
               {isRtl ? "تمارين 🏋️" : "Exercises 🏋️"}
             </TabsTrigger>
-            <TabsTrigger value="device" className="text-xs font-bold">
+            <TabsTrigger value="device" className="text-xs font-bold rounded-md transition-colors data-[active]:bg-[#119094] data-[active]:text-white data-[active]:shadow-sm hover:bg-[#119094]/10 hover:text-[#0e7578]">
               {isRtl ? "أجهزة علاجية ⚡" : "Modalities ⚡"}
             </TabsTrigger>
-            <TabsTrigger value="protocol" className="text-xs font-bold">
+            <TabsTrigger value="protocol" className="text-xs font-bold rounded-md transition-colors data-[active]:bg-[#119094] data-[active]:text-white data-[active]:shadow-sm hover:bg-[#119094]/10 hover:text-[#0e7578]">
               {isRtl ? "بروتوكولات 📋" : "Protocols 📋"}
             </TabsTrigger>
           </TabsList>
@@ -474,10 +474,10 @@ export default function ClinicalLibraryPage() {
         {mainTab === "nutrition" && (
           <Tabs value={nutritionTab} onValueChange={(v: string) => setNutritionTab(v as typeof nutritionTab)} className="w-full">
             <TabsList className="grid w-full grid-cols-4 bg-indigo-50/50 p-1">
-              <TabsTrigger value="breakfast" className="text-xs">{isRtl ? "إفطار" : "Breakfast"}</TabsTrigger>
-              <TabsTrigger value="lunch" className="text-xs">{isRtl ? "غداء" : "Lunch"}</TabsTrigger>
-              <TabsTrigger value="dinner" className="text-xs">{isRtl ? "عشاء" : "Dinner"}</TabsTrigger>
-              <TabsTrigger value="snacks" className="text-xs">{isRtl ? "سناكس" : "Snacks"}</TabsTrigger>
+              <TabsTrigger value="breakfast" className="text-xs rounded-md transition-colors data-[active]:bg-[#dff3f2] data-[active]:text-[#0e7578] data-[active]:font-bold hover:bg-[#119094]/10">{isRtl ? "إفطار" : "Breakfast"}</TabsTrigger>
+              <TabsTrigger value="lunch" className="text-xs rounded-md transition-colors data-[active]:bg-[#dff3f2] data-[active]:text-[#0e7578] data-[active]:font-bold hover:bg-[#119094]/10">{isRtl ? "غداء" : "Lunch"}</TabsTrigger>
+              <TabsTrigger value="dinner" className="text-xs rounded-md transition-colors data-[active]:bg-[#dff3f2] data-[active]:text-[#0e7578] data-[active]:font-bold hover:bg-[#119094]/10">{isRtl ? "عشاء" : "Dinner"}</TabsTrigger>
+              <TabsTrigger value="snacks" className="text-xs rounded-md transition-colors data-[active]:bg-[#dff3f2] data-[active]:text-[#0e7578] data-[active]:font-bold hover:bg-[#119094]/10">{isRtl ? "سناكس" : "Snacks"}</TabsTrigger>
             </TabsList>
           </Tabs>
         )}
@@ -558,7 +558,7 @@ export default function ClinicalLibraryPage() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <Label className="text-xs font-bold">{isRtl ? "مراحل البروتوكول" : "Protocol Phases"}</Label>
-                      <Button type="button" variant="outline" size="sm" onClick={addPhase} className="text-xs">
+                      <Button type="button" variant="outline" size="sm" onClick={addPhase} className="text-xs border-[#119094]/40 text-[#0e7578] hover:bg-[#119094]/10 hover:text-[#0b6669]">
                         ➕ {isRtl ? "إضافة مرحلة" : "Add Phase"}
                       </Button>
                     </div>
@@ -637,7 +637,7 @@ export default function ClinicalLibraryPage() {
                   </>
                 )}
 
-                <Button type="submit" className="w-full bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white text-xs py-2">
+                <Button type="submit" className="w-full bg-[#119094] hover:bg-[#0e7578] text-white text-xs py-2 shadow-sm">
                   ➕ {isRtl ? "إضافة إلى المكتبة" : "Save to Library"}
                 </Button>
               </form>
