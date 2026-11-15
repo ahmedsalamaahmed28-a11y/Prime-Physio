@@ -60,8 +60,8 @@ export async function PUT(request: NextRequest) {
       const end = String(item?.end_time || "");
       const isWorking = item?.is_working === true;
       if (!WEEKDAYS.includes(weekday) || seen.has(weekday) ||
-          !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(start) ||
-          !/^([01]\\d|2[0-3]):[0-5]\\d$/.test(end) || end <= start) {
+          !/^([01]\d|2[0-3]):[0-5]\d$/.test(start) ||
+          !/^([01]\d|2[0-3]):[0-5]\d$/.test(end) || end <= start) {
         return NextResponse.json({ error: "راجع أيام العمل وساعات البداية والنهاية. يجب أن تكون النهاية بعد البداية." }, { status: 400, headers: noStore });
       }
       seen.add(weekday);
