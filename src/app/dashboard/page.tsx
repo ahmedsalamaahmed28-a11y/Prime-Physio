@@ -147,15 +147,15 @@ export default function HomePage() {
       let invoicesQuery = supabase.from("invoices")
         .select("id,clinic_id,branch_id,patient_id,patient_name,description,amount,status,date,created_at")
         .eq("clinic_id", clinicId);
-      let staffQuery = supabase.from("staff")
+      const staffQuery = supabase.from("staff")
         .select("id,clinic_id,name,role,specialty,status")
         .eq("clinic_id", clinicId);
-      let evaluationsQuery = supabase.from("patient_evaluations")
+      const evaluationsQuery = supabase.from("patient_evaluations")
         .select("id,clinic_id,patient_id,evaluation_date,evaluation_type,vas_score,rom_data,mmt_data,notes")
         .eq("clinic_id", clinicId)
         .order("evaluation_date", { ascending: false })
         .limit(500);
-      let notificationsQuery = supabase.from("notifications")
+      const notificationsQuery = supabase.from("notifications")
         .select("id,clinic_id,title_ar,title_en,body_ar,body_en,type,action_url,is_read,created_at")
         .eq("clinic_id", clinicId)
         .order("created_at", { ascending: false })
@@ -216,12 +216,14 @@ export default function HomePage() {
 
   const today = new Date();
   const todayKey = today.toDateString();
-  const todayAppointments = useMemo(() => data.appointments
+  // Derive this small daily list directly; sorting operates on the filtered copy,
+  // never on the source appointments array held in state.
+  const todayAppointments = data.appointments
     .filter((item) => {
       const start = appointmentStart(item);
       return start && start.toDateString() === todayKey && statusKind(item.status) !== "cancelled";
     })
-    .sort((a, b) => (appointmentStart(a)?.getTime() || 0) - (appointmentStart(b)?.getTime() || 0)), [data.appointments, todayKey]);
+    .sort((a, b) => (appointmentStart(a)?.getTime() || 0) - (appointmentStart(b)?.getTime() || 0));
 
   const activeAppointments = todayAppointments.filter((item) => statusKind(item.status) === "active");
   const waitingAppointments = todayAppointments.filter((item) => statusKind(item.status) === "waiting");
