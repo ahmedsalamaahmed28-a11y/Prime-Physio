@@ -83,9 +83,10 @@ export default function BrandedClinicPage() {
     const sameHours = openRows.every((row: any) => row.from === openRows[0].from && row.to === openRows[0].to);
     const dayOrder = ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
     const days = openRows.map((row: any) => row.day);
+    const englishDays: Record<string, string> = { "الأحد": "Sunday", "الاثنين": "Monday", "الثلاثاء": "Tuesday", "الأربعاء": "Wednesday", "الخميس": "Thursday", "الجمعة": "Friday", "السبت": "Saturday" };
     const dayText = sameHours && days.length === 6 && dayOrder.slice(0, 6).every(day => days.includes(day))
       ? (isRtl ? "السبت – الخميس" : "Saturday – Thursday")
-      : openRows.map((row: any) => isRtl ? row.day : (weekdayLabels[row.day] || row.day)).join(isRtl ? "، " : ", ");
+      : openRows.map((row: any) => isRtl ? row.day : (englishDays[row.day] || row.day)).join(isRtl ? "، " : ", ");
     return { days: dayText, from: openRows[0].from, to: openRows[0].to, sameHours };
   }, [workingHoursRows, isRtl]);
   const weekdayLabels: Record<string, string> = {
