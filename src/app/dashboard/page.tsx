@@ -170,12 +170,13 @@ export default function HomePage() {
       ]);
       if (appointmentsResult.error) throw appointmentsResult.error;
       if (patientsResult.error) throw patientsResult.error;
+      const branchPatientIds = new Set((patientsResult.data || []).map((patient: Row) => String(patient.id)));
       const nextData: DashboardData = {
         appointments: appointmentsResult.data || [],
         patients: patientsResult.data || [],
         invoices: invoicesResult.data || [],
         staff: staffResult.data || [],
-        evaluations: evaluationsResult.error ? [] : (evaluationsResult.data || []),
+        evaluations: evaluationsResult.error ? [] : (evaluationsResult.data || []).filter((evaluation: Row) => !activeBranchId || branchPatientIds.has(String(evaluation.patient_id))),
         notifications: notificationsResult.error ? [] : (notificationsResult.data || []),
         branches: branchesResult.error ? [] : (branchesResult.data || []),
       };
