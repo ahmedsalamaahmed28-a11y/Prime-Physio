@@ -224,11 +224,11 @@ export async function POST(request: NextRequest) {
     }
 
     const name = String(body?.name || "").trim().slice(0, 120);
-    const age = Number(body.age);
-    const phone = String(body.phone || "").trim().slice(0, 20);
-    const address = String(body.address || "").trim().slice(0, 300);
-    if (!body.groupCode && body.time) {
-      const legacyTime = normalizeTime(body.time);
+    const age = Number(body?.age);
+    const phone = String(body?.phone || "").trim().slice(0, 20);
+    const address = String(body?.address || "").trim().slice(0, 300);
+    if (!body?.groupCode && body?.time) {
+      const legacyTime = normalizeTime(body?.time);
       if (name.length < 2 || !Number.isInteger(age) || age < 1 || age > 120 ||
           phone.length < 7 || phone.length > 20 || !/^[+0-9()\s.-]+$/.test(phone) ||
           address.length < 3 || !/^([01]\d|2[0-3]):[0-5]\d$/.test(legacyTime)) {
@@ -253,8 +253,8 @@ export async function POST(request: NextRequest) {
       if (!booking?.patient_id || !booking?.appointment_id) return NextResponse.json({ error: "تعذر تأكيد الحجز حاليًا." }, { status: 500, headers: noStore });
       return NextResponse.json({ success:true, confirmed:true, patientId:booking.patient_id, appointmentId:booking.appointment_id, reusedPatient:Boolean(booking.reused_patient), date:cairoDate(), time:legacyTime }, { status:201, headers:noStore });
     }
-    const groupCode = String(body.groupCode || "");
-    const selectedTimes = body.selectedTimes && typeof body.selectedTimes === "object" && !Array.isArray(body.selectedTimes) ? body.selectedTimes : {};
+    const groupCode = String(body?.groupCode || "");
+    const selectedTimes = body?.selectedTimes && typeof body.selectedTimes === "object" && !Array.isArray(body.selectedTimes) ? body.selectedTimes : {};
     const days = GROUP_DAYS[groupCode];
     if (name.length < 2 || !Number.isInteger(age) || age < 1 || age > 120 ||
       phone.length < 7 || phone.length > 20 || !/^[+0-9()\s.-]+$/.test(phone) || address.length < 3 || !days ||
