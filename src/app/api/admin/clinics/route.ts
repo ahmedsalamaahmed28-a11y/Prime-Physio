@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
     const { data: clinics, error } = await admin
       .from("clinics")
-      .select("id, name, phone, email, is_active, created_at")
+      .select("id, name, phone, admin_email, is_active, created_at")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -56,7 +56,8 @@ export async function GET(req: NextRequest) {
           .maybeSingle();
 
         return { 
-          ...clinic, 
+          ...clinic,
+          email: clinic.admin_email || "",
           patientCount: patientCount ?? 0, 
           staffCount: staffCount ?? 0, 
           subscription: sub || null 
@@ -94,9 +95,11 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { clinicId, is_active } = await req.json();
-    if (!clinicId) {
-      return NextResponse.json({ error: "Missing clinicId" }, { status: 400 });
+    const body = await req.json().catch(() => null);
+    const clinicId = typeof body?.clinicId === "string" ? body.clinicId.trim() : "";
+    const is_active = body?.is_active;
+    if (!/^[0-9a-f-]{36}$/i.test(clinicId) || typeof is_active !== "boolean") {
+      return NextResponse.json({ error: "Invalid clinic status update" }, { status: 400 });
     }
 
     const { error } = await admin
