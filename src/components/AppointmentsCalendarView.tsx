@@ -7,10 +7,9 @@ import {
 } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import {
-  CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Clock3,
-  Filter, LayoutGrid, ListFilter, MapPin, Search, SlidersHorizontal,
+  CalendarDays, ChevronLeft, ChevronRight, Clock3, ListFilter, Search,
   Users, UserRound, CheckCircle2, CircleDashed, CalendarCheck2,
-  CalendarClock, DoorOpen, Sparkles, Plus
+  CalendarClock, DoorOpen, Sparkles
 } from "lucide-react";
 import CustomMonthCalendar from "@/components/CustomMonthCalendar";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -116,10 +115,6 @@ export default function AppointmentsCalendarView({
   const pendingEvents = events.filter((event) => event.status === "انتظار");
   const upcomingEvents = events.filter((event) => event.start >= new Date() && event.status !== "ملغي")
     .sort((a, b) => a.start.getTime() - b.start.getTime()).slice(0, 4);
-  const monthDays = Array.from(
-    { length: endOfWeek(endOfMonth(currentDate), { weekStartsOn: 6 }).getDate() - startOfWeek(startOfMonth(currentDate), { weekStartsOn: 6 }).getDate() + 1 },
-    (_, i) => addDays(startOfWeek(startOfMonth(currentDate), { weekStartsOn: 6 }), i)
-  );
   const monthGridStart = startOfWeek(startOfMonth(currentDate), { weekStartsOn: 6 });
   const monthGridEnd = endOfWeek(endOfMonth(currentDate), { weekStartsOn: 6 });
   const miniDays: Date[] = [];
