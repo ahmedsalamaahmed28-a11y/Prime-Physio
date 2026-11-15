@@ -5,7 +5,7 @@ import "./dashboard.css";
 import {
   Activity, AlertTriangle, BarChart3, Bell, Building, Calendar, Check, ChevronLeft,
   Clock, CreditCard, FileText, Home, LogOut, Menu, MessageSquare, Plus, Search,
-  Settings, Sparkles, Stethoscope, User
+  Settings, Sparkles, User
 } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
@@ -137,7 +137,7 @@ export default function HomePage() {
         .select("id,clinic_id,branch_id,patient_id,patient_name,doctor_name,therapist,therapist_id,appointment_type,status,date,time,start_time,end_time,starts_at,ends_at,room_id,treatment_plan_id,session_intervention,session_objectives,is_group_session")
         .eq("clinic_id", clinicId);
       let patientsQuery = supabase.from("patients")
-        .select("id,clinic_id,branch_id,nameAr,nameEn,doctor,assignedDoctor,status,sessionsUsed,sessionsTotal,created_at")
+        .select("id,clinic_id,branch_id,nameAr,nameEn,doctor,status,sessionsUsed,sessionsTotal,created_at")
         .eq("clinic_id", clinicId);
       let invoicesQuery = supabase.from("invoices")
         .select("id,clinic_id,branch_id,patient_id,patient_name,description,amount,status,date,created_at")
