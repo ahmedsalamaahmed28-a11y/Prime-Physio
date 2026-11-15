@@ -408,6 +408,11 @@ export default function DoctorsPage() {
                   {getDoctorStatus(doc)}
                 </Badge>
                 <div className="flex gap-2">
+                  {hasPermission("manage_staff") && (
+                    <Button variant="outline" size="sm" onClick={() => void openSchedule(doc)} className="text-xs h-8 rounded-lg gap-1">
+                      <Clock className="w-3.5 h-3.5" />{isRtl ? "جدول العمل" : "Schedule"}
+                    </Button>
+                  )}
                   <Button variant="outline" size="sm" className="text-xs h-8 rounded-lg">
                     {t("view_appointments")}
                   </Button>
