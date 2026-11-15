@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase-admin";
 import { getClinicContext } from "@/lib/server/clinic-context";
+import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -23,6 +24,9 @@ async function verifyPatient(admin: ReturnType<typeof getAdminClient>, patientId
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await getAuthorizedClinic(request);
   if ("response" in auth) return auth.response;
+  if (!canViewPatientHistory(auth.staff)) {
+    return NextResponse.json({ error: "ليس لديك صلاحية الاطلاع على السجل العلاجي" }, { status: 403 });
+  }
   const { id } = await context.params;
 
   try {
@@ -60,6 +64,9 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await getAuthorizedClinic(request);
   if ("response" in auth) return auth.response;
+  if (!hasStaffPermission(auth.staff, "edit_emr")) {
+    return NextResponse.json({ error: "ليس لديك صلاحية تعديل السجل العلاجي" }, { status: 403 });
+  }
   const { id } = await context.params;
 
   const inserted: { table: string; id: string }[] = [];
