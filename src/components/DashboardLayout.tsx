@@ -486,6 +486,39 @@ export default function DashboardLayout({
   const unreadNotificationsCount = notifications.filter(
     (item) => !readNotificationKeys.includes(item.readKey)
   ).length;
+  const sharedNavItems = [
+    { label: isRtl ? "لوحة التحكم" : "Dashboard", href: "/dashboard", icon: Home },
+    { label: isRtl ? "جدول المواعيد" : "Appointments", href: "/calendar", icon: Calendar },
+    { label: isRtl ? "سجلات المرضى" : "Patients", href: "/patients", icon: FileText },
+    { label: isRtl ? "المكتبة الإكلينيكية" : "Clinical library", href: "/clinical-library", icon: Activity },
+    { label: isRtl ? "التغذية العلاجية" : "Clinical nutrition", href: "/clinical-nutrition", icon: Activity },
+    { label: isRtl ? "الفواتير والمالية" : "Billing & finance", href: "/billing", icon: CreditCard },
+    { label: isRtl ? "الموارد البشرية" : "Human resources", href: "/hr", icon: Building },
+    { label: isRtl ? "إدارة فريق العمل" : "Staff management", href: "/staff", icon: User },
+    { label: isRtl ? "تقارير الأداء والتحليلات" : "Analytics & reports", href: "/analytics", icon: BarChart3 },
+    ...(activeAccount?.roleKey === "platform_admin" ? [
+      { label: isRtl ? "إدارة المنصة" : "Platform administration", href: "/platform", icon: ShieldAlert },
+      { label: isRtl ? "إدارة المحتوى" : "Content management", href: "/platform/cms", icon: FileText },
+    ] : []),
+    { label: isRtl ? "إعدادات المركز" : "Clinic settings", href: "/profile", icon: Settings },
+    { label: isRtl ? "الصلاحيات" : "Permissions", href: "/permissions", icon: Shield },
+    { label: isRtl ? "الاشتراك والباقات" : "Subscription & plans", href: "/subscription", icon: Crown },
+    { label: isRtl ? "الرسائل" : "Messages", href: "/chat", icon: MessageSquare },
+    { label: isRtl ? "الإشعارات" : "Notifications", href: "/notifications", icon: Bell },
+  ].filter((item) => {
+    if (item.href === "/analytics" && !hasPermission("view_analytics")) return false;
+    if (item.href === "/profile" && !hasPermission("manage_settings")) return false;
+    if (item.href === "/permissions" && !hasPermission("manage_settings")) return false;
+    if (item.href === "/staff" && !hasPermission("manage_staff")) return false;
+    if (activeAccount?.roleKey === "admin") return true;
+    if (activeAccount?.roleKey === "doctor") {
+      return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
+    }
+    if (activeAccount?.roleKey === "receptionist") {
+      return ["/dashboard", "/patients", "/billing", "/calendar", "/chat", "/notifications"].includes(item.href);
+    }
+    return true;
+  });
 
   // The dashboard page owns its redesigned sidebar and top bar. Bypass the
   // legacy global dashboard chrome on this route, including while loading or
@@ -559,36 +592,14 @@ export default function DashboardLayout({
         </div>
 
         <nav className="pp-stitch-nav">
-          {SIDEBAR_ITEMS.filter((item) => {
-            if (item.href === "/platform" && activeAccount?.roleKey !== "platform_admin") return false;
-            if (item.href === "/analytics" && !hasPermission("view_analytics")) return false;
-            if (item.href === "/profile" && !hasPermission("manage_settings")) return false;
-            if (item.href === "/permissions" && !hasPermission("manage_settings")) return false;
-            if (item.href === "/staff" && !hasPermission("manage_staff")) return false;
-            const role = activeAccount?.roleKey || "doctor";
-            if (role === "admin") return true;
-            if (role === "doctor") return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
-            if (role === "receptionist") return ["/dashboard", "/patients", "/billing", "/calendar", "/ai-assistant", "/logout"].includes(item.href);
-            return true;
-          }).filter((item) => item.href !== "/logout").concat([
-            { nameKey: "nav_messages", href: "/chat", icon: MessageSquare },
-            { nameKey: "nav_notifications", href: "/notifications", icon: Bell },
-          ]).filter((item) => {
-            const role = activeAccount?.roleKey || "doctor";
-            if (role === "doctor") return item.href !== "/chat" ? true : true;
-            if (role === "receptionist") return ["/chat", "/notifications"].includes(item.href);
-            return true;
-          }).map((item) => {
+          {sharedNavItems.map((item, index) => {
             const Icon = item.icon;
-            const active = item.href === "/dashboard" ? pathname === "/dashboard" : pathname === item.href || pathname?.startsWith(item.href + "/");
-            const label = item.nameKey === "nav_messages"
-              ? (isRtl ? "الرسائل" : "Messages")
-              : item.nameKey === "nav_notifications"
-                ? (isRtl ? "الإشعارات" : "Notifications")
-                : t(item.nameKey);
+            const active = item.href === "/dashboard"
+              ? pathname === "/dashboard"
+              : pathname === item.href || pathname?.startsWith(item.href + "/");
             return (
               <Link key={item.href} href={item.href} onClick={closeSidebar} className={active ? "active" : ""}>
-                <span><item.icon size={19} />{label}</span>
+                <span><Icon size={19} />{item.label}</span>
               </Link>
             );
           })}
