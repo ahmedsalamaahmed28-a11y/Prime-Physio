@@ -8,16 +8,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-[#119094] text-white shadow-sm hover:bg-[#0e7578] hover:text-white",
+        default: "border-transparent bg-[#4f46e5] text-white shadow-sm hover:bg-[#4338ca] hover:text-white",
         outline:
-          "border-border bg-background text-foreground hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:text-foreground dark:hover:bg-input/50",
+          "border-[#c7c3fe] bg-background text-[#3525cd] hover:bg-[#eff4ff] hover:text-[#3525cd] aria-expanded:bg-[#eff4ff] aria-expanded:text-[#3525cd] dark:border-[#514f81] dark:bg-input/30 dark:text-[#c7c3fe] dark:hover:bg-[#3525cd]/20",
         secondary:
-          "border-transparent bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_8%)] hover:text-secondary-foreground aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "border-transparent bg-[#eff4ff] text-[#3525cd] hover:bg-[#e5eeff] hover:text-[#3525cd] aria-expanded:bg-[#e5eeff] aria-expanded:text-[#3525cd] dark:bg-[#3525cd]/25 dark:text-[#c7c3fe]",
         ghost:
-          "text-foreground hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:text-foreground dark:hover:bg-muted/50",
+          "text-[#3525cd] hover:bg-[#eff4ff] hover:text-[#3525cd] aria-expanded:bg-[#eff4ff] aria-expanded:text-[#3525cd] dark:text-[#c7c3fe] dark:hover:bg-[#3525cd]/20",
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
-        link: "text-primary underline-offset-4 hover:underline",
+        link: "text-[#4f46e5] underline-offset-4 hover:text-[#3525cd] hover:underline",
       },
       size: {
         default:
