@@ -228,13 +228,13 @@ export default function NotificationsPage() {
         ) : error ? (
           <div className="flex flex-col items-center px-6 py-16 text-center"><ShieldAlert className="mb-3 h-10 w-10 text-rose-400" /><p className="font-bold text-slate-700">{error}</p><button onClick={() => loadNotifications()} className="mt-4 rounded-xl bg-[#554BC0] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#453BAA]">{isRtl ? "إعادة المحاولة" : "Try again"}</button></div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center px-6 py-20 text-center"><div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-[#5B50C7]"><Inbox className="h-8 w-8" /></div><h3 className="font-extrabold text-slate-800">{search || filter !== "all" ? (isRtl ? "لا توجد نتائج مطابقة" : "No matching notifications") : (isRtl ? "لا توجد إشعارات حتى الآن" : "You're all caught up")}</h3><p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">{search || filter !== "all" ? (isRtl ? "جرّب تغيير كلمات البحث أو نوع الإشعار." : "Try changing your search or selected filter.") : (isRtl ? "ستظهر هنا التنبيهات الجديدة المتعلقة بمركزك والنظام." : "New clinic and system notifications will appear here.")}</p>{(search || filter !== "all") && <button onClick={() => { setSearch(""); setFilter("all"); }} className="mt-4 text-sm font-bold text-[#554BC0] hover:underline">{isRtl ? "مسح التصفية" : "Clear filters"}</button>}</div>
+          <div className="flex flex-col items-center px-6 py-20 text-center"><div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-[#5B50C7]"><MessageSquare className="h-8 w-8" /></div><h3 className="font-extrabold text-slate-800">{search || filter !== "all" ? (isRtl ? "لا توجد نتائج مطابقة" : "No matching notifications") : (isRtl ? "لا توجد إشعارات حتى الآن" : "You're all caught up")}</h3><p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">{search || filter !== "all" ? (isRtl ? "جرّب تغيير كلمات البحث أو نوع الإشعار." : "Try changing your search or selected filter.") : (isRtl ? "ستظهر هنا التنبيهات الجديدة المتعلقة بمركزك والنظام." : "New clinic and system notifications will appear here.")}</p>{(search || filter !== "all") && <button onClick={() => { setSearch(""); setFilter("all"); }} className="mt-4 text-sm font-bold text-[#554BC0] hover:underline">{isRtl ? "مسح التصفية" : "Clear filters"}</button>}</div>
         ) : (
           <div className="divide-y divide-slate-100">
             {filtered.map((item) => {
               const isBroadcast = item.type === "broadcast";
               const isClinic = item.type === "clinic";
-              const Icon = isBroadcast ? Megaphone : isClinic ? CalendarDays : Activity;
+              const Icon = isBroadcast ? Bell : isClinic ? Calendar : Activity;
               const title = isRtl ? item.titleAr : item.titleEn;
               const details = isRtl ? item.detailsAr : item.detailsEn;
               return (
