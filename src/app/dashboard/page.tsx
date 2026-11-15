@@ -2,15 +2,10 @@
 
 import "./dashboard.css";
 
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
-  Activity, AlertCircle, ArrowDownLeft, ArrowLeft, ArrowUpRight, Bell, CalendarDays,
-  CheckCircle2, ChevronDown, ClipboardList, Clock3, Download, Dumbbell, FileText,
-  Globe2, HelpCircle, LayoutDashboard, LogOut, Menu, MessageSquare, Plus, Search,
-  Settings2, Stethoscope, Users, Wallet, X, Zap, Building2, UserRound, TrendingUp,
-  HeartPulse, DoorOpen, CircleDot, CalendarCheck, ReceiptText
+  Activity, AlertTriangle, BarChart3, Bell, Building, Calendar, Check, ChevronLeft,
+  Clock, CreditCard, FileText, Home, LogOut, Menu, MessageSquare, Plus, Search,
+  Settings, Sparkles, Stethoscope, User
 } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
@@ -343,13 +338,13 @@ export default function HomePage() {
     ? (data.branches.find((item) => item.id === activeBranchId)?.short_name || data.branches.find((item) => item.id === activeBranchId)?.full_name)
     : (user?.shortName || (isRtl ? "الفرع الرئيسي" : "Main branch"));
   const navItems = [
-    { label: isRtl ? "لوحة التحكم" : "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { label: isRtl ? "جدول المواعيد" : "Appointments", href: "/calendar", icon: CalendarDays },
-    { label: isRtl ? "سجلات المرضى" : "Patient records", href: "/patients", icon: ClipboardList },
-    { label: isRtl ? "خطط العلاج والتمارين" : "Treatment plans", href: "/protocols", icon: Dumbbell },
-    { label: isRtl ? "الفواتير والمالية" : "Billing & finance", href: "/billing", icon: ReceiptText },
-    { label: isRtl ? "تقارير الأداء" : "Performance reports", href: "/analytics", icon: TrendingUp },
-    { label: isRtl ? "إعدادات العيادة" : "Clinic settings", href: "/profile", icon: Settings2 },
+    { label: isRtl ? "لوحة التحكم" : "Dashboard", href: "/dashboard", icon: Home },
+    { label: isRtl ? "جدول المواعيد" : "Appointments", href: "/calendar", icon: Calendar },
+    { label: isRtl ? "سجلات المرضى" : "Patient records", href: "/patients", icon: FileText },
+    { label: isRtl ? "خطط العلاج والتمارين" : "Treatment plans", href: "/protocols", icon: Activity },
+    { label: isRtl ? "الفواتير والمالية" : "Billing & finance", href: "/billing", icon: FileText },
+    { label: isRtl ? "تقارير الأداء" : "Performance reports", href: "/analytics", icon: BarChart3 },
+    { label: isRtl ? "إعدادات العيادة" : "Clinic settings", href: "/profile", icon: Settings },
   ];
 
   const handleSearch = () => {
@@ -360,7 +355,7 @@ export default function HomePage() {
   if (loading) return <div className="pp-stitch-loading"><LoadingSpinner /></div>;
   if (error) return (
     <div className="pp-stitch-error" dir={isRtl ? "rtl" : "ltr"}>
-      <div className="pp-stitch-error-card"><AlertCircle className="mx-auto mb-3 h-10 w-10 text-amber-500" />
+      <div className="pp-stitch-error-card"><AlertTriangle className="mx-auto mb-3 h-10 w-10 text-amber-500" />
         <h1 className="text-lg font-bold">{isRtl ? "تعذر تحميل لوحة التحكم" : "Dashboard unavailable"}</h1>
         <p className="mt-2 text-sm text-slate-500">{error}</p>
         <button onClick={refresh} className="mt-5 rounded-xl bg-[#3525cd] px-5 py-2.5 text-sm font-bold text-white">{isRtl ? "إعادة المحاولة" : "Try again"}</button>
@@ -378,9 +373,9 @@ export default function HomePage() {
         </div>
         <div className="pp-stitch-branch-wrap">
           <button className="pp-stitch-branch" onClick={() => setBranchMenuOpen((value) => !value)}>
-            <span className="pp-stitch-branch-icon"><Building2 size={18} /></span>
+            <span className="pp-stitch-branch-icon"><Building size={18} /></span>
             <span className="min-w-0 flex-1 text-start"><small>{isRtl ? "الفرع الحالي" : "Current branch"}</small><b className="block truncate">{branchName}</b></span>
-            <ChevronDown size={17} />
+            <ChevronLeft size={17} />
           </button>
           {branchMenuOpen && <div className="pp-stitch-branch-menu">
             <button onClick={() => { setActiveBranchId(null); setBranchMenuOpen(false); }}>{isRtl ? "كل الفروع" : "All branches"}</button>
@@ -398,12 +393,12 @@ export default function HomePage() {
         </nav>
         <div className="pp-stitch-account">
           <div className="pp-stitch-account-user">
-            <div className="pp-stitch-avatar"><UserRound size={19} /></div>
+            <div className="pp-stitch-avatar"><User size={19} /></div>
             <div className="min-w-0 flex-1"><b className="block truncate">{user?.name || "—"}</b><small className="block truncate">{user?.role || (isRtl ? "فريق العيادة" : "Clinic team")}</small></div>
           </div>
           <div className="pp-stitch-account-actions">
             <span className="pp-stitch-online"><i />{isRtl ? "متصل" : "Online"}</span>
-            <Link href="/support" title={isRtl ? "المساعدة والدعم" : "Help & support"}><HelpCircle size={17} /></Link>
+            <Link href="/support" title={isRtl ? "المساعدة والدعم" : "Help & support"}><FileText size={17} /></Link>
             <button onClick={logout} title={isRtl ? "تسجيل الخروج" : "Log out"}><LogOut size={17} /></button>
           </div>
         </div>
@@ -420,8 +415,8 @@ export default function HomePage() {
             </div>
           </div>
           <div className="pp-stitch-top-actions">
-            <div className="pp-stitch-date hidden xl:flex"><Clock3 size={19} /><span><b>{today.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</b><small>{isRtl ? "ملخص نشاط العيادة" : "Clinic activity overview"}</small></span></div>
-            <button className="pp-stitch-icon-btn" onClick={toggleLanguage} title={isRtl ? "تغيير اللغة" : "Change language"}><Globe2 size={19} /><span>{isRtl ? "EN" : "عربي"}</span></button>
+            <div className="pp-stitch-date hidden xl:flex"><Clock size={19} /><span><b>{today.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}</b><small>{isRtl ? "ملخص نشاط العيادة" : "Clinic activity overview"}</small></span></div>
+            <button className="pp-stitch-icon-btn" onClick={toggleLanguage} title={isRtl ? "تغيير اللغة" : "Change language"}><Sparkles size={19} /><span>{isRtl ? "EN" : "عربي"}</span></button>
             <Link className="pp-stitch-icon-btn" href="/chat" title={isRtl ? "الرسائل" : "Messages"}><MessageSquare size={19} /></Link>
             <Link className="pp-stitch-icon-btn pp-stitch-bell" href="/notifications" title={isRtl ? "الإشعارات" : "Notifications"}><Bell size={19} />{unreadCount > 0 && <i />}</Link>
             <Link href="/calendar" className="pp-stitch-new-appointment"><Plus size={19} /><span>{isRtl ? "موعد جديد" : "New appointment"}</span></Link>
@@ -437,30 +432,30 @@ export default function HomePage() {
                   <h1>{isRtl ? "مرحباً " + (cleanName ? "د. " + cleanName : "بعودتك") + "، نتمنى لك يوماً مثمراً 👋" : "Welcome " + (cleanName ? "Dr. " + cleanName : "back") + ", have a productive day 👋"}</h1>
                   <span className="pp-stitch-capacity"><i />{isRtl ? activeClinicians + " أخصائي نشط في المركز" : activeClinicians + " active clinicians"}</span>
                 </div>
-                <p><CalendarDays size={17} />{isRtl ? "نظرة عامة على نشاط العيادة اليوم — " : "Today's clinic overview — "}{today.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}{branchName ? " • " + branchName : ""}</p>
+                <p><Calendar size={17} />{isRtl ? "نظرة عامة على نشاط العيادة اليوم — " : "Today's clinic overview — "}{today.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}{branchName ? " • " + branchName : ""}</p>
               </div>
               <div className="pp-stitch-hero-actions">
-                <button onClick={exportReport} className="pp-stitch-export"><Download size={18} />{isRtl ? "تصدير التقرير اليومي" : "Export daily report"}</button>
-                <Link href="/patients" className="pp-stitch-primary"><UserRound size={18} />{isRtl ? "إضافة مريض جديد" : "Add new patient"}</Link>
+                <button onClick={exportReport} className="pp-stitch-export"><FileText size={18} />{isRtl ? "تصدير التقرير اليومي" : "Export daily report"}</button>
+                <Link href="/patients" className="pp-stitch-primary"><User size={18} />{isRtl ? "إضافة مريض جديد" : "Add new patient"}</Link>
               </div>
             </div>
           </section>
 
           <section className="pp-stitch-kpis">
             <article className="pp-stitch-kpi">
-              <div className="pp-stitch-kpi-top"><div><span>{isRtl ? "إجمالي مواعيد اليوم" : "Today's appointments"}</span><strong>{todayAppointments.length.toLocaleString(locale)}</strong><small>{isRtl ? "موعداً" : "appointments"}</small></div><i className="kpi-indigo"><CalendarCheck size={25} /></i></div>
-              <div className="pp-stitch-kpi-foot"><span><TrendingUp size={15} />{completedAppointments.length} {isRtl ? "مكتمل" : "completed"}</span><small>{isRtl ? "من جدول اليوم" : "scheduled today"}</small></div>
+              <div className="pp-stitch-kpi-top"><div><span>{isRtl ? "إجمالي مواعيد اليوم" : "Today's appointments"}</span><strong>{todayAppointments.length.toLocaleString(locale)}</strong><small>{isRtl ? "موعداً" : "appointments"}</small></div><i className="kpi-indigo"><Calendar size={25} /></i></div>
+              <div className="pp-stitch-kpi-foot"><span><BarChart3 size={15} />{completedAppointments.length} {isRtl ? "مكتمل" : "completed"}</span><small>{isRtl ? "من جدول اليوم" : "scheduled today"}</small></div>
             </article>
             <article className="pp-stitch-kpi">
               <div className="pp-stitch-kpi-top"><div><span>{isRtl ? "جلسات نشطة الآن" : "Active sessions now"}</span><strong>{activeAppointments.length.toLocaleString(locale)}</strong><small>{isRtl ? "جلسات جارية" : "sessions in progress"}</small></div><i className="kpi-green"><Activity size={25} /></i></div>
               <div className="pp-stitch-kpi-foot"><span><i className="pp-stitch-status-dot" />{activeClinicians} {isRtl ? "أخصائي نشط" : "active clinicians"}</span><small>{isRtl ? "إشغال الأخصائيين" : "clinician utilization"} {utilization}%</small></div>
             </article>
             <article className="pp-stitch-kpi">
-              <div className="pp-stitch-kpi-top"><div><span>{isRtl ? "تحسن الألم وفق التقييمات" : "Pain improvement from assessments"}</span><strong>{painImprovement === null ? "—" : painImprovement + "%"}</strong><small>{isRtl ? "مقارنة درجات VAS المتتابعة" : "Compared sequential VAS scores"}</small></div><i className="kpi-violet"><HeartPulse size={25} /></i></div>
+              <div className="pp-stitch-kpi-top"><div><span>{isRtl ? "تحسن الألم وفق التقييمات" : "Pain improvement from assessments"}</span><strong>{painImprovement === null ? "—" : painImprovement + "%"}</strong><small>{isRtl ? "مقارنة درجات VAS المتتابعة" : "Compared sequential VAS scores"}</small></div><i className="kpi-violet"><Activity size={25} /></i></div>
               <div className="pp-stitch-kpi-foot"><span>{comparisons.length} {isRtl ? "مريض بتقييمين أو أكثر" : "patients with 2+ assessments"}</span><small>{isRtl ? "لا تُحسب دون تقييمات مقارنة" : "No estimate without comparisons"}</small></div>
             </article>
             <article className="pp-stitch-kpi">
-              <div className="pp-stitch-kpi-top"><div><span>{isRtl ? "الإيراد المتوقع اليوم" : "Expected revenue today"}</span><strong>{expectedIncome.toLocaleString(locale)}</strong><small>{isRtl ? "ج.م" : "EGP"}</small></div><i className="kpi-blue"><Wallet size={25} /></i></div>
+              <div className="pp-stitch-kpi-top"><div><span>{isRtl ? "الإيراد المتوقع اليوم" : "Expected revenue today"}</span><strong>{expectedIncome.toLocaleString(locale)}</strong><small>{isRtl ? "ج.م" : "EGP"}</small></div><i className="kpi-blue"><CreditCard size={25} /></i></div>
               <div className="pp-stitch-kpi-foot"><span>{isRtl ? "تم تحصيل: " : "Collected: "}<b>{collectedIncome.toLocaleString(locale)} {isRtl ? "ج.م" : "EGP"}</b></span><small>{expectedIncome > 0 ? Math.round((collectedIncome / expectedIncome) * 100) + "%" : "—"}</small></div>
             </article>
           </section>
@@ -469,7 +464,7 @@ export default function HomePage() {
             <div className="pp-stitch-primary-column">
               <section className="pp-stitch-panel">
                 <div className="pp-stitch-panel-heading">
-                  <div><h2><CalendarDays size={22} />{isRtl ? "جدول جلسات ومواعيد اليوم" : "Today's sessions and appointments"}</h2><p>{isRtl ? "حالة المواعيد المسجلة في المركز" : "Live status of appointments recorded in this clinic"}</p></div>
+                  <div><h2><Calendar size={22} />{isRtl ? "جدول جلسات ومواعيد اليوم" : "Today's sessions and appointments"}</h2><p>{isRtl ? "حالة المواعيد المسجلة في المركز" : "Live status of appointments recorded in this clinic"}</p></div>
                   <div className="pp-stitch-tabs">
                     {[
                       { id: "all", label: isRtl ? "الكل" : "All", count: todayAppointments.length },
@@ -496,19 +491,19 @@ export default function HomePage() {
                           <td><b>{item.appointment_type || (isRtl ? "جلسة علاج" : "Therapy session")}</b><small className="pp-stitch-subline">{item.session_intervention || item.session_objectives || "—"}</small></td>
                           <td><b>{formatTime(start, locale)} – {formatTime(end, locale)}</b><small className="pp-stitch-subline">{item.room_id ? (isRtl ? "غرفة " : "Room ") + shortId(item.room_id) : (isRtl ? "لم تحدد غرفة" : "No room assigned")}</small></td>
                           <td><span className={"pp-stitch-status status-" + kind}><i />{stateLabel}</span></td>
-                          <td><div className="pp-stitch-row-actions"><Link href={patientId ? "/patients/" + patientId : "/calendar"} title={isRtl ? "تفاصيل الملف الطبي" : "Patient record"}><ArrowLeft size={17} /></Link><Link href="/calendar" title={isRtl ? "جدول المواعيد" : "Appointment schedule"}><CalendarDays size={16} /></Link></div></td>
+                          <td><div className="pp-stitch-row-actions"><Link href={patientId ? "/patients/" + patientId : "/calendar"} title={isRtl ? "تفاصيل الملف الطبي" : "Patient record"}><ChevronLeft size={17} /></Link><Link href="/calendar" title={isRtl ? "جدول المواعيد" : "Appointment schedule"}><Calendar size={16} /></Link></div></td>
                         </tr>;
                       }) : <tr><td colSpan={6} className="pp-stitch-empty">{isRtl ? "لا توجد مواعيد في هذه الفئة اليوم" : "No appointments in this category today"}</td></tr>}
                     </tbody>
                   </table>
                 </div>
-                <div className="pp-stitch-panel-footer"><span>{isRtl ? "عرض " + Math.min(visibleAppointments.length, 8) + " من أصل " + visibleAppointments.length + " موعداً" : "Showing " + Math.min(visibleAppointments.length, 8) + " of " + visibleAppointments.length + " appointments"}</span><Link href="/calendar">{isRtl ? "الانتقال إلى جدول المواعيد بالكامل" : "Open full appointment calendar"}<ArrowLeft size={15} /></Link></div>
+                <div className="pp-stitch-panel-footer"><span>{isRtl ? "عرض " + Math.min(visibleAppointments.length, 8) + " من أصل " + visibleAppointments.length + " موعداً" : "Showing " + Math.min(visibleAppointments.length, 8) + " of " + visibleAppointments.length + " appointments"}</span><Link href="/calendar">{isRtl ? "الانتقال إلى جدول المواعيد بالكامل" : "Open full appointment calendar"}<ChevronLeft size={15} /></Link></div>
               </section>
 
               <section className="pp-stitch-panel">
                 <div className="pp-stitch-panel-heading">
                   <div><h2><Activity size={22} />{isRtl ? "مؤشرات جودة التأهيل وتوزيع التدخلات" : "Rehabilitation quality & intervention mix"}</h2><p>{isRtl ? "ملخص درجات الألم المسجلة والتدخلات في المواعيد" : "Summary of recorded pain scores and today's appointment interventions"}</p></div>
-                  <span className="pp-stitch-neutral-chip"><HeartPulse size={15} />{comparisons.length} {isRtl ? "مقارنة تقييم" : "assessment comparisons"}</span>
+                  <span className="pp-stitch-neutral-chip"><Activity size={15} />{comparisons.length} {isRtl ? "مقارنة تقييم" : "assessment comparisons"}</span>
                 </div>
                 <div className="pp-stitch-insights">
                   <div className="pp-stitch-trend">
@@ -534,33 +529,33 @@ export default function HomePage() {
 
             <div className="pp-stitch-secondary-column">
               <section className="pp-stitch-panel">
-                <div className="pp-stitch-panel-heading compact"><div><h2><DoorOpen size={22} />{isRtl ? "الغرف والتجهيزات الحية" : "Live rooms & equipment"}</h2><p>{isRtl ? "حالة الغرف المرتبطة بمواعيد اليوم" : "Room assignments linked to today's appointments"}</p></div><span className="pp-stitch-live-dot" /></div>
+                <div className="pp-stitch-panel-heading compact"><div><h2><Building size={22} />{isRtl ? "الغرف والتجهيزات الحية" : "Live rooms & equipment"}</h2><p>{isRtl ? "حالة الغرف المرتبطة بمواعيد اليوم" : "Room assignments linked to today's appointments"}</p></div><span className="pp-stitch-live-dot" /></div>
                 <div className="pp-stitch-room-list">
                   {rooms.length ? rooms.map((room) => <div className="pp-stitch-room" key={room.id}>
                     <div><span className={"pp-stitch-room-dot " + (room.active.length ? "busy" : "free")} /><b>{isRtl ? "غرفة " : "Room "}{shortId(room.id)}</b><span className={"pp-stitch-room-badge " + (room.active.length ? "busy" : "free")}>{room.active.length ? (isRtl ? "مشغولة" : "Occupied") : (isRtl ? "لا توجد جلسة جارية" : "No active session")}</span></div>
                     <small>{room.active[0]?.patient_name || room.waiting[0]?.patient_name || (isRtl ? "لا يوجد مريض مرتبط حاليًا" : "No patient currently assigned")}</small>
-                  </div>) : <div className="pp-stitch-section-empty"><DoorOpen size={25} /><b>{isRtl ? "لا توجد غرف مسجلة للمواعيد بعد" : "No rooms are linked to appointments yet"}</b><span>{isRtl ? "عند ربط الغرف بالمواعيد ستظهر حالة الإشغال هنا دون بيانات تجريبية." : "Room occupancy will appear here when rooms are linked to appointments."}</span><Link href="/clinic-settings">{isRtl ? "إعدادات العيادة" : "Clinic settings"}</Link></div>}
+                  </div>) : <div className="pp-stitch-section-empty"><Building size={25} /><b>{isRtl ? "لا توجد غرف مسجلة للمواعيد بعد" : "No rooms are linked to appointments yet"}</b><span>{isRtl ? "عند ربط الغرف بالمواعيد ستظهر حالة الإشغال هنا دون بيانات تجريبية." : "Room occupancy will appear here when rooms are linked to appointments."}</span><Link href="/clinic-settings">{isRtl ? "إعدادات العيادة" : "Clinic settings"}</Link></div>}
                 </div>
               </section>
 
               <section className="pp-stitch-panel">
-                <div className="pp-stitch-panel-heading compact"><div><h2><Clock3 size={22} />{isRtl ? "صالة الانتظار" : "Waiting queue"}</h2><p>{isRtl ? "المرضى المسجلون بحالة انتظار اليوم" : "Patients marked as waiting today"}</p></div><span className="pp-stitch-count-chip">{waitingAppointments.length} {isRtl ? "بالانتظار" : "waiting"}</span></div>
+                <div className="pp-stitch-panel-heading compact"><div><h2><Clock size={22} />{isRtl ? "صالة الانتظار" : "Waiting queue"}</h2><p>{isRtl ? "المرضى المسجلون بحالة انتظار اليوم" : "Patients marked as waiting today"}</p></div><span className="pp-stitch-count-chip">{waitingAppointments.length} {isRtl ? "بالانتظار" : "waiting"}</span></div>
                 <div className="pp-stitch-waiting-list">
                   {waitingAppointments.length ? waitingAppointments.slice(0, 5).map((item) => <div className="pp-stitch-waiting" key={item.id}>
                     <span className="pp-stitch-waiting-avatar">{String(item.patient_name || "؟").trim().slice(0, 2)}</span>
                     <span className="min-w-0 flex-1"><b>{item.patient_name || patientNameById.get(String(item.patient_id)) || "—"}</b><small>{item.doctor_name || item.therapist || (isRtl ? "لم يحدد الأخصائي" : "Therapist not assigned")} • {item.appointment_type || ""}</small></span>
                     <small className="pp-stitch-waiting-time">{formatTime(appointmentStart(item), locale)}</small>
-                  </div>) : <div className="pp-stitch-section-empty compact-empty"><Clock3 size={22} /><span>{isRtl ? "لا يوجد مرضى في قائمة الانتظار حاليًا." : "There are no patients in the waiting queue."}</span></div>}
+                  </div>) : <div className="pp-stitch-section-empty compact-empty"><Clock size={22} /><span>{isRtl ? "لا يوجد مرضى في قائمة الانتظار حاليًا." : "There are no patients in the waiting queue."}</span></div>}
                 </div>
               </section>
 
               <section className="pp-stitch-panel">
-                <div className="pp-stitch-panel-heading compact"><div><h2><AlertCircle size={22} />{isRtl ? "تنبيهات وملاحظات سريرية" : "Clinical alerts & notes"}</h2><p>{isRtl ? "تنبيهات مستندة إلى سجلات المركز" : "Alerts derived from clinic records"}</p></div>{clinicalAlerts.length > 0 && <span className="pp-stitch-alert-indicator" />}</div>
+                <div className="pp-stitch-panel-heading compact"><div><h2><AlertTriangle size={22} />{isRtl ? "تنبيهات وملاحظات سريرية" : "Clinical alerts & notes"}</h2><p>{isRtl ? "تنبيهات مستندة إلى سجلات المركز" : "Alerts derived from clinic records"}</p></div>{clinicalAlerts.length > 0 && <span className="pp-stitch-alert-indicator" />}</div>
                 <div className="pp-stitch-alert-list">
                   {clinicalAlerts.length ? clinicalAlerts.map((alert, index) => <Link href={alert.href} className="pp-stitch-alert" key={alert.id}>
-                    <div className={index === 0 ? "alert-icon urgent" : "alert-icon"}>{index === 0 ? <Zap size={17} /> : <FileText size={17} />}</div>
-                    <div><b>{isRtl ? alert.titleAr : alert.titleEn}</b><p>{isRtl ? alert.bodyAr : alert.bodyEn}</p><small>{isRtl ? "فتح السجل" : "Open record"} <ArrowLeft size={12} /></small></div>
-                  </Link>) : <div className="pp-stitch-section-empty compact-empty"><CheckCircle2 size={23} /><span>{isRtl ? "لا توجد تنبيهات سريرية مستخلصة من البيانات الحالية." : "No clinical alerts were found in the current records."}</span></div>}
+                    <div className={index === 0 ? "alert-icon urgent" : "alert-icon"}>{index === 0 ? <Activity size={17} /> : <FileText size={17} />}</div>
+                    <div><b>{isRtl ? alert.titleAr : alert.titleEn}</b><p>{isRtl ? alert.bodyAr : alert.bodyEn}</p><small>{isRtl ? "فتح السجل" : "Open record"} <ChevronLeft size={12} /></small></div>
+                  </Link>) : <div className="pp-stitch-section-empty compact-empty"><Check size={23} /><span>{isRtl ? "لا توجد تنبيهات سريرية مستخلصة من البيانات الحالية." : "No clinical alerts were found in the current records."}</span></div>}
                 </div>
               </section>
             </div>
