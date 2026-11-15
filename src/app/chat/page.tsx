@@ -66,7 +66,6 @@ export default function ChatPage() {
           </aside>
 
           <div className="relative flex min-h-[520px] flex-col items-center justify-center overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-50/70 via-white to-white px-5 py-12 sm:px-10">
-            <div className="pointer-events-none absolute inset-0 opacity-[0.035]" style={{ backgroundImage: "radial-gradient(#554BC0 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
             <div className="relative flex max-w-lg flex-col items-center text-center">
               <div className="relative mb-7">
                 <div className="flex h-24 w-24 items-center justify-center rounded-[2rem] bg-gradient-to-br from-[#554BC0] to-[#8178E2] text-white shadow-xl shadow-indigo-200"><MessageSquare className="h-11 w-11" /></div>
