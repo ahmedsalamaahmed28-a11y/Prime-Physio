@@ -5,11 +5,11 @@ import { useLanguage } from "@/lib/LanguageContext";
 import Link from "next/link";
 import { useState } from "react";
 import {
-  MessageSquare, Search, Users, UserRound, Headphones, Send,
-  Plus, Inbox, ShieldCheck, ArrowUpLeft, ArrowUpRight, Info,
+  MessageSquare, Search, Users, User, Send,
+  Plus, ShieldCheck, ChevronLeft, Info,
 } from "lucide-react";
 
-type InboxTab = "all" | "patients" | "team";
+type MessageSquareTab = "all" | "patients" | "team";
 
 export default function ChatPage() {
   const { language } = useLanguage();
@@ -49,7 +49,7 @@ export default function ChatPage() {
               <div className="mt-4 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">
                 {([
                   ["all", isRtl ? "الكل" : "All", Inbox],
-                  ["patients", isRtl ? "المرضى" : "Patients", UserRound],
+                  ["patients", isRtl ? "المرضى" : "Patients", User],
                   ["team", isRtl ? "الفريق" : "Team", Users],
                 ] as const).map(([key, label, Icon]) => <button key={key} onClick={() => setTab(key)} className={`flex h-9 items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition ${tab === key ? "bg-white text-[#554BC0] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}><Icon size={14} />{label}</button>)}
               </div>
@@ -69,7 +69,7 @@ export default function ChatPage() {
             <div className="relative flex max-w-lg flex-col items-center text-center">
               <div className="relative mb-7">
                 <div className="flex h-24 w-24 items-center justify-center rounded-[2rem] bg-gradient-to-br from-[#554BC0] to-[#8178E2] text-white shadow-xl shadow-indigo-200"><MessageSquare className="h-11 w-11" /></div>
-                <span className="absolute -bottom-2 -end-2 flex h-10 w-10 items-center justify-center rounded-xl border-4 border-white bg-emerald-500 text-white"><Headphones size={18} /></span>
+                <span className="absolute -bottom-2 -end-2 flex h-10 w-10 items-center justify-center rounded-xl border-4 border-white bg-emerald-500 text-white"><MessageSquare size={18} /></span>
               </div>
               <span className="rounded-full border border-indigo-100 bg-white px-3 py-1 text-[11px] font-extrabold text-[#6258C6]">{isRtl ? "مساحة التواصل" : "COMMUNICATION WORKSPACE"}</span>
               <h2 className="mt-4 text-2xl font-extrabold text-slate-900 sm:text-3xl">{isRtl ? "كل محادثاتك في مكان واحد" : "All your conversations in one place"}</h2>
@@ -78,7 +78,7 @@ export default function ChatPage() {
                 <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm"><div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600"><UserRound size={18} /></div><h3 className="text-sm font-extrabold text-slate-800">{isRtl ? "محادثات المرضى" : "Patient conversations"}</h3><p className="mt-1 text-xs leading-5 text-slate-400">{isRtl ? "متابعة الاستفسارات والتواصل المرتبط بملف المريض." : "Follow up on questions and patient-related communication."}</p></div>
                 <div className="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm"><div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-violet-50 text-violet-600"><Users size={18} /></div><h3 className="text-sm font-extrabold text-slate-800">{isRtl ? "محادثات فريق العمل" : "Team conversations"}</h3><p className="mt-1 text-xs leading-5 text-slate-400">{isRtl ? "تنسيق العمل والتواصل الداخلي بين أعضاء المركز." : "Coordinate work and communicate across your clinic team."}</p></div>
               </div>
-              <Link href="/patients" className="mt-7 inline-flex h-11 items-center gap-2 rounded-xl bg-[#554BC0] px-5 text-sm font-extrabold text-white shadow-md shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-[#453BAA]">{isRtl ? "الانتقال إلى سجلات المرضى" : "Go to patient records"}{isRtl ? <ArrowUpLeft size={16} /> : <ArrowUpRight size={16} />}</Link>
+              <Link href="/patients" className="mt-7 inline-flex h-11 items-center gap-2 rounded-xl bg-[#554BC0] px-5 text-sm font-extrabold text-white shadow-md shadow-indigo-200 transition hover:-translate-y-0.5 hover:bg-[#453BAA]">{isRtl ? "الانتقال إلى سجلات المرضى" : "Go to patient records"}{isRtl ? <ChevronLeft size={16} /> : <ChevronLeft size={16} />}</Link>
             </div>
             <div className="absolute bottom-4 flex items-center gap-2 text-[10px] font-medium text-slate-300"><Send size={12} />{isRtl ? "لن يتم إرسال أي رسالة دون تفعيل الخدمة" : "No messages are sent until messaging is enabled"}</div>
           </div>
