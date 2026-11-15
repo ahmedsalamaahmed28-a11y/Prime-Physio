@@ -7,9 +7,8 @@ import {
 } from "date-fns";
 import { ar, enUS } from "date-fns/locale";
 import {
-  CalendarDays, ChevronLeft, ChevronRight, Clock3, ListFilter, Search,
-  Users, UserRound, CheckCircle2, CircleDashed, CalendarCheck2,
-  CalendarClock, DoorOpen, Sparkles
+  CalendarDays, ChevronLeft, ChevronRight, Clock, Filter, Search,
+  Users, User, Check, Calendar, Building, Sparkles
 } from "lucide-react";
 import CustomMonthCalendar from "@/components/CustomMonthCalendar";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -77,7 +76,7 @@ function EventCard({ event, isRtl, onClick }: { event: CalendarEvent; isRtl: boo
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${status.dot}`} />
       </div>
       <div className="mt-1 flex items-center gap-1 text-[10px] opacity-75">
-        <Clock3 className="h-3 w-3 shrink-0" />
+        <Clock className="h-3 w-3 shrink-0" />
         <span>{format(event.start, "h:mm a")}</span>
         <span className="truncate">· {event.doctor || (isRtl ? "غير محدد" : "Unassigned")}</span>
       </div>
@@ -149,10 +148,10 @@ export default function AppointmentsCalendarView({
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
-          { label: isRtl ? "مواعيد اليوم" : "Today's appointments", value: todayEvents.length, icon: CalendarCheck2, tone: "bg-indigo-50 text-indigo-700" },
-          { label: isRtl ? "المواعيد القادمة" : "Upcoming", value: events.filter((event) => event.start >= new Date() && event.status !== "ملغي").length, icon: CalendarClock, tone: "bg-cyan-50 text-cyan-700" },
-          { label: isRtl ? "قائمة الانتظار" : "Waiting list", value: pendingEvents.length, icon: CircleDashed, tone: "bg-amber-50 text-amber-700" },
-          { label: isRtl ? "المكتملة" : "Completed", value: events.filter((event) => event.status === "منتهي").length, icon: CheckCircle2, tone: "bg-emerald-50 text-emerald-700" },
+          { label: isRtl ? "مواعيد اليوم" : "Today's appointments", value: todayEvents.length, icon: Calendar, tone: "bg-indigo-50 text-indigo-700" },
+          { label: isRtl ? "المواعيد القادمة" : "Upcoming", value: events.filter((event) => event.start >= new Date() && event.status !== "ملغي").length, icon: Calendar, tone: "bg-cyan-50 text-cyan-700" },
+          { label: isRtl ? "قائمة الانتظار" : "Waiting list", value: pendingEvents.length, icon: Clock, tone: "bg-amber-50 text-amber-700" },
+          { label: isRtl ? "المكتملة" : "Completed", value: events.filter((event) => event.status === "منتهي").length, icon: Check, tone: "bg-emerald-50 text-emerald-700" },
         ].map((stat) => {
           const Icon = stat.icon;
           return (
@@ -205,21 +204,21 @@ export default function AppointmentsCalendarView({
 
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               <div className="relative">
-                <UserRound className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 ${isRtl ? "right-3" : "left-3"}`} />
+                <User className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 ${isRtl ? "right-3" : "left-3"}`} />
                 <select value={doctorFilter} onChange={(event) => setDoctorFilter(event.target.value)} className={`h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white text-xs text-slate-700 outline-none focus:border-indigo-300 ${isRtl ? "pr-9 pl-3" : "pl-9 pr-3"}`}>
                   <option value="all">{isRtl ? "كل المعالجين" : "All therapists"}</option>
                   {doctorsList.map((doctor) => <option key={doctor.name} value={doctor.name}>{doctor.name}</option>)}
                 </select>
               </div>
               <div className="relative">
-                <ListFilter className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 ${isRtl ? "right-3" : "left-3"}`} />
+                <Filter className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 ${isRtl ? "right-3" : "left-3"}`} />
                 <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)} className={`h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white text-xs text-slate-700 outline-none focus:border-indigo-300 ${isRtl ? "pr-9 pl-3" : "pl-9 pr-3"}`}>
                   <option value="all">{isRtl ? "كل أنواع الجلسات" : "All session types"}</option>
                   {Object.keys(typeColors).map((type) => <option key={type} value={type}>{isRtl ? type : ({ "جلسة علاج": "Therapy session", "كشف أول": "Initial exam", "متابعة": "Follow-up", "تقييم": "Assessment", "جلسة جماعية": "Group session" } as Record<string, string>)[type]}</option>)}
                 </select>
               </div>
               <div className="relative">
-                <DoorOpen className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 ${isRtl ? "right-3" : "left-3"}`} />
+                <Building className={`absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 ${isRtl ? "right-3" : "left-3"}`} />
                 <select value={roomFilter} onChange={(event) => setRoomFilter(event.target.value)} className={`h-10 w-full appearance-none rounded-xl border border-slate-200 bg-white text-xs text-slate-700 outline-none focus:border-indigo-300 ${isRtl ? "pr-9 pl-3" : "pl-9 pr-3"}`}>
                   <option value="all">{isRtl ? "كل الغرف" : "All rooms"}</option>
                   {roomsList.map((room) => <option key={room.id} value={room.id}>{room.name}</option>)}
@@ -240,7 +239,7 @@ export default function AppointmentsCalendarView({
                 const roomEvents = visibleEvents.filter((event) => event.roomId === room.id);
                 return (
                   <div key={room.id} className="overflow-hidden rounded-xl border border-slate-200">
-                    <div className="flex items-center justify-between bg-slate-50 px-4 py-3"><span className="flex items-center gap-2 text-sm font-bold text-slate-800"><DoorOpen className="h-4 w-4 text-indigo-600" />{room.name}</span><span className="text-xs text-slate-500">{roomEvents.length} {isRtl ? "مواعيد" : "appointments"}</span></div>
+                    <div className="flex items-center justify-between bg-slate-50 px-4 py-3"><span className="flex items-center gap-2 text-sm font-bold text-slate-800"><Building className="h-4 w-4 text-indigo-600" />{room.name}</span><span className="text-xs text-slate-500">{roomEvents.length} {isRtl ? "مواعيد" : "appointments"}</span></div>
                     <div className="grid gap-2 p-3 sm:grid-cols-2 lg:grid-cols-3">
                       {roomEvents.length ? roomEvents.map((event) => <EventCard key={event.id} event={event} isRtl={isRtl} onClick={() => onSelectEvent(event)} />) : <p className="col-span-full py-3 text-center text-xs text-slate-400">{isRtl ? "لا توجد حجوزات لهذه الغرفة خلال الفترة." : "No bookings for this room in this period."}</p>}
                     </div>
@@ -307,7 +306,7 @@ export default function AppointmentsCalendarView({
           </section>
 
           <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-bold text-slate-800">{isRtl ? "المواعيد القادمة" : "Upcoming appointments"}</h3><Clock3 className="h-4 w-4 text-indigo-600" /></div>
+            <div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-bold text-slate-800">{isRtl ? "المواعيد القادمة" : "Upcoming appointments"}</h3><Clock className="h-4 w-4 text-indigo-600" /></div>
             <div className="space-y-3">
               {upcomingEvents.length ? upcomingEvents.map((event) => <button type="button" key={event.id} onClick={() => onSelectEvent(event)} className="flex w-full items-start gap-2 text-start"><span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-indigo-500" /><span className="min-w-0 flex-1"><span className="block truncate text-xs font-semibold text-slate-700">{event.patientName || event.title}</span><span className="mt-0.5 block text-[10px] text-slate-400">{format(event.start, "EEE d MMM · h:mm a", { locale })}</span></span></button>) : <p className="py-3 text-center text-xs text-slate-400">{isRtl ? "لا توجد مواعيد قادمة." : "No upcoming appointments."}</p>}
             </div>
