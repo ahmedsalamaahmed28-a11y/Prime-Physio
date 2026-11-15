@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
 import { requireRole } from "../../utils/auth";
 
 export async function GET(req: NextRequest) {

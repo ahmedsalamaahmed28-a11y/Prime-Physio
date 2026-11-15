@@ -1,4 +1,6 @@
-import { getAdminClient } from "./supabase";
+import "server-only";
+
+import { getAdminClient } from "./supabase-admin";
 
 export type SubscriptionResource =
   | "patients"

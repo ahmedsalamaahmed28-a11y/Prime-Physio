@@ -1,5 +1,5 @@
 import "./landing.css";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
 import Navbar from "@/components/landing/Navbar";
 import Hero from "@/components/landing/Hero";
 import ClinicSearch from "@/components/landing/ClinicSearch";

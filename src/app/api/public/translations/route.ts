@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase";
+import { getAdminClient } from "@/lib/supabase-admin";
 
 export const revalidate = 0; // Ensure fresh data on every fetch, or set to 60 for edge caching
 
