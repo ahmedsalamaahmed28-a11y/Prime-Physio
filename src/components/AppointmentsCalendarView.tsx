@@ -42,9 +42,9 @@ interface Props {
   roomsList: { id: string; name: string; branch_id?: string | null }[];
 }
 
-const HOURS = Array.from({ length: 13 }, (_, i) => i + 8);
-const DAYS_AR = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس"];
-const DAYS_EN = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu"];
+const HOURS = Array.from({ length: 16 }, (_, i) => i + 8);
+const DAYS_AR = ["السبت", "الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"];
+const DAYS_EN = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
 
 const typeColors: Record<string, string> = {
   "جلسة علاج": "border-r-[#4F46BA] bg-indigo-50 text-indigo-950",
@@ -68,11 +68,11 @@ function EventCard({ event, isRtl, onClick }: { event: CalendarEvent; isRtl: boo
     <button
       type="button"
       onClick={onClick}
-      className={`group w-full min-w-0 overflow-hidden rounded-md border border-r-[3px] px-1 py-1 text-right shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 sm:rounded-lg sm:px-2 sm:py-1.5 ${colors} ${isRtl ? "text-right" : "text-left"}`}
+      className={`group relative z-[2] w-full min-w-0 whitespace-normal rounded-md border border-r-[3px] px-1 py-1 text-right shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 sm:rounded-lg sm:px-2 sm:py-1.5 ${colors} ${isRtl ? "text-right" : "text-left"}`}
       title={event.title}
     >
       <div className="flex items-center justify-between gap-1">
-        <span className="min-w-0 truncate text-[9px] font-bold sm:text-[11px]">{event.patientName || event.title}</span>
+        <span className="min-w-0 flex-1 whitespace-normal break-words text-[9px] font-bold leading-tight sm:text-[11px]" title={event.patientName || event.title}>{event.patientName || event.title}</span>
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${status.dot}`} />
       </div>
       <div className="mt-0.5 flex min-w-0 items-center gap-0.5 overflow-hidden text-[8px] opacity-75 sm:mt-1 sm:gap-1 sm:text-[10px]">
@@ -98,8 +98,8 @@ export default function AppointmentsCalendarView({
   const locale = isRtl ? ar : enUS;
 
   const weekStart = startOfWeek(currentDate, { weekStartsOn: 6 });
-  const weekEnd = addDays(weekStart, 5);
-  const weekDays = Array.from({ length: 6 }, (_, index) => addDays(weekStart, index));
+  const weekEnd = addDays(weekStart, 6);
+  const weekDays = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
   const filteredEvents = useMemo(() => events.filter((event) => {
     const matchesDoctor = doctorFilter === "all" || event.doctor === doctorFilter;
     const matchesType = typeFilter === "all" || event.visitType === typeFilter;
@@ -270,7 +270,7 @@ export default function AppointmentsCalendarView({
                         const top = Math.max(0, ((startMinutes - 8 * 60) / 60) * 76);
                         const duration = Math.max(30, (event.end.getTime() - event.start.getTime()) / 60000);
                         const height = Math.max(46, (duration / 60) * 76 - 4);
-                        if (event.start.getHours() < 8 || event.start.getHours() >= 21) return null;
+                        if (event.start.getHours() < 8 || event.start.getHours() >= 24) return null;
                         return (
                           <div key={event.id} className="absolute z-[1] w-[calc(100%-8px)] px-0.5" style={{ top: top + 2, height, insetInlineStart: 2 }}>
                             <EventCard event={event} isRtl={isRtl} onClick={() => onSelectEvent(event)} />
