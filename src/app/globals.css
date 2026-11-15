@@ -686,3 +686,17 @@ table :is(button, a, select, input) {
     padding-inline: 0.35rem;
   }
 }
+
+/* CSP-safe OTP input entrance animation (kept in the external stylesheet). */
+@keyframes otpDigitIn {
+  0% { opacity: 0; transform: translateY(7px) scale(.88); }
+  65% { opacity: 1; transform: translateY(-2px) scale(1.06); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.otp-digit {
+  animation: otpDigitIn 260ms cubic-bezier(.2,.8,.2,1) both;
+  caret-color: #6556D9;
+}
+@media (prefers-reduced-motion: reduce) {
+  .otp-digit { animation: none !important; transition: none !important; }
+}
