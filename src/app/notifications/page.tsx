@@ -190,7 +190,7 @@ export default function NotificationsPage() {
               <p className="mt-2 max-w-xl text-sm leading-6 text-white/85">{isRtl ? "تابع تحديثات مركزك وإعلانات المنصة وسجل النشاط في مكان واحد." : "Keep up with clinic updates, platform announcements, and activity in one place."}</p>
             </div>
           </div>
-          <div className="flex w-full shrink-0 items-center justify-between gap-3 self-start rounded-2xl border border-white/20 bg-[#312e81] px-4 py-3 text-white shadow-inner sm:w-auto sm:justify-start sm:self-auto">
+          <div className="notifications-total-card flex w-full shrink-0 items-center justify-between gap-3 self-start rounded-2xl px-4 py-3 text-white shadow-inner sm:w-auto sm:justify-start sm:self-auto">
             <div className="min-w-0">
               <p className="text-2xl font-black leading-tight tabular-nums text-white">{notifications.length}</p>
               <p className="mt-0.5 text-[11px] font-semibold leading-5 text-indigo-100">{isRtl ? "إجمالي التنبيهات" : "Total notifications"}</p>
