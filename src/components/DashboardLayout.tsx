@@ -418,6 +418,9 @@ export default function DashboardLayout({
     return null;
   }
 
+  // Calendar page renders the redesigned dashboard sidebar itself; skip legacy chrome.
+  if (p === "/calendar") return <>{children}</>;
+
   const displayAccountName = activeAccount.roleKey === "receptionist"
     ? activeAccount.name
     : activeAccount.name.startsWith("د.")
