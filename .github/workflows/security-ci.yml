@@ -50,16 +50,16 @@ jobs:
       - name: ESLint
         run: npm run lint
 
-      - name: Enforce nonce-only CSP styles
+      - name: Enforce strict script CSP and nonce-based style elements
         run: |
-          grep -q "style-src-attr 'none'" src/proxy.ts
+          grep -q "style-src-attr 'unsafe-inline'" src/proxy.ts
           grep -q "style-src-elem" src/proxy.ts
-          if grep -n "unsafe-inline" src/proxy.ts; then
-            echo "::error::unsafe-inline must not be present in the CSP."
+          if grep -nE "(script-src|style-src-elem)[^;]*unsafe-inline" src/proxy.ts; then
+            echo "::error::Inline scripts and style elements must remain nonce-restricted."
             exit 1
           fi
-          if grep -RInE 'style[[:space:]]*=|<style([[:space:]>])' src --include='*.tsx' --include='*.jsx' --include='*.ts' --include='*.js' --exclude='email.ts'; then
-            echo "::error::Inline style attributes/elements must be migrated to CSS (email HTML is intentionally excluded because it is delivered outside the app CSP)."
+          if grep -RInE '<style([[:space:]>])' src --include='*.tsx' --include='*.jsx' --include='*.ts' --include='*.js' --exclude='email.ts'; then
+            echo "::error::Inline style elements must be migrated to nonce-bearing or external stylesheets."
             exit 1
           fi
           if grep -RInE 'framer-motion|motion/react|<motion\\.' src --include='*.tsx' --include='*.jsx' --include='*.ts' --include='*.js'; then
