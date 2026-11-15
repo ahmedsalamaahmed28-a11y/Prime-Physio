@@ -1,0 +1,107 @@
+/* Shared Prime Physio visual system for clinic workspace pages.
+   Intentionally scoped to the authenticated content area so public pages,
+   the dashboard reference page, calendar and platform admin remain untouched. */
+.pp-consistent-pages {
+  --pp-brand: #4f46ba;
+  --pp-brand-strong: #4338a8;
+  --pp-ink: #172033;
+  --pp-muted: #697386;
+  --pp-line: #e8eaf2;
+  --pp-surface: #ffffff;
+  color: var(--pp-ink);
+}
+.pp-consistent-pages > * { min-width: 0; }
+.pp-consistent-pages h1 {
+  color: var(--pp-ink);
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.35;
+}
+.pp-consistent-pages h2 {
+  color: var(--pp-ink);
+  font-weight: 750;
+  letter-spacing: -0.015em;
+}
+.pp-consistent-pages h3 { color: var(--pp-ink); font-weight: 700; }
+.pp-consistent-pages p { line-height: 1.7; }
+.pp-consistent-pages .bg-card,
+.pp-consistent-pages [data-slot="card"] {
+  background: var(--pp-surface);
+  border-color: var(--pp-line);
+  border-radius: 17px;
+  box-shadow: 0 2px 10px rgba(31, 41, 72, .035), 0 12px 28px rgba(31, 41, 72, .025);
+}
+.pp-consistent-pages [role="tablist"] {
+  border: 1px solid var(--pp-line);
+  border-radius: 13px;
+  background: #f6f7fb;
+  padding: 4px;
+  gap: 4px;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.pp-consistent-pages [role="tab"] {
+  border-radius: 9px;
+  white-space: nowrap;
+  transition: background .18s ease, color .18s ease, box-shadow .18s ease;
+}
+.pp-consistent-pages [role="tab"][data-state="active"] {
+  color: var(--pp-brand);
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(31, 41, 72, .10);
+  font-weight: 700;
+}
+.pp-consistent-pages input:not([type="checkbox"]):not([type="radio"]),
+.pp-consistent-pages select,
+.pp-consistent-pages textarea {
+  border-color: #dfe3ed;
+  border-radius: 10px;
+  background-color: #fff;
+  color: var(--pp-ink);
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.pp-consistent-pages input:focus-visible,
+.pp-consistent-pages select:focus-visible,
+.pp-consistent-pages textarea:focus-visible {
+  border-color: #8983dc;
+  box-shadow: 0 0 0 3px rgba(79, 70, 186, .12);
+  outline: none;
+}
+.pp-consistent-pages table { border-collapse: separate; border-spacing: 0; }
+.pp-consistent-pages thead th {
+  background: #f7f8fc;
+  color: #596276;
+  font-size: .78rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.pp-consistent-pages tbody tr { transition: background .15s ease; }
+.pp-consistent-pages tbody tr:hover { background: #f8f9fd; }
+.pp-consistent-pages th,
+.pp-consistent-pages td { border-color: #edf0f5; }
+.pp-consistent-pages button { transition: filter .16s ease, box-shadow .16s ease, transform .16s ease; }
+.pp-consistent-pages button:active { transform: translateY(1px); }
+.pp-consistent-pages button[class*="bg-[#4F46BA]"],
+.pp-consistent-pages button[class*="bg-indigo-600"],
+.pp-consistent-pages a[class*="bg-[#4F46BA]"] {
+  box-shadow: 0 5px 13px rgba(79, 70, 186, .16);
+}
+.pp-consistent-pages .text-muted-foreground { color: var(--pp-muted); }
+.pp-consistent-pages .rounded-lg.border,
+.pp-consistent-pages .rounded-xl.border {
+  border-color: var(--pp-line);
+}
+@media (max-width: 640px) {
+  .pp-consistent-pages { width: 100%; min-width: 0; }
+  .pp-consistent-pages h1 { font-size: 1.3rem; }
+  .pp-consistent-pages [role="tablist"] { width: 100%; }
+  .pp-consistent-pages .overflow-x-auto { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pp-consistent-pages *, .pp-consistent-pages *::before, .pp-consistent-pages *::after {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
