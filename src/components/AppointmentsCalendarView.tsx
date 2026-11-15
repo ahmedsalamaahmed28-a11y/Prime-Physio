@@ -68,11 +68,11 @@ function EventCard({ event, isRtl, onClick }: { event: CalendarEvent; isRtl: boo
     <button
       type="button"
       onClick={onClick}
-      className={`group relative z-[2] w-full min-w-0 whitespace-normal rounded-md border border-r-[3px] px-1 py-1 text-right shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 sm:rounded-lg sm:px-2 sm:py-1.5 ${colors} ${isRtl ? "text-right" : "text-left"}`}
+      className={`group relative z-[2] h-full w-full min-w-0 max-w-full box-border overflow-hidden whitespace-normal rounded-md border border-r-[3px] px-1 py-1 text-right shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-400 sm:rounded-lg sm:px-2 sm:py-1.5 ${colors} ${isRtl ? "text-right" : "text-left"}`}
       title={event.title}
     >
       <div className="flex items-center justify-between gap-1">
-        <span className="min-w-0 flex-1 whitespace-normal break-words text-[9px] font-bold leading-tight sm:text-[11px]" title={event.patientName || event.title}>{event.patientName || event.title}</span>
+        <span className="min-w-0 flex-1 line-clamp-2 whitespace-normal break-words text-[9px] font-bold leading-tight sm:text-[11px]" title={event.patientName || event.title}>{event.patientName || event.title}</span>
         <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${status.dot}`} />
       </div>
       <div className="mt-0.5 flex min-w-0 items-center gap-0.5 overflow-hidden text-[8px] opacity-75 sm:mt-1 sm:gap-1 sm:text-[10px]">
@@ -272,7 +272,7 @@ export default function AppointmentsCalendarView({
                         const height = Math.max(46, (duration / 60) * 76 - 4);
                         if (event.start.getHours() < 8 || event.start.getHours() >= 24) return null;
                         return (
-                          <div key={event.id} className="absolute z-[1] w-[calc(100%-8px)] px-0.5" style={{ top: top + 2, height, insetInlineStart: 2 }}>
+                          <div key={event.id} className="absolute z-[1] box-border min-w-0 overflow-hidden" style={{ top: top + 2, height, insetInline: 4 }}>
                             <EventCard event={event} isRtl={isRtl} onClick={() => onSelectEvent(event)} />
                           </div>
                         );
