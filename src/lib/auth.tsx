@@ -20,6 +20,7 @@ interface User {
   bg: string;
   image?: string;
   clinicId?: string | null;
+  clinicSlug?: string | null;
   shortName?: string | null;
   logoUrl?: string | null;
 }
@@ -117,6 +118,7 @@ async function enrichUserWithClinic(user: User): Promise<User> {
       }
       if (data.clinicId || data.roleKey) {
         user.clinicId = data.clinicId;
+        user.clinicSlug = typeof data.clinicSlug === "string" ? data.clinicSlug : null;
         user.roleKey = data.roleKey as User["roleKey"];
         user.role = data.roleAr;
         user.roleEn = data.roleEn;
@@ -483,13 +485,25 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    // Preserve the active clinic context before clearing the tenant selection.
+    // The clinic slug is supplied by the server-side membership enrichment,
+    // never inferred from user-editable profile data.
+    const clinicSlug = user?.clinicSlug || null;
+    const callbackUrl = clinicSlug
+      ? `/${encodeURIComponent(clinicSlug)}`
+      : "/login.php/";
+
     if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
     setUser(null);
     setAppValue("current_user", null).catch(() => {});
-    await supabase.auth.signOut();
-    signOut({ callbackUrl: "/login.php/" }).catch(() => {
-      window.location.href = "/login.php/";
-    });
+
+    try {
+      await supabase.auth.signOut();
+    } finally {
+      signOut({ callbackUrl }).catch(() => {
+        window.location.href = callbackUrl;
+      });
+    }
   };
 
   useEffect(() => {
