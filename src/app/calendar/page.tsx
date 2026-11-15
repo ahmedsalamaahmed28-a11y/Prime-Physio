@@ -24,7 +24,7 @@ import { supabase } from "@/lib/supabase";
 import { useEffect } from "react";
 import { usePermissions } from "@/lib/usePermissions";
 import { useAuth } from "@/lib/auth";
-import CustomMonthCalendar from "@/components/CustomMonthCalendar";
+import AppointmentsCalendarView from "@/components/AppointmentsCalendarView";
 import SelectMenu from "@/components/SelectMenu";
 import AlertPopup from "@/components/AlertPopup";
 
@@ -1099,56 +1099,8 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-5">
-
-        {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {[
-            { icon: "📋", label: isRtl ? "مواعيد اليوم" : "Today's Appts", value: todayEvents.length, color: "indigo" },
-            { icon: "✅", label: isRtl ? "مؤكدة" : "Confirmed", value: confirmed, color: "emerald" },
-            { icon: "⏳", label: isRtl ? "في الانتظار" : "Pending", value: pending, color: "amber" },
-            { icon: "🏁", label: isRtl ? "مكتملة" : "Completed", value: done, color: "slate" },
-          ].map((s) => {
-            const bgMap: Record<string, string> = { indigo: "bg-indigo-50 dark:bg-indigo-950/30", emerald: "bg-emerald-50 dark:bg-emerald-950/30", amber: "bg-amber-50 dark:bg-amber-950/30", slate: "bg-slate-50 dark:bg-slate-900/30" };
-            const borderMap: Record<string, string> = { indigo: "border-indigo-200 dark:border-indigo-900/50", emerald: "border-emerald-200 dark:border-emerald-900/50", amber: "border-amber-200 dark:border-amber-900/50", slate: "border-slate-200 dark:border-slate-800/50" };
-            return (
-              <div key={s.label} className={`${bgMap[s.color]} ${borderMap[s.color]} rounded-xl p-4 flex items-center gap-3 border shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5 ${isRtl ? "" : "flex-row-reverse text-right"}`}>
-                <span className="text-2xl">{s.icon}</span>
-                <div className={isRtl ? "text-right" : "text-left"}>
-                  <p className="text-xs text-muted-foreground/80 font-medium">{s.label}</p>
-                  <p className="text-2xl font-bold font-heading">{s.value}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Legend */}
-        <div className={`flex flex-wrap gap-2 items-center ${isRtl ? "" : "flex-row-reverse"}`}>
-          <span className="text-xs text-muted-foreground font-semibold ml-2">{isRtl ? "أنواع الجلسات:" : "Session Types:"}</span>
-          {VISIT_TYPES.map((t) => {
-            const tVisitType = (type: VisitType) => {
-              if (isRtl) return type;
-              const map: Record<VisitType, string> = {
-                "جلسة علاج": "Therapy Session",
-                "كشف أول": "First Exam",
-                "متابعة": "Follow-up",
-                "تقييم": "Assessment",
-                "جلسة جماعية": "Group Session"
-              };
-              return map[type] || type;
-            };
-            return (
-              <div key={t} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-card border border-border/60 shadow-sm">
-                <div className={`w-2.5 h-2.5 rounded-full ${VISIT_COLOR_CLASSES[t]}`} />
-                <span className="text-xs text-muted-foreground font-medium">{tVisitType(t)}</span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Custom Month Calendar */}
-        <CustomMonthCalendar
+      <div className="mx-auto w-full max-w-[1600px] px-3 py-5 sm:px-5 lg:px-6">
+        <AppointmentsCalendarView
           events={events}
           currentDate={currentDate}
           onDateChange={setCurrentDate}
@@ -1157,6 +1109,8 @@ export default function CalendarPage() {
           }}
           onSelectEvent={setSelectedEvent}
           selectable={hasPermission("edit_appointments")}
+          doctorsList={doctorsList}
+          roomsList={rooms}
         />
       </div>
 
