@@ -15,7 +15,7 @@ function cairoDate() {
 }
 function normalizeTime(value: unknown): string {
   if (typeof value !== "string") return "";
-  const match = value.trim().match(/^(\d{1,2}):(\d{2})(?:\s*(AM|PM))?$/i);
+  const match = value.trim().match(/^(\d{1,3}):(\d{2})(?:\s*(AM|PM))?$/i);
   if (!match) return "";
   let hour = Number(match[1]); const minute = Number(match[2]);
   if (minute > 59 || hour > 23) return "";
