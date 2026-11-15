@@ -262,17 +262,17 @@ export default function HomePage() {
       }, 0) / comparisons.length)
     : null;
 
-  const modalityCounts = useMemo(() => {
+  const modalityCounts = (() => {
     const counts = new Map<string, number>();
     todayAppointments.forEach((item) => {
       const label = String(item.session_intervention || item.appointment_type || (isRtl ? "جلسة علاج" : "Therapy session")).trim();
       counts.set(label, (counts.get(label) || 0) + 1);
     });
     return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]).slice(0, 4);
-  }, [todayAppointments, isRtl]);
+  })();
   const modalityTotal = modalityCounts.reduce((sum, item) => sum + item[1], 0);
 
-  const rooms = useMemo(() => {
+  const rooms = (() => {
     const grouped = new Map<string, Row[]>();
     todayAppointments.filter((item) => item.room_id).forEach((item) => {
       const key = String(item.room_id);
@@ -284,7 +284,7 @@ export default function HomePage() {
       active: appointments.filter((item) => statusKind(item.status) === "active"),
       waiting: appointments.filter((item) => statusKind(item.status) === "waiting"),
     }));
-  }, [todayAppointments]);
+  })();
 
   const clinicalAlerts = useMemo(() => {
     const alerts: Row[] = [];
