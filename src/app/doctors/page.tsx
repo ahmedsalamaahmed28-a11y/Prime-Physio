@@ -24,7 +24,11 @@ import { supabase } from "@/lib/supabase";
 export default function DoctorsPage() {
   const [doctors, setDoctors] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [deleteDoctorEmail, setDeleteDoctorEmail] = useState<string | null>(null);\n  const [scheduleDoctor, setScheduleDoctor] = useState<any | null>(null);\n  const [scheduleRows, setScheduleRows] = useState<any[]>([]);\n  const [scheduleLoading, setScheduleLoading] = useState(false);\n  const [scheduleSaving, setScheduleSaving] = useState(false);
+  const [deleteDoctorEmail, setDeleteDoctorEmail] = useState<string | null>(null);
+  const [scheduleDoctor, setScheduleDoctor] = useState<any | null>(null);
+  const [scheduleRows, setScheduleRows] = useState<any[]>([]);
+  const [scheduleLoading, setScheduleLoading] = useState(false);
+  const [scheduleSaving, setScheduleSaving] = useState(false);
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
