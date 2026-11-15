@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import { Stethoscope, Calendar, Phone, Users, Trash2 } from "lucide-react";
+import { Stethoscope, Calendar, Phone, Users, Trash2, Clock } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +24,7 @@ import { supabase } from "@/lib/supabase";
 export default function DoctorsPage() {
   const [doctors, setDoctors] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [deleteDoctorEmail, setDeleteDoctorEmail] = useState<string | null>(null);
+  const [deleteDoctorEmail, setDeleteDoctorEmail] = useState<string | null>(null);\n  const [scheduleDoctor, setScheduleDoctor] = useState<any | null>(null);\n  const [scheduleRows, setScheduleRows] = useState<any[]>([]);\n  const [scheduleLoading, setScheduleLoading] = useState(false);\n  const [scheduleSaving, setScheduleSaving] = useState(false);
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
@@ -74,6 +74,55 @@ export default function DoctorsPage() {
   useEffect(() => {
     loadDoctors();
   }, []);
+
+  const weekdayLabels = isRtl
+    ? ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"]
+    : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  const openSchedule = async (doctor: any) => {
+    setScheduleDoctor(doctor);
+    setScheduleLoading(true);
+    setScheduleRows([]);
+    try {
+      const response = await fetch("/api/doctors/schedule?staffId=" + encodeURIComponent(doctor.id), { cache: "no-store" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "تعذر تحميل جدول الطبيب");
+      const saved = new Map((payload.schedule || []).map((row: any) => [Number(row.weekday), row]));
+      setScheduleRows(Array.from({ length: 7 }, (_, weekday) => {
+        const row: any = saved.get(weekday);
+        return { weekday, start_time: row?.start_time?.slice(0, 5) || "09:00", end_time: row?.end_time?.slice(0, 5) || "17:00", is_working: row ? row.is_working : false };
+      }));
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "تعذر تحميل جدول الطبيب");
+      setScheduleDoctor(null);
+    } finally {
+      setScheduleLoading(false);
+    }
+  };
+
+  const saveSchedule = async () => {
+    if (!scheduleDoctor) return;
+    setScheduleSaving(true);
+    try {
+      const response = await fetch("/api/doctors/schedule", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ staffId: scheduleDoctor.id, schedule: scheduleRows }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || "تعذر حفظ جدول الطبيب");
+      logAuditAction("UPDATE_DOCTOR_SCHEDULE", "STAFF_MANAGEMENT", "Updated working hours for " + scheduleDoctor.name);
+      setScheduleDoctor(null);
+    } catch (error) {
+      alert(error instanceof Error ? error.message : "تعذر حفظ جدول الطبيب");
+    } finally {
+      setScheduleSaving(false);
+    }
+  };
+
+  const updateScheduleRow = (weekday: number, patch: any) => {
+    setScheduleRows(rows => rows.map(row => row.weekday === weekday ? { ...row, ...patch } : row));
+  };
 
   const handleDeleteDoctorClick = (email: string) => {
     setDeleteDoctorEmail(email);
@@ -255,6 +304,40 @@ export default function DoctorsPage() {
               <Button type="submit" className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]">{isRtl ? "إضافة" : "Add"}</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Doctor weekly schedule modal */}
+      <Dialog open={scheduleDoctor !== null} onOpenChange={(open) => !open && !scheduleSaving && setScheduleDoctor(null)}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto" showCloseButton={!scheduleSaving}>
+          <DialogHeader>
+            <DialogTitle className={isRtl ? "text-right" : "text-left"}>{isRtl ? "جدول عمل الطبيب" : "Doctor Working Schedule"}</DialogTitle>
+            <DialogDescription className={isRtl ? "text-right" : "text-left"}>
+              {scheduleDoctor ? (isRtl ? "حدد أيام وساعات عمل " + getDoctorName(scheduleDoctor) + ". كل طبيب له جدول مستقل." : "Set individual working days and hours for " + getDoctorName(scheduleDoctor) + ".") : ""}
+            </DialogDescription>
+          </DialogHeader>
+          {scheduleLoading ? <div className="py-10 text-center text-sm text-slate-500">{isRtl ? "جاري تحميل الجدول..." : "Loading schedule..."}</div> : (
+            <div className="space-y-3 py-2">
+              <div className="grid grid-cols-[minmax(90px,1fr)_1fr_1fr] gap-2 px-1 text-[11px] font-bold text-slate-500">
+                <span>{isRtl ? "اليوم" : "Day"}</span><span>{isRtl ? "من" : "From"}</span><span>{isRtl ? "إلى" : "To"}</span>
+              </div>
+              {scheduleRows.map((row) => (
+                <div key={row.weekday} className="grid grid-cols-[minmax(90px,1fr)_1fr_1fr] items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 p-2">
+                  <label className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                    <input type="checkbox" checked={row.is_working} onChange={(e) => updateScheduleRow(row.weekday, { is_working: e.target.checked })} className="h-4 w-4 accent-indigo-600" />
+                    {weekdayLabels[row.weekday]}
+                  </label>
+                  <input type="time" value={row.start_time} disabled={!row.is_working} onChange={(e) => updateScheduleRow(row.weekday, { start_time: e.target.value })} className="h-9 min-w-0 rounded-lg border border-slate-200 bg-white px-2 text-sm disabled:opacity-40" />
+                  <input type="time" value={row.end_time} disabled={!row.is_working} onChange={(e) => updateScheduleRow(row.weekday, { end_time: e.target.value })} className="h-9 min-w-0 rounded-lg border border-slate-200 bg-white px-2 text-sm disabled:opacity-40" />
+                </div>
+              ))}
+              <p className="text-[11px] leading-5 text-slate-500">{isRtl ? "أزل علامة الاختيار من اليوم الذي لا يعمل فيه الطبيب. لن يؤثر حفظ الجدول على توزيع الحالات أو الجلسات القديمة." : "Uncheck days off. Saving this schedule does not change existing patient assignments or appointments."}</p>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" disabled={scheduleSaving} onClick={() => setScheduleDoctor(null)}>{isRtl ? "إلغاء" : "Cancel"}</Button>
+            <Button type="button" disabled={scheduleLoading || scheduleSaving || scheduleRows.length !== 7} onClick={saveSchedule} className="bg-indigo-700 text-white hover:bg-indigo-800">{scheduleSaving ? (isRtl ? "جاري الحفظ..." : "Saving...") : (isRtl ? "حفظ جدول العمل" : "Save Schedule")}</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
