@@ -619,3 +619,70 @@ details.ob2More[open]>summary h2::after{content:"–"}
   }
 }
 
+
+
+/* ── Responsive data tables: fit the available page width without inner scrolling ── */
+.overflow-x-auto:has(table),
+.overflow-y-auto:has(table),
+.overflow-auto:has(table),
+.overflow-scroll:has(table) {
+  width: 100%;
+  max-width: 100%;
+  overflow: visible !important;
+  overscroll-behavior: auto;
+}
+
+.overflow-x-auto:has(table) > table,
+.overflow-y-auto:has(table) > table,
+.overflow-auto:has(table) > table,
+.overflow-scroll:has(table) > table,
+table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0 !important;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+table :is(th, td) {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+  word-break: normal;
+  vertical-align: middle;
+}
+
+table :is(th, td) > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+table :is(button, a, select, input) {
+  max-width: 100%;
+  white-space: normal;
+}
+
+@media (max-width: 1024px) {
+  table :is(th, td) {
+    padding-inline: 0.65rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  table {
+    font-size: 0.7rem;
+  }
+
+  table :is(th, td) {
+    padding: 0.55rem 0.35rem !important;
+    line-height: 1.45;
+    font-size: inherit;
+  }
+
+  table :is(button, select, input) {
+    min-width: 0;
+    font-size: 0.68rem;
+    padding-inline: 0.35rem;
+  }
+}
