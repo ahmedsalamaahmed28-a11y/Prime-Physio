@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
-import CenterAdminPlaceholder from "@/components/CenterAdminPlaceholder";
 
 type Plan = {
   name: string;
@@ -88,7 +87,7 @@ export default function PlansPhpPage() {
   };
 
   return (
-    <CenterAdminPlaceholder>
+    <>
       <main dir="rtl" className="min-h-screen w-full bg-[#F8FAFC] px-3 pb-12 pt-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl space-y-8">
           <header className="text-center">
@@ -155,7 +154,7 @@ export default function PlansPhpPage() {
           </footer>
         </div>
       </main>
-    </CenterAdminPlaceholder>
+    </>
   );
 }
 
