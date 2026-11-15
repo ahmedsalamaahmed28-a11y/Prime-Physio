@@ -5,8 +5,8 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 import { useLanguage } from "@/lib/LanguageContext";
 import {
-  Bell, ShieldAlert, Activity, CalendarDays, Search, RefreshCw,
-  Megaphone, ClipboardList, CheckCheck, Inbox, Clock3, Filter,
+  Bell, ShieldAlert, Activity, Calendar, Search, RefreshCw,
+  FileText, Check, MessageSquare, Clock, Filter,
 } from "lucide-react";
 
 interface NotificationItem {
@@ -170,10 +170,10 @@ export default function NotificationsPage() {
   };
 
   const filterOptions: { key: FilterKey; ar: string; en: string; icon: any }[] = [
-    { key: "all", ar: "الكل", en: "All", icon: Inbox },
-    { key: "clinic", ar: "تنبيهات المركز", en: "Clinic", icon: CalendarDays },
-    { key: "broadcast", ar: "إعلانات النظام", en: "Announcements", icon: Megaphone },
-    { key: "audit", ar: "نشاط النظام", en: "Activity", icon: ClipboardList },
+    { key: "all", ar: "الكل", en: "All", icon: MessageSquare },
+    { key: "clinic", ar: "تنبيهات المركز", en: "Clinic", icon: Calendar },
+    { key: "broadcast", ar: "إعلانات النظام", en: "Announcements", icon: Bell },
+    { key: "audit", ar: "نشاط النظام", en: "Activity", icon: FileText },
   ];
 
   return (
@@ -220,7 +220,7 @@ export default function NotificationsPage() {
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <div><h2 className="font-extrabold text-slate-800">{isRtl ? "سجل الإشعارات" : "Notification history"}</h2><p className="mt-1 text-xs text-slate-400">{isRtl ? `عرض ${filtered.length} من ${notifications.length} إشعار` : `Showing ${filtered.length} of ${notifications.length} notifications`}</p></div>
-          <span className="hidden items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-emerald-700 sm:inline-flex"><CheckCheck size={14} />{isRtl ? "تم تحديث حالة القراءة" : "Read status synced"}</span>
+          <span className="hidden items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-emerald-700 sm:inline-flex"><Check size={14} />{isRtl ? "تم تحديث حالة القراءة" : "Read status synced"}</span>
         </div>
 
         {loading ? (
@@ -243,7 +243,7 @@ export default function NotificationsPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-extrabold text-slate-800">{title}</h3><span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${isBroadcast ? "bg-amber-50 text-amber-700" : isClinic ? "bg-emerald-50 text-emerald-700" : "bg-indigo-50 text-indigo-700"}`}>{isBroadcast ? (isRtl ? "إعلان" : "Announcement") : isClinic ? (isRtl ? "المركز" : "Clinic") : (isRtl ? "نشاط" : "Activity")}</span></div>
                     {details && <p className="mt-1.5 whitespace-pre-wrap break-words text-sm leading-6 text-slate-600">{details}</p>}
-                    <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><Clock3 size={12} />{formatDate(item.createdAt)}</p>
+                    <p className="mt-2 inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-400"><Clock size={12} />{formatDate(item.createdAt)}</p>
                   </div>
                 </article>
               );
