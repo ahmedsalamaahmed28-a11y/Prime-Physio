@@ -45,7 +45,7 @@ export default function PlansPhpPage() {
     const load = async () => {
       if (!user?.clinicId) return;
       const [{ data: subscription }, { data: clinic }] = await Promise.all([
-        supabase.from("subscriptions").select("plan_name").eq("clinic_id", user.clinicId).eq("status", "active").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("subscriptions").select("plan_name").eq("clinic_id", user.clinicId).eq("status", "active").or("end_date.is.null,end_date.gt." + new Date().toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle(),
         supabase.from("clinics").select("phone").eq("id", user.clinicId).maybeSingle(),
       ]);
       if (!alive) return;
