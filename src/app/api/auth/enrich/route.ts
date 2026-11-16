@@ -73,8 +73,21 @@ export async function GET(req: NextRequest) {
       (typeof accountProfile?.name === "string" && accountProfile.name.trim()) ||
       "";
 
-    // Platform administration is intentionally not assigned through ordinary clinic accounts.
-    // The future platform-admin login will use a separate authentication entry point.
+    // Platform administration is granted only through the server-managed allowlist.
+    // Platform administrators do not need to belong to a clinic.
+    const { data: platformAdmin, error: platformAdminError } = await admin
+      .from("platform_admins").select("email").eq("email", email).maybeSingle();
+    if (platformAdminError) {
+      console.error("[AuthEnrich] Platform-admin lookup failed", { code: platformAdminError.code });
+      return NextResponse.json({ error: "Unable to verify platform permissions" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
+    }
+    if (platformAdmin) {
+      return NextResponse.json({
+        clinicId: null, displayName, role: "platform_admin", roleKey: "platform_admin",
+        roleAr: "مدير المنصة", roleEn: "Platform Admin",
+        shortName: null, logoUrl: null, isPlatformAdmin: true,
+      }, { headers: { "Cache-Control": "no-store, private" } });
+    }
 
     if (preferredClinicId) {
       const { data: activeClinic, error: clinicError } = await admin
