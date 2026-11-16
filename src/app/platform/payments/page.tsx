@@ -9,7 +9,7 @@ import { DollarSign, Loader2, CheckCircle, XCircle, Save, ExternalLink, RefreshC
 type PaymentRequest = {
   id: string; clinicName: string; clinicEmail: string; plan_code: string;
   billing_period: string; amount: number; payment_method: string;
-  transfer_reference: string; receiptUrl: string | null; status: string; created_at: string;
+  transfer_reference: string; platform_reference: string; receiptUrl: string | null; status: string; created_at: string;
 };
 type PaymentSettings = {
   instapay_phone: string; instapay_account: string; instapay_link: string;
@@ -141,14 +141,14 @@ export default function PlatformPaymentsPage() {
           requests.length === 0 ? <div className="py-16 text-center text-sm text-slate-400">لا توجد طلبات دفع حتى الآن.</div> :
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-right text-sm text-slate-600">
-              <thead className="bg-slate-50 text-xs text-slate-500"><tr><th className="px-4 py-3">التاريخ</th><th className="px-4 py-3">المركز / البريد</th><th className="px-4 py-3">الباقة والفترة</th><th className="px-4 py-3">المبلغ</th><th className="px-4 py-3">طريقة الدفع والمرجع</th><th className="px-4 py-3">الإيصال</th><th className="px-4 py-3">الحالة والإجراء</th></tr></thead>
+              <thead className="bg-slate-50 text-xs text-slate-500"><tr><th className="px-4 py-3">التاريخ</th><th className="px-4 py-3">المركز / البريد</th><th className="px-4 py-3">الباقة والفترة</th><th className="px-4 py-3">المبلغ</th><th className="px-4 py-3">طريقة الدفع ورقم العملية</th><th className="px-4 py-3">الإيصال</th><th className="px-4 py-3">الحالة والإجراء</th></tr></thead>
               <tbody className="divide-y divide-slate-100">
                 {requests.map((r) => <tr key={r.id}>
                   <td className="whitespace-nowrap px-4 py-4 text-xs" dir="ltr">{new Date(r.created_at).toLocaleString("ar-EG")}</td>
                   <td className="px-4 py-4"><b className="block text-slate-800">{r.clinicName}</b><span className="text-xs" dir="ltr">{r.clinicEmail}</span></td>
                   <td className="px-4 py-4"><b className="block uppercase text-slate-800">{r.plan_code}</b><span className="text-xs">{r.billing_period === "yearly" ? "سنوي" : "شهري"}</span></td>
                   <td className="whitespace-nowrap px-4 py-4 font-extrabold text-slate-800">{Number(r.amount).toLocaleString("en-EG")} ج.م</td>
-                  <td className="px-4 py-4"><b className="block text-slate-800">{r.payment_method === "instapay" ? "InstaPay" : "Vodafone Cash"}</b><span className="font-mono text-xs" dir="ltr">{r.transfer_reference}</span></td>
+                  <td className="px-4 py-4"><b className="block text-slate-800">{r.payment_method === "instapay" ? "InstaPay" : "Vodafone Cash"}</b><span className="font-mono text-xs font-bold" dir="ltr">{r.platform_reference || r.transfer_reference}</span></td>
                   <td className="px-4 py-4">{r.receiptUrl ? <a href={r.receiptUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 rounded-lg bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-700"><ExternalLink size={14}/> فتح الإيصال</a> : <span className="text-xs text-slate-400">غير متاح</span>}</td>
                   <td className="px-4 py-4">
                     {r.status === "pending" ? <div className="flex flex-col gap-2"><span className="text-xs font-bold text-amber-600">قيد المراجعة</span><button disabled={busyId === r.id} onClick={() => void reviewRequest(r.id, "approve")} className="rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white disabled:opacity-50">{busyId === r.id ? "جارٍ التنفيذ..." : "تأكيد التحويل"}</button><button disabled={busyId === r.id} onClick={() => void reviewRequest(r.id, "reject")} className="rounded-lg border border-red-200 px-3 py-2 text-xs font-bold text-red-600 disabled:opacity-50">رفض الطلب</button></div> :
