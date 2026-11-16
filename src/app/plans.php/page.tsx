@@ -220,7 +220,7 @@ export default function PlansPhpPage() {
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <div className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-xl border border-[#E7DDF8] bg-white px-2 py-2 shadow-sm">
-                    <img src="https://play-lh.googleusercontent.com/_ks0_XUbrZOkeiXkjaiZEK1S-j1skuQgF1E8S3ff702CoVyaiGnbfXPK74WjgxMk0Q4v2hlhu8WTHxp52Wq0" alt="" aria-hidden="true" className="h-7 w-[58px] shrink-0 object-contain" />
+                    <img src="https://play-lh.googleusercontent.com/_ks0_XUbrZOkeiXkjaiZEK1S-j1skuQgF1E8S3ff702CoVyaiGnbfXPK74WjgxMk0Q4v2hlhu8WTHxp52Wq0" alt="" aria-hidden="true" className="h-9 w-[76px] shrink-0 object-contain" />
                     <span className="text-center text-xs font-extrabold leading-tight text-[#542875]">InstaPay</span>
                   </div>
                   <div className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-xl border border-[#F2DADA] bg-white px-2 py-2 shadow-sm">
