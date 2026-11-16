@@ -271,7 +271,9 @@ function SignupPageContent() {
       const requestedPlan = new URLSearchParams(window.location.search).get("plan") || "free";
       const allowedPlans = new Set(["free", "essential", "medium", "advanced", "maximum"]);
       const nextPlan = allowedPlans.has(requestedPlan) ? requestedPlan : "free";
-      window.location.href = `/my-centers/create?plan=${encodeURIComponent(nextPlan)}`;
+      const requestedPeriod = new URLSearchParams(window.location.search).get("period") || "monthly";
+      const nextPeriod = requestedPeriod === "yearly" ? "yearly" : "monthly";
+      window.location.href = `/my-centers/create?plan=${encodeURIComponent(nextPlan)}&period=${nextPeriod}`;
     } catch (err) {
       setOtpStatus("invalid");
       if (!automatic) {
