@@ -50,9 +50,11 @@ const CENTER_COUNTRIES: CenterCountry[] = [
 ];
 
 const plans = [
-  { id: "basic", nameAr: "الأساسية", nameEn: "Basic", price: "0", priceLabelAr: "مجانًا", priceLabelEn: "Free", descriptionAr: "مجانية — لا تحتاج إلى بطاقة دفع", descriptionEn: "Free — no payment card required" },
-  { id: "silver", nameAr: "الفضية", nameEn: "Silver", price: "1000", priceLabelAr: "1,000 جنيه / شهريًا", priceLabelEn: "EGP 1,000 / month", descriptionAr: "للمراكز النامية", descriptionEn: "For growing centers" },
-  { id: "gold", nameAr: "الذهبية", nameEn: "Gold", price: "1500", priceLabelAr: "1,500 جنيه / شهريًا", priceLabelEn: "EGP 1,500 / month", descriptionAr: "للمراكز الكبيرة", descriptionEn: "For larger centers" },
+  { id: "free", nameAr: "المجانية", nameEn: "Free", monthly: 0, yearly: 0, descriptionAr: "للبدء وتنظيم مركزك.", descriptionEn: "Start and organize your center." },
+  { id: "essential", nameAr: "الأساسية", nameEn: "Essential", monthly: 750, yearly: 7500, descriptionAr: "لمركز ينمو بفريق أكبر.", descriptionEn: "For a growing center and larger team." },
+  { id: "medium", nameAr: "المتوسطة", nameEn: "Medium", monthly: 1500, yearly: 15000, descriptionAr: "للمراكز متعددة الفروع.", descriptionEn: "For centers managing multiple branches." },
+  { id: "advanced", nameAr: "المتقدمة", nameEn: "Advanced", monthly: 3000, yearly: 30000, descriptionAr: "للفرق الكبيرة والمراكز المتعددة.", descriptionEn: "For large teams and multi-center operations." },
+  { id: "maximum", nameAr: "القصوى", nameEn: "Maximum", monthly: 7500, yearly: 75000, descriptionAr: "لشبكات المراكز والعمليات الكبيرة.", descriptionEn: "For clinic networks and large-scale operations." },
 ];
 
 export default function CreateCenterPage() {
@@ -63,7 +65,8 @@ export default function CreateCenterPage() {
   const { language, toggleLanguage } = useLanguage();
   const isRtl = language === "ar";
   const displayName = user?.name?.replace(/^د\\.\\s*/, "").trim() || user?.email?.split("@")[0] || (isRtl ? "صاحب الحساب" : "Account owner");
-  const [planId, setPlanId] = useState("basic");
+  const [planId, setPlanId] = useState("free");
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
   const [step, setStep] = useState<"plan" | "details">("details");
   const [showMore, setShowMore] = useState(false);
   const [phoneCountryCode, setPhoneCountryCode] = useState("EG");
@@ -118,6 +121,11 @@ export default function CreateCenterPage() {
 
   useEffect(() => () => { if (logoPreview) URL.revokeObjectURL(logoPreview); }, [logoPreview]);
 
+  useEffect(() => {
+    const requestedPlan = new URLSearchParams(window.location.search).get("plan") || "free";
+    if (plans.some((plan) => plan.id === requestedPlan)) setPlanId(requestedPlan);
+  }, []);
+
   const normalizeSlug = (value: string) =>
     value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
@@ -148,8 +156,13 @@ export default function CreateCenterPage() {
       setError(isRtl ? "يرجى إدخال اسم المركز." : "Please enter the center name.");
       return;
     }
+    if (planId !== "free" && !phone.trim()) {
+      setShowMore(true);
+      setError(isRtl ? "أدخل رقم هاتف المركز لإتمام الدفع." : "Enter the center phone number to continue to payment.");
+      return;
+    }
     setCreating(true);
-    if (planId === "basic") {
+    if (planId === "free") {
       setCreationProgress(0);
       setShowCreationProgress(true);
     }
@@ -188,47 +201,48 @@ export default function CreateCenterPage() {
         throw new Error(data.error || "Center creation failed");
       }
 
-      if (planId === "basic") {
-        // Center provisioning also creates the verified owner membership.
-        setCreationProgress(1);
-        await new Promise((resolve) => window.setTimeout(resolve, 550));
-        setCreationProgress(2);
-        const subscribeResponse = await fetch("/api/subscribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ clinicId: data.clinicId, planId: "basic" }),
-        });
-        const subscribeData = await subscribeResponse.json().catch(() => ({}));
-        if (!subscribeResponse.ok) throw new Error(subscribeData.error || "The center was created, but the free plan could not be activated.");
-        await activateCenterSession(data.clinicId);
+      await activateCenterSession(data.clinicId);
+
+      const subscribeResponse = await fetch("/api/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ clinicId: data.clinicId, planId: "free" }),
+      });
+      const subscribeData = await subscribeResponse.json().catch(() => ({}));
+      if (!subscribeResponse.ok) {
+        throw new Error(subscribeData.error || "The center was created, but the free fallback plan could not be activated.");
+      }
+
+      if (planId === "free") {
         setCreationProgress(3);
         window.setTimeout(() => router.replace("/dashboard"), 900);
         return;
       }
 
-      const paymentResponse = await fetch("/api/paymob/create-order", {
+      const phoneNumber = `+${selectedPhoneCountry.dial}${phone.trim().replace(/[^0-9]/g, "").replace(/^0+/, "")}`;
+      const nameParts = (user.name || user.email.split("@")[0]).trim().split(/\\s+/);
+      const paymentResponse = await fetch("/api/subscription/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           planId,
-          billingPeriod: "monthly",
+          billingPeriod,
           billingData: {
-            first_name: user.name || "Prime",
-            last_name: "Physio",
+            first_name: nameParts[0] || "Prime",
+            last_name: nameParts.slice(1).join(" ") || "Physio",
             email: user.email,
+            phone_number: phoneNumber,
             city: "Cairo",
             state: "Cairo",
-            country: "EG",
           },
         }),
       });
       const paymentData = await paymentResponse.json().catch(() => ({}));
-      if (!paymentResponse.ok || !paymentData.iframeUrl) {
-        throw new Error(paymentData.error || "Center created, but payment setup failed. You can retry from the center subscription page.");
+      if (!paymentResponse.ok || !paymentData.checkoutUrl) {
+        throw new Error(paymentData.error || "The center is ready on the Free plan. Retry the paid upgrade from the subscription page.");
       }
-      setCreatedSlug(data.slug);
-      setPaymentUrl(paymentData.iframeUrl);
-      setNotice(isRtl ? "تم إنشاء المركز. أكمل الدفع لتفعيل الباقة." : "The center was created. Complete payment to activate the plan.");
+      window.location.assign(paymentData.checkoutUrl);
+      return;
     } catch (createError) {
       setShowCreationProgress(false);
       setError(createError instanceof Error ? createError.message : "Center creation failed");
@@ -378,6 +392,33 @@ export default function CreateCenterPage() {
               </div>
               <span className="mt-1 block text-xs font-normal text-slate-400">{isRtl ? "استخدم أحرفًا إنجليزية صغيرة وأرقامًا وشرطة فقط." : "Use lowercase English letters, numbers and hyphens only."}</span>
             </label>
+          </section>
+
+          <section className="border-t border-slate-100 pt-5">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-base font-extrabold text-slate-800">{isRtl ? "اختر باقة المركز" : "Choose your center plan"}</h2>
+                <p className="mt-1 text-xs text-slate-500">{isRtl ? "يمكنك ترقية الباقة لاحقًا دون فقد بيانات المركز." : "You can upgrade later without losing center data."}</p>
+              </div>
+              <div className="flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1">
+                <button type="button" onClick={() => setBillingPeriod("monthly")} className={`rounded-full px-3 py-1.5 text-xs font-bold ${billingPeriod === "monthly" ? "bg-[#5B50C7] text-white" : "text-slate-600"}`}>{isRtl ? "شهري" : "Monthly"}</button>
+                <button type="button" onClick={() => setBillingPeriod("yearly")} className={`rounded-full px-3 py-1.5 text-xs font-bold ${billingPeriod === "yearly" ? "bg-[#5B50C7] text-white" : "text-slate-600"}`}>{isRtl ? "سنوي" : "Yearly"}</button>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              {plans.map((plan) => {
+                const selected = planId === plan.id;
+                const price = billingPeriod === "yearly" ? plan.yearly : plan.monthly;
+                return (
+                  <button key={plan.id} type="button" aria-pressed={selected} onClick={() => setPlanId(plan.id)} className={`rounded-2xl border p-4 text-start transition ${selected ? "border-[#5B50C7] bg-[#F7F5FF] ring-2 ring-[#5B50C7]/10" : "border-slate-200 bg-white hover:border-[#A9A2E6]"}`}>
+                    <span className="flex items-center justify-between gap-2"><b className="text-sm text-[#153B60]">{isRtl ? plan.nameAr : plan.nameEn}</b><span className={`h-4 w-4 rounded-full border-2 ${selected ? "border-[#5B50C7] bg-[#5B50C7] ring-2 ring-white" : "border-slate-300"}`} /></span>
+                    <strong className="mt-2 block text-xl font-black text-[#5B50C7]">{price === 0 ? (isRtl ? "مجانًا" : "Free") : price.toLocaleString(isRtl ? "ar-EG" : "en-EG") + (isRtl ? " ج.م" : " EGP")}</strong>
+                    <span className="mt-1 block text-[11px] text-slate-500">{price === 0 ? (isRtl ? "بدون بطاقة دفع" : "No payment card") : isRtl ? (billingPeriod === "yearly" ? "سنويًا · 12 شهرًا بسعر 10" : "شهريًا") : (billingPeriod === "yearly" ? "Yearly · 12 months for 10" : "Monthly")}</span>
+                    <span className="mt-2 block text-[11px] leading-5 text-slate-500">{isRtl ? plan.descriptionAr : plan.descriptionEn}</span>
+                  </button>
+                );
+              })}
+            </div>
           </section>
 
           <section className="border-t border-slate-100 pt-4">
