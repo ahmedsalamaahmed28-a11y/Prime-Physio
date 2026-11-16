@@ -6,6 +6,32 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+
+export async function GET(req: NextRequest) {
+  try {
+    const user = await requireAuthOnly(req);
+    const clinicId = user.clinicId;
+    if (!clinicId) return NextResponse.json({ plan_name: "free" });
+    const admin = getAdminClient();
+    const email = user.email.toLowerCase().trim();
+    const { data: owner, error: ownerError } = await admin.from("clinic_owners")
+      .select("clinic_id").eq("clinic_id", clinicId).eq("owner_email", email).maybeSingle();
+    if (ownerError || !owner) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    const { data: subscription, error } = await admin.from("subscriptions")
+      .select("plan_name,status,end_date").eq("clinic_id", clinicId).eq("status", "active")
+      .order("created_at", { ascending: false }).limit(1).maybeSingle();
+    if (error) throw error;
+    if (!subscription || (subscription.end_date && new Date(subscription.end_date).getTime() <= Date.now())) {
+      return NextResponse.json({ plan_name: "free" }, { headers: { "Cache-Control": "no-store, private" } });
+    }
+    return NextResponse.json({ plan_name: subscription.plan_name }, { headers: { "Cache-Control": "no-store, private" } });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    const status = /unauthorized/i.test(message) ? 401 : 500;
+    return NextResponse.json({ error: status === 401 ? "Unauthorized" : "Unable to load subscription" }, { status });
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const user = await requireAuthOnly(req);
