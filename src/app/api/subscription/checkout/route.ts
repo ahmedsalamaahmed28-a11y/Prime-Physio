@@ -76,8 +76,8 @@ export async function POST(request: NextRequest) {
     const hmacSecret = process.env.PAYMOB_HMAC_SECRET || "";
     const integrationId = Number(process.env.PAYMOB_INTEGRATION_ID || "");
     const mode = (process.env.PAYMOB_MODE || "").toLowerCase();
-    const secretMode = secretKey.startsWith("sk_test_") ? "test" : secretKey.startsWith("sk_live_") ? "live" : "";
-    const publicMode = publicKey.startsWith("pk_test_") ? "test" : publicKey.startsWith("pk_live_") ? "live" : "";
+    const secretMode = secretKey.startsWith("egy_sk_test_") || secretKey.startsWith("sk_test_") ? "test" : secretKey.startsWith("egy_sk_live_") || secretKey.startsWith("sk_live_") ? "live" : "";
+    const publicMode = publicKey.startsWith("egy_pk_test_") || publicKey.startsWith("pk_test_") ? "test" : publicKey.startsWith("egy_pk_live_") || publicKey.startsWith("pk_live_") ? "live" : "";
     if (!secretKey || !publicKey || !hmacSecret || !Number.isSafeInteger(integrationId) || integrationId <= 0
       || !["test", "live"].includes(mode) || secretMode !== mode || publicMode !== mode) {
       return NextResponse.json(
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const siteUrl = (process.env.NEXT_PUBLIC_BASE_URL || request.nextUrl.origin).replace(/\/$/, "");
+    const siteUrl = request.nextUrl.origin.replace(/\/$/, "");
     const baseUrl = "https://accept.paymob.com";
     const { data: paymentOrder, error: orderError } = await admin
       .from("subscription_payment_orders")
