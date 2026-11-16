@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowUpLeft, HardDrive, Users } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Database, Users } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 
 type Quota = {
@@ -69,7 +69,7 @@ export default function SubscriptionUsageAlerts({ clinicId }: { clinicId?: strin
       {
         id: "storage",
         label: isRtl ? "مساحة التخزين" : "Storage",
-        icon: HardDrive,
+        icon: Database,
         current: Number(usage.storage?.current || 0),
         limit: Number(usage.storage?.limit ?? -1),
         remaining: Number(usage.storage?.remaining ?? 0),
@@ -143,7 +143,7 @@ export default function SubscriptionUsageAlerts({ clinicId }: { clinicId?: strin
         </p>
         <Link href="/subscription" className="inline-flex items-center gap-1 rounded-lg bg-[#5B50C7] px-3 py-2 text-xs font-bold text-white transition hover:bg-[#493FB0]">
           {isRtl ? "مراجعة الباقة والترقية" : "Review plan & upgrade"}
-          <ArrowUpLeft size={14} />
+          <ArrowLeft size={14} />
         </Link>
       </div>
     </section>
