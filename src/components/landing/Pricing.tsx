@@ -195,7 +195,7 @@ export default function Pricing() {
                   <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{isEnglish ? plan.backupEn : plan.backupAr}</span></li>
                   <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{isEnglish ? "Export clinic data to Excel at any time" : "تصدير بيانات المركز إلى Excel في أي وقت"}</span></li>
                 </ul>
-                <Link href="/rgstr.php" className={"mt-5 flex min-h-11 w-full items-center justify-center rounded-xl px-3 py-2 text-center text-sm font-extrabold transition " + (plan.featured ? "bg-[#5B50C7] text-white shadow-sm hover:bg-[#493FB0]" : "border border-slate-200 text-[#153B60] hover:border-[#5B50C7] hover:text-[#5B50C7]")}>
+                <Link href={`/rgstr.php?plan=${encodeURIComponent(plan.id)}`} className={"mt-5 flex min-h-11 w-full items-center justify-center rounded-xl px-3 py-2 text-center text-sm font-extrabold transition " + (plan.featured ? "bg-[#5B50C7] text-white shadow-sm hover:bg-[#493FB0]" : "border border-slate-200 text-[#153B60] hover:border-[#5B50C7] hover:text-[#5B50C7]")}>
                   {isEnglish ? (plan.id === "free" ? "Start for free" : "Choose plan") : (plan.id === "free" ? "ابدأ مجانًا" : "ترقية الباقة")}
                 </Link>
               </article>
