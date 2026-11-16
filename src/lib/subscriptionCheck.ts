@@ -109,12 +109,24 @@ export async function checkSubscriptionLimit(
     }
     limit = Number(limits.max_centers);
   } else if (resource === "storage") {
-    const { data, error } = await admin
-      .from("patient_attachments")
-      .select("file_size")
-      .eq("clinic_id", clinicId);
-    if (error) throw error;
-    current = (data || []).reduce((sum, row) => sum + Number(row.file_size || 0), 0);
+    // Read in stable pages so clinics with more than the API's default row limit
+    // are not shown an artificially low storage total.
+    const pageSize = 1000;
+    let offset = 0;
+    let hasMore = true;
+    while (hasMore) {
+      const { data, error } = await admin
+        .from("patient_attachments")
+        .select("id,file_size")
+        .eq("clinic_id", clinicId)
+        .order("id", { ascending: true })
+        .range(offset, offset + pageSize - 1);
+      if (error) throw error;
+      const rows = data || [];
+      current += rows.reduce((sum, row) => sum + Number(row.file_size || 0), 0);
+      hasMore = rows.length === pageSize;
+      offset += rows.length;
+    }
     limit = Number(limits.max_storage_bytes);
   }
 
