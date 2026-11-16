@@ -122,8 +122,11 @@ export default function CreateCenterPage() {
   useEffect(() => () => { if (logoPreview) URL.revokeObjectURL(logoPreview); }, [logoPreview]);
 
   useEffect(() => {
-    const requestedPlan = new URLSearchParams(window.location.search).get("plan") || "free";
+    const params = new URLSearchParams(window.location.search);
+    const requestedPlan = params.get("plan") || "free";
+    const requestedPeriod = params.get("period") || "monthly";
     if (plans.some((plan) => plan.id === requestedPlan)) setPlanId(requestedPlan);
+    if (requestedPeriod === "yearly") setBillingPeriod("yearly");
   }, []);
 
   const normalizeSlug = (value: string) =>
