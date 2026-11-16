@@ -219,13 +219,13 @@ export default function PlansPhpPage() {
                   <span className="text-[9px] font-semibold text-slate-400">دفع مباشر</span>
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
-                  <div className="flex min-h-[58px] items-center justify-center gap-2 rounded-xl border border-[#E7DDF8] bg-white px-2 py-2.5 shadow-sm">
-                    <img src="/instapay-user.svg" alt="InstaPay" className="h-12 w-full max-w-[112px] shrink-0 object-contain" />
-                    
+                  <div className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-xl border border-[#E7DDF8] bg-white px-2 py-2 shadow-sm">
+                    <img src="/instapay-user.svg" alt="" aria-hidden="true" className="h-7 w-[58px] shrink-0 object-contain" />
+                    <span className="text-center text-xs font-extrabold leading-tight text-[#542875]">InstaPay</span>
                   </div>
-                  <div className="flex min-h-[58px] items-center justify-center gap-2 rounded-xl border border-[#F2DADA] bg-white px-2 py-2.5 shadow-sm">
-                    <img src="/vodafone-cash-user.svg" alt="Vodafone Cash" className="h-12 w-full max-w-[112px] shrink-0 object-contain" />
-                    
+                  <div className="flex min-h-[68px] flex-col items-center justify-center gap-1.5 rounded-xl border border-[#F2DADA] bg-white px-2 py-2 shadow-sm">
+                    <img src="/vodafone-cash-user.svg" alt="" aria-hidden="true" className="h-7 w-[58px] shrink-0 object-contain" />
+                    <span className="text-center text-xs font-extrabold leading-tight text-[#E60028]">Vodafone Cash</span>
                   </div>
                 </div>
               </div>
