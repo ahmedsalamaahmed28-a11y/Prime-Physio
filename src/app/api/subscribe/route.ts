@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     // by the verified Paymob callback after checking its HMAC signature.
     if (body?.planId !== "free") {
       return NextResponse.json(
-        { error: "Paid subscriptions must be activated through verified payment" },
+        { error: "Paid subscriptions must be submitted for manual payment review" },
         { status: 403 }
       );
     }
