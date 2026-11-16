@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Check, Crown, CreditCard, ShieldCheck, Download, Loader2, AlertCircle } from "lucide-react";
+import { Check, Crown, ShieldCheck, Download, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
@@ -34,8 +34,6 @@ export default function PlansPhpPage() {
   const { user } = useAuth();
   const [activePlan, setActivePlan] = useState("free");
   const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
-  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
-  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -58,8 +56,6 @@ export default function PlansPhpPage() {
     void load();
     return () => { alive = false; };
   }, [user?.clinicId]);
-
-  const selectedPrice = useMemo(() => selectedPlan ? (billingPeriod === "yearly" ? selectedPlan.yearly : selectedPlan.monthly) : 0, [selectedPlan, billingPeriod]);
 
   const choosePlan = async (plan: Plan) => {
     setError("");
@@ -88,44 +84,9 @@ export default function PlansPhpPage() {
       }
       return;
     }
-    setSelectedPlan(plan);
+    setNotice("سيتم إتاحة الدفع والتحويل عبر InstaPay قريبًا. لم يتم بدء أي عملية دفع أو تفعيل باقة مدفوعة.");
   };
 
-  const startPayment = async () => {
-    if (!selectedPlan || !user?.email) return;
-    const normalizedPhone = phone.trim().replace(/[\s()-]/g, "");
-    if (!/^\+[1-9]\d{6,14}$/.test(normalizedPhone)) {
-      setError("أدخل رقم هاتف صحيحًا بالصيغة الدولية، مثل +201001234567.");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const nameParts = (user.name || user.email.split("@")[0]).trim().split(/\s+/);
-      const response = await fetch("/api/subscription/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          planId: selectedPlan.code,
-          billingPeriod,
-          billingData: {
-            first_name: nameParts[0] || "Prime",
-            last_name: nameParts.slice(1).join(" ") || "Physio",
-            email: user.email,
-            phone_number: normalizedPhone,
-            city: "Cairo",
-            state: "Cairo",
-          },
-        }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.checkoutUrl) throw new Error(data.error || "تعذر بدء الدفع.");
-      window.location.assign(data.checkoutUrl);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "تعذر بدء الدفع.");
-      setLoading(false);
-    }
-  };
 
   return (
     <main dir="rtl" className="min-h-screen w-full bg-[#F8FAFC] px-3 pb-12 pt-5 sm:px-6 lg:px-8">
@@ -133,7 +94,7 @@ export default function PlansPhpPage() {
         <header className="text-center">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#E4E1FA] bg-[#F1EFFF] px-3 py-1.5 text-xs font-bold text-[#5B50C7]"><Crown size={15} /> خطط تناسب نمو مركزك</div>
           <h1 className="text-3xl font-extrabold tracking-tight text-[#153B60] sm:text-4xl">الباقات الرسمية لـ Prime Physio</h1>
-          <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">اختر الباقة والفترة، وتُفعّل الباقة المدفوعة بعد تأكيد Paymob الآمن فقط. لا يوجد تجديد تلقائي.</p>
+          <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">اختر الباقة والفترة المناسبة. الدفع للباقات المدفوعة سيكون عن طريق التحويل عبر InstaPay بعد إضافة بيانات التحويل لاحقًا.</p>
           <p className="mt-2 text-sm font-bold text-[#5B50C7]">باقتك الحالية: {plans.find((p) => p.code === activePlan)?.name || "المجانية"}</p>
         </header>
 
@@ -166,28 +127,13 @@ export default function PlansPhpPage() {
                   <li className="flex items-start gap-2"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{plan.backup}</span></li>
                   <li className="flex items-start gap-2"><Download size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>تصدير بياناتك إلى Excel</span></li>
                 </ul>
-                <button type="button" disabled={current || loading || !user?.clinicId} onClick={() => void choosePlan(plan)} className={`mt-5 flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-60 ${current ? "bg-emerald-50 text-emerald-700" : "bg-[#5B50C7] text-white hover:bg-[#493FB0]"}`}>
-                  {loading ? <Loader2 size={17} className="animate-spin" /> : current ? "الباقة الحالية" : plan.code === "free" ? "اختيار المجانية" : "ترقية الباقة"}
+                <button type="button" disabled={current || loading || !user?.clinicId || plan.code !== "free"} onClick={() => void choosePlan(plan)} className={`mt-5 flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-60 ${current ? "bg-emerald-50 text-emerald-700" : "bg-[#5B50C7] text-white hover:bg-[#493FB0]"}`}>
+                  {loading ? <Loader2 size={17} className="animate-spin" /> : current ? "الباقة الحالية" : plan.code === "free" ? "اختيار المجانية" : "قريبًا عبر InstaPay"}
                 </button>
               </article>
             );
           })}
         </section>
-
-        {selectedPlan && (
-          <section className="mx-auto w-full max-w-xl rounded-2xl border border-[#DCD8F7] bg-white p-5 shadow-sm sm:p-7">
-            <h2 className="text-lg font-extrabold text-[#153B60]">إتمام طلب باقة {selectedPlan.name}</h2>
-            <p className="mt-2 text-sm text-slate-600">القيمة المستحقة: <b className="text-[#5B50C7]">{selectedPrice.toLocaleString("en-EG")} جنيه مصري</b> · {billingPeriod === "yearly" ? "سنوي" : "شهري"}</p>
-            <label className="mt-5 block text-sm font-bold text-slate-700">رقم الهاتف للتوثيق لدى بوابة الدفع
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" dir="ltr" placeholder="+201001234567" className="mt-2 h-12 w-full rounded-xl border border-slate-200 px-3 text-left outline-none focus:border-[#5B50C7] focus:ring-4 focus:ring-[#5B50C7]/10" />
-            </label>
-            <p className="mt-2 text-xs leading-5 text-slate-500">لن يتم تفعيل الباقة إلا بعد التحقق من إشعار الدفع الموقّع من Paymob. الرجوع من صفحة الدفع وحده لا يفعّل الاشتراك.</p>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <button type="button" onClick={() => void startPayment()} disabled={loading} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#5B50C7] px-4 text-sm font-extrabold text-white hover:bg-[#493FB0] disabled:opacity-60">{loading ? <Loader2 size={17} className="animate-spin" /> : <CreditCard size={17} />} متابعة الدفع</button>
-              <button type="button" onClick={() => setSelectedPlan(null)} disabled={loading} className="h-11 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
-            </div>
-          </section>
-        )}
 
         <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="border-b border-slate-100 px-5 py-5"><h2 className="text-xl font-extrabold text-[#153B60]">مقارنة حدود الباقات</h2></div>
@@ -203,8 +149,8 @@ export default function PlansPhpPage() {
           <h2 className="mb-2 font-extrabold text-[#153B60]">معلومات مهمة عن الاشتراك</h2>
           <ul className="list-disc space-y-1 pr-5">
             <li>الأسعار بالجنيه المصري، والسعر السنوي يساوي قيمة 10 أشهر مقابل 12 شهرًا.</li>
-            <li>الاشتراك لا يتجدد تلقائيًا؛ التجديد يتم بعملية دفع جديدة.</li>
-            <li>تأكيد الدفع يتم من إشعار Paymob الموقّع، وليس من صفحة الرجوع للمتصفح.</li>
+            <li>لا يتم تفعيل أي باقة مدفوعة إلا بعد مراجعة التحويل وتأكيده من الإدارة.</li>
+            <li>سيتم إضافة بيانات التحويل عبر InstaPay وخطوات إرسال إثبات الدفع لاحقًا.</li>
             <li>ترقية الباقة تُطبّق بعد نجاح الدفع، وتظل بيانات المركز محفوظة.</li>
           </ul>
         </section>
