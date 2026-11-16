@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
 
     if (!clinicId || !PRICES[planCode] || !["monthly", "yearly"].includes(billingPeriod) ||
         !["instapay", "vodafone_cash"].includes(paymentMethod) ||
-        !/^PP-\\d{8}-[A-F0-9]{8}$/.test(platformReference) ||
+        !/^PP-\d{8}-[A-F0-9]{8}$/.test(platformReference) ||
         !(receipt instanceof File)) {
       return NextResponse.json({ error: "أكمل بيانات التحويل وأرفق صورة الإيصال أو ملف PDF." }, { status: 400 });
     }
