@@ -475,7 +475,7 @@ export default function HomePage() {
             </div>
           </section>
 
-          <SubscriptionUsageAlerts clinicId={clinicId} />
+          <SubscriptionUsageAlerts clinicId={clinicId || undefined} />
 
           <section className="pp-stitch-kpis">
             <article className="pp-stitch-kpi">
