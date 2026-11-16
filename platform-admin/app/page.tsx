@@ -25,10 +25,9 @@ export default function Home() {
   const token = session?.access_token || "";
   async function load(currentToken=token) {
     if (!currentToken) return;
-    const res=await fetch("/api/admin/overview",{headers:{Authorization:"Bearer "+currentToken},cache:"no-store"});
-    const json=await res.json();
-    if(!res.ok) throw new Error(json.error||"Unable to load dashboard");
-    setData(json);
+    const {data:json,error:invokeError}=await supabase.functions.invoke("platform-admin",{body:{action:"overview"},headers:{Authorization:"Bearer "+currentToken}});
+    if(invokeError || json?.error) throw new Error(json?.error || invokeError?.message || "Unable to load dashboard");
+    setData(json as Dashboard);
   }
   useEffect(()=>{
     supabase.auth.getSession().then(({data})=>setSession(data.session));
@@ -47,17 +46,15 @@ export default function Home() {
     if(action==="reject" && (reasons[id]||"").trim().length<4){setError("اكتب سبب الرفض بوضوح قبل المتابعة.");return;}
     if(action==="approve" && !window.confirm("تأكيد الموافقة؟ سيتم تفعيل أو ترقية اشتراك العيادة فورًا.")) return;
     setBusy(id);setError("");setNotice("");
-    const res=await fetch("/api/admin/payments/"+id+"/review",{method:"POST",headers:{Authorization:"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({action,reason:reasons[id]||""})});
-    const json=await res.json();
-    if(!res.ok)setError(json.error||"تعذر تنفيذ العملية");
+    const {data:json,error:invokeError}=await supabase.functions.invoke("platform-admin",{body:{action,id,reason:reasons[id]||""},headers:{Authorization:"Bearer "+token}});
+    if(invokeError || json?.error)setError(json?.error||invokeError?.message||"تعذر تنفيذ العملية");
     else {setNotice(action==="approve"?"تم اعتماد الإيصال وتحديث الاشتراك.":"تم رفض طلب الدفع.");await load();}
     setBusy("");
   }
   async function openReceipt(id:string){
     setBusy(id);setError("");
-    const res=await fetch("/api/admin/payments/"+id+"/receipt",{headers:{Authorization:"Bearer "+token}});
-    const json=await res.json();
-    if(!res.ok)setError(json.error||"تعذر فتح الإيصال");else window.open(json.url,"_blank","noopener,noreferrer");
+    const {data:json,error:invokeError}=await supabase.functions.invoke("platform-admin",{body:{action:"receipt",id},headers:{Authorization:"Bearer "+token}});
+    if(invokeError || json?.error)setError(json?.error||invokeError?.message||"تعذر فتح الإيصال");else window.open(json.url,"_blank","noopener,noreferrer");
     setBusy("");
   }
   const pending=useMemo(()=>data?.requests.filter(p=>p.status==="pending")||[],[data]);
