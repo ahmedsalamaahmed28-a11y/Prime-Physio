@@ -177,6 +177,12 @@ export default function DashboardLayout({
     }
 
     let active = true;
+    // Only subscribe to tenant tables when the verified session has a real UUID.
+    // Owners who have not selected/created a clinic must never send "null" as a UUID filter.
+    const clinicId = typeof user.clinicId === "string"
+      && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(user.clinicId)
+      ? user.clinicId
+      : null;
 
     const mapNotification = (row: any): SystemNotification => {
       const action = String(row.action || "").toUpperCase();
@@ -233,12 +239,18 @@ export default function DashboardLayout({
       }));
 
       // Fetch clinic-scoped booking and system notifications
-      const { data: clinicNotifications, error: clinicNotificationsError } = await supabase
-        .from("notifications")
-        .select("id, title_ar, title_en, body_ar, body_en, created_at")
-        .eq("clinic_id", user.clinicId)
-        .order("created_at", { ascending: false })
-        .limit(6);
+      let clinicNotifications: any[] = [];
+      let clinicNotificationsError: any = null;
+      if (clinicId) {
+        const result = await supabase
+          .from("notifications")
+          .select("id, title_ar, title_en, body_ar, body_en, created_at")
+          .eq("clinic_id", clinicId)
+          .order("created_at", { ascending: false })
+          .limit(6);
+        clinicNotifications = result.data || [];
+        clinicNotificationsError = result.error;
+      }
 
       if (clinicNotificationsError) {
         console.warn("Failed to load clinic notifications", clinicNotificationsError);
@@ -255,12 +267,18 @@ export default function DashboardLayout({
       }));
 
       // Fetch audit logs
-      const { data: auditData, error: auditError } = await supabase
-        .from("audit_logs")
-        .select("id, action, entity, entity_id, details, created_at")
-        .eq("clinic_id", user.clinicId)
-        .order("created_at", { ascending: false })
-        .limit(6);
+      let auditData: any[] = [];
+      let auditError: any = null;
+      if (clinicId) {
+        const result = await supabase
+          .from("audit_logs")
+          .select("id, action, entity, entity_id, details, created_at")
+          .eq("clinic_id", clinicId)
+          .order("created_at", { ascending: false })
+          .limit(6);
+        auditData = result.data || [];
+        auditError = result.error;
+      }
 
       if (auditError) {
         console.warn("Failed to load notifications", auditError);
@@ -280,27 +298,31 @@ export default function DashboardLayout({
 
     loadNotifications();
 
-    const channelAudit = supabase
-      .channel("audit-log-notifications")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "audit_logs" },
-        () => {
-          loadNotifications();
-        }
-      )
-      .subscribe();
-      
-    const channelClinicNotifications = supabase
-      .channel("clinic-booking-notifications")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "notifications", filter: `clinic_id=eq.${user.clinicId}` },
-        () => {
-          loadNotifications();
-        }
-      )
-      .subscribe();
+    const channelAudit = clinicId
+      ? supabase
+          .channel(`audit-log-notifications:${clinicId}`)
+          .on(
+            "postgres_changes",
+            { event: "INSERT", schema: "public", table: "audit_logs", filter: `clinic_id=eq.${clinicId}` },
+            () => {
+              loadNotifications();
+            }
+          )
+          .subscribe()
+      : null;
+
+    const channelClinicNotifications = clinicId
+      ? supabase
+          .channel(`clinic-booking-notifications:${clinicId}`)
+          .on(
+            "postgres_changes",
+            { event: "INSERT", schema: "public", table: "notifications", filter: `clinic_id=eq.${clinicId}` },
+            () => {
+              loadNotifications();
+            }
+          )
+          .subscribe()
+      : null;
 
     const channelBroadcasts = supabase
       .channel("broadcast-notifications")
@@ -315,9 +337,9 @@ export default function DashboardLayout({
 
     return () => {
       active = false;
-      supabase.removeChannel(channelAudit);
+      if (channelAudit) supabase.removeChannel(channelAudit);
       supabase.removeChannel(channelBroadcasts);
-      supabase.removeChannel(channelClinicNotifications);
+      if (channelClinicNotifications) supabase.removeChannel(channelClinicNotifications);
     };
   }, [user?.email, user?.clinicId]);
 
