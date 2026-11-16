@@ -16,9 +16,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "A center must be selected" }, { status: 400 });
     }
 
-    // This endpoint is only for the free plan. Paid plans are activated exclusively
+    // This endpoint is only for the official free plan. Paid plans are activated exclusively
     // by the verified Paymob callback after checking its HMAC signature.
-    if (body?.planId !== "basic") {
+    if (body?.planId !== "free") {
       return NextResponse.json(
         { error: "Paid subscriptions must be activated through verified payment" },
         { status: 403 }
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (existingSubscription) {
-      if (existingSubscription.plan_name === "basic") {
+      if (existingSubscription.plan_name === "free") {
         return NextResponse.json({
           success: true,
           clinicId,
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       .insert({
         user_email: email,
         clinic_id: clinicId,
-        plan_name: "basic",
+        plan_name: "free",
         plan_price: 0,
         status: "active",
         start_date: new Date().toISOString(),
