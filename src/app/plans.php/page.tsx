@@ -1,164 +1,219 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  Check, X, Crown, CreditCard, ShieldCheck, Download,
-} from "lucide-react";
+import { Check, Crown, CreditCard, ShieldCheck, Download, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/lib/supabase";
 
 type Plan = {
+  code: "free" | "essential" | "medium" | "advanced" | "maximum";
   name: string;
-  price: string;
-  annual: string;
+  monthly: number;
+  yearly: number;
   description: string;
-  limits: [string, string, string, string, string, string];
+  limits: string[];
   support: string;
   backup: string;
-  featured?: boolean;
 };
 
 const plans: Plan[] = [
-  { name: "المجانية", price: "مجاناً", annual: "مجاناً", description: "لتجهيز مركزك وتجربة كل شيء.", limits: ["20", "100", "1", "2,000", "1 GB", "50"], support: "البريد الإلكتروني", backup: "تصدير Excel في أي وقت" },
-  { name: "الأساسية", price: "750 جنيه", annual: "", description: "لمركز ينمو بفريق أكبر.", limits: ["100", "500", "1", "غير محدود", "10 GB", "200"], support: "البريد الإلكتروني والمحادثة الفورية", backup: "نسخة Excel شهرية تلقائية بالبريد", featured: true },
-  { name: "المتوسطة", price: "1,500 جنيه", annual: "", description: "لملاك الفروع المتعددة.", limits: ["500", "1,000", "2", "غير محدود", "20 GB", "غير محدود"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل 6 أشهر لكل مركز", backup: "نسخة Excel شهرية + نسخة قاعدة بيانات أسبوعية" },
-  { name: "Advanced", price: "3,000 جنيه", annual: "", description: "للمراكز متعددة الفروع والفرق الكبيرة.", limits: ["5,000", "غير محدود", "5", "غير محدود", "30 GB", "غير محدود"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
-  { name: "Maximum", price: "7,500 جنيه", annual: "", description: "لشبكات المراكز والعمليات الكبيرة.", limits: ["غير محدود", "غير محدود", "10", "غير محدود", "50 GB", "غير محدود"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
+  { code: "free", name: "المجانية", monthly: 0, yearly: 0, description: "لتجهيز مركزك وتجربة إدارة العمل.", limits: ["20", "100", "1", "2,000", "1 GB", "50"], support: "البريد الإلكتروني", backup: "تصدير Excel في أي وقت" },
+  { code: "essential", name: "الأساسية", monthly: 750, yearly: 7500, description: "لمركز ينمو بفريق أكبر.", limits: ["100", "500", "1", "غير محدود", "10 GB", "200"], support: "البريد الإلكتروني والمحادثة", backup: "نسخة Excel شهرية" },
+  { code: "medium", name: "المتوسطة", monthly: 1500, yearly: 15000, description: "للمراكز متعددة الفروع.", limits: ["500", "1,000", "2", "غير محدود", "20 GB", "غير محدود"], support: "البريد الإلكتروني والمحادثة وزيارة فنية كل 6 أشهر", backup: "Excel شهري ونسخة قاعدة بيانات أسبوعية" },
+  { code: "advanced", name: "المتقدمة", monthly: 3000, yearly: 30000, description: "للفرق الكبيرة والمراكز المتعددة.", limits: ["5,000", "غير محدود", "5", "غير محدود", "30 GB", "غير محدود"], support: "دعم مميز وزيارات فنية دورية", backup: "نسخة Excel شهرية ونسخ قاعدة بيانات يومية وأسبوعية" },
+  { code: "maximum", name: "القصوى", monthly: 7500, yearly: 75000, description: "لشبكات المراكز والعمليات الكبيرة.", limits: ["غير محدود", "غير محدود", "10", "غير محدود", "50 GB", "غير محدود"], support: "دعم مميز وزيارات فنية دورية", backup: "نسخة Excel شهرية ونسخ قاعدة بيانات يومية وأسبوعية" },
 ];
 
 const comparisonRows = [
-  ["السعر / شهرياً", "مجاناً", "750 جنيه", "1,500 جنيه", "3,000 جنيه", "7,500 جنيه"],
-  ["المستخدمون النشطون", "20", "100", "500", "5,000", "غير محدود"],
-  ["إجمالي المستخدمين", "100", "500", "1,000", "غير محدود", "غير محدود"],
-  ["المراكز", "1", "1", "2", "5", "10"],
-  ["الجلسات / شهرياً", "2,000", "غير محدود", "غير محدود", "غير محدود", "غير محدود"],
-  ["التخزين", "1 GB", "10 GB", "20 GB", "30 GB", "50 GB"],
-  ["المرضى", "50", "200", "غير محدود", "غير محدود", "غير محدود"],
-  ["كل المزايا: الحجوزات والملفات والمدفوعات والمرتبات والحضور والتقارير", "✓", "✓", "✓", "✓", "✓"],
-  ["العربية والإنجليزية", "✓", "✓", "✓", "✓", "✓"],
-  ["تصدير البيانات إلى Excel في أي وقت", "✓", "✓", "✓", "✓", "✓"],
-  ["المخزن: المخزون والمشتريات والمبيعات وطلبات الفريق والجرد", "—", "—", "✓", "✓", "✓"],
-  ["نسخة Excel احتياطية شهرية تلقائية بالبريد", "—", "✓", "✓", "✓", "✓"],
-  ["نسخة قاعدة البيانات على الخادم", "—", "—", "أسبوعياً (آخر 4)", "ليلياً (آخر 14) + أسبوعياً (آخر 4)", "ليلياً (آخر 14) + أسبوعياً (آخر 4)"],
-  ["التصدير الكامل لبيانات المركز", "الأول مجاناً", "الأول مجاناً", "الأول مجاناً", "الأول مجاناً", "الأول مجاناً"],
-  ["الدعم الهاتفي", "—", "✓", "✓", "✓", "✓"],
+  ["المستخدمون النشطون", 0], ["إجمالي المستخدمين", 1], ["عدد المراكز", 2],
+  ["الجلسات شهريًا", 3], ["التخزين", 4], ["المرضى", 5],
 ];
-
-const faqs = [
-  { q: "كيف أدفع؟", a: "سيكون الدفع للباقات المدفوعة عبر إنستاباي بالجنيه المصري. تفاصيل التحويل وإرسال إثبات الدفع وتأكيد الاشتراك ستظهر هنا بعد إعداد آلية الدفع." },
-  { q: "هل يتجدد الاشتراك تلقائياً؟", a: "لا يوجد خصم أو تجديد تلقائي عبر بوابة دفع. يتم تجديد الاشتراك بعد إتمام تحويل إنستاباي وتأكيده وفق آلية الدفع التي سيتم توضيحها." },
-  { q: "هل يمكنني تغيير باقتي لاحقاً؟", a: "نعم، يمكنك طلب ترقية باقتك في أي وقت. تظل مراكزك وبياناتك كما هي." },
-  { q: "هل بياناتي محفوظة احتياطياً؟ وهل يمكنني أخذها معي؟", a: "يمكنك في كل الباقات تصدير بياناتك إلى Excel في أي وقت. وتشمل الباقات المدفوعة نسخاً احتياطية وفق الجدول الموضح في المقارنة. كما يمكنك طلب التصدير الكامل لبيانات المركز، شاملاً الحالات وملفاتها وتقييماتها والجلسات والمدفوعات والموظفين؛ أول تصدير لكل مركز مجاناً، وتُحدد أي رسوم إضافية بالجنيه المصري قبل تنفيذ الطلب." },
-  { q: "من هو المستخدم النشط؟", a: "يُحتسب مالك المركز وكل فرد من فريق العمل ضمن إجمالي المستخدمين. ويُحتسب الحساب ضمن المستخدمين النشطين إذا كانت حالته نشطة؛ أما الحسابات المحذوفة فلا تُحتسب." },
-  { q: "هل يوجد اشتراك سنوي؟", a: "نعم، يمكنك دفع قيمة 10 أشهر مقدماً والاستفادة من 12 شهراً. جميع الأسعار بالجنيه المصري، والدفع عبر إنستاباي فقط." },
-];
-
-function CheckMark({ value }: { value: string }) {
-  if (value === "✓") return <Check size={17} className="mx-auto text-emerald-600" />;
-  if (value === "—") return <X size={16} className="mx-auto text-slate-300" />;
-  return <span>{value}</span>;
-}
 
 export default function PlansPhpPage() {
   const { user } = useAuth();
   const [activePlan, setActivePlan] = useState("free");
+  const [billingPeriod, setBillingPeriod] = useState<"monthly" | "yearly">("monthly");
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [phone, setPhone] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
   useEffect(() => {
     let alive = true;
     const load = async () => {
       if (!user?.clinicId) return;
-      const { data } = await supabase.from("subscriptions")
-        .select("plan_name").eq("clinic_id", user.clinicId).eq("status", "active")
-        .order("created_at", { ascending: false }).limit(1).maybeSingle();
-      if (alive && data?.plan_name) setActivePlan(String(data.plan_name).toLowerCase());
+      const [{ data: subscription }, { data: clinic }] = await Promise.all([
+        supabase.from("subscriptions").select("plan_name").eq("clinic_id", user.clinicId).eq("status", "active").order("created_at", { ascending: false }).limit(1).maybeSingle(),
+        supabase.from("clinics").select("phone").eq("id", user.clinicId).maybeSingle(),
+      ]);
+      if (!alive) return;
+      if (subscription?.plan_name) {
+        const code = String(subscription.plan_name).toLowerCase();
+        setActivePlan(["free", "essential", "medium", "advanced", "maximum"].includes(code) ? code : "free");
+      }
+      if (clinic?.phone) setPhone(String(clinic.phone));
     };
-    load();
+    void load();
     return () => { alive = false; };
   }, [user?.clinicId]);
 
-  const normalize = (name: string) => {
-    const key = name.toLowerCase();
-    if (["basic", "free", "starter", "المجانية", "الباقة المجانية"].includes(key)) return "free";
-    if (["silver", "standard", "essential", "الأساسية"].includes(key)) return "essential";
-    if (["gold", "medium", "المتوسطة"].includes(key)) return "medium";
-    if (key === "advanced") return "advanced";
-    if (key === "maximum") return "maximum";
-    return key;
+  const selectedPrice = useMemo(() => selectedPlan ? (billingPeriod === "yearly" ? selectedPlan.yearly : selectedPlan.monthly) : 0, [selectedPlan, billingPeriod]);
+
+  const choosePlan = async (plan: Plan) => {
+    setError("");
+    setNotice("");
+    if (plan.code === activePlan) return;
+    if (!user?.clinicId) {
+      setError("اختر مركزًا أولاً قبل تغيير الباقة.");
+      return;
+    }
+    if (plan.code === "free") {
+      setLoading(true);
+      try {
+        const response = await fetch("/api/subscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ clinicId: user.clinicId, planId: "free" }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "تعذر تفعيل الباقة المجانية.");
+        setActivePlan("free");
+        setNotice("تم تفعيل الباقة المجانية.");
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "تعذر تفعيل الباقة.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    setSelectedPlan(plan);
+  };
+
+  const startPayment = async () => {
+    if (!selectedPlan || !user?.email) return;
+    const normalizedPhone = phone.trim().replace(/[\s()-]/g, "");
+    if (!/^\+[1-9]\d{6,14}$/.test(normalizedPhone)) {
+      setError("أدخل رقم هاتف صحيحًا بالصيغة الدولية، مثل +201001234567.");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    try {
+      const nameParts = (user.name || user.email.split("@")[0]).trim().split(/\s+/);
+      const response = await fetch("/api/subscription/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId: selectedPlan.code,
+          billingPeriod,
+          billingData: {
+            first_name: nameParts[0] || "Prime",
+            last_name: nameParts.slice(1).join(" ") || "Physio",
+            email: user.email,
+            phone_number: normalizedPhone,
+            city: "Cairo",
+            state: "Cairo",
+          },
+        }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.checkoutUrl) throw new Error(data.error || "تعذر بدء الدفع.");
+      window.location.assign(data.checkoutUrl);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر بدء الدفع.");
+      setLoading(false);
+    }
   };
 
   return (
-    <>
-      <main dir="rtl" className="min-h-screen w-full bg-[#F8FAFC] px-3 pb-12 pt-5 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl space-y-8">
-          <header className="text-center">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#E4E1FA] bg-[#F1EFFF] px-3 py-1.5 text-xs font-bold text-[#5B50C7]"><Crown size={15} /> خطط تناسب نمو مركزك</div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-[#153B60] sm:text-4xl">باقات بسيطة لكل مركز</h1>
-            <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">ابدأ مجاناً، ورقِّ باقتك عندما يكبر فريقك أو عدد فروعك. جميع الأسعار بالجنيه المصري فقط، والدفع للباقات المدفوعة عبر إنستاباي.</p>
-          </header>
+    <main dir="rtl" className="min-h-screen w-full bg-[#F8FAFC] px-3 pb-12 pt-5 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <header className="text-center">
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#E4E1FA] bg-[#F1EFFF] px-3 py-1.5 text-xs font-bold text-[#5B50C7]"><Crown size={15} /> خطط تناسب نمو مركزك</div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-[#153B60] sm:text-4xl">الباقات الرسمية لـ Prime Physio</h1>
+          <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">اختر الباقة والفترة، وتُفعّل الباقة المدفوعة بعد تأكيد Paymob الآمن فقط. لا يوجد تجديد تلقائي.</p>
+          <p className="mt-2 text-sm font-bold text-[#5B50C7]">باقتك الحالية: {plans.find((p) => p.code === activePlan)?.name || "المجانية"}</p>
+        </header>
 
-          <section>
-            <div className="mb-4 flex items-center gap-2 text-lg font-extrabold text-slate-900"><CreditCard size={20} className="text-[#5B50C7]" /> باقتك</div>
-            <div className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-5">
-              {plans.map((plan) => {
-                const isCurrent = normalize(activePlan) === normalize(plan.name === "المجانية" ? "free" : plan.name);
-                return (
-                  <article key={plan.name} className={`relative flex flex-col rounded-2xl border bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.045)] transition hover:-translate-y-1 hover:shadow-lg ${plan.featured ? "border-[#8C83E0] ring-2 ring-[#5B50C7]/10" : "border-slate-200"}`}>
-                    {plan.featured && <span className="absolute -top-3 right-1/2 -translate-x-1/2 translate-x-1/2 whitespace-nowrap rounded-full bg-[#5B50C7] px-3 py-1 text-[11px] font-extrabold text-white shadow">الأكثر اختياراً</span>}
-                    <h2 className="text-lg font-extrabold text-[#153B60]">{plan.name === "المجانية" ? "الباقة المجانية" : plan.name === "الأساسية" ? "الباقة الأساسية" : plan.name === "المتوسطة" ? "الباقة المتوسطة" : plan.name}</h2>
-                    <div className="mt-4 flex items-baseline gap-1"><strong className="whitespace-nowrap text-[1.7rem] font-black tracking-tight text-[#5B50C7] sm:text-3xl">{plan.price}</strong>{plan.name !== "المجانية" && <span className="whitespace-nowrap text-xs leading-none text-slate-500">/ شهرياً</span>}</div>
-                    {plan.name !== "المجانية" && plan.annual && <p className="mt-2 text-xs font-bold leading-5 text-slate-600">{plan.annual}</p>}
-                    {plan.name !== "المجانية" && <p className="mt-1 text-[11px] font-semibold text-emerald-700">ادفع 12 شهراً بسعر 10 أشهر فقط عبر إنستاباي</p>}
-                    <p className="mt-3 min-h-10 text-xs leading-5 text-slate-500">{plan.description}</p>
-                    <div className="my-4 h-px bg-slate-100" />
-                    <ul className="flex-1 space-y-3 text-xs leading-5 text-slate-700">
-                      {["مستخدم نشط", "مستخدم إجمالاً", "مركز", "جلسة شهرياً", "مساحة تخزين", "مريض"].map((label, i) => <li key={label} className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b className="font-extrabold text-slate-900">{plan.limits[i]}</b> {label}{i === 0 || i === 1 ? "" : ""}</span></li>)}
-                      <li className="flex items-start gap-2"><span><b>الدعم:</b> {plan.name === "المجانية" ? <a href="mailto:support@prime-physio.com" className="font-bold text-[#5B50C7] underline underline-offset-2">البريد الإلكتروني</a> : plan.support}</span></li>
-                      <li className="flex items-start gap-2"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{plan.backup}</span></li>
-                      <li className="flex items-start gap-2"><Download size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>تصدير بياناتك إلى Excel في أي وقت</span></li>
-                    </ul>
-                    {isCurrent ? <div className="mt-5 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#F1EFFF] px-3 text-sm font-extrabold text-[#5B50C7]"><CheckCircleLabel /> باقتك الحالية</div> : plan.name === "المجانية" ? <Link href="/account.php" className="mt-5 flex min-h-11 items-center justify-center rounded-xl border border-slate-200 text-sm font-bold text-slate-600 transition hover:border-[#5B50C7] hover:text-[#5B50C7]">تفاصيل حسابك</Link> : <Link href={`/subscription?plan=${encodeURIComponent(plan.name)}`} className="mt-5 flex min-h-11 items-center justify-center rounded-xl bg-[#5B50C7] px-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-[#493FB0]">ترقية الباقة</Link>}
-                  </article>
-                );
-              })}
-            </div>
-            <p className="mt-4 rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs leading-6 text-slate-500">
-              تُحتسب حسابات مالك المركز وفريق العمل ضمن المستخدمين. الجلسات تُحسب شهرياً، ومساحة التخزين تشمل ملفات ومرفقات المرضى، وعدد المراكز يُحسب على مستوى مالك الحساب.
-            </p>
-          </section>
+        {!user?.clinicId && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">اختر مركزًا من صفحة مراكزي أولاً. <Link href="/centers.php/" className="font-bold underline">إدارة المراكز</Link></div>}
 
-          <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_8px_30px_rgba(15,23,42,0.035)]">
-            <div className="border-b border-slate-100 px-5 py-5 sm:px-6"><h2 className="text-xl font-extrabold text-[#153B60]">مقارنة الباقات</h2><p className="mt-1 text-xs text-slate-500">قارن حدود الاستخدام والمزايا قبل اختيار الباقة المناسبة.</p></div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px] border-collapse text-center text-xs">
-                <thead className="bg-[#F7F6FF] text-[#153B60]"><tr><th className="sticky right-0 min-w-[230px] bg-[#F7F6FF] px-4 py-4 text-right font-extrabold">الميزة</th>{plans.map(p => <th key={p.name} className="min-w-[130px] px-3 py-4 font-extrabold">{p.name}</th>)}</tr></thead>
-                <tbody>{comparisonRows.map((row, idx) => <tr key={row[0]} className={idx % 2 ? "bg-slate-50/70" : "bg-white"}><th className="sticky right-0 bg-inherit px-4 py-3 text-right font-bold leading-5 text-slate-700">{row[0]}</th>{row.slice(1).map((cell, i) => <td key={i} className="px-3 py-3 font-semibold leading-5 text-slate-600"><CheckMark value={cell} /></td>)}</tr>)}</tbody>
-              </table>
-            </div>
-          </section>
-
-          <section>
-            <div className="mb-4 flex items-center gap-2"><h2 className="text-xl font-extrabold text-[#153B60]">أسئلة عن الاشتراك</h2></div>
-            <div className="grid gap-3 md:grid-cols-2">
-              {faqs.map((faq) => <details key={faq.q} className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm open:border-[#C9C4F2]"><summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-extrabold text-slate-800"><span>{faq.q}</span><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#F1EFFF] text-[#5B50C7] transition group-open:rotate-45"><span className="text-lg leading-none">+</span></span></summary><p className="mt-3 border-t border-slate-100 pt-3 text-xs leading-7 text-slate-600">{faq.a}</p></details>)}
-            </div>
-          </section>
-
-          <section className="flex flex-col items-center justify-between gap-4 rounded-2xl bg-gradient-to-l from-[#153B60] to-[#5B50C7] px-6 py-6 text-center text-white sm:flex-row sm:text-right">
-            <div><h2 className="text-lg font-extrabold">هل تحتاج مساعدة في اختيار باقتك؟</h2><p className="mt-1 text-xs leading-6 text-white/80">تواصل معنا وسنساعدك في اختيار الأنسب لمركزك.</p></div>
-            <a href="https://wa.me/201222688400" target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-[#5B50C7] transition hover:bg-[#F1EFFF]">تواصل عبر واتساب</a>
-          </section>
-
-          <footer className="flex flex-col items-center justify-between gap-3 border-t border-slate-200 py-5 text-xs text-slate-400 sm:flex-row">
-            <p>© Prime Physio 2026. جميع الحقوق محفوظة.</p>
-            <nav className="flex flex-wrap items-center justify-center gap-5"><Link href="/support" className="hover:text-[#5B50C7]">مركز المساعدة</Link><Link href="/terms" className="hover:text-[#5B50C7]">الشروط</Link><Link href="/privacy" className="hover:text-[#5B50C7]">الخصوصية</Link></nav>
-          </footer>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <span className="text-sm font-bold text-slate-700">فترة الاشتراك:</span>
+          <button type="button" onClick={() => setBillingPeriod("monthly")} className={`rounded-full px-5 py-2 text-sm font-bold ${billingPeriod === "monthly" ? "bg-[#5B50C7] text-white" : "border border-slate-200 bg-white text-slate-600"}`}>شهري</button>
+          <button type="button" onClick={() => setBillingPeriod("yearly")} className={`rounded-full px-5 py-2 text-sm font-bold ${billingPeriod === "yearly" ? "bg-[#5B50C7] text-white" : "border border-slate-200 bg-white text-slate-600"}`}>سنوي · 12 شهرًا بسعر 10</button>
         </div>
-      </main>
-    </>
-  );
-}
 
-function CheckCircleLabel() {
-  return <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-[#5B50C7] text-white"><Check size={13} /></span>;
+        {error && <div role="alert" className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle size={17} className="mt-0.5 shrink-0" />{error}</div>}
+        {notice && <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-bold text-emerald-800">{notice}</div>}
+
+        <section className="grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 xl:grid-cols-5">
+          {plans.map((plan) => {
+            const current = activePlan === plan.code;
+            const price = billingPeriod === "yearly" ? plan.yearly : plan.monthly;
+            return (
+              <article key={plan.code} className={`relative flex flex-col rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg ${current ? "border-[#5B50C7] ring-2 ring-[#5B50C7]/15" : "border-slate-200"}`}>
+                {current && <span className="absolute -top-3 right-4 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-extrabold text-white">باقتك الحالية</span>}
+                <h2 className="text-lg font-extrabold text-[#153B60]">باقة {plan.name}</h2>
+                <div className="mt-4 flex items-baseline gap-1"><strong className="text-3xl font-black text-[#5B50C7]">{price === 0 ? "مجانًا" : price.toLocaleString("en-EG")}</strong>{price > 0 && <span className="text-xs text-slate-500">جنيه {billingPeriod === "yearly" ? "/ سنويًا" : "/ شهريًا"}</span>}</div>
+                {billingPeriod === "yearly" && price > 0 && <p className="mt-1 text-[11px] font-bold text-emerald-700">12 شهرًا بسعر 10 أشهر</p>}
+                <p className="mt-3 min-h-10 text-xs leading-6 text-slate-500">{plan.description}</p>
+                <div className="my-4 h-px bg-slate-100" />
+                <ul className="flex-1 space-y-3 text-xs leading-5 text-slate-700">
+                  {["مستخدم نشط", "مستخدم إجمالاً", "مركز", "جلسة شهريًا", "مساحة تخزين", "مريض"].map((label, i) => <li key={label} className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b className="font-extrabold text-slate-900">{plan.limits[i]}</b> {label}</span></li>)}
+                  <li><b>الدعم:</b> {plan.support}</li>
+                  <li className="flex items-start gap-2"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{plan.backup}</span></li>
+                  <li className="flex items-start gap-2"><Download size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>تصدير بياناتك إلى Excel</span></li>
+                </ul>
+                <button type="button" disabled={current || loading || !user?.clinicId} onClick={() => void choosePlan(plan)} className={`mt-5 flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-60 ${current ? "bg-emerald-50 text-emerald-700" : "bg-[#5B50C7] text-white hover:bg-[#493FB0]"}`}>
+                  {loading ? <Loader2 size={17} className="animate-spin" /> : current ? "الباقة الحالية" : plan.code === "free" ? "اختيار المجانية" : "ترقية الباقة"}
+                </button>
+              </article>
+            );
+          })}
+        </section>
+
+        {selectedPlan && (
+          <section className="mx-auto w-full max-w-xl rounded-2xl border border-[#DCD8F7] bg-white p-5 shadow-sm sm:p-7">
+            <h2 className="text-lg font-extrabold text-[#153B60]">إتمام طلب باقة {selectedPlan.name}</h2>
+            <p className="mt-2 text-sm text-slate-600">القيمة المستحقة: <b className="text-[#5B50C7]">{selectedPrice.toLocaleString("en-EG")} جنيه مصري</b> · {billingPeriod === "yearly" ? "سنوي" : "شهري"}</p>
+            <label className="mt-5 block text-sm font-bold text-slate-700">رقم الهاتف للتوثيق لدى بوابة الدفع
+              <input value={phone} onChange={(e) => setPhone(e.target.value)} type="tel" dir="ltr" placeholder="+201001234567" className="mt-2 h-12 w-full rounded-xl border border-slate-200 px-3 text-left outline-none focus:border-[#5B50C7] focus:ring-4 focus:ring-[#5B50C7]/10" />
+            </label>
+            <p className="mt-2 text-xs leading-5 text-slate-500">لن يتم تفعيل الباقة إلا بعد التحقق من إشعار الدفع الموقّع من Paymob. الرجوع من صفحة الدفع وحده لا يفعّل الاشتراك.</p>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button type="button" onClick={() => void startPayment()} disabled={loading} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#5B50C7] px-4 text-sm font-extrabold text-white hover:bg-[#493FB0] disabled:opacity-60">{loading ? <Loader2 size={17} className="animate-spin" /> : <CreditCard size={17} />} متابعة الدفع</button>
+              <button type="button" onClick={() => setSelectedPlan(null)} disabled={loading} className="h-11 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50">إلغاء</button>
+            </div>
+          </section>
+        )}
+
+        <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-100 px-5 py-5"><h2 className="text-xl font-extrabold text-[#153B60]">مقارنة حدود الباقات</h2></div>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] border-collapse text-center text-xs">
+              <thead className="bg-[#F7F6FF] text-[#153B60]"><tr><th className="sticky right-0 bg-[#F7F6FF] px-4 py-4 text-right">الحد</th>{plans.map((p) => <th key={p.code} className="px-3 py-4">{p.name}</th>)}</tr></thead>
+              <tbody>{comparisonRows.map(([label, index], rowIndex) => <tr key={String(label)} className={rowIndex % 2 ? "bg-slate-50" : "bg-white"}><th className="sticky right-0 bg-inherit px-4 py-3 text-right">{label}</th>{plans.map((p) => <td key={p.code} className="px-3 py-3 font-semibold text-slate-600">{p.limits[Number(index)]}</td>)}</tr>)}</tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 text-sm leading-7 text-slate-600">
+          <h2 className="mb-2 font-extrabold text-[#153B60]">معلومات مهمة عن الاشتراك</h2>
+          <ul className="list-disc space-y-1 pr-5">
+            <li>الأسعار بالجنيه المصري، والسعر السنوي يساوي قيمة 10 أشهر مقابل 12 شهرًا.</li>
+            <li>الاشتراك لا يتجدد تلقائيًا؛ التجديد يتم بعملية دفع جديدة.</li>
+            <li>تأكيد الدفع يتم من إشعار Paymob الموقّع، وليس من صفحة الرجوع للمتصفح.</li>
+            <li>ترقية الباقة تُطبّق بعد نجاح الدفع، وتظل بيانات المركز محفوظة.</li>
+          </ul>
+        </section>
+
+        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 py-5 text-xs text-slate-400">
+          <p>© Prime Physio 2026. جميع الحقوق محفوظة.</p>
+          <nav className="flex gap-5"><Link href="/support" className="hover:text-[#5B50C7]">مركز المساعدة</Link><Link href="/terms" className="hover:text-[#5B50C7]">الشروط</Link><Link href="/privacy" className="hover:text-[#5B50C7]">الخصوصية</Link></nav>
+        </footer>
+      </div>
+    </main>
+  );
 }
