@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     const { data: existingSubscription, error: existingError } = await admin
       .from("subscriptions")
-      .select("id, plan_name, status")
+      .select("id, plan_name, status, end_date")
       .eq("clinic_id", clinicId)
       .eq("status", "active")
       .order("created_at", { ascending: false })
@@ -64,7 +64,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unable to verify subscription" }, { status: 500 });
     }
 
-    if (existingSubscription) {
+    const existingIsValid = Boolean(existingSubscription && (!existingSubscription.end_date || new Date(existingSubscription.end_date).getTime() > Date.now()));
+    if (existingSubscription && !existingIsValid) {
+      await admin.from("subscriptions").update({ status: "expired" }).eq("id", existingSubscription.id).eq("status", "active");
+    }
+
+    if (existingSubscription && existingIsValid) {
       if (existingSubscription.plan_name === "free") {
         return NextResponse.json({
           success: true,
