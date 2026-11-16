@@ -64,7 +64,7 @@ export default function SubscriptionResultPage() {
     <main dir={isRtl ? "rtl" : "ltr"} className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-4 py-10">
       <section className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white p-7 text-center shadow-sm sm:p-9">
         <div className={"mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full " + (status === "paid" ? "bg-emerald-50 text-emerald-600" : status === "failed" || status === "not_found" ? "bg-red-50 text-red-600" : "bg-[#F1EFFF] text-[#5B50C7]")}>
-          {status === "paid" ? <CheckCircle2 className="h-9 w-9" /> : status === "failed" || status === "not_found" ? <AlertCircle className="h-9 w-9" /> : status === "loading" ? <Loader2 className="h-9 w-9 animate-spin" /> : <Clock3 className="h-9 w-9" />}
+          {status === "paid" ? <CheckCircle2 className="h-9 w-9" /> : status === "failed" || status === "not_found" ? <AlertCircle className="h-9 w-9" /> : status === "loading" ? <Loader2 className="h-9 w-9 animate-spin" /> : <Clock className="h-9 w-9" />}
         </div>
         <h1 className="text-2xl font-extrabold text-slate-900">{title}</h1>
         <p className="mt-3 text-sm leading-7 text-slate-600">{description}</p>
