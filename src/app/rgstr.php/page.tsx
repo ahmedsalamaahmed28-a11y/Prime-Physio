@@ -268,7 +268,10 @@ function SignupPageContent() {
         setConfirmPassword("");
         return;
       }
-      window.location.href = "/my-centers/create";
+      const requestedPlan = new URLSearchParams(window.location.search).get("plan") || "free";
+      const allowedPlans = new Set(["free", "essential", "medium", "advanced", "maximum"]);
+      const nextPlan = allowedPlans.has(requestedPlan) ? requestedPlan : "free";
+      window.location.href = `/my-centers/create?plan=${encodeURIComponent(nextPlan)}`;
     } catch (err) {
       setOtpStatus("invalid");
       if (!automatic) {
