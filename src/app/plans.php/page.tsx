@@ -220,12 +220,12 @@ export default function PlansPhpPage() {
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
                   <div className="flex min-h-[58px] items-center justify-center gap-2 rounded-xl border border-[#E7DDF8] bg-white px-2 py-2.5 shadow-sm">
-                    <img src="https://www.instapay.eg/favicon.ico" alt="InstaPay" className="h-8 w-8 shrink-0 object-contain" />
-                    <span className="text-xs font-black tracking-tight text-[#5C3FA6]">InstaPay</span>
+                    <img src="/instapay-user.svg" alt="InstaPay" className="h-12 w-full max-w-[112px] shrink-0 object-contain" />
+                    
                   </div>
                   <div className="flex min-h-[58px] items-center justify-center gap-2 rounded-xl border border-[#F2DADA] bg-white px-2 py-2.5 shadow-sm">
-                    <img src="https://web.vodafone.com.eg/favicon.ico" alt="Vodafone" className="h-8 w-8 shrink-0 object-contain" />
-                    <span className="text-xs font-black text-[#D40000]">Vodafone Cash</span>
+                    <img src="/vodafone-cash-user.svg" alt="Vodafone Cash" className="h-12 w-full max-w-[112px] shrink-0 object-contain" />
+                    
                   </div>
                 </div>
               </div>
