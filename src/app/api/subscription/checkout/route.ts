@@ -56,6 +56,37 @@ export async function POST(request: NextRequest) {
     }
     if (!plan) return NextResponse.json({ error: "هذه الباقة غير متاحة حاليًا." }, { status: 404 });
 
+    const nowIso = new Date().toISOString();
+    const { error: expireOldError } = await admin
+      .from("subscription_payment_orders")
+      .update({ status: "expired" })
+      .eq("clinic_id", clinicId)
+      .eq("status", "pending")
+      .lte("expires_at", nowIso);
+    if (expireOldError) {
+      console.error("[Subscription Checkout] Could not expire old payment attempts:", expireOldError.message);
+      return NextResponse.json({ error: "تعذر التحقق من محاولات الدفع السابقة." }, { status: 503 });
+    }
+
+    const { data: openPayment, error: openPaymentError } = await admin
+      .from("subscription_payment_orders")
+      .select("id,expires_at")
+      .eq("clinic_id", clinicId)
+      .eq("status", "pending")
+      .gt("expires_at", nowIso)
+      .limit(1)
+      .maybeSingle();
+    if (openPaymentError) {
+      console.error("[Subscription Checkout] Could not check open payment attempts:", openPaymentError.message);
+      return NextResponse.json({ error: "تعذر التحقق من طلبات الدفع المفتوحة." }, { status: 503 });
+    }
+    if (openPayment) {
+      return NextResponse.json(
+        { error: "لديك عملية دفع مفتوحة بالفعل. أكملها أولاً أو انتظر انتهاء صلاحيتها قبل بدء عملية جديدة.", pendingReference: openPayment.id, expiresAt: openPayment.expires_at },
+        { status: 409, headers: { "Cache-Control": "no-store, private" } }
+      );
+    }
+
     const amountEgp = Number(billingPeriod === "yearly" ? plan.price_yearly : plan.price_monthly);
     const amountCents = Math.round(amountEgp * 100);
     if (!Number.isSafeInteger(amountCents) || amountCents <= 0) {
@@ -173,6 +204,7 @@ export async function POST(request: NextRequest) {
       .eq("status", "pending");
     if (updateError) {
       console.error("[Subscription Checkout] Failed to link Paymob order:", updateError.message);
+      await admin.from("subscription_payment_orders").update({ status: "failed" }).eq("id", paymentOrder.id).eq("status", "pending");
       return NextResponse.json({ error: "تم إعداد الدفع لكن تعذر ربط الطلب. تواصل مع الدعم قبل إعادة المحاولة." }, { status: 500 });
     }
 
