@@ -12,6 +12,7 @@ type Plan = {
 };
 type PaymentConfig = {
   enabled: boolean;
+  referenceCode: string;
   methods: {
     instapay: { phone: string; account: string; link: string };
     vodafone_cash: { phone: string };
@@ -40,7 +41,7 @@ export default function PlansPhpPage() {
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [paymentConfig, setPaymentConfig] = useState<PaymentConfig | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"instapay" | "vodafone_cash">("instapay");
-  const [transferReference, setTransferReference] = useState("");
+  const [referenceCode, setReferenceCode] = useState("");
   const [receipt, setReceipt] = useState<File | null>(null);
   const [configLoading, setConfigLoading] = useState(false);
 
@@ -80,13 +81,14 @@ export default function PlansPhpPage() {
       } finally { setLoading(false); }
       return;
     }
-    setSelectedPlan(plan); setPaymentMethod("instapay"); setTransferReference(""); setReceipt(null);
+    setSelectedPlan(plan); setPaymentMethod("instapay"); setReferenceCode(""); setReceipt(null);
     setConfigLoading(true);
     try {
       const response = await fetch("/api/subscription/payment-methods", { cache: "no-store" });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(data.error || "تعذر تحميل بيانات الدفع.");
       setPaymentConfig(data);
+      setReferenceCode(String(data.referenceCode || ""));
     } catch (e) {
       setError(e instanceof Error ? e.message : "تعذر تحميل بيانات الدفع.");
     } finally { setConfigLoading(false); }
@@ -94,8 +96,8 @@ export default function PlansPhpPage() {
 
   const submitPayment = async () => {
     if (!selectedPlan || !user?.clinicId) return;
-    if (!transferReference.trim() || !receipt) {
-      setError("أدخل رقم/مرجع التحويل وأرفق إيصال الدفع أولاً."); return;
+    if (!referenceCode || !receipt) {
+      setError("انسخ رقم العملية المخصص وأرفق إيصال الدفع أولاً."); return;
     }
     setLoading(true); setError(""); setNotice("");
     try {
@@ -104,7 +106,7 @@ export default function PlansPhpPage() {
       form.append("planCode", selectedPlan.code);
       form.append("billingPeriod", billingPeriod);
       form.append("paymentMethod", paymentMethod);
-      form.append("transferReference", transferReference.trim());
+      form.append("platformReference", referenceCode);
       form.append("receipt", receipt);
       const response = await fetch("/api/subscription/payments", { method: "POST", body: form });
       const data = await response.json().catch(() => ({}));
@@ -227,9 +229,14 @@ export default function PlansPhpPage() {
                     </div>
                   )}
                   <div className="mt-4 space-y-3">
-                    <label className="block text-sm font-bold text-slate-700">رقم مرجع التحويل / رقم العملية
-                      <input value={transferReference} onChange={(e) => setTransferReference(e.target.value)} maxLength={120} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-left font-normal" dir="ltr" placeholder="Transaction reference" />
-                    </label>
+                    <div className="rounded-xl border border-[#DCD7FF] bg-[#F7F6FF] p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <label className="text-sm font-extrabold text-[#40369C]">رقم العملية المخصص لطلبك</label>
+                        <button type="button" disabled={!referenceCode} onClick={() => void copyValue(referenceCode)} className="inline-flex items-center gap-1 rounded-lg bg-[#5B50C7] px-3 py-2 text-xs font-bold text-white disabled:opacity-50"><Copy size={14}/> نسخ الرقم</button>
+                      </div>
+                      <p dir="ltr" className="mt-2 rounded-lg border border-[#E5E1FF] bg-white px-3 py-3 text-center font-mono text-lg font-black tracking-wider text-slate-900">{referenceCode || "جارٍ إنشاء الرقم..."}</p>
+                      <p className="mt-2 text-xs leading-6 text-slate-600">انسخ الرقم واكتبه في خانة «ملاحظات التحويل» داخل InstaPay أو Vodafone Cash قبل تأكيد التحويل، حتى نتمكن من مطابقة المبلغ بطلبك.</p>
+                    </div>
                     <label className="block text-sm font-bold text-slate-700">إرفاق إيصال التحويل
                       <span className="mt-1.5 flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-slate-300 bg-white px-3 py-3 text-sm font-normal text-slate-600"><UploadCloud size={20}/><span className="min-w-0 flex-1 truncate">{receipt?.name || "اختر صورة أو PDF (حتى 10 ميجابايت)"}</span><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="hidden" onChange={(e) => setReceipt(e.target.files?.[0] || null)}/></span>
                     </label>
@@ -237,7 +244,7 @@ export default function PlansPhpPage() {
                   {error && <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
                   <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row">
                     <button type="button" onClick={() => setSelectedPlan(null)} className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600">إلغاء</button>
-                    <button type="button" disabled={loading || !transferReference.trim() || !receipt} onClick={() => void submitPayment()} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#5B50C7] px-4 py-3 text-sm font-extrabold text-white disabled:opacity-50">{loading ? <Loader2 className="animate-spin" size={17}/> : <Smartphone size={17}/>} إرسال طلب الدفع للمراجعة</button>
+                    <button type="button" disabled={loading || !referenceCode || !receipt} onClick={() => void submitPayment()} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#5B50C7] px-4 py-3 text-sm font-extrabold text-white disabled:opacity-50">{loading ? <Loader2 className="animate-spin" size={17}/> : <Smartphone size={17}/>} إرسال طلب الدفع للمراجعة</button>
                   </div>
                   <p className="mt-3 text-center text-xs leading-5 text-slate-500">لن يتم تفعيل الاشتراك قبل أن تتحقق الإدارة من وصول المبلغ.</p>
                 </>
