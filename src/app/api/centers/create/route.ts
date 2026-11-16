@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const country = typeof body?.country === "string" ? body.country.trim().slice(0, 100) : "";
     const countryCode = typeof body?.countryCode === "string" ? body.countryCode.trim().toUpperCase() : "";
 
-    if (!["basic", "silver", "gold"].includes(planId)) {
+    if (!["free", "essential", "medium", "advanced", "maximum"].includes(planId)) {
       return NextResponse.json({ error: "يرجى اختيار باقة صالحة أولاً." }, { status: 400 });
     }
     if (!shortName || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) || slug.length > 50) {
