@@ -120,6 +120,7 @@ async function enrichUserWithClinic(user: User): Promise<User> {
         user.clinicId = data.clinicId;
         user.clinicSlug = typeof data.clinicSlug === "string" ? data.clinicSlug : null;
         user.roleKey = data.roleKey as User["roleKey"];
+        user.isPlatformAdmin = data.roleKey === "platform_admin" || data.isPlatformAdmin === true;
         user.role = data.roleAr;
         user.roleEn = data.roleEn;
         user.shortName = data.shortName || null;
