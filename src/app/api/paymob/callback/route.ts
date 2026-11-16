@@ -17,6 +17,10 @@ export async function POST(request: NextRequest) {
   }
 
   const transaction = payload.obj;
+  const configuredIntegrationId = String(process.env.PAYMOB_INTEGRATION_ID || "");
+  if (!configuredIntegrationId || String(transaction?.integration_id ?? "") !== configuredIntegrationId) {
+    return NextResponse.json({ error: "Unexpected Paymob integration" }, { status: 400 });
+  }
   const transactionId = String(transaction?.id ?? "");
   const paymobOrderId = String(transaction?.order?.id ?? "");
   const localReference = String(transaction?.merchant_order_id ?? payload?.merchant_order_id ?? "");
@@ -55,6 +59,10 @@ export async function POST(request: NextRequest) {
   if (amountCents !== Number(order.amount_cents) || currency !== order.currency) {
     console.error("[Paymob Callback] Amount/currency mismatch for order:", order.id);
     return NextResponse.json({ error: "Payment amount mismatch" }, { status: 400 });
+  }
+
+  if (transaction?.pending === true) {
+    return NextResponse.json({ received: true, paid: false, pending: true });
   }
 
   const isSuccessful = transaction?.success === true
