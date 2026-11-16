@@ -16,6 +16,7 @@ import { usePermissions } from "@/lib/usePermissions";
 import { supabase } from "@/lib/supabase";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { DashboardPageLoadingContext } from "@/lib/DashboardPageLoadingContext";
+import SubscriptionUsageAlerts from "@/components/dashboard/SubscriptionUsageAlerts";
 
 type Row = Record<string, any>;
 type DashboardData = {
@@ -473,6 +474,8 @@ export default function HomePage() {
               </div>
             </div>
           </section>
+
+          <SubscriptionUsageAlerts clinicId={clinicId} />
 
           <section className="pp-stitch-kpis">
             <article className="pp-stitch-kpi">
