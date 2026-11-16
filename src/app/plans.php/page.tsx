@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Check, Crown, ShieldCheck, Download, Loader2, AlertCircle } from "lucide-react";
 import { useAuth } from "@/lib/auth";
@@ -42,16 +42,12 @@ export default function PlansPhpPage() {
     let alive = true;
     const load = async () => {
       if (!user?.clinicId) return;
-      const [{ data: subscription }, { data: clinic }] = await Promise.all([
-        supabase.from("subscriptions").select("plan_name").eq("clinic_id", user.clinicId).eq("status", "active").or("end_date.is.null,end_date.gt." + new Date().toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle(),
-        supabase.from("clinics").select("phone").eq("id", user.clinicId).maybeSingle(),
-      ]);
+      const { data: subscription } = await supabase.from("subscriptions").select("plan_name").eq("clinic_id", user.clinicId).eq("status", "active").or("end_date.is.null,end_date.gt." + new Date().toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle();
       if (!alive) return;
       if (subscription?.plan_name) {
         const code = String(subscription.plan_name).toLowerCase();
         setActivePlan(["free", "essential", "medium", "advanced", "maximum"].includes(code) ? code : "free");
       }
-      if (clinic?.phone) setPhone(String(clinic.phone));
     };
     void load();
     return () => { alive = false; };
