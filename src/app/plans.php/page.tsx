@@ -208,30 +208,28 @@ export default function PlansPhpPage() {
               <button type="button" onClick={() => setSelectedPlan(null)} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="إغلاق"><X size={20}/></button>
             </div>
             <div className="mb-5 overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-l from-white via-[#F8FAFF] to-[#F2F5FF] p-4 shadow-sm">
-              <div className="mb-3 text-center text-[11px] font-bold tracking-wide text-slate-500">تحويل مباشر بين Prime Physio وطرق الدفع المعتمدة</div>
+              <div className="mb-3 text-center text-[11px] font-bold tracking-wide text-slate-500">طرق الدفع المعتمدة لدى Prime Physio</div>
               <div className="flex items-center justify-between gap-2 sm:gap-4">
                 <div className="flex min-w-0 flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-[#DCE7F5] bg-white px-2 py-3 shadow-sm">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#174A78] to-[#2879B9] text-white shadow-md">
-                    <svg viewBox="0 0 32 32" className="h-7 w-7" fill="none" aria-hidden="true"><path d="M16 4.5 27 10.7v10.6L16 27.5 5 21.3V10.7L16 4.5Z" stroke="currentColor" strokeWidth="1.8"/><path d="M16 9v14M9 16h14" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
-                  </span>
-                  <span className="text-center text-xs font-black tracking-tight text-[#174A78]">PRIME PHYSIO</span>
+                  <img src="/logo.png" alt="Prime Physio" className="h-12 max-w-full object-contain" />
+                  <span className="text-center text-[10px] font-bold text-[#174A78]">Prime Physio</span>
                 </div>
                 <div className="flex shrink-0 flex-col items-center gap-1 text-[#7185A0]">
                   <svg viewBox="0 0 56 38" className="h-8 w-12" fill="none" aria-label="أسهم تحويل متبادلة"><path d="M5 11h39l-6-6m6 6-6 6M51 27H12l6-6m-6 6 6 6" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   <span className="text-[9px] font-semibold text-slate-400">دفع مباشر</span>
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col gap-2">
-                  <div className="flex items-center justify-center gap-2 rounded-xl border border-[#E7DDF8] bg-white px-2 py-2.5 shadow-sm">
-                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F2EDFF] text-base font-black text-[#6542B8]">i</span>
-                    <span className="text-sm font-black tracking-tight text-[#5C3FA6]">InstaPay</span>
+                  <div className="flex min-h-[58px] items-center justify-center gap-2 rounded-xl border border-[#E7DDF8] bg-white px-2 py-2.5 shadow-sm">
+                    <img src="https://www.instapay.eg/favicon.ico" alt="InstaPay" className="h-8 w-8 shrink-0 object-contain" />
+                    <span className="text-xs font-black tracking-tight text-[#5C3FA6]">InstaPay</span>
                   </div>
-                  <div className="flex items-center justify-center gap-2 rounded-xl border border-[#F2DADA] bg-white px-2 py-2.5 shadow-sm">
-                    <svg viewBox="0 0 32 32" className="h-7 w-7 shrink-0" aria-hidden="true"><path d="M16 3.5c-6.9 0-12.5 5.6-12.5 12.5S9.1 28.5 16 28.5 28.5 22.9 28.5 16 22.9 3.5 16 3.5Zm0 3.2c5.1 0 9.3 4.2 9.3 9.3s-4.2 9.3-9.3 9.3S6.7 21.1 6.7 16 10.9 6.7 16 6.7Z" fill="#E60000"/><path d="M16 9.2c-3.8 0-6.8 3-6.8 6.8s3 6.8 6.8 6.8c2.5 0 4.7-1.3 5.9-3.4l-3-1.7a3.4 3.4 0 1 1 0-3.4l3-1.7a6.8 6.8 0 0 0-5.9-3.4Z" fill="#E60000"/></svg>
+                  <div className="flex min-h-[58px] items-center justify-center gap-2 rounded-xl border border-[#F2DADA] bg-white px-2 py-2.5 shadow-sm">
+                    <img src="https://web.vodafone.com.eg/favicon.ico" alt="Vodafone" className="h-8 w-8 shrink-0 object-contain" />
                     <span className="text-xs font-black text-[#D40000]">Vodafone Cash</span>
                   </div>
                 </div>
               </div>
-              <p className="mt-3 text-center text-[10px] leading-5 text-slate-500">تجربة دفع واضحة وآمنة — اختر وسيلة التحويل المناسبة لك</p>
+              <p className="mt-3 text-center text-[10px] leading-5 text-slate-500">تحويل مباشر وآمن — اختر وسيلة الدفع المناسبة لك</p>
             </div>
             {configLoading ? <div className="flex items-center justify-center gap-2 py-12 text-slate-500"><Loader2 className="animate-spin"/> جاري تحميل طرق الدفع...</div> :
               !paymentConfig?.enabled || availableMethods.length === 0 ? <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">طرق الدفع غير متاحة حاليًا. يرجى التواصل مع الدعم الفني.</div> : (
