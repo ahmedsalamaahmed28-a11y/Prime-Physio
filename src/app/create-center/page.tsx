@@ -220,7 +220,7 @@ export default function CreateCenterPage() {
       }
 
       const phoneNumber = `+${selectedPhoneCountry.dial}${phone.trim().replace(/[^0-9]/g, "").replace(/^0+/, "")}`;
-      const nameParts = (user.name || user.email.split("@")[0]).trim().split(/\\s+/);
+      const nameParts = (user.name || user.email.split("@")[0]).trim().split(/\s+/);
       const paymentResponse = await fetch("/api/subscription/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
