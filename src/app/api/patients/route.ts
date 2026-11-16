@@ -111,9 +111,17 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("[Patients API] Insert failed:", error);
-      const status = error.code === "23505" ? 409 : 500;
+      const patientLimit = /PLAN_LIMIT_PATIENTS/i.test(error.message || "");
+      const status = patientLimit ? 403 : error.code === "23505" ? 409 : 500;
       return NextResponse.json(
-        { error: error.code === "23505" ? "رقم ملف المريض مستخدم بالفعل، أعد المحاولة" : "تعذر حفظ بيانات المريض في قاعدة البيانات" },
+        {
+          error: patientLimit
+            ? "وصلت إلى الحد الأقصى لعدد المرضى في باقتك. رقِّ الباقة لإضافة مرضى آخرين."
+            : error.code === "23505"
+              ? "رقم ملف المريض مستخدم بالفعل، أعد المحاولة"
+              : "تعذر حفظ بيانات المريض في قاعدة البيانات",
+          code: patientLimit ? "PLAN_LIMIT_PATIENTS" : undefined,
+        },
         { status }
       );
     }
