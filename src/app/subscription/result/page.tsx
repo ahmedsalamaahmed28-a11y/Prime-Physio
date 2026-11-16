@@ -41,7 +41,7 @@ export default function SubscriptionResultPage() {
     };
     void check();
     const timer = window.setInterval(() => {
-      if (count >= 20 || !active) {
+      if (count >= 60 || !active) {
         window.clearInterval(timer);
         return;
       }
@@ -69,7 +69,7 @@ export default function SubscriptionResultPage() {
         <h1 className="text-2xl font-extrabold text-slate-900">{title}</h1>
         <p className="mt-3 text-sm leading-7 text-slate-600">{description}</p>
         {status === "paid" && <div className="mt-5 rounded-xl bg-emerald-50 p-4 text-sm font-bold text-emerald-800">{planCode.toUpperCase()} · {amount?.toLocaleString("en-EG")} جنيه مصري</div>}
-        {status === "pending" && <p className="mt-4 text-xs text-slate-400">محاولة التحقق: {attempt}/20</p>}
+        {status === "pending" && <p className="mt-4 text-xs text-slate-400">محاولة التحقق: {attempt}/60</p>}
         <div className="mt-7 grid gap-3 sm:grid-cols-2">
           <Link href="/dashboard" className="inline-flex h-11 items-center justify-center rounded-xl bg-[#5B50C7] px-5 text-sm font-extrabold text-white hover:bg-[#493FB0]">الانتقال إلى لوحة التحكم</Link>
           <Link href="/subscription" className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 px-5 text-sm font-bold text-slate-700 hover:border-[#5B50C7] hover:text-[#5B50C7]">العودة إلى الاشتراك</Link>
