@@ -188,6 +188,8 @@ export default function Pricing() {
                 <div className="my-4 h-px bg-slate-100" />
                 <ul className="flex-1 space-y-3 text-xs leading-5 text-slate-700">
                   {features.map(([label, value]) => <li key={label} className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b className="font-extrabold text-slate-900">{isEnglish && value === "غير محدود" ? "Unlimited" : value}</b> {label}</span></li>)}
+                  <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{isEnglish ? "Bookings, patient files, payments, payroll, attendance and reports" : "الحجوزات وملفات المرضى والمدفوعات والمرتبات والحضور والتقارير"}</span></li>
+                  <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{isEnglish ? "Arabic and English interface" : "واجهة باللغتين العربية والإنجليزية"}</span></li>
                   {plan.inventory && <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{isEnglish ? "Inventory: stock, purchases, sales, team requests and stocktaking" : "المخزن: المخزون والمشتريات والمبيعات وطلبات الفريق والجرد"}</span></li>}
                   <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b>{isEnglish ? "Support:" : "الدعم:"}</b> {isEnglish ? plan.supportEn : plan.supportAr}</span></li>
                   <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{isEnglish ? plan.backupEn : plan.backupAr}</span></li>
