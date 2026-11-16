@@ -13,18 +13,18 @@ type Plan = {
   price: string;
   annual: string;
   description: string;
-  limits: [string, string, string, string, string];
+  limits: [string, string, string, string, string, string];
   support: string;
   backup: string;
   featured?: boolean;
 };
 
 const plans: Plan[] = [
-  { name: "المجانية", price: "مجاناً", annual: "مجاناً", description: "لتجهيز مركزك وتجربة كل شيء.", limits: ["20", "100", "1", "2,000", "1 GB"], support: "البريد الإلكتروني", backup: "تصدير Excel في أي وقت" },
-  { name: "الأساسية", price: "750 جنيه", annual: "", description: "لمركز ينمو بفريق أكبر.", limits: ["100", "500", "1", "غير محدود", "10 GB"], support: "البريد الإلكتروني والمحادثة الفورية", backup: "نسخة Excel شهرية تلقائية بالبريد", featured: true },
-  { name: "المتوسطة", price: "1,500 جنيه", annual: "", description: "لملاك الفروع المتعددة.", limits: ["500", "1,000", "2", "غير محدود", "20 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل 6 أشهر لكل مركز", backup: "نسخة Excel شهرية + نسخة قاعدة بيانات أسبوعية" },
-  { name: "Advanced", price: "3,000 جنيه", annual: "", description: "للمراكز متعددة الفروع والفرق الكبيرة.", limits: ["5,000", "غير محدود", "5", "غير محدود", "30 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
-  { name: "Maximum", price: "7,500 جنيه", annual: "", description: "لشبكات المراكز والعمليات الكبيرة.", limits: ["غير محدود", "غير محدود", "10", "غير محدود", "50 GB"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
+  { name: "المجانية", price: "مجاناً", annual: "مجاناً", description: "لتجهيز مركزك وتجربة كل شيء.", limits: ["20", "100", "1", "2,000", "1 GB", "50"], support: "البريد الإلكتروني", backup: "تصدير Excel في أي وقت" },
+  { name: "الأساسية", price: "750 جنيه", annual: "", description: "لمركز ينمو بفريق أكبر.", limits: ["100", "500", "1", "غير محدود", "10 GB", "200"], support: "البريد الإلكتروني والمحادثة الفورية", backup: "نسخة Excel شهرية تلقائية بالبريد", featured: true },
+  { name: "المتوسطة", price: "1,500 جنيه", annual: "", description: "لملاك الفروع المتعددة.", limits: ["500", "1,000", "2", "غير محدود", "20 GB", "غير محدود"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل 6 أشهر لكل مركز", backup: "نسخة Excel شهرية + نسخة قاعدة بيانات أسبوعية" },
+  { name: "Advanced", price: "3,000 جنيه", annual: "", description: "للمراكز متعددة الفروع والفرق الكبيرة.", limits: ["5,000", "غير محدود", "5", "غير محدود", "30 GB", "غير محدود"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
+  { name: "Maximum", price: "7,500 جنيه", annual: "", description: "لشبكات المراكز والعمليات الكبيرة.", limits: ["غير محدود", "غير محدود", "10", "غير محدود", "50 GB", "غير محدود"], support: "البريد الإلكتروني والمحادثة الفورية وزيارة فنية كل شهرين لكل مركز", backup: "نسخة Excel شهرية + نسخ قاعدة البيانات ليلياً وأسبوعياً" },
 ];
 
 const comparisonRows = [
@@ -34,6 +34,7 @@ const comparisonRows = [
   ["المراكز", "1", "1", "2", "5", "10"],
   ["الجلسات / شهرياً", "2,000", "غير محدود", "غير محدود", "غير محدود", "غير محدود"],
   ["التخزين", "1 GB", "10 GB", "20 GB", "30 GB", "50 GB"],
+  ["المرضى", "50", "200", "غير محدود", "غير محدود", "غير محدود"],
   ["كل المزايا: الحجوزات والملفات والمدفوعات والمرتبات والحضور والتقارير", "✓", "✓", "✓", "✓", "✓"],
   ["العربية والإنجليزية", "✓", "✓", "✓", "✓", "✓"],
   ["تصدير البيانات إلى Excel في أي وقت", "✓", "✓", "✓", "✓", "✓"],
@@ -111,7 +112,7 @@ export default function PlansPhpPage() {
                     <p className="mt-3 min-h-10 text-xs leading-5 text-slate-500">{plan.description}</p>
                     <div className="my-4 h-px bg-slate-100" />
                     <ul className="flex-1 space-y-3 text-xs leading-5 text-slate-700">
-                      {["مستخدم نشط", "مستخدم إجمالاً", "مركز", "جلسة شهرياً", "مساحة تخزين"].map((label, i) => <li key={label} className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b className="font-extrabold text-slate-900">{plan.limits[i]}</b> {label}{i === 0 || i === 1 ? "" : ""}</span></li>)}
+                      {["مستخدم نشط", "مستخدم إجمالاً", "مركز", "جلسة شهرياً", "مساحة تخزين", "مريض"].map((label, i) => <li key={label} className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b className="font-extrabold text-slate-900">{plan.limits[i]}</b> {label}{i === 0 || i === 1 ? "" : ""}</span></li>)}
                       <li className="flex items-start gap-2"><span><b>الدعم:</b> {plan.name === "المجانية" ? <a href="mailto:support@prime-physio.com" className="font-bold text-[#5B50C7] underline underline-offset-2">البريد الإلكتروني</a> : plan.support}</span></li>
                       <li className="flex items-start gap-2"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{plan.backup}</span></li>
                       <li className="flex items-start gap-2"><Download size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>تصدير بياناتك إلى Excel في أي وقت</span></li>
