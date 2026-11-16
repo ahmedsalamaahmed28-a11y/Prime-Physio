@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomBytes } from "node:crypto";
 import { getAdminClient } from "@/lib/supabase-admin";
 import { requireAuthOnly } from "../../utils/auth";
 
@@ -13,7 +14,9 @@ export async function GET(req: NextRequest) {
       .select("instapay_phone,instapay_account,instapay_link,vodafone_cash_phone,subscription_payments_enabled")
       .eq("id", 1).maybeSingle();
     if (error) throw error;
+    const referenceCode = `PP-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-${randomBytes(4).toString("hex").toUpperCase()}`;
     return NextResponse.json({
+      referenceCode,
       enabled: data?.subscription_payments_enabled === true,
       methods: {
         instapay: {
