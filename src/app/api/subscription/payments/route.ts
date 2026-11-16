@@ -25,12 +25,12 @@ export async function POST(req: NextRequest) {
     const planCode = String(form.get("planCode") || "").trim().toLowerCase();
     const billingPeriod = String(form.get("billingPeriod") || "").trim().toLowerCase();
     const paymentMethod = String(form.get("paymentMethod") || "").trim().toLowerCase();
-    const transferReference = String(form.get("transferReference") || "").trim();
+    const platformReference = String(form.get("platformReference") || "").trim().toUpperCase();
     const receipt = form.get("receipt");
 
     if (!clinicId || !PRICES[planCode] || !["monthly", "yearly"].includes(billingPeriod) ||
         !["instapay", "vodafone_cash"].includes(paymentMethod) ||
-        transferReference.length < 4 || transferReference.length > 120 ||
+        !/^PP-\\d{8}-[A-F0-9]{8}$/.test(platformReference) ||
         !(receipt instanceof File)) {
       return NextResponse.json({ error: "أكمل بيانات التحويل وأرفق صورة الإيصال أو ملف PDF." }, { status: 400 });
     }
@@ -68,8 +68,8 @@ export async function POST(req: NextRequest) {
 
     const { data: request, error: insertError } = await admin.from("subscription_payment_requests").insert({
       clinic_id: clinicId, user_email: email, plan_code: planCode, billing_period: billingPeriod,
-      amount, payment_method: paymentMethod, transfer_reference: transferReference,
-      receipt_path: uploadedPath, status: "pending"
+      amount, payment_method: paymentMethod, transfer_reference: platformReference,
+      platform_reference: platformReference, receipt_path: uploadedPath, status: "pending"
     }).select("id").single();
     if (insertError || !request) {
       await admin.storage.from("subscription-receipts").remove([uploadedPath]);
