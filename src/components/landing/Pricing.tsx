@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Star } from "lucide-react";
+import { Check } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/LanguageContext";
 
@@ -17,6 +17,9 @@ type Plan = {
   centers: string;
   sessions: string;
   storage: string;
+  patientsAr: string;
+  patientsEn: string;
+  inventory?: boolean;
   supportAr: string;
   supportEn: string;
   backupAr: string;
@@ -37,6 +40,8 @@ const plans: Plan[] = [
     centers: "1",
     sessions: "2,000",
     storage: "1 GB",
+    patientsAr: "50",
+    patientsEn: "50",
     supportAr: "البريد الإلكتروني",
     supportEn: "Email support",
     backupAr: "تصدير Excel في أي وقت",
@@ -54,7 +59,10 @@ const plans: Plan[] = [
     centers: "1",
     sessions: "غير محدود",
     storage: "10 GB",
-    supportAr: "البريد الإلكتروني والمحادثة الفورية",
+    patientsAr: "200",
+    patientsEn: "200",
+    supportAr: "البريد الإلكتروني والمحادثة الفورية والهاتف",
+
     supportEn: "Email and live chat",
     backupAr: "نسخة Excel شهرية تلقائية بالبريد",
     backupEn: "Automatic monthly Excel backup by email",
@@ -72,7 +80,10 @@ const plans: Plan[] = [
     centers: "2",
     sessions: "غير محدود",
     storage: "20 GB",
-    supportAr: "البريد الإلكتروني والمحادثة وزيارة فنية كل 6 أشهر لكل مركز",
+    patientsAr: "غير محدود",
+    patientsEn: "Unlimited",
+    inventory: true,
+    supportAr: "البريد الإلكتروني والمحادثة والهاتف وزيارة فنية كل 6 أشهر لكل مركز",
     supportEn: "Email, live chat and an on-site visit every 6 months per center",
     backupAr: "نسخة Excel شهرية + نسخة قاعدة بيانات أسبوعية",
     backupEn: "Monthly Excel backup + weekly database backup",
@@ -89,7 +100,10 @@ const plans: Plan[] = [
     centers: "5",
     sessions: "غير محدود",
     storage: "30 GB",
-    supportAr: "البريد الإلكتروني والمحادثة وزيارة فنية كل شهرين لكل مركز",
+    patientsAr: "غير محدود",
+    patientsEn: "Unlimited",
+    inventory: true,
+    supportAr: "البريد الإلكتروني والمحادثة والهاتف وزيارة فنية كل شهرين لكل مركز",
     supportEn: "Email, live chat and an on-site visit every 2 months per center",
     backupAr: "نسخة Excel شهرية + نسخ قاعدة البيانات ليليًا وأسبوعيًا",
     backupEn: "Monthly Excel + nightly and weekly database backups",
@@ -106,7 +120,10 @@ const plans: Plan[] = [
     centers: "10",
     sessions: "غير محدود",
     storage: "50 GB",
-    supportAr: "البريد الإلكتروني والمحادثة وزيارة فنية كل شهرين لكل مركز",
+    patientsAr: "غير محدود",
+    patientsEn: "Unlimited",
+    inventory: true,
+    supportAr: "البريد الإلكتروني والمحادثة والهاتف وزيارة فنية كل شهرين لكل مركز",
     supportEn: "Email, live chat and an on-site visit every 2 months per center",
     backupAr: "نسخة Excel شهرية + نسخ قاعدة البيانات ليليًا وأسبوعيًا",
     backupEn: "Monthly Excel + nightly and weekly database backups",
@@ -119,8 +136,8 @@ export default function Pricing() {
   const [isAnnual, setIsAnnual] = useState(false);
   const formatPrice = (price: number) => new Intl.NumberFormat(isEnglish ? "en-EG" : "ar-EG").format(price);
   const labels = isEnglish
-    ? ["Active users", "Total users", "Centers", "Sessions / month", "Storage"]
-    : ["مستخدم نشط", "إجمالي المستخدمين", "مركز", "جلسة شهريًا", "مساحة التخزين"];
+    ? ["Active users", "Total users", "Centers", "Sessions / month", "Storage", "Patients"]
+    : ["مستخدم نشط", "إجمالي المستخدمين", "مركز", "جلسة شهريًا", "مساحة التخزين", "مريض"];
 
   return (
     <section id="pricing" className="relative bg-[#F8FAFC] py-20 sm:py-24">
@@ -156,6 +173,7 @@ export default function Pricing() {
               [labels[2], plan.centers],
               [labels[3], plan.sessions],
               [labels[4], plan.storage],
+              [labels[5], isEnglish ? plan.patientsEn : plan.patientsAr],
             ];
             return (
               <article key={plan.id} data-csp-motion="reveal" className={"relative flex min-w-0 flex-col rounded-2xl border bg-white p-5 shadow-[0_8px_30px_rgba(15,23,42,0.045)] transition hover:-translate-y-1 hover:shadow-lg " + (plan.featured ? "border-[#8C83E0] ring-2 ring-[#5B50C7]/10" : "border-slate-200")}>
@@ -170,6 +188,7 @@ export default function Pricing() {
                 <div className="my-4 h-px bg-slate-100" />
                 <ul className="flex-1 space-y-3 text-xs leading-5 text-slate-700">
                   {features.map(([label, value]) => <li key={label} className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b className="font-extrabold text-slate-900">{value}</b> {label}</span></li>)}
+                  {plan.inventory && <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{isEnglish ? "Inventory: stock, purchases, sales, team requests and stocktaking" : "المخزن: المخزون والمشتريات والمبيعات وطلبات الفريق والجرد"}</span></li>}
                   <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b>{isEnglish ? "Support:" : "الدعم:"}</b> {isEnglish ? plan.supportEn : plan.supportAr}</span></li>
                   <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{isEnglish ? plan.backupEn : plan.backupAr}</span></li>
                   <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{isEnglish ? "Export clinic data to Excel at any time" : "تصدير بيانات المركز إلى Excel في أي وقت"}</span></li>
