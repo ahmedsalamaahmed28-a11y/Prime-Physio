@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { CheckCircle2, Clock3, AlertCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, Loader2 } from "lucide-react";
 
 type PaymentStatus = "loading" | "pending" | "paid" | "failed" | "not_found";
 
