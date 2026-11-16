@@ -2,19 +2,20 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, Crown, ShieldCheck, Download, Loader2, AlertCircle } from "lucide-react";
+import { Check, Crown, ShieldCheck, Download, Loader2, AlertCircle, X, Copy, ExternalLink, Smartphone, UploadCloud } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/lib/supabase";
 
 type Plan = {
   code: "free" | "essential" | "medium" | "advanced" | "maximum";
-  name: string;
-  monthly: number;
-  yearly: number;
-  description: string;
-  limits: string[];
-  support: string;
-  backup: string;
+  name: string; monthly: number; yearly: number; description: string;
+  limits: string[]; support: string; backup: string;
+};
+type PaymentConfig = {
+  enabled: boolean;
+  methods: {
+    instapay: { phone: string; account: string; link: string };
+    vodafone_cash: { phone: string };
+  };
 };
 
 const plans: Plan[] = [
@@ -24,8 +25,7 @@ const plans: Plan[] = [
   { code: "advanced", name: "المتقدمة", monthly: 3000, yearly: 30000, description: "للفرق الكبيرة والمراكز المتعددة.", limits: ["5,000", "غير محدود", "5", "غير محدود", "30 GB", "غير محدود"], support: "دعم مميز وزيارات فنية دورية", backup: "نسخة Excel شهرية ونسخ قاعدة بيانات يومية وأسبوعية" },
   { code: "maximum", name: "القصوى", monthly: 7500, yearly: 75000, description: "لشبكات المراكز والعمليات الكبيرة.", limits: ["غير محدود", "غير محدود", "10", "غير محدود", "50 GB", "غير محدود"], support: "دعم مميز وزيارات فنية دورية", backup: "نسخة Excel شهرية ونسخ قاعدة بيانات يومية وأسبوعية" },
 ];
-
-const comparisonRows = [
+const comparisonRows: Array<[string, number]> = [
   ["المستخدمون النشطون", 0], ["إجمالي المستخدمين", 1], ["عدد المراكز", 2],
   ["الجلسات شهريًا", 3], ["التخزين", 4], ["المرضى", 5],
 ];
@@ -37,52 +37,94 @@ export default function PlansPhpPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
+  const [paymentConfig, setPaymentConfig] = useState<PaymentConfig | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"instapay" | "vodafone_cash">("instapay");
+  const [transferReference, setTransferReference] = useState("");
+  const [receipt, setReceipt] = useState<File | null>(null);
+  const [configLoading, setConfigLoading] = useState(false);
 
   useEffect(() => {
     let alive = true;
     const load = async () => {
       if (!user?.clinicId) return;
-      const { data: subscription } = await supabase.from("subscriptions").select("plan_name").eq("clinic_id", user.clinicId).eq("status", "active").or("end_date.is.null,end_date.gt." + new Date().toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const response = await fetch("/api/subscribe", { cache: "no-store" });
+      if (!response.ok) return;
+      const data = await response.json().catch(() => ({}));
       if (!alive) return;
-      if (subscription?.plan_name) {
-        const code = String(subscription.plan_name).toLowerCase();
+      if (data?.plan_name) {
+        const code = String(data.plan_name).toLowerCase();
         setActivePlan(["free", "essential", "medium", "advanced", "maximum"].includes(code) ? code : "free");
       }
     };
-    void load();
+    void load().catch(() => {});
     return () => { alive = false; };
   }, [user?.clinicId]);
 
   const choosePlan = async (plan: Plan) => {
-    setError("");
-    setNotice("");
+    setError(""); setNotice("");
     if (plan.code === activePlan) return;
-    if (!user?.clinicId) {
-      setError("اختر مركزًا أولاً قبل تغيير الباقة.");
-      return;
-    }
+    if (!user?.clinicId) { setError("اختر مركزًا أولاً قبل تغيير الباقة."); return; }
     if (plan.code === "free") {
       setLoading(true);
       try {
         const response = await fetch("/api/subscribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ clinicId: user.clinicId, planId: "free" }),
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || "تعذر تفعيل الباقة المجانية.");
-        setActivePlan("free");
-        setNotice("تم تفعيل الباقة المجانية.");
+        setActivePlan("free"); setNotice("تم تفعيل الباقة المجانية.");
       } catch (e) {
         setError(e instanceof Error ? e.message : "تعذر تفعيل الباقة.");
-      } finally {
-        setLoading(false);
-      }
+      } finally { setLoading(false); }
       return;
     }
-    setNotice("سيتم إتاحة الدفع والتحويل عبر InstaPay قريبًا. لم يتم بدء أي عملية دفع أو تفعيل باقة مدفوعة.");
+    setSelectedPlan(plan); setPaymentMethod("instapay"); setTransferReference(""); setReceipt(null);
+    setConfigLoading(true);
+    try {
+      const response = await fetch("/api/subscription/payment-methods", { cache: "no-store" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "تعذر تحميل بيانات الدفع.");
+      setPaymentConfig(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر تحميل بيانات الدفع.");
+    } finally { setConfigLoading(false); }
   };
 
+  const submitPayment = async () => {
+    if (!selectedPlan || !user?.clinicId) return;
+    if (!transferReference.trim() || !receipt) {
+      setError("أدخل رقم/مرجع التحويل وأرفق إيصال الدفع أولاً."); return;
+    }
+    setLoading(true); setError(""); setNotice("");
+    try {
+      const form = new FormData();
+      form.append("clinicId", user.clinicId);
+      form.append("planCode", selectedPlan.code);
+      form.append("billingPeriod", billingPeriod);
+      form.append("paymentMethod", paymentMethod);
+      form.append("transferReference", transferReference.trim());
+      form.append("receipt", receipt);
+      const response = await fetch("/api/subscription/payments", { method: "POST", body: form });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "تعذر إرسال طلب الدفع.");
+      setSelectedPlan(null);
+      setNotice("تم استلام طلب الدفع بنجاح. ستتم مراجعة التحويل وتفعيل الباقة بعد تأكيده من الإدارة.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "تعذر إرسال طلب الدفع.");
+    } finally { setLoading(false); }
+  };
+
+  const copyValue = async (value: string) => {
+    try { await navigator.clipboard.writeText(value); setNotice("تم نسخ البيانات."); }
+    catch { setError("تعذر النسخ تلقائيًا. يمكنك تحديد البيانات ونسخها يدويًا."); }
+  };
+
+  const availableMethods = paymentConfig ? [
+    paymentConfig.methods.instapay.phone && paymentConfig.methods.instapay.account ? "instapay" : null,
+    paymentConfig.methods.vodafone_cash.phone ? "vodafone_cash" : null,
+  ].filter(Boolean) : [];
 
   return (
     <main dir="rtl" className="min-h-screen w-full bg-[#F8FAFC] px-3 pb-12 pt-5 sm:px-6 lg:px-8">
@@ -90,12 +132,11 @@ export default function PlansPhpPage() {
         <header className="text-center">
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#E4E1FA] bg-[#F1EFFF] px-3 py-1.5 text-xs font-bold text-[#5B50C7]"><Crown size={15} /> خطط تناسب نمو مركزك</div>
           <h1 className="text-3xl font-extrabold tracking-tight text-[#153B60] sm:text-4xl">الباقات الرسمية لـ Prime Physio</h1>
-          <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">اختر الباقة والفترة المناسبة. الدفع للباقات المدفوعة سيكون عن طريق التحويل عبر InstaPay بعد إضافة بيانات التحويل لاحقًا.</p>
+          <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">اختر الباقة والفترة المناسبة، ثم حوّل المبلغ عبر InstaPay أو Vodafone Cash وأرسل الإيصال لمراجعته.</p>
           <p className="mt-2 text-sm font-bold text-[#5B50C7]">باقتك الحالية: {plans.find((p) => p.code === activePlan)?.name || "المجانية"}</p>
         </header>
 
         {!user?.clinicId && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">اختر مركزًا من صفحة مراكزي أولاً. <Link href="/centers.php/" className="font-bold underline">إدارة المراكز</Link></div>}
-
         <div className="flex flex-wrap items-center justify-center gap-2">
           <span className="text-sm font-bold text-slate-700">فترة الاشتراك:</span>
           <button type="button" onClick={() => setBillingPeriod("monthly")} className={`rounded-full px-5 py-2 text-sm font-bold ${billingPeriod === "monthly" ? "bg-[#5B50C7] text-white" : "border border-slate-200 bg-white text-slate-600"}`}>شهري</button>
@@ -123,8 +164,8 @@ export default function PlansPhpPage() {
                   <li className="flex items-start gap-2"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{plan.backup}</span></li>
                   <li className="flex items-start gap-2"><Download size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>تصدير بياناتك إلى Excel</span></li>
                 </ul>
-                <button type="button" disabled={current || loading || !user?.clinicId || plan.code !== "free"} onClick={() => void choosePlan(plan)} className={`mt-5 flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-60 ${current ? "bg-emerald-50 text-emerald-700" : "bg-[#5B50C7] text-white hover:bg-[#493FB0]"}`}>
-                  {loading ? <Loader2 size={17} className="animate-spin" /> : current ? "الباقة الحالية" : plan.code === "free" ? "اختيار المجانية" : "قريبًا عبر InstaPay"}
+                <button type="button" disabled={current || loading || !user?.clinicId} onClick={() => void choosePlan(plan)} className={`mt-5 flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-60 ${current ? "bg-emerald-50 text-emerald-700" : "bg-[#5B50C7] text-white hover:bg-[#493FB0]"}`}>
+                  {loading && selectedPlan?.code === plan.code ? <Loader2 size={17} className="animate-spin" /> : current ? "الباقة الحالية" : plan.code === "free" ? "اختيار المجانية" : "الاشتراك الآن"}
                 </button>
               </article>
             );
@@ -136,7 +177,7 @@ export default function PlansPhpPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] border-collapse text-center text-xs">
               <thead className="bg-[#F7F6FF] text-[#153B60]"><tr><th className="sticky right-0 bg-[#F7F6FF] px-4 py-4 text-right">الحد</th>{plans.map((p) => <th key={p.code} className="px-3 py-4">{p.name}</th>)}</tr></thead>
-              <tbody>{comparisonRows.map(([label, index], rowIndex) => <tr key={String(label)} className={rowIndex % 2 ? "bg-slate-50" : "bg-white"}><th className="sticky right-0 bg-inherit px-4 py-3 text-right">{label}</th>{plans.map((p) => <td key={p.code} className="px-3 py-3 font-semibold text-slate-600">{p.limits[Number(index)]}</td>)}</tr>)}</tbody>
+              <tbody>{comparisonRows.map(([label, index], rowIndex) => <tr key={label} className={rowIndex % 2 ? "bg-slate-50" : "bg-white"}><th className="sticky right-0 bg-inherit px-4 py-3 text-right">{label}</th>{plans.map((p) => <td key={p.code} className="px-3 py-3 font-semibold text-slate-600">{p.limits[index]}</td>)}</tr>)}</tbody>
             </table>
           </div>
         </section>
@@ -146,8 +187,8 @@ export default function PlansPhpPage() {
           <ul className="list-disc space-y-1 pr-5">
             <li>الأسعار بالجنيه المصري، والسعر السنوي يساوي قيمة 10 أشهر مقابل 12 شهرًا.</li>
             <li>لا يتم تفعيل أي باقة مدفوعة إلا بعد مراجعة التحويل وتأكيده من الإدارة.</li>
-            <li>سيتم إضافة بيانات التحويل عبر InstaPay وخطوات إرسال إثبات الدفع لاحقًا.</li>
-            <li>ترقية الباقة تُطبّق بعد نجاح الدفع، وتظل بيانات المركز محفوظة.</li>
+            <li>رفع الإيصال لا يعني نجاح الدفع أو تفعيل الاشتراك تلقائيًا.</li>
+            <li>لا توجد مدفوعات بالبطاقات أو بوابة دفع وسيطة؛ التحويل مباشر إلى بيانات Prime Physio.</li>
           </ul>
         </section>
 
@@ -156,6 +197,54 @@ export default function PlansPhpPage() {
           <nav className="flex gap-5"><Link href="/support" className="hover:text-[#5B50C7]">مركز المساعدة</Link><Link href="/terms" className="hover:text-[#5B50C7]">الشروط</Link><Link href="/privacy" className="hover:text-[#5B50C7]">الخصوصية</Link></nav>
         </footer>
       </div>
+
+      {selectedPlan && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-950/60 p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="payment-dialog-title">
+          <div className="my-auto w-full max-w-xl rounded-2xl bg-white p-5 shadow-2xl sm:p-7">
+            <div className="mb-5 flex items-start justify-between gap-3">
+              <div><h2 id="payment-dialog-title" className="text-xl font-extrabold text-[#153B60]">إتمام اشتراك باقة {selectedPlan.name}</h2><p className="mt-1 text-sm text-slate-500">المبلغ المطلوب: <b className="text-[#5B50C7]">{(billingPeriod === "yearly" ? selectedPlan.yearly : selectedPlan.monthly).toLocaleString("en-EG")} جنيه</b> · {billingPeriod === "yearly" ? "سنوي" : "شهري"}</p></div>
+              <button type="button" onClick={() => setSelectedPlan(null)} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="إغلاق"><X size={20}/></button>
+            </div>
+            {configLoading ? <div className="flex items-center justify-center gap-2 py-12 text-slate-500"><Loader2 className="animate-spin"/> جاري تحميل طرق الدفع...</div> :
+              !paymentConfig?.enabled || availableMethods.length === 0 ? <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">طرق الدفع غير متاحة حاليًا. يرجى التواصل مع الدعم الفني.</div> : (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    {availableMethods.includes("instapay") && <button type="button" onClick={() => setPaymentMethod("instapay")} className={`rounded-xl border p-3 text-sm font-bold ${paymentMethod === "instapay" ? "border-[#5B50C7] bg-[#F4F2FF] text-[#5145B8]" : "border-slate-200 text-slate-600"}`}>InstaPay</button>}
+                    {availableMethods.includes("vodafone_cash") && <button type="button" onClick={() => setPaymentMethod("vodafone_cash")} className={`rounded-xl border p-3 text-sm font-bold ${paymentMethod === "vodafone_cash" ? "border-[#5B50C7] bg-[#F4F2FF] text-[#5145B8]" : "border-slate-200 text-slate-600"}`}>Vodafone Cash</button>}
+                  </div>
+                  {paymentMethod === "instapay" ? (
+                    <div className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                      <div className="flex items-center justify-between gap-2"><span className="text-sm font-bold text-slate-700">معرف InstaPay</span><button type="button" onClick={() => void copyValue(paymentConfig.methods.instapay.account)} className="flex items-center gap-1 text-xs font-bold text-[#5B50C7]"><Copy size={14}/> نسخ</button></div>
+                      <p dir="ltr" className="text-left font-bold text-slate-900">{paymentConfig.methods.instapay.account}</p>
+                      <div className="flex items-center justify-between gap-2"><span className="text-sm font-bold text-slate-700">رقم الهاتف المرتبط</span><button type="button" onClick={() => void copyValue(paymentConfig.methods.instapay.phone)} className="flex items-center gap-1 text-xs font-bold text-[#5B50C7]"><Copy size={14}/> نسخ</button></div>
+                      <p dir="ltr" className="text-left font-bold text-slate-900">{paymentConfig.methods.instapay.phone}</p>
+                      <a href={paymentConfig.methods.instapay.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg bg-[#5B50C7] px-4 py-2 text-sm font-bold text-white"><ExternalLink size={15}/> فتح InstaPay</a>
+                    </div>
+                  ) : (
+                    <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                      <p className="text-sm font-bold text-slate-700">حوّل المبلغ إلى محفظة Vodafone Cash</p>
+                      <div className="flex items-center justify-between gap-2"><p dir="ltr" className="text-lg font-extrabold text-slate-900">{paymentConfig.methods.vodafone_cash.phone}</p><button type="button" onClick={() => void copyValue(paymentConfig.methods.vodafone_cash.phone)} className="flex items-center gap-1 text-xs font-bold text-[#5B50C7]"><Copy size={14}/> نسخ الرقم</button></div>
+                    </div>
+                  )}
+                  <div className="mt-4 space-y-3">
+                    <label className="block text-sm font-bold text-slate-700">رقم مرجع التحويل / رقم العملية
+                      <input value={transferReference} onChange={(e) => setTransferReference(e.target.value)} maxLength={120} className="mt-1.5 w-full rounded-lg border border-slate-200 px-3 py-2.5 text-left font-normal" dir="ltr" placeholder="Transaction reference" />
+                    </label>
+                    <label className="block text-sm font-bold text-slate-700">إرفاق إيصال التحويل
+                      <span className="mt-1.5 flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-slate-300 bg-white px-3 py-3 text-sm font-normal text-slate-600"><UploadCloud size={20}/><span className="min-w-0 flex-1 truncate">{receipt?.name || "اختر صورة أو PDF (حتى 10 ميجابايت)"}</span><input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" className="hidden" onChange={(e) => setReceipt(e.target.files?.[0] || null)}/></span>
+                    </label>
+                  </div>
+                  {error && <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
+                  <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row">
+                    <button type="button" onClick={() => setSelectedPlan(null)} className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600">إلغاء</button>
+                    <button type="button" disabled={loading || !transferReference.trim() || !receipt} onClick={() => void submitPayment()} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#5B50C7] px-4 py-3 text-sm font-extrabold text-white disabled:opacity-50">{loading ? <Loader2 className="animate-spin" size={17}/> : <Smartphone size={17}/>} إرسال طلب الدفع للمراجعة</button>
+                  </div>
+                  <p className="mt-3 text-center text-xs leading-5 text-slate-500">لن يتم تفعيل الاشتراك قبل أن تتحقق الإدارة من وصول المبلغ.</p>
+                </>
+              )}
+          </div>
+        </div>
+      )}
     </main>
   );
 }
