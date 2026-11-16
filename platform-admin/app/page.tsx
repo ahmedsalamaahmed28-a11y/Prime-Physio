@@ -2,83 +2,45 @@
 import { useEffect, useMemo, useState } from "react";
 import { createClient, Session } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-type Dashboard = {
-  adminEmail: string;
-  metrics: { clinics:number; activeClinics:number; patients:number; activeSubscriptions:number; pendingPayments:number; approvedPayments:number; approvedValue:number };
-  requests: any[]; clinics: any[]; plans: any[]; audit: any[];
-};
-const money = (n:number) => new Intl.NumberFormat("en-EG",{style:"currency",currency:"EGP",maximumFractionDigits:0}).format(n||0);
-export default function Home() {
-  const [session,setSession] = useState<Session|null>(null);
-  const [email,setEmail] = useState("ahmedsalamaahmed21@gmail.com");
-  const [password,setPassword] = useState("");
-  const [data,setData] = useState<Dashboard|null>(null);
-  const [tab,setTab] = useState("overview");
-  const [busy,setBusy] = useState("");
-  const [error,setError] = useState("");
-  const [notice,setNotice] = useState("");
-  const [reasons,setReasons] = useState<Record<string,string>>({});
-  const token = session?.access_token || "";
-  async function load(currentToken=token) {
-    if (!currentToken) return;
-    const {data:json,error:invokeError}=await supabase.functions.invoke("platform-admin",{body:{action:"overview"},headers:{Authorization:"Bearer "+currentToken}});
-    if(invokeError || json?.error) throw new Error(json?.error || invokeError?.message || "Unable to load dashboard");
-    setData(json as Dashboard);
-  }
-  useEffect(()=>{
-    supabase.auth.getSession().then(({data})=>setSession(data.session));
-    const {data:listener}=supabase.auth.onAuthStateChange((_event,next)=>setSession(next));
-    return ()=>listener.subscription.unsubscribe();
-  },[]);
-  useEffect(()=>{ if(token) load(token).catch(e=>setError(e.message)); else setData(null); },[token]);
-  async function signIn(e:React.FormEvent) {
-    e.preventDefault(); setBusy("login"); setError("");
-    const {data,error}=await supabase.auth.signInWithPassword({email:email.trim(),password});
-    if(error) setError(error.message); else {setSession(data.session);setPassword("");}
-    setBusy("");
-  }
-  async function signOut(){await supabase.auth.signOut();setSession(null);setData(null);}
-  async function review(id:string,action:"approve"|"reject") {
-    if(action==="reject" && (reasons[id]||"").trim().length<4){setError("اكتب سبب الرفض بوضوح قبل المتابعة.");return;}
-    if(action==="approve" && !window.confirm("تأكيد الموافقة؟ سيتم تفعيل أو ترقية اشتراك العيادة فورًا.")) return;
-    setBusy(id);setError("");setNotice("");
-    const {data:json,error:invokeError}=await supabase.functions.invoke("platform-admin",{body:{action,id,reason:reasons[id]||""},headers:{Authorization:"Bearer "+token}});
-    if(invokeError || json?.error)setError(json?.error||invokeError?.message||"تعذر تنفيذ العملية");
-    else {setNotice(action==="approve"?"تم اعتماد الإيصال وتحديث الاشتراك.":"تم رفض طلب الدفع.");await load();}
-    setBusy("");
-  }
-  async function openReceipt(id:string){
-    setBusy(id);setError("");
-    const {data:json,error:invokeError}=await supabase.functions.invoke("platform-admin",{body:{action:"receipt",id},headers:{Authorization:"Bearer "+token}});
-    if(invokeError || json?.error)setError(json?.error||invokeError?.message||"تعذر فتح الإيصال");else window.open(json.url,"_blank","noopener,noreferrer");
-    setBusy("");
-  }
-  const pending=useMemo(()=>data?.requests.filter(p=>p.status==="pending")||[],[data]);
-  if(!session) return <main className="login-shell"><section className="login-card"><div className="brand-mark">P</div><p className="eyebrow">PRIVATE CONTROL CENTER</p><h1>Prime Physio</h1><p className="muted">إدارة المنصة والاشتراكات والمدفوعات</p><form onSubmit={signIn}><label>البريد الإلكتروني</label><input type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="username"/><label>كلمة المرور</label><input type="password" value={password} onChange={e=>setPassword(e.target.value)} required autoComplete="current-password"/><button className="primary full" disabled={busy==="login"}>{busy==="login"?"جارٍ تسجيل الدخول…":"تسجيل الدخول الآمن"}</button></form>{error&&<p className="error">{error}</p>}<p className="tiny">هذا النظام مخصص لمدير المنصة فقط. حسابات العيادات لا تملك صلاحية الدخول.</p></section></main>;
-  if(!data) return <main className="loading">جارٍ تحميل لوحة إدارة المنصة… {error&&<p className="error">{error}</p>}</main>;
-  const m=data.metrics;
-  return <main className="shell" dir="rtl">
-    <aside className="sidebar"><div className="brand"><span className="brand-mark small">P</span><div><b>Prime Physio</b><small>مركز التحكم</small></div></div><nav>{[["overview","نظرة عامة"],["payments","طلبات الدفع"],["clinics","العيادات"],["plans","الباقات"],["audit","سجل المراجعة"]].map(([key,label])=><button key={key} className={tab===key?"nav active":"nav"} onClick={()=>setTab(key)}>{label}{key==="payments"&&m.pendingPayments>0?<i>{m.pendingPayments}</i>:null}</button>)}</nav><div className="side-bottom"><small>{session.user.email}</small><button className="logout" onClick={signOut}>تسجيل الخروج</button></div></aside>
-    <section className="content"><header><div><p className="eyebrow">PLATFORM ADMINISTRATION</p><h1>{({overview:"نظرة عامة",payments:"مراجعة طلبات الدفع",clinics:"إدارة العيادات",plans:"الباقات والأسعار",audit:"سجل المراجعة"} as any)[tab]}</h1><p className="muted">لوحة مستقلة عن حسابات مراكز العلاج الطبيعي</p></div><button className="refresh" onClick={()=>load().catch(e=>setError(e.message))}>تحديث البيانات ↻</button></header>
-      {error&&<div className="alert error">{error}</div>}{notice&&<div className="alert success">{notice}</div>}
-      {tab==="overview"&&<><div className="metrics">
-        <Metric label="إجمالي العيادات" value={m.clinics} note={m.activeClinics+" نشطة"}/>
-        <Metric label="الاشتراكات النشطة" value={m.activeSubscriptions}/>
-        <Metric label="إجمالي المرضى" value={m.patients}/>
-        <Metric label="طلبات الدفع المعلقة" value={m.pendingPayments}/>
-        <Metric label="المدفوعات المعتمدة" value={m.approvedPayments}/>
-        <Metric label="قيمة المدفوعات المعتمدة" value={money(m.approvedValue)}/>
-      </div><div className="panel"><div className="panel-head"><h2>أحدث طلبات الدفع</h2><button className="link" onClick={()=>setTab("payments")}>عرض الكل</button></div><PaymentRows items={data.requests.slice(0,5)} onReceipt={openReceipt} busy={busy}/></div></>}
-      {tab==="payments"&&<div className="panel"><div className="panel-head"><h2>طلبات الدفع والتحقق من التحويل</h2><span className="pill">{pending.length} قيد المراجعة</span></div><PaymentRows items={data.requests} onReceipt={openReceipt} busy={busy}/>{data.requests.filter(p=>p.status==="pending").map(p=><div className="review-box" key={p.id}><div><b>{p.clinic?.name||"عيادة غير معروفة"}</b><span>{p.plan_code?.toUpperCase()} · {p.billing_period==="yearly"?"سنوي":"شهري"} · {money(p.amount)}</span><small>مرجع التحويل: {p.transfer_reference} · {p.payment_method==="instapay"?"InstaPay":"Vodafone Cash"}</small></div><div className="review-actions"><button className="outline" onClick={()=>openReceipt(p.id)} disabled={busy===p.id}>عرض الإيصال</button><button className="primary" onClick={()=>review(p.id,"approve")} disabled={!!busy}>اعتماد وترقية</button><input placeholder="سبب الرفض (إلزامي)" value={reasons[p.id]||""} onChange={e=>setReasons(v=>({...v,[p.id]:e.target.value}))}/><button className="danger" onClick={()=>review(p.id,"reject")} disabled={!!busy}>رفض الطلب</button></div></div>)}</div>}
-      {tab==="clinics"&&<div className="panel"><h2>العيادات المسجلة</h2><div className="table-wrap"><table><thead><tr><th>اسم العيادة</th><th>البريد</th><th>المدينة</th><th>الحالة</th><th>تاريخ التسجيل</th></tr></thead><tbody>{data.clinics.map(c=><tr key={c.id}><td>{c.name}</td><td>{c.admin_email}</td><td>{c.city||"—"}</td><td><span className="pill">{c.is_active?"نشطة":"غير نشطة"}</span></td><td>{new Date(c.created_at).toLocaleDateString("ar-EG")}</td></tr>)}</tbody></table></div></div>}
-      {tab==="plans"&&<div className="plan-grid">{data.plans.map(p=><article className="plan-card" key={p.name}><span className="eyebrow">SUBSCRIPTION PLAN</span><h2>{p.name.toUpperCase()}</h2><b>{money(p.price_monthly)} <small>/ شهري</small></b><p>{money(p.price_yearly)} / سنوي</p><span className="pill">{p.is_active?"متاحة":"متوقفة"}</span></article>)}</div>}
-      {tab==="audit"&&<div className="panel"><h2>سجل عمليات مدير المنصة</h2><div className="table-wrap"><table><thead><tr><th>العملية</th><th>الباقة</th><th>القيمة</th><th>المدير</th><th>التاريخ</th></tr></thead><tbody>{data.audit.map(a=><tr key={a.id}><td>{a.action==="payment_approved"?"اعتماد دفعة":"رفض دفعة"}</td><td>{a.plan_code||"—"}</td><td>{money(a.amount||0)}</td><td>{a.admin_email}</td><td>{new Date(a.created_at).toLocaleString("ar-EG")}</td></tr>)}</tbody></table></div></div>}
-    </section>
-  </main>;
+const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+type Dashboard = { adminEmail:string; metrics:{clinics:number;activeClinics:number;patients:number;activeSubscriptions:number;pendingPayments:number;approvedPayments:number;approvedValue:number}; requests:any[]; clinics:any[]; plans:any[]; audit:any[] };
+const money=(n:number)=>new Intl.NumberFormat("en-EG",{style:"currency",currency:"EGP",maximumFractionDigits:0}).format(n||0);
+export default function Home(){
+ const [session,setSession]=useState<Session|null>(null),[email,setEmail]=useState("ahmedsalamaahmed21@gmail.com"),[password,setPassword]=useState(""),[showPassword,setShowPassword]=useState(false);
+ const [authMode,setAuthMode]=useState<"login"|"forgot"|"verify">("login"),[otp,setOtp]=useState(""),[newPassword,setNewPassword]=useState(""),[confirmPassword,setConfirmPassword]=useState("");
+ const [data,setData]=useState<Dashboard|null>(null),[tab,setTab]=useState("overview"),[busy,setBusy]=useState(""),[error,setError]=useState(""),[notice,setNotice]=useState(""),[reasons,setReasons]=useState<Record<string,string>>({});
+ const token=session?.access_token||"";
+ async function load(currentToken=token){if(!currentToken)return;const {data:json,error:invokeError}=await supabase.functions.invoke("platform-admin",{body:{action:"overview"},headers:{Authorization:"Bearer "+currentToken}});if(invokeError||json?.error)throw new Error(json?.error||invokeError?.message||"Unable to load dashboard");setData(json as Dashboard);}
+ useEffect(()=>{supabase.auth.getSession().then(({data})=>setSession(data.session));const {data:listener}=supabase.auth.onAuthStateChange((_event,next)=>setSession(next));return()=>listener.subscription.unsubscribe();},[]);
+ useEffect(()=>{if(token)load(token).catch(e=>setError(e.message));else setData(null);},[token]);
+ async function signIn(e:React.FormEvent){e.preventDefault();setBusy("login");setError("");setNotice("");const {data,error}=await supabase.auth.signInWithPassword({email:email.trim(),password});if(error)setError(error.message);else{setSession(data.session);setPassword("");}setBusy("");}
+ async function sendRecovery(e:React.FormEvent){e.preventDefault();setBusy("recovery");setError("");setNotice("");const {error}=await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());if(error)setError(error.message);else{setAuthMode("verify");setNotice("تم إرسال رمز استعادة كلمة المرور إلى بريدك الإلكتروني. افحص الوارد والرسائل غير المرغوب فيها.");}setBusy("");}
+ async function verifyAndUpdatePassword(e:React.FormEvent){e.preventDefault();setError("");setNotice("");if(otp.trim().length!==6){setError("أدخل رمز التحقق المكوّن من 6 أرقام.");return;}if(newPassword.length<8){setError("كلمة المرور الجديدة يجب ألا تقل عن 8 أحرف.");return;}if(newPassword!==confirmPassword){setError("تأكيد كلمة المرور غير مطابق.");return;}setBusy("update-password");const {data:verified,error:verifyError}=await supabase.auth.verifyOtp({email:email.trim().toLowerCase(),token:otp.trim(),type:"recovery"});if(verifyError||!verified.session){setError(verifyError?.message||"تعذر التحقق من الرمز. تأكد من صحته أو اطلب رمزًا جديدًا.");setBusy("");return;}const {error:updateError}=await supabase.auth.updateUser({password:newPassword});if(updateError){setError(updateError.message);setBusy("");return;}await supabase.auth.signOut();setSession(null);setPassword("");setOtp("");setNewPassword("");setConfirmPassword("");setAuthMode("login");setNotice("تم تغيير كلمة المرور بنجاح. يمكنك تسجيل الدخول الآن بكلمة المرور الجديدة.");setBusy("");}
+ async function signOut(){await supabase.auth.signOut();setSession(null);setData(null);}
+ async function review(id:string,action:"approve"|"reject"){if(action==="reject"&&(reasons[id]||"").trim().length<4){setError("اكتب سبب الرفض بوضوح قبل المتابعة.");return;}if(action==="approve"&&!window.confirm("تأكيد الموافقة؟ سيتم تفعيل أو ترقية اشتراك العيادة فورًا."))return;setBusy(id);setError("");setNotice("");const {data:json,error:invokeError}=await supabase.functions.invoke("platform-admin",{body:{action,id,reason:reasons[id]||""},headers:{Authorization:"Bearer "+token}});if(invokeError||json?.error)setError(json?.error||invokeError?.message||"تعذر تنفيذ العملية");else{setNotice(action==="approve"?"تم اعتماد الإيصال وتحديث الاشتراك.":"تم رفض طلب الدفع.");await load();}setBusy("");}
+ async function openReceipt(id:string){setBusy(id);setError("");const {data:json,error:invokeError}=await supabase.functions.invoke("platform-admin",{body:{action:"receipt",id},headers:{Authorization:"Bearer "+token}});if(invokeError||json?.error)setError(json?.error||invokeError?.message||"تعذر فتح الإيصال");else window.open(json.url,"_blank","noopener,noreferrer");setBusy("");}
+ const pending=useMemo(()=>data?.requests.filter(p=>p.status==="pending")||[],[data]);
+ if(!session)return <main className="login-shell" dir="rtl"><div className="login-orbit orbit-a"/><div className="login-orbit orbit-b"/><section className="login-card">
+  <div className="login-topline"><span className="secure-label"><i/> اتصال مشفّر وآمن</span><span className="login-version">CONTROL CENTER · 01</span></div>
+  <div className="login-brand"><div className="brand-mark login-logo">P<span>✦</span></div><div><b>Prime Physio</b><small>Platform Control Center</small></div></div>
+  <div className="login-intro"><p className="eyebrow">مساحة الإدارة الخاصة</p><h1>{authMode==="login"?"مرحبًا بعودتك":authMode==="forgot"?"استعادة كلمة المرور":"تحقق من بريدك الإلكتروني"}</h1><p>{authMode==="login"?"سجّل الدخول لمتابعة إدارة المنصة والاشتراكات.":authMode==="forgot"?"أدخل بريد المدير وسنرسل إليه رمز استعادة آمنًا.":"أدخل رمز التحقق الذي أرسلناه إلى بريدك، ثم عيّن كلمة مرور جديدة."}</p></div>
+  {authMode==="login"&&<form className="auth-form" onSubmit={signIn}><label htmlFor="admin-email">البريد الإلكتروني</label><div className="input-wrap"><span>✉</span><input id="admin-email" type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="username" placeholder="name@example.com"/></div><div className="password-row"><label htmlFor="admin-password">كلمة المرور</label><button type="button" className="text-action" onClick={()=>{setAuthMode("forgot");setError("");setNotice("");}}>نسيت كلمة المرور؟</button></div><div className="input-wrap"><span>▣</span><input id="admin-password" type={showPassword?"text":"password"} value={password} onChange={e=>setPassword(e.target.value)} required autoComplete="current-password" placeholder="أدخل كلمة المرور"/><button type="button" className="eye-toggle" onClick={()=>setShowPassword(v=>!v)}>{showPassword?"إخفاء":"إظهار"}</button></div><button className="primary full login-submit" disabled={busy==="login"}>{busy==="login"?"جارٍ التحقق من بياناتك…":"تسجيل الدخول"} <b>←</b></button></form>}
+  {authMode==="forgot"&&<form className="auth-form" onSubmit={sendRecovery}><label htmlFor="recovery-email">البريد الإلكتروني للمدير</label><div className="input-wrap"><span>✉</span><input id="recovery-email" type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email" placeholder="name@example.com"/></div><button className="primary full login-submit" disabled={busy==="recovery"}>{busy==="recovery"?"جارٍ إرسال الرمز…":"إرسال رمز التحقق"} <b>←</b></button><button type="button" className="back-action" onClick={()=>{setAuthMode("login");setError("");setNotice("");}}>العودة إلى تسجيل الدخول</button></form>}
+  {authMode==="verify"&&<form className="auth-form" onSubmit={verifyAndUpdatePassword}><div className="recovery-destination">✉ <div><small>تم إرسال الرمز إلى</small><b>{email}</b></div></div><label htmlFor="recovery-otp">رمز التحقق (6 أرقام)</label><input className="otp-input" id="recovery-otp" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={otp} onChange={e=>setOtp(e.target.value.replace(/\D/g,"").slice(0,6))} placeholder="000000" required/><label htmlFor="new-password">كلمة المرور الجديدة</label><div className="input-wrap"><input id="new-password" type={showPassword?"text":"password"} value={newPassword} onChange={e=>setNewPassword(e.target.value)} minLength={8} autoComplete="new-password" placeholder="8 أحرف على الأقل" required/><button type="button" className="eye-toggle" onClick={()=>setShowPassword(v=>!v)}>{showPassword?"إخفاء":"إظهار"}</button></div><label htmlFor="confirm-password">تأكيد كلمة المرور الجديدة</label><div className="input-wrap"><input id="confirm-password" type={showPassword?"text":"password"} value={confirmPassword} onChange={e=>setConfirmPassword(e.target.value)} minLength={8} autoComplete="new-password" placeholder="أعد كتابة كلمة المرور" required/></div><button className="primary full login-submit" disabled={busy==="update-password"}>{busy==="update-password"?"جارٍ تحديث كلمة المرور…":"تأكيد وتغيير كلمة المرور"} <b>←</b></button><button type="button" className="back-action" onClick={()=>{setAuthMode("forgot");setOtp("");setError("");setNotice("");}}>إعادة إرسال رمز جديد</button></form>}
+  {error&&<div className="auth-message error" role="alert">{error}</div>}{notice&&<div className="auth-message success" role="status">{notice}</div>}
+  <footer className="login-footer">◈ هذا النظام مخصص لمدير المنصة المعتمد فقط.<small>PRIME PHYSIO · SECURE ADMINISTRATION</small></footer>
+ </section></main>;
+ if(!data)return <main className="loading">جارٍ تحميل لوحة إدارة المنصة… {error&&<p className="error">{error}</p>}</main>;
+ const m=data.metrics;
+ return <main className="shell" dir="rtl"><aside className="sidebar"><div className="brand"><span className="brand-mark small">P</span><div><b>Prime Physio</b><small>مركز التحكم</small></div></div><nav>{[["overview","نظرة عامة"],["payments","طلبات الدفع"],["clinics","العيادات"],["plans","الباقات"],["audit","سجل المراجعة"]].map(([key,label])=><button key={key} className={tab===key?"nav active":"nav"} onClick={()=>setTab(key)}>{label}{key==="payments"&&m.pendingPayments>0?<i>{m.pendingPayments}</i>:null}</button>)}</nav><div className="side-bottom"><small>{session.user.email}</small><button className="logout" onClick={signOut}>تسجيل الخروج</button></div></aside>
+ <section className="content"><header><div><p className="eyebrow">PLATFORM ADMINISTRATION</p><h1>{({overview:"نظرة عامة",payments:"مراجعة طلبات الدفع",clinics:"إدارة العيادات",plans:"الباقات والأسعار",audit:"سجل المراجعة"} as any)[tab]}</h1><p className="muted">لوحة مستقلة عن حسابات مراكز العلاج الطبيعي</p></div><button className="refresh" onClick={()=>load().catch(e=>setError(e.message))}>تحديث البيانات ↻</button></header>
+ {error&&<div className="alert error">{error}</div>}{notice&&<div className="alert success">{notice}</div>}
+ {tab==="overview"&&<><div className="metrics"><Metric label="إجمالي العيادات" value={m.clinics} note={m.activeClinics+" نشطة"}/><Metric label="الاشتراكات النشطة" value={m.activeSubscriptions}/><Metric label="إجمالي المرضى" value={m.patients}/><Metric label="طلبات الدفع المعلقة" value={m.pendingPayments}/><Metric label="المدفوعات المعتمدة" value={m.approvedPayments}/><Metric label="قيمة المدفوعات المعتمدة" value={money(m.approvedValue)}/></div><div className="panel"><div className="panel-head"><h2>أحدث طلبات الدفع</h2><button className="link" onClick={()=>setTab("payments")}>عرض الكل</button></div><PaymentRows items={data.requests.slice(0,5)} onReceipt={openReceipt} busy={busy}/></div></>}
+ {tab==="payments"&&<div className="panel"><div className="panel-head"><h2>طلبات الدفع والتحقق من التحويل</h2><span className="pill">{pending.length} قيد المراجعة</span></div><PaymentRows items={data.requests} onReceipt={openReceipt} busy={busy}/>{data.requests.filter(p=>p.status==="pending").map(p=><div className="review-box" key={p.id}><div><b>{p.clinic?.name||"عيادة غير معروفة"}</b><span>{p.plan_code?.toUpperCase()} · {p.billing_period==="yearly"?"سنوي":"شهري"} · {money(p.amount)}</span><small>مرجع التحويل: {p.transfer_reference} · {p.payment_method==="instapay"?"InstaPay":"Vodafone Cash"}</small></div><div className="review-actions"><button className="outline" onClick={()=>openReceipt(p.id)} disabled={busy===p.id}>عرض الإيصال</button><button className="primary" onClick={()=>review(p.id,"approve")} disabled={!!busy}>اعتماد وترقية</button><input placeholder="سبب الرفض (إلزامي)" value={reasons[p.id]||""} onChange={e=>setReasons(v=>({...v,[p.id]:e.target.value}))}/><button className="danger" onClick={()=>review(p.id,"reject")} disabled={!!busy}>رفض الطلب</button></div></div>)}</div>}
+ {tab==="clinics"&&<div className="panel"><h2>العيادات المسجلة</h2><div className="table-wrap"><table><thead><tr><th>اسم العيادة</th><th>البريد</th><th>المدينة</th><th>الحالة</th><th>تاريخ التسجيل</th></tr></thead><tbody>{data.clinics.map(c=><tr key={c.id}><td>{c.name}</td><td>{c.admin_email}</td><td>{c.city||"—"}</td><td><span className="pill">{c.is_active?"نشطة":"غير نشطة"}</span></td><td>{new Date(c.created_at).toLocaleDateString("ar-EG")}</td></tr>)}</tbody></table></div></div>}
+ {tab==="plans"&&<div className="plan-grid">{data.plans.map(p=><article className="plan-card" key={p.name}><span className="eyebrow">SUBSCRIPTION PLAN</span><h2>{p.name.toUpperCase()}</h2><b>{money(p.price_monthly)} <small>/ شهري</small></b><p>{money(p.price_yearly)} / سنوي</p><span className="pill">{p.is_active?"متاحة":"متوقفة"}</span></article>)}</div>}
+ {tab==="audit"&&<div className="panel"><h2>سجل عمليات مدير المنصة</h2><div className="table-wrap"><table><thead><tr><th>العملية</th><th>الباقة</th><th>القيمة</th><th>المدير</th><th>التاريخ</th></tr></thead><tbody>{data.audit.map(a=><tr key={a.id}><td>{a.action==="payment_approved"?"اعتماد دفعة":"رفض دفعة"}</td><td>{a.plan_code||"—"}</td><td>{money(a.amount||0)}</td><td>{a.admin_email}</td><td>{new Date(a.created_at).toLocaleString("ar-EG")}</td></tr>)}</tbody></table></div></div>}
+ </section></main>;
 }
 function Metric({label,value,note}:{label:string;value:number|string;note?:string}){return <article className="metric"><span>{label}</span><strong>{value}</strong>{note&&<small>{note}</small>}</article>}
 function PaymentRows({items,onReceipt,busy}:{items:any[];onReceipt:(id:string)=>void;busy:string}){return <div className="table-wrap"><table><thead><tr><th>العيادة</th><th>الباقة</th><th>المبلغ</th><th>وسيلة الدفع</th><th>الحالة</th><th>الإيصال</th></tr></thead><tbody>{items.map(p=><tr key={p.id}><td>{p.clinic?.name||p.user_email}</td><td>{p.plan_code} · {p.billing_period==="yearly"?"سنوي":"شهري"}</td><td>{money(p.amount)}</td><td>{p.payment_method==="instapay"?"InstaPay":"Vodafone Cash"}</td><td><span className={"status "+p.status}>{p.status==="pending"?"معلق":p.status==="approved"?"معتمد":"مرفوض"}</span></td><td><button className="link" onClick={()=>onReceipt(p.id)} disabled={busy===p.id}>فتح الإيصال</button></td></tr>)}</tbody></table>{!items.length&&<p className="empty">لا توجد طلبات دفع حتى الآن.</p>}</div>}
