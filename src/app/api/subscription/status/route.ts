@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     const admin = getAdminClient();
     const { data: order, error } = await admin
       .from("subscription_payment_orders")
-      .select("id,clinic_id,user_email,plan_code,billing_period,amount_cents,currency,status,created_at,paid_at")
+      .select("id,clinic_id,user_email,plan_code,billing_period,amount_cents,currency,status,created_at,paid_at,expires_at")
       .eq("id", reference)
       .maybeSingle();
     if (error) return NextResponse.json({ error: "Could not load payment status" }, { status: 503 });
@@ -31,13 +31,27 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
     if (ownerError || !owner) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
+    let currentStatus = order.status;
+    if (currentStatus === "pending" && order.expires_at && new Date(order.expires_at).getTime() <= Date.now()) {
+      const { error: expireError } = await admin
+        .from("subscription_payment_orders")
+        .update({ status: "expired" })
+        .eq("id", order.id)
+        .eq("status", "pending");
+      if (expireError) {
+        console.error("[Subscription Status] Could not expire timed-out payment order:", expireError.message);
+      } else {
+        currentStatus = "expired";
+      }
+    }
+
     return NextResponse.json({
       reference: order.id,
       planCode: order.plan_code,
       billingPeriod: order.billing_period,
       amount: Number(order.amount_cents) / 100,
       currency: order.currency,
-      status: order.status,
+      status: currentStatus,
       paidAt: order.paid_at,
     }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error) {
