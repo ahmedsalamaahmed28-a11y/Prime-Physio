@@ -239,7 +239,13 @@ export default function CreateCenterPage() {
       });
       const paymentData = await paymentResponse.json().catch(() => ({}));
       if (!paymentResponse.ok || !paymentData.checkoutUrl) {
-        throw new Error(paymentData.error || "The center is ready on the Free plan. Retry the paid upgrade from the subscription page.");
+        setCreatedSlug(data.slug);
+        setCreatedCenterName(fullName.trim());
+        setCenterCreated(true);
+        setNotice(isRtl
+          ? "تم إنشاء المركز وتفعيل الباقة المجانية. الدفع المدفوع مغلق مؤقتًا حتى اكتمال اختبار Paymob، ويمكنك الترقية لاحقًا من صفحة الباقات."
+          : "The center was created on the Free plan. Paid checkout is temporarily disabled until Paymob sandbox testing is complete; you can upgrade later from Plans.");
+        return;
       }
       window.location.assign(paymentData.checkoutUrl);
       return;
@@ -283,6 +289,7 @@ export default function CreateCenterPage() {
           <h1 className="text-2xl font-extrabold text-slate-900">{isRtl ? "تم إنشاء المركز بنجاح" : "Center created successfully"}</h1>
           <p className="mt-2 text-base font-bold text-slate-800">{createdCenterName}</p>
           <p className="mt-2 text-sm leading-6 text-slate-500">{isRtl ? "أصبح للمركز صفحة عامة مستقلة تشمل بياناته وصوره ووسائل التواصل وتسجيل الدخول، ويمكنك مشاركة الرابط مع العملاء والفريق." : "Your center now has its own public profile with its details, images, contact options and secure team login."}</p>
+          {notice && <p role="status" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-800">{notice}</p>}
           <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-3 text-left" dir="ltr">
             <p className="break-all text-sm font-semibold text-[#4F46BA]">{centerUrl}</p>
           </div>
@@ -298,7 +305,7 @@ export default function CreateCenterPage() {
 
   return (
     <main dir={isRtl ? "rtl" : "ltr"} className="min-h-screen bg-white font-sans text-[#303846]">
-      {showCreationProgress && planId === "basic" && (
+      {showCreationProgress && planId === "free" && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/35 px-4 backdrop-blur-md" role="dialog" aria-modal="true" aria-labelledby="center-creation-progress-title">
           <section className="w-full max-w-md rounded-3xl border border-white/70 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.24)] sm:p-8">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F1EFFF] text-[#5B50C7]"><Building className="h-7 w-7" /></div>
