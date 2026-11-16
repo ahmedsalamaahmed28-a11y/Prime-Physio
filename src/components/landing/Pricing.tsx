@@ -63,7 +63,7 @@ const plans: Plan[] = [
     patientsEn: "200",
     supportAr: "البريد الإلكتروني والمحادثة الفورية والهاتف",
 
-    supportEn: "Email and live chat",
+    supportEn: "Email, live chat and phone support",
     backupAr: "نسخة Excel شهرية تلقائية بالبريد",
     backupEn: "Automatic monthly Excel backup by email",
     featured: true,
@@ -84,9 +84,9 @@ const plans: Plan[] = [
     patientsEn: "Unlimited",
     inventory: true,
     supportAr: "البريد الإلكتروني والمحادثة والهاتف وزيارة فنية كل 6 أشهر لكل مركز",
-    supportEn: "Email, live chat and an on-site visit every 6 months per center",
-    backupAr: "نسخة Excel شهرية + نسخة قاعدة بيانات أسبوعية",
-    backupEn: "Monthly Excel backup + weekly database backup",
+    supportEn: "Email, live chat, phone and an on-site visit every 6 months per center",
+    backupAr: "نسخة Excel شهرية + نسخة قاعدة بيانات أسبوعية (آخر 4 نسخ)",
+    backupEn: "Monthly Excel backup + weekly database backups (last 4)",
   },
   {
     id: "advanced",
@@ -104,9 +104,9 @@ const plans: Plan[] = [
     patientsEn: "Unlimited",
     inventory: true,
     supportAr: "البريد الإلكتروني والمحادثة والهاتف وزيارة فنية كل شهرين لكل مركز",
-    supportEn: "Email, live chat and an on-site visit every 2 months per center",
-    backupAr: "نسخة Excel شهرية + نسخ قاعدة البيانات ليليًا وأسبوعيًا",
-    backupEn: "Monthly Excel + nightly and weekly database backups",
+    supportEn: "Email, live chat, phone and an on-site visit every 2 months per center",
+    backupAr: "نسخة Excel شهرية + نسخ قاعدة البيانات ليليًا (آخر 14) وأسبوعيًا (آخر 4)",
+    backupEn: "Monthly Excel + nightly database backups (last 14) and weekly backups (last 4)",
   },
   {
     id: "maximum",
@@ -187,7 +187,7 @@ export default function Pricing() {
                 {isAnnual && plan.monthly > 0 && <p className="mt-1 text-[11px] font-bold text-emerald-700">{isEnglish ? "12 months for the price of 10" : "12 شهرًا بسعر 10 أشهر فقط"}</p>}
                 <div className="my-4 h-px bg-slate-100" />
                 <ul className="flex-1 space-y-3 text-xs leading-5 text-slate-700">
-                  {features.map(([label, value]) => <li key={label} className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b className="font-extrabold text-slate-900">{value}</b> {label}</span></li>)}
+                  {features.map(([label, value]) => <li key={label} className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b className="font-extrabold text-slate-900">{isEnglish && value === "غير محدود" ? "Unlimited" : value}</b> {label}</span></li>)}
                   {plan.inventory && <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{isEnglish ? "Inventory: stock, purchases, sales, team requests and stocktaking" : "المخزن: المخزون والمشتريات والمبيعات وطلبات الفريق والجرد"}</span></li>}
                   <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b>{isEnglish ? "Support:" : "الدعم:"}</b> {isEnglish ? plan.supportEn : plan.supportAr}</span></li>
                   <li className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{isEnglish ? plan.backupEn : plan.backupAr}</span></li>
