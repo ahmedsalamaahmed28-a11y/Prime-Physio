@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     const reason = error instanceof Error ? error.message : "";
     if (reason === "PASSWORD_TOO_WEAK") {
-      return NextResponse.json({ error: "كلمة المرور يجب أن تكون 12 حرفًا على الأقل وتحتوي على حرف كبير وصغير ورقم ورمز." }, { status: 400 });
+      return NextResponse.json({ error: "كلمة المرور يجب أن تكون من 8 إلى 128 حرفًا، وألا تكون شائعة أو سهلة التخمين." }, { status: 400 });
     }
     if (reason === "PASSWORD_COMPROMISED") {
       return NextResponse.json({ error: "كلمة المرور ظهرت في تسريبات سابقة. اختر كلمة مرور مختلفة." }, { status: 400 });
