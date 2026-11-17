@@ -86,3 +86,104 @@ td{color:#464555}
 @media(max-width:600px){.prime-logo-login{width:52px;height:52px}.prime-logo-sidebar{width:38px;height:38px}}
 
 .audit-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:8px 0 18px}.audit-search{width:min(100%,340px);min-height:42px;padding:10px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#172b45;outline:none}.audit-search:focus{border-color:var(--blue);box-shadow:0 0 0 3px #1769d21a}.audit-toolbar .muted{display:block;margin-top:5px;font-size:12px}@media(max-width:640px){.audit-toolbar{align-items:stretch}.audit-search{width:100%}}
+
+
+/* ── Match the clinic workspace (Stitch) chrome and typography ── */
+:root{--blue:#4f46e5;--navy:#fff;--bg:#f8f9ff;--line:#e2e6f0;--muted:#777587;--pp-ink:#0b1c30;--pp-brand-deep:#3525cd;--pp-soft:#eff4ff}
+html,body{min-height:100%;background:#f8f9ff;color:#0b1c30;font-family:"IBM Plex Sans Arabic","Cairo",sans-serif}
+.shell{display:block;min-height:100vh;background:#f8f9ff}
+.sidebar{position:fixed;z-index:70;inset-block:0;right:0;width:264px;height:100vh;flex:0 0 264px;background:#fff;color:#464555;border-left:1px solid #e2e6f0;box-shadow:0 1px 8px rgba(0,0,0,.05);padding:0 0 14px;display:flex;flex-direction:column;overflow-y:auto}
+.brand{height:80px;min-height:80px;padding:0 24px;gap:12px;border-bottom:1px solid #f3f4f8;flex-shrink:0}
+.brand b{font-size:17px;line-height:1.35;color:#0b1c30;font-weight:800}
+.brand small{font-size:11px;color:#777587}
+.prime-logo-sidebar{width:42px;height:42px}
+.sidebar-caption{padding:21px 26px 8px;color:#9998aa;font-size:10px;font-weight:800}
+.sidebar nav{display:flex;flex-direction:column;gap:4px;padding:6px 16px;flex:1;overflow-y:auto}
+.nav{display:flex;align-items:center;gap:11px;width:100%;text-align:right;background:transparent;color:#464555;padding:11px 13px;border-radius:11px;font-size:13px;min-height:43px;transition:background .18s,color .18s}
+.nav-icon{display:grid;place-items:center;width:21px;height:21px;color:inherit;font-size:19px;line-height:1;opacity:.8}
+.nav.active,.nav:hover{background:#4f46e5;color:#fff;font-weight:700;box-shadow:0 1px 3px #1e1b4b12}
+.nav i{margin-inline-start:auto;float:none;background:#c7c3fe;color:#3525cd;border-radius:20px;padding:3px 8px;font-style:normal;font-size:10px}
+.admin-user{display:flex;align-items:center;gap:10px;margin:12px 16px 0;padding:12px;border-radius:12px;background:#eff4ff;min-width:0}
+.admin-avatar{width:40px;height:40px;border-radius:50%;background:#3525cd;color:#fff;display:grid;place-items:center;flex-shrink:0;font-size:16px;font-weight:800}
+.admin-user-info{display:flex;flex:1;min-width:0;flex-direction:column;gap:4px}
+.admin-user-info b{font-size:12px;color:#0b1c30}
+.admin-user-info small{font-size:9px;color:#777587;direction:ltr;text-align:right;overflow-wrap:anywhere}
+.admin-user .logout{width:30px;height:30px;padding:0;display:grid;place-items:center;background:#fff;color:#777587;border:0;border-radius:8px;font-size:18px}
+.admin-user .logout:hover{background:#ffefee;color:#ba1a1a}
+.content{margin-right:280px;min-width:0;padding:0 28px 36px;background:#f8f9ff}
+.content>header.admin-topbar{position:sticky;top:0;z-index:60;margin:0 -28px 22px;padding:0 28px;height:80px;min-height:80px;display:flex;align-items:center;justify-content:space-between;gap:20px;background:rgba(248,249,255,.93);backdrop-filter:blur(18px);border-bottom:1px solid #e9edf5;box-shadow:0 1px 8px rgba(0,0,0,.035)}
+.admin-topbar-title .eyebrow{margin:0 0 4px;color:#4f46e5;font-size:9px;letter-spacing:1.2px}
+.admin-topbar-title h1{margin:0;font-size:21px;font-weight:800;letter-spacing:-.02em;color:#0b1c30}
+.admin-topbar-title .muted{font-size:11px;color:#777587;margin:3px 0 0}
+.admin-topbar-actions{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.admin-secure{display:inline-flex;align-items:center;gap:7px;color:#005338;background:#e3fff2;border-radius:22px;padding:7px 10px;font-size:10px;font-weight:700}
+.admin-secure i{width:7px;height:7px;border-radius:50%;background:#00a66c}
+.refresh,.outline{height:40px;padding:0 13px;background:#fff;border:1px solid #e2e6f0;color:#3525cd;border-radius:11px;font-size:11px}
+.refresh:hover,.outline:hover{background:#eff4ff}
+.metrics{gap:14px;margin:0 0 20px}
+.metric,.panel,.plan-card{background:#fff;border:1px solid #e2e6f0;border-radius:17px;padding:19px;box-shadow:0 1px 4px rgba(11,28,48,.045),0 8px 24px rgba(11,28,48,.025)}
+.metric{min-height:126px;position:relative}
+.metric span{font-size:12px;color:#666579;font-weight:600}
+.metric strong{font-size:29px;color:#0b1c30;font-weight:800;letter-spacing:-.03em}
+.metric small{font-size:10px;color:#005338}
+.panel{margin-bottom:18px}
+.panel h2{font-size:15px;color:#0b1c30;font-weight:800}
+.panel-head{padding-bottom:12px}
+.panel-head .pill{background:#eff4ff;color:#3525cd}
+.table-wrap{overflow-x:auto;border:1px solid #edf0f5;border-radius:12px}
+table{width:100%;border-collapse:separate;border-spacing:0;white-space:normal}
+th{background:#eff4ff;color:#666579;font-size:10px;font-weight:800;padding:12px 11px}
+td{font-size:11px;color:#464555;padding:12px 11px}
+th,td{border-bottom:1px solid #edf0f5}
+tbody tr:last-child td{border-bottom:0}
+tbody tr:hover{background:#f8faff}
+.link{color:#4f46e5}
+.pill,.status{border-radius:20px}
+.status.pending{background:#fff5df;color:#93620a}
+.status.approved{background:#d8ffeb;color:#005338}
+.status.rejected{background:#ffefee;color:#ba1a1a}
+.review-box{padding:18px 4px}
+.review-actions input{border:1px solid #e2e6f0;border-radius:10px;min-height:39px;padding:9px 11px}
+.primary{background:#4f46e5;border-radius:10px}
+.primary:hover{background:#3525cd}
+.danger{border-radius:10px}
+.plan-grid{gap:15px}
+.plan-card{padding:21px}
+.plan-card .eyebrow{color:#4f46e5}
+.plan-card h2{font-size:18px;color:#0b1c30}
+.plan-card>b{color:#3525cd;font-size:23px}
+.alert{border-radius:12px}
+.loading{background:#f8f9ff;color:#0b1c30;font-family:inherit}
+@media(max-width:850px){.sidebar{width:230px}.content{margin-right:246px;padding-inline:18px}.content>header.admin-topbar{margin-inline:-18px;padding-inline:18px}}
+@media(max-width:600px){
+ .sidebar{position:relative;inset:auto;width:100%;height:auto;min-height:0;padding:0 12px 9px;border-left:0;border-bottom:1px solid #e2e6f0;overflow:visible}
+ .brand{height:57px;min-height:57px;padding:0 4px;border-bottom:0}
+ .prime-logo-sidebar{width:36px;height:36px}
+ .sidebar-caption{display:none}
+ .sidebar nav{flex-direction:row;overflow-x:auto;gap:5px;padding:3px 0 7px}
+ .nav{width:auto;min-height:38px;flex:0 0 auto;white-space:nowrap;padding:8px 11px;font-size:11px;gap:7px}
+ .nav-icon{font-size:16px;width:17px;height:17px}
+ .side-bottom{display:none}
+ .admin-user{margin:3px 0 0;padding:7px 9px}
+ .admin-avatar{width:30px;height:30px;font-size:13px}
+ .admin-user-info{flex-direction:row;align-items:center;justify-content:space-between}
+ .admin-user-info b{font-size:10px}
+ .admin-user-info small{font-size:9px}
+ .content{margin-right:0;padding:0 13px 24px}
+ .content>header.admin-topbar{position:relative;top:auto;margin:0 -13px 15px;padding:12px 13px;height:auto;min-height:66px;align-items:center}
+ .admin-topbar-title h1{font-size:17px}
+ .admin-topbar-title .muted{font-size:9px}
+ .admin-topbar-title .eyebrow{font-size:8px}
+ .admin-secure{display:none}
+ .refresh{height:36px;padding:0 10px;font-size:10px}
+ .metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .metric{padding:13px;border-radius:14px;min-height:110px}
+ .metric strong{font-size:22px}
+ .metric span{font-size:10px}
+ .panel{padding:13px;border-radius:14px}
+ .panel-head{align-items:flex-start}
+ .plan-card{padding:15px}
+ .review-box{align-items:stretch;flex-direction:column}
+ .review-actions{min-width:0;grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){.sidebar *,.content *{transition-duration:.01ms!important;animation-duration:.01ms!important}}
