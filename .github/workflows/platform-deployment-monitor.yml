@@ -108,7 +108,7 @@ jobs:
               "## Automated deployment monitor",
               "",
               `- Commit: \`${sha}\``,
-              \`- Vercel statuses:\n\${deploymentSummary}\`,
+              `- Vercel statuses:\n${deploymentSummary}`,
               `- Workflow: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`,
               `- Deployment details: ${target}`,
               "",
