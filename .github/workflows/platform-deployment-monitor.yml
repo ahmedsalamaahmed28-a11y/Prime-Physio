@@ -96,7 +96,7 @@ jobs:
                   state_reason: "completed",
                 });
               }
-              core.info(\`Both Vercel production deployments succeeded for \${shortSha}.\n\${deploymentSummary}\`);
+              core.info(`Both Vercel production deployments succeeded for ${shortSha}.\n${deploymentSummary}`);
               return;
             }
 
