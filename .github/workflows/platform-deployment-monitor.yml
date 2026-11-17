@@ -58,11 +58,11 @@ jobs:
               // Vercel publishes one status per connected project, not a single
               // status named exactly "Vercel". Track both production apps.
               clinic = statuses.find((item) => {
-                const context = item.context.toLowerCase().replace(/\\s+/g, "");
+                const context = item.context.toLowerCase().replace(/\s+/g, "");
                 return context.includes("prime-physio") && !context.includes("control");
               }) || null;
               control = statuses.find((item) =>
-                item.context.toLowerCase().replace(/\\s+/g, "").includes("primephysio-control")
+                item.context.toLowerCase().replace(/\s+/g, "").includes("primephysio-control")
               ) || null;
 
               if (isTerminal(clinic) && isTerminal(control)) break;
@@ -76,7 +76,7 @@ jobs:
             const allSucceeded = deploymentResults.every((item) => item.status?.state === "success");
             const deploymentSummary = deploymentResults
               .map((item) => `- ${item.name}: **${item.status?.state || "no status received"}** — ${item.target || "No deployment URL reported"}`)
-              .join("\\n");
+              .join("\n");
 
             const issues = await github.rest.issues.listForRepo({
               owner,
@@ -96,7 +96,7 @@ jobs:
                   state_reason: "completed",
                 });
               }
-              core.info(`Both Vercel production deployments succeeded for ${shortSha}.\\n${deploymentSummary}`);
+              core.info(\`Both Vercel production deployments succeeded for \${shortSha}.\n\${deploymentSummary}\`);
               return;
             }
 
@@ -108,7 +108,7 @@ jobs:
               "## Automated deployment monitor",
               "",
               `- Commit: \`${sha}\``,
-              `- Vercel statuses:\\n${deploymentSummary}`,
+              \`- Vercel statuses:\n\${deploymentSummary}\`,
               `- Workflow: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`,
               `- Deployment details: ${target}`,
               "",
