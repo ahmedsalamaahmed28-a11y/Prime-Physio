@@ -27,14 +27,8 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
-            let sha;
-
-            if (context.eventName === "workflow_run") {
-              sha = context.payload.workflow_run.head_sha;
-            } else {
-              const branch = await github.rest.repos.getBranch({ owner, repo, branch: "main" });
-              sha = branch.data.commit.sha;
-            }
+            const branch = await github.rest.repos.getBranch({ owner, repo, branch: "main" });
+            const sha = branch.data.commit.sha;
 
             const shortSha = sha.slice(0, 7);
             const issueTitle = `[Automation] Vercel deployment failed for ${shortSha}`;
@@ -87,11 +81,14 @@ jobs:
             const existing = issues.data.find((issue) => issue.title === issueTitle);
 
             if (allSucceeded) {
-              if (existing) {
+              const staleIssues = issues.data.filter((issue) =>
+                issue.title.startsWith("[Automation] Vercel deployment failed for ")
+              );
+              for (const staleIssue of staleIssues) {
                 await github.rest.issues.update({
                   owner,
                   repo,
-                  issue_number: existing.number,
+                  issue_number: staleIssue.number,
                   state: "closed",
                   state_reason: "completed",
                 });
