@@ -84,3 +84,5 @@ td{color:#464555}
 .prime-logo-login{width:58px;height:58px;display:block;object-fit:contain;flex:0 0 auto;background:transparent;border-radius:0;box-shadow:none}
 .prime-logo-sidebar{width:44px;height:44px;display:block;object-fit:contain;flex:0 0 auto;background:transparent;border-radius:0}
 @media(max-width:600px){.prime-logo-login{width:52px;height:52px}.prime-logo-sidebar{width:38px;height:38px}}
+
+.audit-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:8px 0 18px}.audit-search{width:min(100%,340px);min-height:42px;padding:10px 13px;border:1px solid var(--line);border-radius:10px;background:#fff;color:#172b45;outline:none}.audit-search:focus{border-color:var(--blue);box-shadow:0 0 0 3px #1769d21a}.audit-toolbar .muted{display:block;margin-top:5px;font-size:12px}@media(max-width:640px){.audit-toolbar{align-items:stretch}.audit-search{width:100%}}
