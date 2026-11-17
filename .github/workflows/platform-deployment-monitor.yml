@@ -38,7 +38,11 @@ jobs:
 
             const shortSha = sha.slice(0, 7);
             const issueTitle = `[Automation] Vercel deployment failed for ${shortSha}`;
-            let vercel = null;
+            let clinic = null;
+            let control = null;
+
+            const isTerminal = (status) =>
+              status && ["success", "failure", "error"].includes(status.state);
 
             for (let attempt = 0; attempt < 20; attempt += 1) {
               const response = await github.rest.repos.listCommitStatusesForRef({
@@ -47,11 +51,32 @@ jobs:
                 ref: sha,
                 per_page: 100,
               });
-              vercel = response.data.find((item) => item.context?.toLowerCase() === "vercel") || null;
+              const statuses = response.data.filter((item) =>
+                item.context?.toLowerCase().startsWith("vercel")
+              );
 
-              if (vercel && ["success", "failure", "error"].includes(vercel.state)) break;
+              // Vercel publishes one status per connected project, not a single
+              // status named exactly "Vercel". Track both production apps.
+              clinic = statuses.find((item) => {
+                const context = item.context.toLowerCase().replace(/\\s+/g, "");
+                return context.includes("prime-physio") && !context.includes("control");
+              }) || null;
+              control = statuses.find((item) =>
+                item.context.toLowerCase().replace(/\\s+/g, "").includes("primephysio-control")
+              ) || null;
+
+              if (isTerminal(clinic) && isTerminal(control)) break;
               if (attempt < 19) await new Promise((resolve) => setTimeout(resolve, 30000));
             }
+
+            const deploymentResults = [
+              { name: "Clinic application", status: clinic, target: clinic?.target_url },
+              { name: "Platform control center", status: control, target: control?.target_url },
+            ];
+            const allSucceeded = deploymentResults.every((item) => item.status?.state === "success");
+            const deploymentSummary = deploymentResults
+              .map((item) => `- ${item.name}: **${item.status?.state || "no status received"}** — ${item.target || "No deployment URL reported"}`)
+              .join("\\n");
 
             const issues = await github.rest.issues.listForRepo({
               owner,
@@ -61,7 +86,7 @@ jobs:
             });
             const existing = issues.data.find((issue) => issue.title === issueTitle);
 
-            if (vercel?.state === "success") {
+            if (allSucceeded) {
               if (existing) {
                 await github.rest.issues.update({
                   owner,
@@ -71,18 +96,19 @@ jobs:
                   state_reason: "completed",
                 });
               }
-              core.info(`Vercel production deployment succeeded for ${shortSha}.`);
-              if (vercel.target_url) core.info(vercel.target_url);
+              core.info(`Both Vercel production deployments succeeded for ${shortSha}.\\n${deploymentSummary}`);
               return;
             }
 
-            const state = vercel?.state || "no Vercel status received within 10 minutes";
-            const target = vercel?.target_url || "No deployment URL was reported by GitHub.";
+            const state = deploymentResults
+              .map((item) => `${item.name}: ${item.status?.state || "missing"}`)
+              .join("; ");
+            const target = deploymentSummary;
             const body = [
               "## Automated deployment monitor",
               "",
               `- Commit: \`${sha}\``,
-              `- Vercel status: **${state}**`,
+              `- Vercel statuses:\\n${deploymentSummary}`,
               `- Workflow: ${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`,
               `- Deployment details: ${target}`,
               "",
