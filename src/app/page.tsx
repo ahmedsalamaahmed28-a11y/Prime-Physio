@@ -23,7 +23,10 @@ import BeforeAfter from "@/components/landing/BeforeAfter";
 import PatientJourney from "@/components/landing/PatientJourney";
 import LandingLocale from "@/components/landing/LandingLocale";
 import FinalCTA from "@/components/landing/FinalCTA";
+import LandingSupportChat from "@/components/landing/LandingSupportChat";
+
 export const revalidate = 0;
+
 export default async function LandingPage() {
   const contentMap: Record<string, any> = {};
   try {
@@ -65,5 +68,6 @@ export default async function LandingPage() {
       <FinalCTA />
     </main>
     <div id="contact"><Footer /></div>
+    <LandingSupportChat />
   </div>;
 }
