@@ -49,6 +49,10 @@ export default function ClinicalNutritionPage() {
   // Load patients from Supabase only
   useEffect(() => {
     let cancelled = false;
+    setPatients([]);
+    setSelectedPatientId("");
+    setNutritionLoaded(false);
+    setNutritionLoading(false);
     async function loadPatients() {
       if (!clinicId) { setPatients([]); setSelectedPatientId(""); return; }
       try {
@@ -139,6 +143,7 @@ export default function ClinicalNutritionPage() {
   useEffect(() => {
     if (!clinicId || !selectedPatientId || !patients.some((patient) => patient.id === selectedPatientId)) {
       setNutritionLoaded(false);
+      setNutritionLoading(false);
       return;
     }
     let cancelled = false;
