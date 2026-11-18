@@ -16,27 +16,49 @@ export default function HRPage() {
   const [attendances, setAttendances] = useState<any[]>([]);
   const [payrolls, setPayrolls] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
+    let active = true;
     async function fetchData() {
-      if (!clinicId) return;
+      if (!clinicId) {
+        setAttendances([]);
+        setPayrolls([]);
+        setLoadError("");
+        setIsLoading(false);
+        return;
+      }
+      setIsLoading(true);
+      setLoadError("");
       try {
-        setIsLoading(true);
-        const [{ data: attData }, { data: payData }] = await Promise.all([
-          supabase.from("hr_attendance").select("*, staff:staff_id(name, role)").eq('clinic_id', clinicId).order("created_at", { ascending: false }).limit(20),
-          supabase.from("payroll_drafts").select("*, staff:staff_id(name, role)").eq('clinic_id', clinicId).order("created_at", { ascending: false }).limit(20)
+        const [attendanceResult, payrollResult] = await Promise.all([
+          supabase.from("hr_attendance").select("*, staff:staff_id(name, role)").eq("clinic_id", clinicId).order("created_at", { ascending: false }).limit(20),
+          supabase.from("payroll_drafts").select("*, staff:staff_id(name, role)").eq("clinic_id", clinicId).order("created_at", { ascending: false }).limit(20)
         ]);
-
-        setAttendances(attData || []);
-        setPayrolls(payData || []);
+        if (!active) return;
+        if (attendanceResult.error || payrollResult.error) {
+          console.error("HR data query errors:", { attendance: attendanceResult.error, payroll: payrollResult.error });
+          setLoadError(isRtl
+            ? "تعذر تحميل بعض بيانات الموارد البشرية. تحقق من صلاحيات الحساب والاتصال ثم أعد المحاولة."
+            : "Some HR data could not be loaded. Check account permissions and connection, then retry.");
+        }
+        setAttendances(attendanceResult.error ? [] : attendanceResult.data || []);
+        setPayrolls(payrollResult.error ? [] : payrollResult.data || []);
       } catch (err) {
         console.error("Failed to load HR data:", err);
+        if (active) {
+          setAttendances([]);
+          setPayrolls([]);
+          setLoadError(isRtl ? "حدث خطأ أثناء تحميل بيانات الموارد البشرية." : "An error occurred while loading HR data.");
+        }
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     }
     fetchData();
-  }, [clinicId]);
+    return () => { active = false; };
+  }, [clinicId, retryKey, isRtl]);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300" dir={isRtl ? "rtl" : "ltr"}>
@@ -52,6 +74,15 @@ export default function HRPage() {
           {isRtl ? "سجلات الحضور اليومية ومسودات الرواتب المعالجة آلياً عبر وكلاء n8n" : "Daily attendance records and automated payroll drafts processed by n8n agents"}
         </p>
       </div>
+
+      {loadError && (
+        <div role="alert" className="flex flex-col gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 sm:flex-row sm:items-center sm:justify-between">
+          <span>{loadError}</span>
+          <button type="button" onClick={() => setRetryKey((value) => value + 1)} className="rounded-lg border border-rose-300 bg-white px-4 py-2 text-xs font-bold hover:bg-rose-100">
+            {isRtl ? "إعادة المحاولة" : "Retry"}
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Attendance Card */}
