@@ -625,7 +625,7 @@ export default function ProfileSettingsPage() {
             
             {/* Logo Circular Avatar Uploader */}
             <div className="flex flex-col items-center text-center">
-              <div className="relative group cursor-pointer" onClick={triggerFileInput}>
+              <div className={`relative group ${isClinicAdmin ? "cursor-pointer" : ""}`} onClick={isClinicAdmin ? triggerFileInput : undefined}>
                 <div className="w-24 h-24 rounded-full border-4 border-slate-100 overflow-hidden bg-[#4F46BA] flex items-center justify-center shadow-md relative">
                   {logoUrl ? (
                     <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
@@ -633,10 +633,11 @@ export default function ProfileSettingsPage() {
                     <span className="text-white text-3xl font-bold tracking-wider font-sans">NT</span>
                   )}
                   
-                  {/* Camera icon hover overlay */}
-                  <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
-                    <Camera className="w-6 h-6" />
-                  </div>
+                  {isClinicAdmin && (
+                    <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white">
+                      <Camera className="w-6 h-6" />
+                    </div>
+                  )}
                 </div>
                 
                 {/* Invisible file input */}
