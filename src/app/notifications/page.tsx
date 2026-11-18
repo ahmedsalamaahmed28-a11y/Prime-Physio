@@ -55,7 +55,7 @@ export default function NotificationsPage() {
           .order("created_at", { ascending: false }).limit(30),
         user.clinicId
           ? supabase.from("notifications")
-              .select("id, title_ar, title_en, body_ar, body_en, created_at, is_read")
+              .select("id, title_ar, title_en, body_ar, body_en, created_at")
               .eq("clinic_id", user.clinicId)
               .order("created_at", { ascending: false }).limit(100)
           : Promise.resolve({ data: [], error: null } as any),
@@ -93,7 +93,7 @@ export default function NotificationsPage() {
         createdAt: item.created_at || new Date().toISOString(),
         type: "clinic",
         readKey: `clinic:${item.id}`,
-        isRead: Boolean(item.is_read),
+        isRead: false,
       }));
 
       const auditItems: NotificationItem[] = (auditResult.data || []).map((item: any) => {
@@ -125,34 +125,22 @@ export default function NotificationsPage() {
       const combined = [...broadcasts, ...clinicItems, ...auditItems]
         .map((item) => ({
           ...item,
-          isRead: item.type === "clinic"
-            ? Boolean(clinicItems.find((clinicItem) => clinicItem.id === item.id)?.isRead)
-            : savedReadKeys.has(item.readKey),
+          isRead: savedReadKeys.has(item.readKey),
         }))
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
       // Persist read state in Supabase so it follows the signed-in user across devices.
       const readKeys = combined.map((item) => item.readKey);
-      const clinicIds = clinicItems.map((item) => item.id);
-      const externalReceipts = combined
-        .filter((item) => item.type === "broadcast" || item.type === "audit")
-        .map((item) => ({
-          user_id: authUser.id,
-          source: item.type,
-          notification_id: item.id,
-          read_at: new Date().toISOString(),
-        }));
+      const readReceipts = combined.map((item) => ({
+        user_id: authUser.id,
+        source: item.type,
+        notification_id: item.id,
+        read_at: new Date().toISOString(),
+      }));
       const syncErrors: unknown[] = [];
-      if (clinicIds.length && user.clinicId) {
-        const { error: clinicReadError } = await supabase.from("notifications")
-          .update({ is_read: true, read_at: new Date().toISOString() })
-          .eq("clinic_id", user.clinicId)
-          .in("id", clinicIds);
-        if (clinicReadError) syncErrors.push(clinicReadError);
-      }
-      if (externalReceipts.length) {
+      if (readReceipts.length) {
         const { error: receiptError } = await supabase.from("notification_read_states")
-          .upsert(externalReceipts, { onConflict: "user_id,source,notification_id" });
+          .upsert(readReceipts, { onConflict: "user_id,source,notification_id" });
         if (receiptError) syncErrors.push(receiptError);
       }
 
