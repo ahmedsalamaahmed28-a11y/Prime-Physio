@@ -386,34 +386,25 @@ export default function BillingPage() {
                           const newStatus = normalizeInvoiceStatus(e.target.value);
                           
                           try {
-                            await supabase
-                              .from("patients")
-                              .update({ status: newStatus === "مدفوع" ? "نشط" : "غير نشط" })
-                              .eq("clinic_id", clinicId)
-                              .eq("id", inv.patientId);
-
-                            const { error: invoiceErr } = await supabase
+                            const { data: updatedInvoice, error: invoiceErr } = await supabase
                               .from("invoices")
                               .update({ status: newStatus })
                               .eq("clinic_id", clinicId)
-                              .eq("id", inv.id);
+                              .eq("id", inv.id)
+                              .select("id")
+                              .maybeSingle();
                             if (invoiceErr) throw invoiceErr;
+                            if (!updatedInvoice) throw new Error("Invoice was not updated; it may no longer belong to this clinic.");
                           } catch (err: any) {
-                            console.error("Failed to update status in Supabase:", err);
-                            alert("حدث خطأ في قاعدة البيانات: " + (err?.message || JSON.stringify(err)));
+                            console.error("Failed to update invoice status in Supabase:", err);
+                            alert((isRtl ? "فشل حفظ حالة الفاتورة: " : "Failed to save invoice status: ") + (err?.message || JSON.stringify(err)));
+                            return;
                           }
-                          
-                          setInvoices((prev) =>
-                            prev.map((item) =>
-                              item.id === inv.id
-                                ? {
-                                    ...item,
-                                    status: newStatus,
-                                    paymentMethod: newStatus === "مدفوع" ? (isRtl ? "نقدي" : "Cash") : "â€”",
-                                  }
-                                : item
-                            )
-                          );
+
+                          // Invoice payment status is not the patient's clinical/active status.
+                          setInvoices((prev) => prev.map((item) =>
+                            item.id === inv.id ? { ...item, status: newStatus } : item
+                          ));
                         }}
                         className={`rounded-md px-2 py-1 text-xs font-semibold border cursor-pointer focus:outline-none focus:ring-1 focus:ring-blue-600 transition-colors ${statusSelectClass(inv.status)}`}
                       >
@@ -508,17 +499,18 @@ export default function BillingPage() {
                   const newAmount = `${newNumeric.toLocaleString()} ${currency}`;
 
                   try {
-                    await supabase.from("invoices").upsert({
-                      id: item.id,
-                      clinic_id: clinicId,
-                      patient_id: item.patientId,
-                      patient_name: item.patientName,
-                      description: item.description,
-                      amount: newAmount,
-                      status: item.status
-                    });
-                  } catch (err) {
+                    const { data: updatedInvoice, error } = await supabase.from("invoices")
+                      .update({ amount: newAmount })
+                      .eq("clinic_id", clinicId)
+                      .eq("id", item.id)
+                      .select("id")
+                      .maybeSingle();
+                    if (error) throw error;
+                    if (!updatedInvoice) throw new Error("Invoice was not updated; it may no longer belong to this clinic.");
+                  } catch (err: any) {
                     console.error("Failed to save discount to Supabase", err);
+                    alert((isRtl ? "فشل حفظ الخصم: " : "Failed to save discount: ") + (err?.message || String(err)));
+                    return;
                   }
 
                   setInvoices(prev => {
@@ -553,7 +545,7 @@ export default function BillingPage() {
             </DialogTitle>
             <DialogDescription className="text-sm text-slate-500">
               {isRtl 
-                ? `هل أنت متأكد؟ سيتم حذف الفاتورة وملف المريض كاملاً (${deleteInvoiceId}) بشكل نهائي من جميع الصفحات. لا يمكن التراجع عن هذا الإجراء.` 
+                ? `هل أنت متأكد من حذف الفاتورة (${deleteInvoiceId})؟ لن يتم حذف ملف المريض أو المواعيد أو الجلسات.` 
                 : `Are you sure? This will permanently delete the invoice and the entire patient record (${deleteInvoiceId}) from all pages. This action cannot be undone.`}
             </DialogDescription>
           </div>
