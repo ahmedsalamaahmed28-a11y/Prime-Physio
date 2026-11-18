@@ -4,8 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   MessageSquare, Search, Users, UserRound, Plus, Send, ShieldCheck,
-  ChevronLeft, ArrowLeft, Loader2, RefreshCw, X, Check, UserPlus,
-  Stethoscope, Paperclip, CircleAlert,
+  Loader2, RefreshCw, X, Check, Stethoscope, CircleAlert,
 } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
