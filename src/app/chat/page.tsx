@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  MessageSquare, Search, Users, User, Plus, Send, ShieldCheck,
-  Loader2, RefreshCw, X, Check, Stethoscope, CircleAlert,
+  MessageSquare, Search, Users, User, Plus, ShieldCheck,
+  Loader2, RefreshCw, X, Check, Stethoscope,
 } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { supabase } from "@/lib/supabase";
