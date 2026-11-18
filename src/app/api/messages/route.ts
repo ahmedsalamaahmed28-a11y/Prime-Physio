@@ -108,8 +108,12 @@ export async function POST(req: NextRequest) {
     const kind = body?.kind === "patient" ? "patient" : "team";
     const titleInput = typeof body?.title === "string" ? body.title.trim().slice(0, 120) : "";
     const patientId = typeof body?.patientId === "string" ? body.patientId.trim() : "";
-    const requestedEmails = Array.isArray(body?.participantEmails)
-      ? [...new Set(body.participantEmails.filter((value: unknown): value is string => typeof value === "string").map((value: string) => value.trim().toLowerCase()))]
+    const requestedEmails: string[] = Array.isArray(body?.participantEmails)
+      ? Array.from(new Set<string>(
+          (body.participantEmails as unknown[])
+            .filter((value): value is string => typeof value === "string")
+            .map((value) => value.trim().toLowerCase())
+        ))
       : [];
     const firstMessage = typeof body?.firstMessage === "string" ? body.firstMessage.trim().slice(0, 5000) : "";
     if (kind === "patient" && !patientId) return fail("اختر المريض المرتبط بالمحادثة");
