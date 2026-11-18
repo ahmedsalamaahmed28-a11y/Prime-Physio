@@ -121,11 +121,18 @@ export default function ProfileSettingsPage() {
 
     const fetchSettings = async () => {
       try {
+        if (!clinicId) {
+          setLogoUrl(null);
+          setAccountHolderName(""); setBankName(""); setIban(""); setSwiftCode("");
+          return;
+        }
         const { data: { session } } = await supabase.auth.getSession();
         const user = session?.user;
         if (!user || !active) return;
 
         setEmail(user.email || "");
+        setLogoUrl(null);
+        setAccountHolderName(""); setBankName(""); setIban(""); setSwiftCode("");
         const fullName = user.user_metadata?.full_name || user.user_metadata?.name;
         if (fullName) {
           setClinicName((prev) => prev || fullName);
@@ -432,7 +439,7 @@ export default function ProfileSettingsPage() {
   };
 
   const triggerFileInput = () => {
-    fileInputRef.current?.click();
+    if (!logoUploading) fileInputRef.current?.click();
   };
 
   const handleProfileSave = async (e: React.FormEvent) => {
