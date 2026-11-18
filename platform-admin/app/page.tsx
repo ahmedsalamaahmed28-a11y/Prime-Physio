@@ -353,7 +353,7 @@ function LoginIcon({ name }: { name: "email" | "lock" | "eye" | "eye-off" | "fin
     lock: <><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /><path d="M12 14v3" /></>,
     eye: <><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></>,
     "eye-off": <><path d="m3 3 18 18" /><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" /><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3.1 3.9M6.2 6.2C3.5 8.1 2 12 2 12s3.6 7 10 7a10 10 0 0 0 3-.5" /></>,
-    fingerprint: <><path d="M12 11a2 2 0 0 0-2 2c0 3-.5 5.3-1.5 7" /><path d="M14 13c0 3.2-.3 5.4-1 7" /><path d="M8 13a4 4 0 0 1 8 0c0 2.1-.1 4.4-.6 6.5" /><path d="M6 13a6 6 0 0 1 12 0" /><path d="M4 13a8 8 0 0 1 16 0" /><path d="M12 3a10 10 0 0 1 10 10" /></>
+    fingerprint: <><path d="M12 11a2 2 0 0 0-2 2c0 1.8-.2 3.7-.8 5.5" /><path d="M14 13c0 2.4-.2 4.7-.7 6.5" /><path d="M8.5 15.2c-.1 1.3-.4 2.6-.9 3.8" /><path d="M16 15.5c0 1.2-.1 2.4-.4 3.5" /><path d="M8 13a4 4 0 0 1 8 0c0 1.8-.1 3.7-.5 5.5" /><path d="M6 13a6 6 0 0 1 12 0c0 1.8-.1 3.5-.4 5.2" /><path d="M4 13a8 8 0 0 1 16 0" /><path d="M2 13a10 10 0 0 1 20 0" /><path d="M12 3a10 10 0 0 0-10 10" /><path d="M12 3a10 10 0 0 1 10 10" /></>
   };
   return <svg className="login-icon" viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" {...common}>{paths[name]}</svg>;
 }
