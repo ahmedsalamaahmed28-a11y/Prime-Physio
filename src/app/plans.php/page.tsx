@@ -132,17 +132,17 @@ export default function PlansPhpPage() {
     <main dir="rtl" className="min-h-screen w-full bg-[#F8FAFC] px-3 pb-12 pt-5 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-8">
         <header className="text-center">
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#E4E1FA] bg-[#F1EFFF] px-3 py-1.5 text-xs font-bold text-[#5B50C7]"><Crown size={15} /> خطط تناسب نمو مركزك</div>
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#E4E1FA] bg-[#F1EFFF] px-3 py-1.5 text-xs font-bold text-[#4F46BA]"><Crown size={15} /> خطط تناسب نمو مركزك</div>
           <h1 className="text-3xl font-extrabold tracking-tight text-[#153B60] sm:text-4xl">الباقات الرسمية لـ Prime Physio</h1>
           <p className="mx-auto mt-3 max-w-3xl text-sm leading-7 text-slate-600 sm:text-base">اختر الباقة والفترة المناسبة، ثم حوّل المبلغ عبر InstaPay أو Vodafone Cash وأرسل الإيصال لمراجعته.</p>
-          <p className="mt-2 text-sm font-bold text-[#5B50C7]">باقتك الحالية: {plans.find((p) => p.code === activePlan)?.name || "المجانية"}</p>
+          <p className="mt-2 text-sm font-bold text-[#4F46BA]">باقتك الحالية: {plans.find((p) => p.code === activePlan)?.name || "المجانية"}</p>
         </header>
 
         {!user?.clinicId && <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">اختر مركزًا من صفحة مراكزي أولاً. <Link href="/centers.php/" className="font-bold underline">إدارة المراكز</Link></div>}
         <div className="flex flex-wrap items-center justify-center gap-2">
           <span className="text-sm font-bold text-slate-700">فترة الاشتراك:</span>
-          <button type="button" onClick={() => setBillingPeriod("monthly")} className={`rounded-full px-5 py-2 text-sm font-bold ${billingPeriod === "monthly" ? "bg-[#5B50C7] text-white" : "border border-slate-200 bg-white text-slate-600"}`}>شهري</button>
-          <button type="button" onClick={() => setBillingPeriod("yearly")} className={`rounded-full px-5 py-2 text-sm font-bold ${billingPeriod === "yearly" ? "bg-[#5B50C7] text-white" : "border border-slate-200 bg-white text-slate-600"}`}>سنوي · 12 شهرًا بسعر 10</button>
+          <button type="button" onClick={() => setBillingPeriod("monthly")} className={`rounded-full px-5 py-2 text-sm font-bold ${billingPeriod === "monthly" ? "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white" : "border border-slate-200 bg-white text-slate-600"}`}>شهري</button>
+          <button type="button" onClick={() => setBillingPeriod("yearly")} className={`rounded-full px-5 py-2 text-sm font-bold ${billingPeriod === "yearly" ? "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white" : "border border-slate-200 bg-white text-slate-600"}`}>سنوي · 12 شهرًا بسعر 10</button>
         </div>
 
         {error && <div role="alert" className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"><AlertCircle size={17} className="mt-0.5 shrink-0" />{error}</div>}
@@ -156,17 +156,17 @@ export default function PlansPhpPage() {
               <article key={plan.code} className={`relative flex flex-col rounded-2xl border bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg ${current ? "border-[#5B50C7] ring-2 ring-[#5B50C7]/15" : "border-slate-200"}`}>
                 {current && <span className="absolute -top-3 right-4 rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-extrabold text-white">باقتك الحالية</span>}
                 <h2 className="text-lg font-extrabold text-[#153B60]">باقة {plan.name}</h2>
-                <div className="mt-4 flex items-baseline gap-1"><strong className="text-3xl font-black text-[#5B50C7]">{price === 0 ? "مجانًا" : price.toLocaleString("en-EG")}</strong>{price > 0 && <span className="text-xs text-slate-500">جنيه {billingPeriod === "yearly" ? "/ سنويًا" : "/ شهريًا"}</span>}</div>
+                <div className="mt-4 flex items-baseline gap-1"><strong className="text-3xl font-black text-[#4F46BA]">{price === 0 ? "مجانًا" : price.toLocaleString("en-EG")}</strong>{price > 0 && <span className="text-xs text-slate-500">جنيه {billingPeriod === "yearly" ? "/ سنويًا" : "/ شهريًا"}</span>}</div>
                 {billingPeriod === "yearly" && price > 0 && <p className="mt-1 text-[11px] font-bold text-emerald-700">12 شهرًا بسعر 10 أشهر</p>}
                 <p className="mt-3 min-h-10 text-xs leading-6 text-slate-500">{plan.description}</p>
                 <div className="my-4 h-px bg-slate-100" />
                 <ul className="flex-1 space-y-3 text-xs leading-5 text-slate-700">
-                  {["مستخدم نشط", "مستخدم إجمالاً", "مركز", "جلسة شهريًا", "مساحة تخزين", "مريض"].map((label, i) => <li key={label} className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span><b className="font-extrabold text-slate-900">{plan.limits[i]}</b> {label}</span></li>)}
+                  {["مستخدم نشط", "مستخدم إجمالاً", "مركز", "جلسة شهريًا", "مساحة تخزين", "مريض"].map((label, i) => <li key={label} className="flex items-start gap-2"><Check size={15} className="mt-0.5 shrink-0 text-[#4F46BA]" /><span><b className="font-extrabold text-slate-900">{plan.limits[i]}</b> {label}</span></li>)}
                   <li><b>الدعم:</b> {plan.support}</li>
-                  <li className="flex items-start gap-2"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>{plan.backup}</span></li>
-                  <li className="flex items-start gap-2"><Download size={15} className="mt-0.5 shrink-0 text-[#5B50C7]" /><span>تصدير بياناتك إلى Excel</span></li>
+                  <li className="flex items-start gap-2"><ShieldCheck size={15} className="mt-0.5 shrink-0 text-[#4F46BA]" /><span>{plan.backup}</span></li>
+                  <li className="flex items-start gap-2"><Download size={15} className="mt-0.5 shrink-0 text-[#4F46BA]" /><span>تصدير بياناتك إلى Excel</span></li>
                 </ul>
-                <button type="button" disabled={current || loading || !user?.clinicId} onClick={() => void choosePlan(plan)} className={`mt-5 flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-60 ${current ? "bg-emerald-50 text-emerald-700" : "bg-[#5B50C7] text-white hover:bg-[#493FB0]"}`}>
+                <button type="button" disabled={current || loading || !user?.clinicId} onClick={() => void choosePlan(plan)} className={`mt-5 flex min-h-11 items-center justify-center rounded-xl px-4 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-60 ${current ? "bg-emerald-50 text-emerald-700" : "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]"}`}>
                   {loading && selectedPlan?.code === plan.code ? <Loader2 size={17} className="animate-spin" /> : current ? "الباقة الحالية" : plan.code === "free" ? "اختيار المجانية" : "الاشتراك الآن"}
                 </button>
               </article>
@@ -196,7 +196,7 @@ export default function PlansPhpPage() {
 
         <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 py-5 text-xs text-slate-400">
           <p>© Prime Physio 2026. جميع الحقوق محفوظة.</p>
-          <nav className="flex gap-5"><Link href="/support" className="hover:text-[#5B50C7]">مركز المساعدة</Link><Link href="/terms" className="hover:text-[#5B50C7]">الشروط</Link><Link href="/privacy" className="hover:text-[#5B50C7]">الخصوصية</Link></nav>
+          <nav className="flex gap-5"><Link href="/support" className="hover:text-[#4F46BA]">مركز المساعدة</Link><Link href="/terms" className="hover:text-[#4F46BA]">الشروط</Link><Link href="/privacy" className="hover:text-[#4F46BA]">الخصوصية</Link></nav>
         </footer>
       </div>
 
@@ -204,7 +204,7 @@ export default function PlansPhpPage() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-950/60 p-3 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="payment-dialog-title">
           <div className="my-auto w-full max-w-xl rounded-2xl bg-white p-5 shadow-2xl sm:p-7">
             <div className="mb-5 flex items-start justify-between gap-3">
-              <div><h2 id="payment-dialog-title" className="text-xl font-extrabold text-[#153B60]">إتمام اشتراك باقة {selectedPlan.name}</h2><p className="mt-1 text-sm text-slate-500">المبلغ المطلوب: <b className="text-[#5B50C7]">{(billingPeriod === "yearly" ? selectedPlan.yearly : selectedPlan.monthly).toLocaleString("en-EG")} جنيه</b> · {billingPeriod === "yearly" ? "سنوي" : "شهري"}</p></div>
+              <div><h2 id="payment-dialog-title" className="text-xl font-extrabold text-[#153B60]">إتمام اشتراك باقة {selectedPlan.name}</h2><p className="mt-1 text-sm text-slate-500">المبلغ المطلوب: <b className="text-[#4F46BA]">{(billingPeriod === "yearly" ? selectedPlan.yearly : selectedPlan.monthly).toLocaleString("en-EG")} جنيه</b> · {billingPeriod === "yearly" ? "سنوي" : "شهري"}</p></div>
               <button type="button" onClick={() => setSelectedPlan(null)} className="rounded-full p-2 text-slate-500 hover:bg-slate-100" aria-label="إغلاق"><X size={20}/></button>
             </div>
             <div className="mb-5 overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-l from-white via-[#F8FAFF] to-[#F2F5FF] p-4 shadow-sm">
@@ -235,28 +235,28 @@ export default function PlansPhpPage() {
               !paymentConfig?.enabled || availableMethods.length === 0 ? <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">طرق الدفع غير متاحة حاليًا. يرجى التواصل مع الدعم الفني.</div> : (
                 <>
                   <div className="grid grid-cols-2 gap-3">
-                    {availableMethods.includes("instapay") && <button type="button" onClick={() => setPaymentMethod("instapay")} className={`rounded-xl border p-3 text-sm font-bold ${paymentMethod === "instapay" ? "border-[#5B50C7] bg-[#F4F2FF] text-[#5145B8]" : "border-slate-200 text-slate-600"}`}>InstaPay</button>}
-                    {availableMethods.includes("vodafone_cash") && <button type="button" onClick={() => setPaymentMethod("vodafone_cash")} className={`rounded-xl border p-3 text-sm font-bold ${paymentMethod === "vodafone_cash" ? "border-[#5B50C7] bg-[#F4F2FF] text-[#5145B8]" : "border-slate-200 text-slate-600"}`}>Vodafone Cash</button>}
+                    {availableMethods.includes("instapay") && <button type="button" onClick={() => setPaymentMethod("instapay")} className={`rounded-xl border p-3 text-sm font-bold ${paymentMethod === "instapay" ? "border-[#4F46BA] bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white shadow-sm" : "border-slate-200 text-slate-600"}`}>InstaPay</button>}
+                    {availableMethods.includes("vodafone_cash") && <button type="button" onClick={() => setPaymentMethod("vodafone_cash")} className={`rounded-xl border p-3 text-sm font-bold ${paymentMethod === "vodafone_cash" ? "border-[#4F46BA] bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white shadow-sm" : "border-slate-200 text-slate-600"}`}>Vodafone Cash</button>}
                   </div>
                   {paymentMethod === "instapay" ? (
                     <div className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                      <div className="flex items-center justify-between gap-2"><span className="text-sm font-bold text-slate-700">معرف InstaPay</span><button type="button" onClick={() => void copyValue(paymentConfig.methods.instapay.account)} className="flex items-center gap-1 text-xs font-bold text-[#5B50C7]"><Copy size={14}/> نسخ</button></div>
+                      <div className="flex items-center justify-between gap-2"><span className="text-sm font-bold text-slate-700">معرف InstaPay</span><button type="button" onClick={() => void copyValue(paymentConfig.methods.instapay.account)} className="flex items-center gap-1 text-xs font-bold text-[#4F46BA]"><Copy size={14}/> نسخ</button></div>
                       <p dir="ltr" className="text-left font-bold text-slate-900">{paymentConfig.methods.instapay.account}</p>
-                      <div className="flex items-center justify-between gap-2"><span className="text-sm font-bold text-slate-700">رقم الهاتف المرتبط</span><button type="button" onClick={() => void copyValue(paymentConfig.methods.instapay.phone)} className="flex items-center gap-1 text-xs font-bold text-[#5B50C7]"><Copy size={14}/> نسخ</button></div>
+                      <div className="flex items-center justify-between gap-2"><span className="text-sm font-bold text-slate-700">رقم الهاتف المرتبط</span><button type="button" onClick={() => void copyValue(paymentConfig.methods.instapay.phone)} className="flex items-center gap-1 text-xs font-bold text-[#4F46BA]"><Copy size={14}/> نسخ</button></div>
                       <p dir="ltr" className="text-left font-bold text-slate-900">{paymentConfig.methods.instapay.phone}</p>
-                      <a href={paymentConfig.methods.instapay.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg bg-[#5B50C7] px-4 py-2 text-sm font-bold text-white"><ExternalLink size={15}/> فتح InstaPay</a>
+                      <a href={paymentConfig.methods.instapay.link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] px-4 py-2 text-sm font-bold text-white hover:from-[#4338ca] hover:to-[#6d28d9]"><ExternalLink size={15}/> فتح InstaPay</a>
                     </div>
                   ) : (
                     <div className="mt-4 space-y-2 rounded-xl border border-slate-200 bg-slate-50 p-4">
                       <p className="text-sm font-bold text-slate-700">حوّل المبلغ إلى محفظة Vodafone Cash</p>
-                      <div className="flex items-center justify-between gap-2"><p dir="ltr" className="text-lg font-extrabold text-slate-900">{paymentConfig.methods.vodafone_cash.phone}</p><button type="button" onClick={() => void copyValue(paymentConfig.methods.vodafone_cash.phone)} className="flex items-center gap-1 text-xs font-bold text-[#5B50C7]"><Copy size={14}/> نسخ الرقم</button></div>
+                      <div className="flex items-center justify-between gap-2"><p dir="ltr" className="text-lg font-extrabold text-slate-900">{paymentConfig.methods.vodafone_cash.phone}</p><button type="button" onClick={() => void copyValue(paymentConfig.methods.vodafone_cash.phone)} className="flex items-center gap-1 text-xs font-bold text-[#4F46BA]"><Copy size={14}/> نسخ الرقم</button></div>
                     </div>
                   )}
                   <div className="mt-4 space-y-3">
                     <div className="rounded-xl border border-[#DCD7FF] bg-[#F7F6FF] p-4">
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <label className="text-sm font-extrabold text-[#40369C]">رقم العملية المخصص لطلبك</label>
-                        <button type="button" disabled={!referenceCode} onClick={() => void copyValue(referenceCode)} className="inline-flex items-center gap-1 rounded-lg bg-[#5B50C7] px-3 py-2 text-xs font-bold text-white disabled:opacity-50"><Copy size={14}/> نسخ الرقم</button>
+                        <button type="button" disabled={!referenceCode} onClick={() => void copyValue(referenceCode)} className="inline-flex items-center gap-1 rounded-lg bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] px-3 py-2 text-xs font-bold text-white hover:from-[#4338ca] hover:to-[#6d28d9] disabled:opacity-50"><Copy size={14}/> نسخ الرقم</button>
                       </div>
                       <p dir="ltr" className="mt-2 rounded-lg border border-[#E5E1FF] bg-white px-3 py-3 text-center font-mono text-lg font-black tracking-wider text-slate-900">{referenceCode || "جارٍ إنشاء الرقم..."}</p>
                       <p className="mt-2 text-xs leading-6 text-slate-600">انسخ الرقم واكتبه في خانة «ملاحظات التحويل» داخل InstaPay أو Vodafone Cash قبل تأكيد التحويل، حتى نتمكن من مطابقة المبلغ بطلبك.</p>
@@ -268,7 +268,7 @@ export default function PlansPhpPage() {
                   {error && <p className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}
                   <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row">
                     <button type="button" onClick={() => setSelectedPlan(null)} className="rounded-xl border border-slate-200 px-4 py-3 text-sm font-bold text-slate-600">إلغاء</button>
-                    <button type="button" disabled={loading || !referenceCode || !receipt} onClick={() => void submitPayment()} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#5B50C7] px-4 py-3 text-sm font-extrabold text-white disabled:opacity-50">{loading ? <Loader2 className="animate-spin" size={17}/> : <Smartphone size={17}/>} إرسال طلب الدفع للمراجعة</button>
+                    <button type="button" disabled={loading || !referenceCode || !receipt} onClick={() => void submitPayment()} className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] px-4 py-3 text-sm font-extrabold text-white hover:from-[#4338ca] hover:to-[#6d28d9] disabled:opacity-50">{loading ? <Loader2 className="animate-spin" size={17}/> : <Smartphone size={17}/>} إرسال طلب الدفع للمراجعة</button>
                   </div>
                   <p className="mt-3 text-center text-xs leading-5 text-slate-500">لن يتم تفعيل الاشتراك قبل أن تتحقق الإدارة من وصول المبلغ.</p>
                 </>
