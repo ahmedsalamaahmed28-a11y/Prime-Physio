@@ -524,7 +524,7 @@ export default function BillingPage() {
                     : discountNumeric;
                   const newNumeric = Math.max(0, originalNumeric - Math.min(originalNumeric, requestedDiscount));
                   const currency = String(item.amount || "").replace(/[0-9٠-٩٬,٫.\-]/g, "").trim();
-                  const newAmount = \`\${newNumeric.toLocaleString()} \${currency}\`.trim();
+                  const newAmount = newNumeric.toLocaleString() + (currency ? " " + currency : "");
 
                   try {
                     const { data: updatedInvoice, error } = await supabase.from("invoices")
