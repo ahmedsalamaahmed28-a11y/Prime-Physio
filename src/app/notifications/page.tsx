@@ -178,7 +178,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="mx-auto w-full min-w-0 max-w-6xl space-y-5 sm:space-y-6" dir={isRtl ? "rtl" : "ltr"}>
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#4f46e5] via-[#4f46e5] to-[#4338ca] p-6 text-white shadow-lg sm:p-8">
+      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#4F46BA] via-[#6650CF] to-[#7c3aed] p-6 text-white shadow-lg sm:p-8">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
           <div className="flex min-w-0 items-start gap-4">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-indigo-950/25 text-white">
@@ -207,14 +207,14 @@ export default function NotificationsPage() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative min-w-0 flex-1 lg:max-w-md">
             <Search className={`pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 ${isRtl ? "right-3" : "left-3"}`} />
-            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={isRtl ? "ابحث في الإشعارات..." : "Search notifications..."} className={`h-11 w-full rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#4f46e5] focus:bg-white focus:ring-4 focus:ring-indigo-100 ${isRtl ? "pr-10 pl-4" : "pl-10 pr-4"}`} />
+            <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={isRtl ? "ابحث في الإشعارات..." : "Search notifications..."} className={`h-11 w-full rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#4F46BA] focus:bg-white focus:ring-4 focus:ring-[#4F46BA]/15 ${isRtl ? "pr-10 pl-4" : "pl-10 pr-4"}`} />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-1 text-xs font-bold text-slate-400"><Filter size={14} />{isRtl ? "تصفية:" : "Filter:"}</span>
             {filterOptions.map((option) => {
               const Icon = option.icon;
               const active = filter === option.key;
-              return <button key={option.key} onClick={() => setFilter(option.key)} aria-pressed={active} className={`inline-flex min-h-9 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5] focus-visible:ring-offset-2 ${active ? "bg-[#4f46e5] text-white shadow-sm" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}><Icon size={14} />{isRtl ? option.ar : option.en}<span className={`rounded-md px-1.5 py-0.5 text-[10px] ${active ? "bg-white/15 text-white" : "bg-white text-slate-500"}`}>{counts[option.key]}</span></button>;
+              return <button key={option.key} onClick={() => setFilter(option.key)} aria-pressed={active} className={`inline-flex min-h-9 items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46BA] focus-visible:ring-offset-2 ${active ? "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white shadow-md shadow-[#4F46BA]/20" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}><Icon size={14} />{isRtl ? option.ar : option.en}<span className={`rounded-md px-1.5 py-0.5 text-[10px] ${active ? "bg-white/15 text-white" : "bg-white text-slate-500"}`}>{counts[option.key]}</span></button>;
             })}
           </div>
         </div>
@@ -227,11 +227,11 @@ export default function NotificationsPage() {
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center gap-3 px-6 py-20 text-slate-400"><Activity className="h-8 w-8 animate-spin text-[#4f46e5]" /><p className="text-sm">{isRtl ? "جاري تحميل الإشعارات..." : "Loading notifications..."}</p></div>
+          <div className="flex flex-col items-center justify-center gap-3 px-6 py-20 text-slate-400"><Activity className="h-8 w-8 animate-spin text-[#4F46BA]" /><p className="text-sm">{isRtl ? "جاري تحميل الإشعارات..." : "Loading notifications..."}</p></div>
         ) : error ? (
-          <div className="flex flex-col items-center px-6 py-16 text-center"><ShieldAlert className="mb-3 h-10 w-10 text-rose-400" /><p className="font-bold text-slate-700">{error}</p><button onClick={() => loadNotifications()} className="mt-4 rounded-xl bg-[#4f46e5] px-5 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-[#3525cd] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-300">{isRtl ? "إعادة المحاولة" : "Try again"}</button></div>
+          <div className="flex flex-col items-center px-6 py-16 text-center"><ShieldAlert className="mb-3 h-10 w-10 text-rose-400" /><p className="font-bold text-slate-700">{error}</p><button onClick={() => loadNotifications()} className="mt-4 rounded-xl bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-[#4F46BA]/20 transition hover:from-[#4338ca] hover:to-[#6d28d9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46BA]/40">{isRtl ? "إعادة المحاولة" : "Try again"}</button></div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center px-6 py-20 text-center"><div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-[#4f46e5]"><MessageSquare className="h-8 w-8" /></div><h3 className="font-extrabold text-slate-800">{search || filter !== "all" ? (isRtl ? "لا توجد نتائج مطابقة" : "No matching notifications") : (isRtl ? "لا توجد إشعارات حتى الآن" : "You're all caught up")}</h3><p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">{search || filter !== "all" ? (isRtl ? "جرّب تغيير كلمات البحث أو نوع الإشعار." : "Try changing your search or selected filter.") : (isRtl ? "ستظهر هنا التنبيهات الجديدة المتعلقة بمركزك والنظام." : "New clinic and system notifications will appear here.")}</p>{(search || filter !== "all") && <button onClick={() => { setSearch(""); setFilter("all"); }} className="mt-4 text-sm font-bold text-[#3525cd] hover:underline">{isRtl ? "مسح التصفية" : "Clear filters"}</button>}</div>
+          <div className="flex flex-col items-center px-6 py-20 text-center"><div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-50 text-[#4F46BA]"><MessageSquare className="h-8 w-8" /></div><h3 className="font-extrabold text-slate-800">{search || filter !== "all" ? (isRtl ? "لا توجد نتائج مطابقة" : "No matching notifications") : (isRtl ? "لا توجد إشعارات حتى الآن" : "You're all caught up")}</h3><p className="mt-2 max-w-sm text-sm leading-6 text-slate-400">{search || filter !== "all" ? (isRtl ? "جرّب تغيير كلمات البحث أو نوع الإشعار." : "Try changing your search or selected filter.") : (isRtl ? "ستظهر هنا التنبيهات الجديدة المتعلقة بمركزك والنظام." : "New clinic and system notifications will appear here.")}</p>{(search || filter !== "all") && <button onClick={() => { setSearch(""); setFilter("all"); }} className="mt-4 text-sm font-bold text-[#4F46BA] hover:underline">{isRtl ? "مسح التصفية" : "Clear filters"}</button>}</div>
         ) : (
           <div className="divide-y divide-slate-100">
             {filtered.map((item) => {
