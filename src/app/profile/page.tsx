@@ -49,6 +49,7 @@ export default function ProfileSettingsPage() {
   const isRtl = language === "ar";
   const { user } = useAuth();
   const clinicId = user?.clinicId;
+  const isClinicAdmin = user?.roleKey === "admin";
   
   // Profile Tab States
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -155,11 +156,7 @@ export default function ProfileSettingsPage() {
 
         if (data.clinic_name) setClinicName(data.clinic_name);
         if (data.logo_url) setLogoUrl(data.logo_url);
-        if (data.account_holder_name) setAccountHolderName(data.account_holder_name);
-        if (data.bank_name) setBankName(data.bank_name);
-        if (data.iban) setIban(data.iban);
-        if (data.swift_code) setSwiftCode(data.swift_code);
-        if (data.email) setEmail(data.email);
+bank settings remove        if (data.email) setEmail(data.email);
         if (data.phone) setPhone(data.phone);
         if (data.address) setAddress(data.address);
         if (data.maps_url) {
@@ -169,6 +166,18 @@ export default function ProfileSettingsPage() {
         if (data.city) setCity(data.city);
         if (data.country) setCountry(data.country);
         if (data.description) setDescription(data.description);
+        if (isClinicAdmin) {
+          const { data: bankData, error: bankError } = await supabase.from("clinic_bank_details")
+            .select("account_holder_name, bank_name, iban, swift_code")
+            .eq("clinic_id", clinicId).maybeSingle();
+          if (bankError) console.warn("Failed to load clinic bank details", bankError);
+          else {
+            setAccountHolderName(bankData?.account_holder_name || "");
+            setBankName(bankData?.bank_name || "");
+            setIban(bankData?.iban || "");
+            setSwiftCode(bankData?.swift_code || "");
+          }
+        }
         if (data.branches && data.branches.length > 0) {
           const savedBranches = data.branches;
           if (data.working_hours && savedBranches[0]) {
@@ -362,9 +371,8 @@ export default function ProfileSettingsPage() {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError) throw authError;
       if (!user) throw new Error("Authentication required");
-      const { error } = await supabase.from("clinic_settings").upsert({
+      const { error } = await supabase.from("clinic_bank_details").upsert({
         clinic_id: clinicId,
-        user_id: user.id,
         account_holder_name: accountHolderName.trim(),
         bank_name: bankName.trim(),
         iban: iban.replace(/\s+/g, "").toUpperCase(),
@@ -384,7 +392,7 @@ export default function ProfileSettingsPage() {
 
   const handleBankCancel = async () => {
     if (!clinicId) return;
-    const { data, error } = await supabase.from("clinic_settings")
+    const { data, error } = await supabase.from("clinic_bank_details")
       .select("account_holder_name, bank_name, iban, swift_code")
       .eq("clinic_id", clinicId).maybeSingle();
     if (error) {
@@ -787,6 +795,8 @@ export default function ProfileSettingsPage() {
               </div>
             </div>
 
+            {isClinicAdmin && (
+            <>
             {/* 1. Bank Details Section */}
             <div className="bg-slate-50/50 rounded-2xl p-6 border border-slate-200/50 space-y-6">
               <div className="flex items-center gap-2 pb-3 border-b">
@@ -862,6 +872,8 @@ export default function ProfileSettingsPage() {
                 </div>
               </form>
             </div>
+            </>
+            )}
 
             {/* 2. Branches & Locations Section */}
             <div className="bg-slate-50/50 rounded-2xl p-6 border border-slate-200/50 space-y-6">
