@@ -17,7 +17,7 @@
 .pp-calendar-nav{display:flex;flex-direction:column;gap:3px;padding:8px 12px 14px;flex:1;min-height:0;overflow-y:auto}
 .pp-calendar-nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;min-height:35px;border-radius:9px;color:#464555;font-size:12px;line-height:1.4;transition:background .18s,color .18s}
 .pp-calendar-nav a:hover{background:#eff4ff;color:#0b1c30}
-.pp-calendar-nav a.active{background:#4f46e5;color:#fff;font-weight:700;box-shadow:0 1px 3px #1e1b4b12}
+.pp-calendar-nav a.active{background:linear-gradient(110deg,#4F46BA 0%,#7c3aed 100%);color:#fff;font-weight:700;box-shadow:0 3px 10px rgba(79,70,186,.22)}
 .pp-calendar-account{flex:0 0 auto;margin:auto 12px 0;padding:8px 9px;border-radius:12px;background:#eff4ff}
 .pp-calendar-account-user{display:flex;align-items:center;gap:10px}
 .pp-calendar-avatar{width:34px;height:34px;border-radius:50%;background:#3525cd;color:#fff;display:grid;place-items:center;flex-shrink:0}
