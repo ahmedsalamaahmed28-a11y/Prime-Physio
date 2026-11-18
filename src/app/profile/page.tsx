@@ -167,8 +167,9 @@ export default function ProfileSettingsPage() {
           return;
         }
 
-        if (!active || !data) return;
+        if (!active) return;
 
+        if (data) {
         if (data.clinic_name) setClinicName(data.clinic_name);
         if (data.logo_url) setLogoUrl(data.logo_url);
         if (data.email) setEmail(data.email);
@@ -181,18 +182,6 @@ export default function ProfileSettingsPage() {
         if (data.city) setCity(data.city);
         if (data.country) setCountry(data.country);
         if (data.description) setDescription(data.description);
-        if (isClinicAdmin) {
-          const { data: bankData, error: bankError } = await supabase.from("clinic_bank_details")
-            .select("account_holder_name, bank_name, iban, swift_code")
-            .eq("clinic_id", clinicId).maybeSingle();
-          if (bankError) console.warn("Failed to load clinic bank details", bankError);
-          else {
-            setAccountHolderName(bankData?.account_holder_name || "");
-            setBankName(bankData?.bank_name || "");
-            setIban(bankData?.iban || "");
-            setSwiftCode(bankData?.swift_code || "");
-          }
-        }
         if (data.branches && data.branches.length > 0) {
           const savedBranches = data.branches;
           if (data.working_hours && savedBranches[0]) {
@@ -210,6 +199,20 @@ export default function ProfileSettingsPage() {
         }
         if (data.default_exam_price) setDefaultExamPrice(String(data.default_exam_price));
         if (data.default_session_price) setDefaultSessionPrice(String(data.default_session_price));
+        }
+
+        if (isClinicAdmin) {
+          const { data: bankData, error: bankError } = await supabase.from("clinic_bank_details")
+            .select("account_holder_name, bank_name, iban, swift_code")
+            .eq("clinic_id", clinicId).maybeSingle();
+          if (bankError) console.warn("Failed to load clinic bank details", bankError);
+          else {
+            setAccountHolderName(bankData?.account_holder_name || "");
+            setBankName(bankData?.bank_name || "");
+            setIban(bankData?.iban || "");
+            setSwiftCode(bankData?.swift_code || "");
+          }
+        }
       } catch (err) {
         console.warn("Failed to load profile settings", err);
       }
