@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
-  MessageSquare, Search, Users, UserRound, Plus, Send, ShieldCheck,
+  MessageSquare, Search, Users, User, Plus, Send, ShieldCheck,
   Loader2, RefreshCw, X, Check, Stethoscope, CircleAlert,
 } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
@@ -223,7 +223,7 @@ export default function ChatPage() {
         </div>
       </section>
 
-      {error && <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"><CircleAlert size={17} className="mt-0.5 shrink-0" /><span>{error}</span><button className="ms-auto" onClick={() => setError("")} aria-label="Close"><X size={16} /></button></div>}
+      {error && <div className="flex items-start gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"><ShieldCheck size={17} className="mt-0.5 shrink-0" /><span>{error}</span><button className="ms-auto" onClick={() => setError("")} aria-label="Close"><X size={16} /></button></div>}
 
       <section className="grid min-h-[680px] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm lg:grid-cols-[minmax(300px,370px)_minmax(0,1fr)]">
         <aside className="flex min-h-[300px] flex-col border-b border-slate-200 lg:border-b-0 lg:border-e">
@@ -237,7 +237,7 @@ export default function ChatPage() {
               <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={isRtl ? "ابحث عن محادثة..." : "Search conversations..."} className={`h-11 w-full rounded-xl border border-slate-200 bg-slate-50 text-sm outline-none transition focus:border-[#7770D2] focus:bg-white focus:ring-4 focus:ring-indigo-50 ${isRtl ? "pr-10 pl-3" : "pl-10 pr-3"}`} />
             </div>
             <div className="mt-4 grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">
-              {([["all", isRtl ? "الكل" : "All", MessageSquare], ["patients", isRtl ? "المرضى" : "Patients", UserRound], ["team", isRtl ? "الفريق" : "Team", Users]] as const).map(([key, label, Icon]) => (
+              {([["all", isRtl ? "الكل" : "All", MessageSquare], ["patients", isRtl ? "المرضى" : "Patients", User], ["team", isRtl ? "الفريق" : "Team", Users]] as const).map(([key, label, Icon]) => (
                 <button key={key} onClick={() => setTab(key)} className={`flex h-9 items-center justify-center gap-1.5 rounded-lg text-xs font-bold transition ${tab === key ? "bg-white text-[#554BC0] shadow-sm" : "text-slate-500 hover:text-slate-700"}`}><Icon size={14} />{label}</button>
               ))}
             </div>
@@ -247,7 +247,7 @@ export default function ChatPage() {
             {loading ? <div className="flex h-52 items-center justify-center text-slate-400"><Loader2 className="animate-spin" size={22} /></div> :
               filteredConversations.length ? filteredConversations.map((item) => (
                 <button key={item.id} onClick={() => setSelectedId(item.id)} className={`flex w-full items-start gap-3 border-b border-slate-100 px-4 py-4 text-start transition hover:bg-indigo-50/50 ${selectedId === item.id ? "bg-indigo-50" : "bg-white"}`}>
-                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${item.kind === "patient" ? "bg-blue-50 text-blue-600" : "bg-violet-50 text-violet-600"}`}>{item.kind === "patient" ? <UserRound size={19} /> : <Users size={19} />}</span>
+                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${item.kind === "patient" ? "bg-blue-50 text-blue-600" : "bg-violet-50 text-violet-600"}`}>{item.kind === "patient" ? <User size={19} /> : <Users size={19} />}</span>
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center justify-between gap-2"><span className="truncate text-sm font-extrabold text-slate-800">{item.title}</span><span className="shrink-0 text-[10px] text-slate-400">{dateLabel(item.last_message_at, language)}</span></span>
                     <span className="mt-1 block truncate text-xs text-slate-500">{item.lastMessage?.body || (isRtl ? "لا توجد رسائل بعد" : "No messages yet")}</span>
@@ -265,7 +265,7 @@ export default function ChatPage() {
           {selectedConversation ? <>
             <header className="flex items-center justify-between gap-3 border-b border-slate-100 bg-white/90 px-5 py-4">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-[#554BC0]">{selectedConversation.kind === "patient" ? <UserRound size={19} /> : <Users size={19} />}</span>
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-[#554BC0]">{selectedConversation.kind === "patient" ? <User size={19} /> : <Users size={19} />}</span>
                 <div className="min-w-0"><h2 className="truncate font-extrabold text-slate-900">{selectedConversation.title}</h2><p className="mt-1 truncate text-xs text-slate-400">{participants.map((member) => member.display_name).join("، ")}</p></div>
               </div>
               <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-[10px] font-bold text-emerald-700">{isRtl ? "محادثة داخلية" : "Internal chat"}</span>
@@ -288,7 +288,7 @@ export default function ChatPage() {
             <form onSubmit={(event) => { event.preventDefault(); void sendMessage(); }} className="border-t border-slate-100 bg-white p-4 sm:p-5">
               <div className="flex items-end gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2 focus-within:border-[#7770D2] focus-within:bg-white focus-within:ring-4 focus-within:ring-indigo-50">
                 <textarea value={composer} onChange={(event) => setComposer(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); void sendMessage(); } }} rows={1} maxLength={5000} placeholder={isRtl ? "اكتب رسالتك هنا..." : "Write your message..."} className="max-h-36 min-h-11 flex-1 resize-y bg-transparent px-3 py-3 text-sm outline-none" />
-                <button type="submit" disabled={!composer.trim() || sending} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#554BC0] text-white transition hover:bg-[#453BAA] disabled:cursor-not-allowed disabled:opacity-40" aria-label={isRtl ? "إرسال" : "Send"}>{sending ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}</button>
+                <button type="submit" disabled={!composer.trim() || sending} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#554BC0] text-white transition hover:bg-[#453BAA] disabled:cursor-not-allowed disabled:opacity-40" aria-label={isRtl ? "إرسال" : "Send"}>{sending ? <Loader2 className="animate-spin" size={18} /> : <MessageSquare size={18} />}</button>
               </div>
               <p className="mt-2 text-[10px] text-slate-400">{isRtl ? "Enter للإرسال • Shift + Enter لسطر جديد" : "Enter to send • Shift + Enter for a new line"}</p>
             </form>
@@ -307,7 +307,7 @@ export default function ChatPage() {
           <div className="flex-1 space-y-4 overflow-y-auto p-5">
             <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-100 p-1">
               <button onClick={() => setNewKind("team")} className={`flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-bold ${newKind === "team" ? "bg-white text-[#554BC0] shadow-sm" : "text-slate-500"}`}><Users size={16} />{isRtl ? "الفريق" : "Team"}</button>
-              <button onClick={() => setNewKind("patient")} className={`flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-bold ${newKind === "patient" ? "bg-white text-[#554BC0] shadow-sm" : "text-slate-500"}`}><UserRound size={16} />{isRtl ? "مرتبطة بمريض" : "Patient-linked"}</button>
+              <button onClick={() => setNewKind("patient")} className={`flex h-10 items-center justify-center gap-2 rounded-lg text-sm font-bold ${newKind === "patient" ? "bg-white text-[#554BC0] shadow-sm" : "text-slate-500"}`}><User size={16} />{isRtl ? "مرتبطة بمريض" : "Patient-linked"}</button>
             </div>
             {newKind === "patient" && <label className="block"><span className="mb-2 block text-xs font-bold text-slate-700">{isRtl ? "المريض" : "Patient"}</span><select value={newPatientId} onChange={(event) => setNewPatientId(event.target.value)} className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-[#7770D2]"><option value="">{isRtl ? "اختر المريض..." : "Select a patient..."}</option>{(inbox?.patients || []).map((patient) => <option key={patient.id} value={patient.id}>{patient.nameAr} — {patient.id}</option>)}</select><span className="mt-1 block text-[11px] leading-5 text-amber-700">{isRtl ? "المحادثة ستكون داخلية بين أعضاء الفريق ومرتبطة بملف المريض فقط." : "This remains an internal team discussion linked to the patient's record."}</span></label>}
             <label className="block"><span className="mb-2 block text-xs font-bold text-slate-700">{isRtl ? "عنوان المحادثة (اختياري)" : "Conversation title (optional)"}</span><input value={newTitle} onChange={(event) => setNewTitle(event.target.value)} maxLength={120} placeholder={isRtl ? "مثال: متابعة الحالة..." : "e.g. Case follow-up..."} className="h-11 w-full rounded-xl border border-slate-200 px-3 text-sm outline-none focus:border-[#7770D2]" /></label>
