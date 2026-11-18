@@ -156,7 +156,7 @@ export default function ProfileSettingsPage() {
 
         if (data.clinic_name) setClinicName(data.clinic_name);
         if (data.logo_url) setLogoUrl(data.logo_url);
-bank settings remove        if (data.email) setEmail(data.email);
+        if (data.email) setEmail(data.email);
         if (data.phone) setPhone(data.phone);
         if (data.address) setAddress(data.address);
         if (data.maps_url) {
