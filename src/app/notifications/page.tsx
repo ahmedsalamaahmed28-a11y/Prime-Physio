@@ -100,12 +100,13 @@ export default function NotificationsPage() {
         const action = String(item.action || "").toUpperCase();
         let titleAr = "تحديث في النظام";
         let titleEn = "System activity";
-        if (action.includes("CREATE")) { titleAr = "إضافة سجل جديد"; titleEn = "New record added"; }
+        if (action.includes("CREATE") || action === "INSERT") { titleAr = "إضافة سجل جديد"; titleEn = "New record added"; }
         else if (action.includes("UPDATE")) { titleAr = "تحديث بيانات"; titleEn = "Record updated"; }
         else if (action.includes("DELETE")) { titleAr = "حذف سجل"; titleEn = "Record deleted"; }
         else if (action.includes("LOGIN")) { titleAr = "تسجيل دخول"; titleEn = "New login"; }
         const entity = String(item.entity || "");
-        const details = [entity, item.details || item.entity_id || ""].filter(Boolean).join(" • ");
+        const detailValue = item.details && typeof item.details === "object" ? (item.details.message || JSON.stringify(item.details)) : item.details;
+        const details = [entity, detailValue || item.entity_id || ""].filter(Boolean).join(" • ");
         return {
           id: String(item.id),
           titleAr,
