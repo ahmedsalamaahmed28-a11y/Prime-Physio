@@ -574,7 +574,7 @@ export default function BillingPage() {
             <DialogDescription className="text-sm text-slate-500">
               {isRtl 
                 ? `هل أنت متأكد من حذف الفاتورة (${deleteInvoiceId})؟ لن يتم حذف ملف المريض أو المواعيد أو الجلسات.` 
-                : `Are you sure? This will permanently delete the invoice and the entire patient record (${deleteInvoiceId}) from all pages. This action cannot be undone.`}
+                : `Are you sure you want to permanently delete invoice (${deleteInvoiceId})? The patient record, appointments, and sessions will remain unchanged.`}
             </DialogDescription>
           </div>
           <div className={`mt-6 flex gap-3 w-full ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
