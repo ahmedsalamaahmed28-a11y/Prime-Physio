@@ -1,6 +1,5 @@
 "use client";
 
-import DashboardLayout from "@/components/DashboardLayout";
 import { useLanguage } from "@/lib/LanguageContext";
 import Link from "next/link";
 import { useState } from "react";
@@ -18,7 +17,6 @@ export default function ChatPage() {
   const [search, setSearch] = useState("");
 
   return (
-    <DashboardLayout>
       <div className="mx-auto w-full max-w-[1500px] space-y-5" dir={isRtl ? "rtl" : "ltr"}>
         <section className="flex flex-col justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:flex-row sm:items-center sm:p-6">
           <div className="flex items-center gap-4">
@@ -84,6 +82,5 @@ export default function ChatPage() {
           </div>
         </section>
       </div>
-    </DashboardLayout>
   );
 }
