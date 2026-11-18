@@ -186,17 +186,16 @@ export default function NotificationsPage() {
             </div>
             <div className="min-w-0">
               <p className="mb-1 text-xs font-bold tracking-wide text-white/85">{isRtl ? "مركز التنبيهات" : "NOTIFICATION CENTER"}</p>
-              <h1 className="text-2xl font-extrabold text-white sm:text-3xl">{isRtl ? "الإشعارات" : "Notifications"}</h1>
+              <h1 className="!text-white text-2xl font-extrabold sm:text-3xl">{isRtl ? "الإشعارات" : "Notifications"}</h1>
               <p className="mt-2 max-w-xl text-sm leading-6 text-white/85">{isRtl ? "تابع تحديثات مركزك وإعلانات المنصة وسجل النشاط في مكان واحد." : "Keep up with clinic updates, platform announcements, and activity in one place."}</p>
             </div>
           </div>
-          <div className="notifications-total-card flex w-full shrink-0 items-center justify-between gap-3 self-start rounded-2xl px-4 py-3 text-white shadow-inner sm:w-auto sm:justify-start sm:self-auto">
+          <div className="notifications-total-card flex w-full shrink-0 items-center gap-4 self-start rounded-2xl px-5 py-3 text-white shadow-inner sm:w-auto sm:self-auto">
             <div className="min-w-0">
-              <p className="text-2xl font-black leading-tight tabular-nums text-white">{notifications.length}</p>
-              <p className="mt-0.5 text-[11px] font-semibold leading-5 text-indigo-100">{isRtl ? "إجمالي التنبيهات" : "Total notifications"}</p>
+              <p className="text-2xl font-black leading-tight tabular-nums !text-white">{notifications.length}</p>
+              <p className="mt-0.5 text-[11px] font-semibold leading-5 !text-indigo-100">{isRtl ? "إجمالي الإشعارات" : "Total notifications"}</p>
             </div>
-            <div className="h-9 w-px shrink-0 bg-white/25" />
-            <button onClick={() => loadNotifications(true)} disabled={refreshing} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/25 bg-white/15 text-white transition hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 disabled:cursor-not-allowed disabled:opacity-60" aria-label={isRtl ? "تحديث الإشعارات" : "Refresh notifications"}>
+            <button onClick={() => loadNotifications(true)} disabled={refreshing} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/30 bg-indigo-950/20 !text-white transition hover:bg-indigo-950/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 disabled:cursor-not-allowed disabled:opacity-60" aria-label={isRtl ? "تحديث الإشعارات" : "Refresh notifications"}>
               <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
             </button>
           </div>
