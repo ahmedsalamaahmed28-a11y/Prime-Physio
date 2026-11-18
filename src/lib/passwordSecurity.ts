@@ -63,7 +63,7 @@ export async function validateNewPassword(password: string): Promise<void> {
     throw new Error("PASSWORD_CHECK_UNAVAILABLE");
   }
 
-  const compromised = (await response.text()).split(/\\r?\\n/).some((line) => {
+  const compromised = (await response.text()).split(/\r?\n/).some((line) => {
     const [candidate, countText] = line.trim().split(":");
     return candidate?.toUpperCase() === suffix && Number(countText) > 0;
   });
