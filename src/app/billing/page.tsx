@@ -157,13 +157,16 @@ export default function BillingPage() {
     try {
       // An invoice is an independent financial record. Never delete its patient
       // or any other invoices/appointments/sessions as a side effect.
-      const { error } = await supabase
+      const { data: deletedInvoice, error } = await supabase
         .from("invoices")
         .delete()
         .eq("clinic_id", clinicId)
-        .eq("id", deleteInvoiceId);
+        .eq("id", deleteInvoiceId)
+        .select("id")
+        .maybeSingle();
 
       if (error) throw error;
+      if (!deletedInvoice) throw new Error("Invoice was not deleted; it may no longer belong to this clinic.");
 
       setInvoices((prev) => prev.filter((inv) => inv.id !== deleteInvoiceId));
     } catch (err: any) {
