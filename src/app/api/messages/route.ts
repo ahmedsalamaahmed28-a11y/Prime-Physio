@@ -32,7 +32,6 @@ export async function GET(req: NextRequest) {
 
     const visibleStaff = (staffRows || []).filter((row: any) => row.email && !INACTIVE.has(String(row.status || "").trim().toLowerCase()));
     const ownerEmails = [...new Set((owners || []).map((row: any) => String(row.owner_email || "").toLowerCase()).filter(Boolean))];
-    const directoryEmails = [...new Set([...visibleStaff.map((row: any) => String(row.email).toLowerCase()), ...ownerEmails])];
     const ownerOnlyEmails = ownerEmails.filter((ownerEmail) => !visibleStaff.some((row: any) => String(row.email).toLowerCase() === ownerEmail));
     let ownerProfiles: any[] = [];
     if (ownerOnlyEmails.length) {
