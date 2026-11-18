@@ -39,8 +39,13 @@ export async function GET(req: NextRequest) {
     if ("response" in auth) return auth.response;
     const { admin, clinicId } = auth;
 
+    const archivedView = req.nextUrl.searchParams.get("archived") === "true";
     const { data, error } = await admin
-      .from("patients").select(LIST_FIELDS.join(",")).eq("clinic_id", clinicId).order("id", { ascending: true });
+      .from("patients")
+      .select(LIST_FIELDS.join(",") + ",is_archived,archived_at")
+      .eq("clinic_id", clinicId)
+      .eq("is_archived", archivedView)
+      .order("id", { ascending: true });
     if (error) {
       console.error("[Patients API] List query failed:", error);
       return NextResponse.json({ error: "تعذر تحميل قائمة المرضى" }, { status: 500 });
