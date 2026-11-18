@@ -205,7 +205,7 @@ bank settings remove        if (data.email) setEmail(data.email);
     return () => {
       active = false;
     };
-  }, [clinicId]);
+  }, [clinicId, isClinicAdmin]);
 
   useEffect(() => {
     if (!clinicId) return;
