@@ -22,8 +22,8 @@ body:has(.pp-stitch-shell) header:not(.pp-stitch-topbar){display:none!important}
 .pp-stitch-nav{display:flex;flex-direction:column;gap:4px;padding:6px 16px;flex:1}
 .pp-stitch-nav a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 13px;border-radius:11px;color:#464555;font-size:13px;transition:background .18s,color .18s}
 .pp-stitch-nav a>span{display:flex;align-items:center;gap:11px}
-.pp-stitch-nav a:hover{background:#eff4ff;color:#0b1c30}
-.pp-stitch-nav a.active{background:#4f46e5;color:#fff;font-weight:700;box-shadow:0 1px 3px #1e1b4b12}
+.pp-stitch-nav a:hover{background:rgba(79,70,186,.09);color:#4F46BA}
+.pp-stitch-nav a.active{background:linear-gradient(110deg,#4F46BA 0%,#7c3aed 100%);color:#fff;font-weight:700;box-shadow:0 3px 10px rgba(79,70,186,.22)}
 .pp-stitch-nav a small{font-size:10px;padding:3px 8px;border-radius:20px;background:#c7c3fe;color:#514f81;font-weight:700;white-space:nowrap}
 .pp-stitch-account{margin:12px 16px 0;padding:12px;border-radius:12px;background:#eff4ff}
 .pp-stitch-account-user{display:flex;align-items:center;gap:10px}
