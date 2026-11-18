@@ -49,7 +49,27 @@ export default function ProfileSettingsPage() {
   const isRtl = language === "ar";
   const { user } = useAuth();
   const clinicId = user?.clinicId;
-  const isClinicAdmin = user?.roleKey === "admin";
+  const [isClinicAdmin, setIsClinicAdmin] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    if (!clinicId) {
+      setIsClinicAdmin(false);
+      return;
+    }
+    const resolveClinicAdmin = async () => {
+      const { data, error } = await supabase.rpc("is_clinic_admin");
+      if (!active) return;
+      if (error) {
+        console.warn("Could not resolve clinic administrator access", error);
+        setIsClinicAdmin(user?.roleKey === "admin");
+        return;
+      }
+      setIsClinicAdmin(Boolean(data));
+    };
+    resolveClinicAdmin();
+    return () => { active = false; };
+  }, [clinicId, user?.roleKey]);
   
   // Profile Tab States
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
