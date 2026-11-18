@@ -202,38 +202,66 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
   const auth = await getAuthorizedClinic(request);
   if ("response" in auth) return auth.response;
   if (!hasStaffPermission(auth.staff, "delete_patient")) {
-    return NextResponse.json({ error: "ليس لديك صلاحية حذف المرضى" }, { status: 403 });
+    return NextResponse.json({ error: "ليس لديك صلاحية إدارة ملفات المرضى" }, { status: 403 });
   }
   const { id } = await context.params;
 
   try {
-    const dependentTables = [
-      "invoices", "appointments", "sessions", "patient_evaluations",
-      "assessments", "treatment_plans", "progress_tracking",
-      "discharges", "patient_programs", "peer_reviews",
-    ] as const;
-
-    const checks = await Promise.all(dependentTables.map((table) =>
-      auth.admin.from(table).select("id", { count: "exact", head: true })
-        .eq("clinic_id", auth.clinicId).eq("patient_id", id)
-    ));
-    const failed = checks.find((result) => result.error);
-    if (failed?.error) throw failed.error;
-    const linkedRecords = checks.reduce((total, result) => total + (result.count || 0), 0);
-    if (linkedRecords > 0) {
-      return NextResponse.json({
-        error: "لا يمكن حذف المريض لوجود سجلات جلسات أو تقييمات أو فواتير أو برامج علاجية مرتبطة به",
-        linkedRecords,
-      }, { status: 409 });
+    const body = await request.json().catch(() => ({}));
+    const mode = body?.mode;
+    if (!["archive", "restore", "permanent"].includes(mode)) {
+      return NextResponse.json({ error: "نوع العملية غير صالح" }, { status: 400 });
     }
 
-    const { data, error } = await auth.admin.from("patients").delete()
-      .eq("id", id).eq("clinic_id", auth.clinicId).select("id").maybeSingle();
-    if (error) throw error;
-    if (!data) return NextResponse.json({ error: "المريض غير موجود في العيادة الحالية" }, { status: 404 });
-    return NextResponse.json({ success: true });
+    if (mode === "archive" || mode === "restore") {
+      const archived = mode === "archive";
+      const { data, error } = await auth.admin.from("patients")
+        .update({
+          is_archived: archived,
+          archived_at: archived ? new Date().toISOString() : null,
+          archived_by: archived ? String(auth.staff.id || "clinic-owner") : null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", id)
+        .eq("clinic_id", auth.clinicId)
+        .select("id,is_archived")
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!data) return NextResponse.json({ error: "المريض غير موجود في العيادة الحالية" }, { status: 404 });
+      return NextResponse.json({ success: true, archived: data.is_archived });
+    }
+
+    if (body?.confirmPatientId !== id) {
+      return NextResponse.json({ error: "تأكيد الحذف النهائي غير مطابق لرقم ملف المريض" }, { status: 400 });
+    }
+
+    const { data: attachments, error: attachmentsError } = await auth.admin
+      .from("patient_attachments")
+      .select("file_path")
+      .eq("clinic_id", auth.clinicId)
+      .eq("patient_id", id);
+    if (attachmentsError) throw attachmentsError;
+
+    const { data: deleted, error: deleteError } = await auth.admin.rpc(
+      "hard_delete_patient_with_records",
+      { p_clinic_id: auth.clinicId, p_patient_id: id }
+    );
+    if (deleteError) throw deleteError;
+
+    let storageWarning: string | null = null;
+    const paths = (attachments || []).map((item: { file_path: string }) => item.file_path).filter(Boolean);
+    if (paths.length > 0) {
+      const { error: storageError } = await auth.admin.storage.from("patient-files").remove(paths);
+      if (storageError) {
+        console.error("[Patient API] Attachment cleanup failed after patient deletion:", storageError);
+        storageWarning = "تم حذف سجل المريض وسجلاته، لكن تعذر حذف بعض الملفات المرفقة من التخزين. يرجى مراجعة مسؤول النظام.";
+      }
+    }
+
+    return NextResponse.json({ success: true, deleted, warning: storageWarning });
   } catch (error: any) {
-    console.error("[Patient API] Delete failed:", error);
-    return NextResponse.json({ error: error?.message || "تعذر حذف ملف المريض" }, { status: 500 });
+    console.error("[Patient API] Delete/archive failed:", error);
+    return NextResponse.json({ error: error?.message || "تعذر تنفيذ العملية على ملف المريض" }, { status: 500 });
   }
 }
