@@ -23,7 +23,7 @@ body:has(.pp-stitch-shell) header:not(.pp-stitch-topbar){display:none!important}
 .pp-stitch-nav a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:11px 13px;border-radius:11px;color:#464555;font-size:13px;transition:background .18s,color .18s}
 .pp-stitch-nav a>span{display:flex;align-items:center;gap:11px}
 .pp-stitch-nav a:hover{background:rgba(79,70,186,.09);color:#4F46BA}
-.pp-stitch-nav a.active{background:linear-gradient(110deg,#4F46BA 0%,#7c3aed 100%);color:#fff;font-weight:700;box-shadow:0 3px 10px rgba(79,70,186,.22)}
+.pp-stitch-nav a.active,.pp-stitch-nav a.pp-stitch-calendar-nav{background:linear-gradient(110deg,#4F46BA 0%,#7c3aed 100%);color:#fff;font-weight:700;box-shadow:0 3px 10px rgba(79,70,186,.22)}
 .pp-stitch-nav a small{font-size:10px;padding:3px 8px;border-radius:20px;background:#c7c3fe;color:#514f81;font-weight:700;white-space:nowrap}
 .pp-stitch-account{margin:12px 16px 0;padding:12px;border-radius:12px;background:#eff4ff}
 .pp-stitch-account-user{display:flex;align-items:center;gap:10px}
@@ -53,8 +53,8 @@ body:has(.pp-stitch-shell) header:not(.pp-stitch-topbar){display:none!important}
 .pp-stitch-icon-btn:hover{background:#e5eeff;color:#0b1c30}
 .pp-stitch-bell{position:relative}
 .pp-stitch-bell i{position:absolute;top:8px;left:8px;width:8px;height:8px;border-radius:50%;background:#ba1a1a;border:2px solid #eff4ff}
-.pp-stitch-new-appointment{height:42px;padding:0 15px;display:inline-flex;align-items:center;gap:7px;border-radius:11px;background:#3525cd;color:#fff;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 4px 12px #3525cd22}
-.pp-stitch-new-appointment:hover,.pp-stitch-primary:hover{background:#4f46e5}
+.pp-stitch-new-appointment{height:42px;padding:0 15px;display:inline-flex;align-items:center;gap:7px;border-radius:11px;background:linear-gradient(110deg,#4F46BA 0%,#7c3aed 100%);color:#fff;font-size:12px;font-weight:700;white-space:nowrap;box-shadow:0 4px 12px rgba(79,70,186,.22)}
+.pp-stitch-new-appointment:hover,.pp-stitch-primary:hover{background:linear-gradient(110deg,#4338ca 0%,#6d28d9 100%)}
 .pp-stitch-content{padding:104px 28px 32px;max-width:1800px;margin:0 auto}
 .pp-stitch-hero{position:relative;overflow:hidden;background:#fff;border-radius:18px;padding:25px 27px;margin-bottom:20px;box-shadow:0 1px 4px #0b1c300a}
 .pp-stitch-glow{position:absolute;border-radius:50%;filter:blur(45px);pointer-events:none}
@@ -71,7 +71,7 @@ body:has(.pp-stitch-shell) header:not(.pp-stitch-topbar){display:none!important}
 .pp-stitch-export,.pp-stitch-primary{height:42px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:11px;font-size:11px;font-weight:700;white-space:nowrap}
 .pp-stitch-export{background:#eff4ff;color:#0b1c30}
 .pp-stitch-export:hover{background:#e5eeff}
-.pp-stitch-primary{background:#3525cd;color:#fff}
+.pp-stitch-primary{background:linear-gradient(110deg,#4F46BA 0%,#7c3aed 100%);color:#fff}
 .pp-stitch-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
 .pp-stitch-kpi{min-width:0;min-height:145px;background:#fff;border-radius:17px;padding:17px;box-shadow:0 1px 4px #0b1c300a;display:flex;flex-direction:column;justify-content:space-between}
 .pp-stitch-kpi-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
