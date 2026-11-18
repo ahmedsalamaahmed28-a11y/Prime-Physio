@@ -419,7 +419,7 @@ export default function HomePage() {
         <nav className="pp-stitch-nav">
           {navItems.map((item, index) => {
             const Icon = item.icon;
-            return <Link key={item.href} href={item.href} onClick={() => setMobileNavOpen(false)} className={index === 0 ? "active" : item.href === "/calendar" ? "pp-stitch-calendar-nav" : ""}>
+            return <Link key={item.href} href={item.href} onClick={() => setMobileNavOpen(false)} className={index === 0 ? "active" : ""}>
               <span><Icon size={19} />{item.label}</span>
               {item.href === "/calendar" && <small>{todayAppointments.length} {isRtl ? "اليوم" : "today"}</small>}
             </Link>;
