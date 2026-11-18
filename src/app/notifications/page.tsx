@@ -46,6 +46,9 @@ export default function NotificationsPage() {
     setError("");
 
     try {
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!authUser?.id) throw new Error(isRtl ? "تعذر التحقق من جلسة المستخدم لمزامنة القراءة." : "Could not verify the signed-in user for read synchronization.");
       const [broadcastResult, clinicResult, auditResult, readStatesResult] = await Promise.all([
         supabase.from("system_broadcasts")
           .select("id, title, message, created_at")
@@ -62,7 +65,7 @@ export default function NotificationsPage() {
               .eq("clinic_id", user.clinicId)
               .order("created_at", { ascending: false }).limit(100)
           : Promise.resolve({ data: [], error: null } as any),
-        supabase.from("notification_read_states").select("source, notification_id").eq("user_id", user.id),
+        supabase.from("notification_read_states").select("source, notification_id").eq("user_id", authUser.id),
       ]);
 
       if (broadcastResult.error && clinicResult.error && auditResult.error) {
@@ -133,7 +136,7 @@ export default function NotificationsPage() {
       const externalReceipts = combined
         .filter((item) => item.type === "broadcast" || item.type === "audit")
         .map((item) => ({
-          user_id: user.id,
+          user_id: authUser.id,
           source: item.type,
           notification_id: item.id,
           read_at: new Date().toISOString(),
