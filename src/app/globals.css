@@ -703,7 +703,7 @@ table :is(button, a, select, input) {
 
 /* High-contrast notification total card; independent of utility-class generation. */
 .notifications-total-card {
-  background: linear-gradient(135deg, #312e81 0%, #3730a3 52%, #4338ca 100%);
+  background: linear-gradient(110deg, #4F46BA 0%, #6650CF 52%, #7c3aed 100%);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, .24);
 }
