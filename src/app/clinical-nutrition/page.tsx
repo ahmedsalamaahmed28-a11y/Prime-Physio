@@ -29,6 +29,8 @@ export default function ClinicalNutritionPage() {
 
   const [patients, setPatients] = useState<any[]>([]);
   const [selectedPatientId, setSelectedPatientId] = useState("");
+  const [nutritionLoading, setNutritionLoading] = useState(false);
+  const [nutritionLoaded, setNutritionLoaded] = useState(false);
 
   const translateName = (arName: string, enName?: string) => {
     if (isRtl) return arName;
@@ -46,7 +48,9 @@ export default function ClinicalNutritionPage() {
 
   // Load patients from Supabase only
   useEffect(() => {
+    let cancelled = false;
     async function loadPatients() {
+      if (!clinicId) { setPatients([]); setSelectedPatientId(""); return; }
       try {
         const { data, error } = await supabase
           .from("patients")
@@ -65,21 +69,24 @@ export default function ClinicalNutritionPage() {
           return;
         }
 
+        if (cancelled) return;
         setPatients(data || []);
-        if (data?.length) setSelectedPatientId(data[0].id);
+        setSelectedPatientId((current) => data?.some((patient) => patient.id === current) ? current : (data?.[0]?.id || ""));
       } catch (err) {
         console.error("Unexpected error loading patients from Supabase", err);
-        setPatients([]);
+        if (!cancelled) { setPatients([]); setSelectedPatientId(""); }
       }
     }
     loadPatients();
-  }, []);
+    return () => { cancelled = true; };
+  }, [clinicId]);
 
   // Calculator states
-  const [weight, setWeight] = useState<number>(75);
-  const [height, setHeight] = useState<number>(175);
-  const [waist, setWaist] = useState<number>(90);
-  const [hip, setHip] = useState<number>(100);
+  // Empty values are intentional: never prefill clinical measurements with sample data.
+  const [weight, setWeight] = useState<number>(0);
+  const [height, setHeight] = useState<number>(0);
+  const [waist, setWaist] = useState<number>(0);
+  const [hip, setHip] = useState<number>(0);
   const [gender, setGender] = useState<"male" | "female">("male");
 
   // Diet Program states
@@ -130,7 +137,13 @@ export default function ClinicalNutritionPage() {
 
   // Load patient specific data from Supabase when selectedPatientId changes
   useEffect(() => {
-    if (!selectedPatientId) return;
+    if (!clinicId || !selectedPatientId || !patients.some((patient) => patient.id === selectedPatientId)) {
+      setNutritionLoaded(false);
+      return;
+    }
+    let cancelled = false;
+    setNutritionLoading(true);
+    setNutritionLoaded(false);
 
     async function loadPatientNutrition() {
       const activePat = patients.find(p => p.id === selectedPatientId);
@@ -141,41 +154,49 @@ export default function ClinicalNutritionPage() {
         .eq('clinic_id', clinicId)
         .maybeSingle();
 
+      if (cancelled) return;
       if (error) {
         console.error("Failed to load patient nutrition from Supabase", error);
-      }
-
-      setWeight(data?.weight ? Number(data.weight) : 75);
-      setHeight(data?.height ? Number(data.height) : 175);
-      setWaist(data?.waist ? Number(data.waist) : 90);
-      setHip(data?.hip ? Number(data.hip) : 100);
-      const patientGender = String(activePat?.gender || "").toLowerCase();
-      setGender((data?.gender as "male" | "female") || (patientGender.includes("female") ? "female" : "male"));
-
-      if (data?.diet_plan && Object.keys(data.diet_plan).length > 0) {
-        setDietPlan(data.diet_plan);
+        setWeight(0); setHeight(0); setWaist(0); setHip(0);
+        setDietPlan({ breakfast: "", lunch: "", dinner: "", snacks: "" });
+        setNutritionLoaded(false);
         return;
       }
 
-      setDietPlan({
-        breakfast: "3 boiled eggs + half whole wheat pita + green salad cup + unsweetened green tea",
-        lunch: "200g grilled chicken breast + 6 tbsp steamed brown rice + mixed steamed vegetables",
-        dinner: "1 can drained tuna + mixed green salad with olive oil dressing + 1 cup greek yogurt",
-        snacks: "A handful of raw mixed nuts + 1 green apple or pear",
-      });
+      setWeight(data?.weight == null ? 0 : Number(data.weight));
+      setHeight(data?.height == null ? 0 : Number(data.height));
+      setWaist(data?.waist == null ? 0 : Number(data.waist));
+      setHip(data?.hip == null ? 0 : Number(data.hip));
+      const patientGender = String(activePat?.gender || "").toLowerCase();
+      setGender((data?.gender as "male" | "female") || (patientGender.includes("female") ? "female" : "male"));
+      setDietPlan(data?.diet_plan || { breakfast: "", lunch: "", dinner: "", snacks: "" });
+      setNutritionLoaded(true);
     }
 
-    loadPatientNutrition();
-  }, [selectedPatientId, isRtl, patients]);
+    loadPatientNutrition().finally(() => { if (!cancelled) setNutritionLoading(false); });
+    return () => { cancelled = true; };
+  }, [clinicId, selectedPatientId, patients]);
 
   const handleSavePatientNutrition = async () => {
+    if (!clinicId || !selectedPatientId || !patients.some((patient) => patient.id === selectedPatientId)) {
+      alert(isRtl ? "اختر مريضاً من المركز الحالي أولاً" : "Select a patient from the current clinic first");
+      return;
+    }
+    if (!nutritionLoaded || nutritionLoading) {
+      alert(isRtl ? "انتظر تحميل بيانات المريض قبل الحفظ" : "Wait until the patient's data finishes loading");
+      return;
+    }
+    if (!Number.isFinite(weight) || weight <= 0 || !Number.isFinite(height) || height <= 0) {
+      alert(isRtl ? "أدخل الوزن والطول الفعليين للمريض قبل الحفظ" : "Enter the patient's actual weight and height before saving");
+      return;
+    }
     const { error } = await supabase.from("patient_nutrition").upsert({
       patient_id: selectedPatientId,
       clinic_id: clinicId,
       weight,
       height,
-      waist,
-      hip,
+      waist: waist > 0 ? waist : null,
+      hip: hip > 0 ? hip : null,
       gender,
       diet_plan: dietPlan,
     }, { onConflict: "patient_id" });
@@ -385,6 +406,7 @@ export default function ClinicalNutritionPage() {
           />
         </div>
         <Button 
+          disabled={!nutritionLoaded || nutritionLoading || !selectedPatientId}
           onClick={handleSavePatientNutrition}
           className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white"
         >
