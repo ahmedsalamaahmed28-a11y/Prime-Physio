@@ -417,6 +417,7 @@ export default function ProfileSettingsPage() {
       alert(isRtl ? "اختر صورة PNG أو JPG أو WebP بحجم لا يتجاوز 2 ميجابايت." : "Choose a PNG, JPG, or WebP image no larger than 2 MB.");
       return;
     }
+    const previousLogoUrl = logoUrl;
     setLogoUploading(true);
     let uploadedPath: string | null = null;
     try {
@@ -436,6 +437,18 @@ export default function ProfileSettingsPage() {
       }, { onConflict: "clinic_id" });
       if (saveError) throw saveError;
       setLogoUrl(publicData.publicUrl);
+      const publicPathMarker = "/storage/v1/object/public/branch-logos/";
+      if (previousLogoUrl?.includes(publicPathMarker)) {
+        try {
+          const previousPath = decodeURIComponent(previousLogoUrl.split(publicPathMarker)[1].split("?")[0]);
+          if (previousPath.startsWith(clinicId + "/") && previousPath !== uploadedPath) {
+            const { error: removeError } = await supabase.storage.from("branch-logos").remove([previousPath]);
+            if (removeError) console.warn("Could not remove the replaced clinic logo", removeError);
+          }
+        } catch (cleanupError) {
+          console.warn("Could not parse the previous clinic logo path", cleanupError);
+        }
+      }
     } catch (err: any) {
       if (uploadedPath) await supabase.storage.from("branch-logos").remove([uploadedPath]).catch(() => undefined);
       console.error("Failed to upload clinic logo", err);
