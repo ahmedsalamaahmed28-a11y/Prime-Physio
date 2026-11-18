@@ -122,23 +122,39 @@ export default function ProfileSettingsPage() {
 
     const fetchSettings = async () => {
       try {
-        if (!clinicId) {
-          setLogoUrl(null);
-          setAccountHolderName(""); setBankName(""); setIban(""); setSwiftCode("");
-          return;
-        }
+        // Clear every clinic-scoped field before loading another center.
+        setLogoUrl(null);
+        setAccountHolderName(""); setBankName(""); setIban(""); setSwiftCode("");
+        setClinicName(""); setEmail(""); setPhone(""); setCity(""); setAddress("");
+        setMapLat(""); setMapLng(""); setCountry(""); setDescription("");
+        setDefaultExamPrice(""); setDefaultSessionPrice("");
+        setBranches([{
+          id: "main",
+          title: "الفرع الرئيسي",
+          city: "",
+          phone: "",
+          address: "",
+          startingPrice: "",
+          hoursSaved: false,
+          hours: [
+            { day: "الأحد", from: "09:00 AM", to: "05:00 PM", isOpen: true },
+            { day: "الاثنين", from: "09:00 AM", to: "05:00 PM", isOpen: true },
+            { day: "الثلاثاء", from: "09:00 AM", to: "05:00 PM", isOpen: false },
+            { day: "الأربعاء", from: "09:00 AM", to: "05:00 PM", isOpen: true },
+            { day: "الخميس", from: "09:00 AM", to: "05:00 PM", isOpen: false },
+            { day: "الجمعة", from: "09:00 AM", to: "05:00 PM", isOpen: false },
+            { day: "السبت", from: "09:00 AM", to: "05:00 PM", isOpen: false },
+          ]
+        }]);
+        if (!clinicId) return;
         const { data: { session } } = await supabase.auth.getSession();
         const user = session?.user;
         if (!user || !active) return;
 
         setEmail(user.email || "");
-        setLogoUrl(null);
-        setAccountHolderName(""); setBankName(""); setIban(""); setSwiftCode("");
-        const fullName = user.user_metadata?.full_name || user.user_metadata?.name;
-        if (fullName) {
-          setClinicName((prev) => prev || fullName);
-          setAccountHolderName((prev) => prev || fullName);
-        }
+        const fullName = user.user_metadata?.full_name || user.user_metadata?.name || "";
+        setClinicName(fullName);
+        setAccountHolderName(fullName);
 
         const { data, error } = await supabase
           .from("clinic_settings")
