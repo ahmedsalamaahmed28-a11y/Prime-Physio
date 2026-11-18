@@ -18,6 +18,7 @@ interface NotificationItem {
   createdAt: string;
   type: "broadcast" | "audit" | "clinic";
   readKey: string;
+  isRead: boolean;
 }
 
 type FilterKey = "all" | "clinic" | "broadcast" | "audit";
@@ -32,6 +33,7 @@ export default function NotificationsPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<FilterKey>("all");
   const [error, setError] = useState("");
+  const [readSyncError, setReadSyncError] = useState("");
 
   const loadNotifications = useCallback(async (silent = false) => {
     if (!user) {
@@ -44,13 +46,13 @@ export default function NotificationsPage() {
     setError("");
 
     try {
-      const [broadcastResult, clinicResult, auditResult] = await Promise.all([
+      const [broadcastResult, clinicResult, auditResult, readStatesResult] = await Promise.all([
         supabase.from("system_broadcasts")
           .select("id, title, message, created_at")
           .order("created_at", { ascending: false }).limit(30),
         user.clinicId
           ? supabase.from("notifications")
-              .select("id, title_ar, title_en, body_ar, body_en, created_at")
+              .select("id, title_ar, title_en, body_ar, body_en, created_at, is_read")
               .eq("clinic_id", user.clinicId)
               .order("created_at", { ascending: false }).limit(100)
           : Promise.resolve({ data: [], error: null } as any),
@@ -60,6 +62,7 @@ export default function NotificationsPage() {
               .eq("clinic_id", user.clinicId)
               .order("created_at", { ascending: false }).limit(100)
           : Promise.resolve({ data: [], error: null } as any),
+        supabase.from("notification_read_states").select("source, notification_id").eq("user_id", user.id),
       ]);
 
       if (broadcastResult.error && clinicResult.error && auditResult.error) {
@@ -75,6 +78,7 @@ export default function NotificationsPage() {
         createdAt: item.created_at || new Date().toISOString(),
         type: "broadcast",
         readKey: `broadcast:${item.id}`,
+        isRead: false,
       }));
 
       const clinicItems: NotificationItem[] = (clinicResult.data || []).map((item: any) => ({
@@ -86,6 +90,7 @@ export default function NotificationsPage() {
         createdAt: item.created_at || new Date().toISOString(),
         type: "clinic",
         readKey: `clinic:${item.id}`,
+        isRead: Boolean(item.is_read),
       }));
 
       const auditItems: NotificationItem[] = (auditResult.data || []).map((item: any) => {
@@ -107,27 +112,65 @@ export default function NotificationsPage() {
           createdAt: item.created_at || new Date().toISOString(),
           type: "audit" as const,
           readKey: `audit:${item.id}`,
+          isRead: false,
         };
       });
 
-      const combined = [...broadcasts, ...clinicItems, ...auditItems].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-      setNotifications(combined);
+      if (readStatesResult.error) throw readStatesResult.error;
+      const savedReadKeys = new Set((readStatesResult.data || []).map((row: any) => `${row.source}:${row.notification_id}`));
+      const combined = [...broadcasts, ...clinicItems, ...auditItems]
+        .map((item) => ({
+          ...item,
+          isRead: item.type === "clinic"
+            ? Boolean(clinicItems.find((clinicItem) => clinicItem.id === item.id)?.isRead)
+            : savedReadKeys.has(item.readKey),
+        }))
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-      // Keep the existing app-wide behavior: opening the notifications page
-      // marks the notifications currently displayed as read.
+      // Persist read state in Supabase so it follows the signed-in user across devices.
       const readKeys = combined.map((item) => item.readKey);
-      if (user.email && readKeys.length) {
-        const storageKey = `prime-physio:notifications:read:${user.clinicId || "no-clinic"}:${user.email.toLowerCase()}`;
-        try {
-          const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
-          const existing = Array.isArray(saved) ? saved.filter((key): key is string => typeof key === "string") : [];
-          localStorage.setItem(storageKey, JSON.stringify(Array.from(new Set([...existing, ...readKeys]))));
-        } catch (storageError) {
-          console.warn("Could not persist notification read state", storageError);
+      const clinicIds = clinicItems.map((item) => item.id);
+      const externalReceipts = combined
+        .filter((item) => item.type === "broadcast" || item.type === "audit")
+        .map((item) => ({
+          user_id: user.id,
+          source: item.type,
+          notification_id: item.id,
+          read_at: new Date().toISOString(),
+        }));
+      const syncErrors: unknown[] = [];
+      if (clinicIds.length && user.clinicId) {
+        const { error: clinicReadError } = await supabase.from("notifications")
+          .update({ is_read: true, read_at: new Date().toISOString() })
+          .eq("clinic_id", user.clinicId)
+          .in("id", clinicIds);
+        if (clinicReadError) syncErrors.push(clinicReadError);
+      }
+      if (externalReceipts.length) {
+        const { error: receiptError } = await supabase.from("notification_read_states")
+          .upsert(externalReceipts, { onConflict: "user_id,source,notification_id" });
+        if (receiptError) syncErrors.push(receiptError);
+      }
+
+      if (syncErrors.length) {
+        console.error("Failed to synchronize notification read state", syncErrors);
+        setReadSyncError(isRtl ? "تعذر مزامنة حالة قراءة بعض الإشعارات." : "Some notification read states could not be synchronized.");
+        setNotifications(combined);
+      } else {
+        setReadSyncError("");
+        const readCombined = combined.map((item) => ({ ...item, isRead: true }));
+        setNotifications(readCombined);
+        if (user.email && readKeys.length) {
+          const storageKey = `prime-physio:notifications:read:${user.clinicId || "no-clinic"}:${user.email.toLowerCase()}`;
+          try {
+            const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+            const existing = Array.isArray(saved) ? saved.filter((key): key is string => typeof key === "string") : [];
+            localStorage.setItem(storageKey, JSON.stringify(Array.from(new Set([...existing, ...readKeys]))));
+          } catch (storageError) {
+            console.warn("Could not update local notification cache", storageError);
+          }
+          window.dispatchEvent(new CustomEvent("prime-physio:notifications-read", { detail: readKeys }));
         }
-        window.dispatchEvent(new CustomEvent("prime-physio:notifications-read", { detail: readKeys }));
       }
     } catch (loadError) {
       console.error("Failed to load notifications", loadError);
@@ -219,7 +262,7 @@ export default function NotificationsPage() {
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
           <div><h2 className="font-extrabold text-slate-800">{isRtl ? "سجل الإشعارات" : "Notification history"}</h2><p className="mt-1 text-xs text-slate-400">{isRtl ? `عرض ${filtered.length} من ${notifications.length} إشعار` : `Showing ${filtered.length} of ${notifications.length} notifications`}</p></div>
-          <span className="hidden items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-[11px] font-bold text-emerald-700 sm:inline-flex"><Check size={14} />{isRtl ? "تم تحديث حالة القراءة" : "Read status synced"}</span>
+          <span className={`hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold sm:inline-flex ${readSyncError ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}><Check size={14} />{readSyncError || (isRtl ? "حالة القراءة متزامنة" : "Read status synced")}</span>
         </div>
 
         {loading ? (
