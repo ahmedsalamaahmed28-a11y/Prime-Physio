@@ -9,7 +9,7 @@ alter table public.clinic_settings
 create table if not exists public.notification_read_states (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references auth.users(id) on delete cascade,
-  source text not null check (source in ('broadcast', 'audit')),
+  source text not null check (source in ('broadcast', 'audit', 'clinic')),
   notification_id text not null,
   read_at timestamptz not null default now(),
   created_at timestamptz not null default now(),
