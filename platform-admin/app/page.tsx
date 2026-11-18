@@ -225,20 +225,20 @@ export default function Home() {
                   <div className="login-field">
                     <div className="login-label-row"><label htmlFor="admin-email">{t.email}</label><small>{t.adminId}</small></div>
                     <div className="input-wrap">
-                      <span aria-hidden="true">alternate_email</span>
+                      <LoginIcon name="email" />
                       <input id="admin-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="username" placeholder={t.emailPlaceholder} dir="ltr" />
                     </div>
                   </div>
                   <div className="login-field">
                     <div className="password-row"><label htmlFor="admin-password">{t.password}</label><button type="button" className="text-action" onClick={() => { setAuthMode("forgot"); setError(""); setNotice(""); }}>{t.forgot}</button></div>
                     <div className="input-wrap">
-                      <span aria-hidden="true">lock</span>
+                      <LoginIcon name="lock" />
                       <input id="admin-password" type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" placeholder={t.passwordPlaceholder} />
-                      <button type="button" className="eye-toggle" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(v => !v)}>{showPassword ? "visibility_off" : "visibility"}</button>
+                      <button type="button" className="eye-toggle" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(v => !v)}><LoginIcon name={showPassword ? "eye-off" : "eye"} /></button>
                     </div>
                   </div>
                   <div className="login-security-note">
-                    <span className="security-fingerprint" aria-hidden="true">fingerprint</span>
+                    <span className="security-fingerprint" aria-hidden="true"><LoginIcon name="fingerprint" /></span>
                     <span>{t.security}</span>
                     <b>{t.restricted}</b>
                   </div>
@@ -252,7 +252,7 @@ export default function Home() {
                 <form className="auth-form" onSubmit={sendRecovery}>
                   <div className="login-field">
                     <label htmlFor="recovery-email">{t.recoveryEmail}</label>
-                    <div className="input-wrap"><span aria-hidden="true">mail</span><input id="recovery-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" placeholder="name@example.com" dir="ltr" /></div>
+                    <div className="input-wrap"><LoginIcon name="mail" /><input id="recovery-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" placeholder="name@example.com" dir="ltr" /></div>
                   </div>
                   <button className="primary full login-submit" disabled={busy === "recovery"}>{busy === "recovery" ? t.sending : t.sendCode}<b aria-hidden="true">←</b></button>
                   <button type="button" className="back-action" onClick={() => { setAuthMode("login"); setError(""); setNotice(""); }}>{t.back}</button>
@@ -261,9 +261,9 @@ export default function Home() {
 
               {authMode === "verify" && (
                 <form className="auth-form" onSubmit={verifyAndUpdatePassword}>
-                  <div className="recovery-destination"><span aria-hidden="true">mail</span><div><small>{t.sentTo}</small><b>{email}</b></div></div>
+                  <div className="recovery-destination"><LoginIcon name="mail" /><div><small>{t.sentTo}</small><b>{email}</b></div></div>
                   <div className="login-field"><label htmlFor="recovery-otp">{t.otp}</label><input className="otp-input" id="recovery-otp" inputMode="numeric" autoComplete="one-time-code" maxLength={8} value={otp} onChange={e => setOtp(e.target.value.replace(/\D/g, "").slice(0, 8))} placeholder={t.otpPlaceholder} required /></div>
-                  <div className="login-field"><label htmlFor="new-password">{t.newPassword}</label><div className="input-wrap"><input id="new-password" type={showPassword ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} minLength={8} autoComplete="new-password" placeholder={t.newPasswordPlaceholder} required /><button type="button" className="eye-toggle" onClick={() => setShowPassword(v => !v)}>{showPassword ? "visibility_off" : "visibility"}</button></div></div>
+                  <div className="login-field"><label htmlFor="new-password">{t.newPassword}</label><div className="input-wrap"><input id="new-password" type={showPassword ? "text" : "password"} value={newPassword} onChange={e => setNewPassword(e.target.value)} minLength={8} autoComplete="new-password" placeholder={t.newPasswordPlaceholder} required /><button type="button" className="eye-toggle" onClick={() => setShowPassword(v => !v)}><LoginIcon name={showPassword ? "eye-off" : "eye"} /></button></div></div>
                   <div className="login-field"><label htmlFor="confirm-password">{t.confirmPassword}</label><div className="input-wrap"><input id="confirm-password" type={showPassword ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} minLength={8} autoComplete="new-password" placeholder={t.confirmPlaceholder} required /></div></div>
                   <button className="primary full login-submit" disabled={busy === "update-password"}>{busy === "update-password" ? t.updating : t.confirm}<b aria-hidden="true">←</b></button>
                   <button type="button" className="back-action" onClick={() => { setAuthMode("forgot"); setOtp(""); setOtpVerified(false); recoveringPassword.current = false; setError(""); setNotice(""); }}>{t.resend}</button>
@@ -343,6 +343,19 @@ export default function Home() {
       </section>
     </main>
   );
+}
+
+function LoginIcon({ name }: { name: "email" | "lock" | "eye" | "eye-off" | "fingerprint" | "mail" }) {
+  const common = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  const paths: Record<typeof name, React.ReactNode> = {
+    email: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></>,
+    mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m4 7 8 6 8-6" /></>,
+    lock: <><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V7a4 4 0 0 1 8 0v3" /><path d="M12 14v3" /></>,
+    eye: <><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" /><circle cx="12" cy="12" r="3" /></>,
+    "eye-off": <><path d="m3 3 18 18" /><path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" /><path d="M9.9 5.2A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a16 16 0 0 1-3.1 3.9M6.2 6.2C3.5 8.1 2 12 2 12s3.6 7 10 7a10 10 0 0 0 3-.5" /></>,
+    fingerprint: <><path d="M12 11a2 2 0 0 0-2 2c0 3-.5 5.3-1.5 7" /><path d="M14 13c0 3.2-.3 5.4-1 7" /><path d="M8 13a4 4 0 0 1 8 0c0 2.1-.1 4.4-.6 6.5" /><path d="M6 13a6 6 0 0 1 12 0" /><path d="M4 13a8 8 0 0 1 16 0" /><path d="M12 3a10 10 0 0 1 10 10" /></>
+  };
+  return <svg className="login-icon" viewBox="0 0 24 24" width="19" height="19" aria-hidden="true" {...common}>{paths[name]}</svg>;
 }
 
 function Metric({ label, value, note }: { label: string; value: number | string; note?: string }) {
