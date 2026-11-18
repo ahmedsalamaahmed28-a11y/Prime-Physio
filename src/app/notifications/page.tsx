@@ -180,10 +180,7 @@ export default function NotificationsPage() {
     <div className="mx-auto w-full min-w-0 max-w-6xl space-y-5 sm:space-y-6" dir={isRtl ? "rtl" : "ltr"}>
       <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#4F46BA] via-[#6650CF] to-[#7c3aed] p-6 text-white shadow-lg sm:p-8">
         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
-          <div className="flex min-w-0 items-start gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-indigo-950/25 text-white">
-              <Bell className="h-7 w-7" />
-            </div>
+          <div className="flex min-w-0 items-start">
             <div className="min-w-0">
               <p className="mb-1 text-xs font-bold tracking-wide text-white/85">{isRtl ? "مركز التنبيهات" : "NOTIFICATION CENTER"}</p>
               <h1 className="!text-white text-2xl font-extrabold sm:text-3xl">{isRtl ? "الإشعارات" : "Notifications"}</h1>
