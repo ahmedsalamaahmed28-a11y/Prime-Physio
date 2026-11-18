@@ -11,7 +11,9 @@ import {
   FileText,
   Activity,
   Phone,
-  Trash2
+  Trash2,
+  Archive,
+  RotateCcw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -52,6 +54,9 @@ function PatientsContent() {
   // Modal state
   const [isOpen, setIsOpen] = useState(false);
   const [deletePatientId, setDeletePatientId] = useState<string | null>(null);
+  const [deleteMode, setDeleteMode] = useState<"archive" | "restore" | "permanent">("archive");
+  const [permanentConfirmation, setPermanentConfirmation] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   const [formData, setFormData] = useState({
     nameAr: "",
     phone: "",
@@ -81,7 +86,7 @@ function PatientsContent() {
     async function loadPatients() {
       try {
         setIsLoading(true);
-        const response = await fetch("/api/patients", { method: "GET", cache: "no-store" });
+        const response = await fetch(`/api/patients?archived=${showArchived ? "true" : "false"}`, { method: "GET", cache: "no-store" });
         const result = await response.json();
         if (!response.ok) throw new Error(result.error || "تعذر تحميل قائمة المرضى");
         saveLocalPatients(result.patients || []);
@@ -130,7 +135,7 @@ function PatientsContent() {
     loadPatients();
     loadDefaultSettings();
     loadDoctors();
-  }, [clinicId]);
+  }, [clinicId, showArchived]);
 
   const getPatientName = (p: any) => {
     return isRtl ? p.nameAr : (
@@ -323,29 +328,39 @@ function PatientsContent() {
     }
   };
 
-  const handleDeletePatientClick = (patientId: string) => {
+  const handleDeletePatientClick = (patientId: string, mode: "archive" | "restore" | "permanent") => {
     setDeletePatientId(patientId);
+    setDeleteMode(mode);
+    setPermanentConfirmation("");
   };
 
   const executeDeletePatient = async () => {
     if (!deletePatientId || !clinicId) return;
+    if (deleteMode === "permanent" && permanentConfirmation.trim() !== deletePatientId) return;
 
     try {
       const response = await fetch(`/api/patients/${encodeURIComponent(deletePatientId)}`, {
         method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: deleteMode,
+          ...(deleteMode === "permanent" ? { confirmPatientId: permanentConfirmation.trim() } : {}),
+        }),
       });
       const result = await response.json();
-      if (!response.ok) throw new Error(result.error || "تعذر حذف ملف المريض");
+      if (!response.ok) throw new Error(result.error || "تعذر تنفيذ العملية");
       saveLocalPatients(patients.filter((p) => p.id !== deletePatientId));
+      if (result.warning) alert(result.warning);
     } catch (err: any) {
-      console.error("Patient deletion failed:", err);
+      console.error("Patient archive/deletion failed:", err);
       alert(
         isRtl
-          ? "تعذر حذف ملف المريض. لم يتم تغيير البيانات: " + (err.message || err)
-          : "Patient deletion failed. No local data was removed: " + (err.message || err)
+          ? "تعذر تنفيذ العملية. لم يتم تحديث القائمة: " + (err.message || err)
+          : "The operation failed. The list was not updated: " + (err.message || err)
       );
     } finally {
       setDeletePatientId(null);
+      setPermanentConfirmation("");
     }
   };
 
@@ -361,13 +376,19 @@ function PatientsContent() {
           </h1>
           <p className="text-sm text-muted-foreground mt-0.5">{t("patients_subtitle")}</p>
         </div>
-        <Button 
-          onClick={() => setIsOpen(true)}
-          className={`bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] gap-2 self-start sm:self-auto ${isRtl ? "" : "flex-row-reverse"}`}
-        >
-          <UserPlus className="w-4 h-4" />
-          {t("add_patient")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" variant="outline" onClick={() => setShowArchived((value) => !value)} className="gap-2">
+            {showArchived ? <RotateCcw className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
+            {showArchived ? (isRtl ? "العودة للمرضى النشطين" : "Active patients") : (isRtl ? "المرضى المؤرشفون" : "Archived patients")}
+          </Button>
+          {!showArchived && <Button 
+            onClick={() => setIsOpen(true)}
+            className={`bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] gap-2 self-start sm:self-auto ${isRtl ? "" : "flex-row-reverse"}`}
+          >
+            <UserPlus className="w-4 h-4" />
+            {t("add_patient")}
+          </Button>}
+        </div>
       </div>
 
       {/* Add Patient Modal */}
@@ -597,28 +618,41 @@ function PatientsContent() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Patient Confirmation Modal */}
+      {/* Patient archive / restore / permanent deletion confirmation */}
       <Dialog open={!!deletePatientId} onOpenChange={(open: boolean) => !open && setDeletePatientId(null)}>
-        <DialogContent className="sm:max-w-sm text-center" showCloseButton={false}>
-          <div className="flex flex-col items-center justify-center space-y-4 pt-4">
-            <div className="w-16 h-16 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mb-2">
-              <Trash2 className="w-8 h-8" />
+        <DialogContent className="sm:max-w-md text-center" showCloseButton={false}>
+          <div className="flex flex-col items-center justify-center space-y-3 pt-4">
+            <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 ${deleteMode === "permanent" ? "bg-rose-50 text-rose-600" : "bg-blue-50 text-blue-600"}`}>
+              {deleteMode === "permanent" ? <Trash2 className="w-8 h-8" /> : deleteMode === "restore" ? <RotateCcw className="w-8 h-8" /> : <Archive className="w-8 h-8" />}
             </div>
             <DialogTitle className="text-xl font-bold text-slate-800">
-              {isRtl ? "تأكيد الحذف" : "Confirm Deletion"}
+              {deleteMode === "archive" ? (isRtl ? "أرشفة ملف المريض" : "Archive patient")
+                : deleteMode === "restore" ? (isRtl ? "استعادة ملف المريض" : "Restore patient")
+                : (isRtl ? "حذف نهائي شامل" : "Permanent complete deletion")}
             </DialogTitle>
             <DialogDescription className="text-sm text-slate-500">
-              {isRtl 
-                ? `هل أنت متأكد من حذف ملف المريض (${deletePatientId}) نهائياً؟ لا يمكن التراجع عن هذا الإجراء.` 
-                : `Are you sure you want to permanently delete patient (${deletePatientId})? This action cannot be undone.`}
+              {deleteMode === "archive"
+                ? (isRtl ? `سيتم إخفاء المريض (${deletePatientId}) من القائمة النشطة مع الاحتفاظ بكل ملفه الطبي وجلساته وفواتيره وحجوزاته. ويمكن استعادته لاحقًا.` : `Patient ${deletePatientId} will be hidden from active patients. All clinical and financial history will be preserved and can be restored.`)
+                : deleteMode === "restore"
+                  ? (isRtl ? `سيتم إعادة المريض (${deletePatientId}) إلى قائمة المرضى النشطين مع استعادة ظهوره في القوائم.` : `Patient ${deletePatientId} will return to the active patient list.`)
+                  : (isRtl ? `تحذير: سيتم حذف ملف (${deletePatientId}) نهائيًا مع جميع الفواتير بما فيها المدفوعة، والحجوزات والجلسات والتقييمات والبرامج العلاجية والمرفقات. لا يمكن التراجع عن ذلك.` : `Warning: patient ${deletePatientId}, all invoices including paid ones, bookings, sessions, evaluations, treatment programs and attachments will be permanently deleted. This cannot be undone.`)}
             </DialogDescription>
           </div>
-          <div className={`mt-6 flex gap-3 w-full ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
+          {deleteMode === "permanent" && (
+            <div className="space-y-2 text-right">
+              <Label htmlFor="permanent-patient-confirm">{isRtl ? `اكتب رقم الملف (${deletePatientId}) لتأكيد الحذف النهائي` : `Type patient file ID (${deletePatientId}) to confirm`}</Label>
+              <Input id="permanent-patient-confirm" value={permanentConfirmation} onChange={(e) => setPermanentConfirmation(e.target.value)} dir="ltr" className="text-left font-mono" placeholder={deletePatientId || ""} />
+            </div>
+          )}
+          <div className={`mt-4 flex gap-3 w-full ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
             <Button type="button" variant="outline" onClick={() => setDeletePatientId(null)} className="flex-1 rounded-xl font-bold">
               {isRtl ? "إلغاء" : "Cancel"}
             </Button>
-            <Button type="button" onClick={executeDeletePatient} className="flex-1 bg-rose-600 hover:bg-rose-700 text-white rounded-xl font-bold">
-              {isRtl ? "نعم، احذف الملف" : "Yes, Delete"}
+            <Button type="button" onClick={executeDeletePatient} disabled={deleteMode === "permanent" && permanentConfirmation.trim() !== deletePatientId}
+              className={`flex-1 text-white rounded-xl font-bold ${deleteMode === "permanent" ? "bg-rose-600 hover:bg-rose-700" : "bg-blue-600 hover:bg-blue-700"}`}>
+              {deleteMode === "archive" ? (isRtl ? "أرشفة المريض" : "Archive")
+                : deleteMode === "restore" ? (isRtl ? "استعادة المريض" : "Restore")
+                : (isRtl ? "حذف نهائي" : "Delete permanently")}
             </Button>
           </div>
         </DialogContent>
@@ -665,7 +699,7 @@ function PatientsContent() {
                 {filteredPatients.length > 0 ? (
                   filteredPatients.map((p) => {
                     const pkgText = isRtl ? p.activePackage : (p.activePackage === "باقة علاج الظهر" ? "Back Treatment Package" : p.activePackage === "تأهيل الركبة" ? "Knee Rehab" : "Individual Sessions");
-                    const statusText = isRtl ? p.status : (p.status === "نشط" ? "Active" : "Inactive");
+                    const statusText = p.is_archived ? (isRtl ? "مؤرشف" : "Archived") : (isRtl ? p.status : (p.status === "نشط" ? "Active" : "Inactive"));
                     return (
                       <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
                         {/* File Number / ID */}
@@ -709,7 +743,7 @@ function PatientsContent() {
                         {/* File Status */}
                         <td className="py-4 px-6">
                           <Badge className={`${
-                            p.status === "نشط" 
+                            p.is_archived ? "bg-amber-50 text-amber-700 border-amber-200" : p.status === "نشط" 
                               ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
                               : "bg-slate-100 text-slate-600 border-slate-200"
                           } font-normal border`}>
@@ -733,14 +767,26 @@ function PatientsContent() {
                         {/* Delete Button */}
                         <td className="py-4 px-6 text-center">
                           {hasPermission("delete_patient") ? (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeletePatientClick(p.id)}
-                              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/20 p-2 rounded-lg"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                            <div className="inline-flex items-center justify-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                title={showArchived ? (isRtl ? "استعادة" : "Restore") : (isRtl ? "أرشفة" : "Archive")}
+                                onClick={() => handleDeletePatientClick(p.id, showArchived ? "restore" : "archive")}
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-2 rounded-lg"
+                              >
+                                {showArchived ? <RotateCcw className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                title={isRtl ? "حذف نهائي شامل" : "Delete permanently"}
+                                onClick={() => handleDeletePatientClick(p.id, "permanent")}
+                                className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 p-2 rounded-lg"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
                           ) : (
                             <span className="text-slate-300 text-xs">--</span>
                           )}
