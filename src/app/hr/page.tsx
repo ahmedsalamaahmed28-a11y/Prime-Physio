@@ -149,7 +149,11 @@ export default function HRPage() {
             ) : (
               <div className="divide-y divide-slate-100">
                 {payrolls.map((item, i) => {
-                  const net = (item.base_salary || 0) + (item.bonuses || 0) + (item.commissions || 0) - (item.deductions || 0);
+                  const baseSalary = Number(item.base_salary ?? 0) || 0;
+                  const bonuses = Number(item.bonuses ?? 0) || 0;
+                  const commissions = Number(item.commissions ?? 0) || 0;
+                  const deductions = Number(item.deductions ?? 0) || 0;
+                  const net = baseSalary + bonuses + commissions - deductions;
                   return (
                   <div key={i} className="p-4 flex flex-col gap-3 hover:bg-slate-50 transition-colors">
                     <div className="flex justify-between items-center">
@@ -171,15 +175,15 @@ export default function HRPage() {
                     <div className="bg-slate-50 rounded-xl p-3 grid grid-cols-3 gap-2 text-center text-xs border border-slate-100">
                       <div>
                         <p className="text-slate-500 text-[10px]">{isRtl ? "الأساسي" : "Base"}</p>
-                        <p className="font-bold text-slate-700">{item.base_salary?.toLocaleString()}</p>
+                        <p className="font-bold text-slate-700">{baseSalary.toLocaleString()}</p>
                       </div>
                       <div className="border-x border-slate-200">
                         <p className="text-emerald-600 text-[10px]">{isRtl ? "مكافآت" : "Bonuses"}</p>
-                        <p className="font-bold text-emerald-700">+{(item.bonuses + item.commissions)?.toLocaleString()}</p>
+                        <p className="font-bold text-emerald-700">+{(bonuses + commissions).toLocaleString()}</p>
                       </div>
                       <div>
                         <p className="text-red-500 text-[10px]">{isRtl ? "خصومات" : "Deductions"}</p>
-                        <p className="font-bold text-red-600">-{item.deductions?.toLocaleString()}</p>
+                        <p className="font-bold text-red-600">-{deductions.toLocaleString()}</p>
                       </div>
                     </div>
                   </div>
