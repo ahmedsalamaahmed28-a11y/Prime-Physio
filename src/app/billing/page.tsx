@@ -83,6 +83,7 @@ const statusSelectClass = (status: string) => {
 export default function BillingPage() {
   const [invoices, setInvoices] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission, isAdmin } = usePermissions();
@@ -96,16 +97,18 @@ export default function BillingPage() {
   const [deleteInvoiceId, setDeleteInvoiceId] = useState<string | null>(null);
 
   const loadInvoices = async () => {
-    if (!clinicId) { setInvoices([]); return; }
+    if (!clinicId) { setInvoices([]); setIsLoading(false); setLoadError(""); return; }
     try {
       setIsLoading(true);
+      setLoadError("");
       const { data: invs, error: invErr } = await supabase
         .from("invoices")
         .select("*")
         .eq("clinic_id", clinicId)
         .order("date", { ascending: false });
 
-      if (!invErr && invs) {
+      if (invErr) throw invErr;
+      if (invs) {
         const mapped = invs.map(inv => ({
           id: inv.id,
           patientId: inv.patient_id,
@@ -120,8 +123,9 @@ export default function BillingPage() {
       } else {
         setInvoices([]);
       }
-    } catch (err) {
-      console.warn("Error loading data from DB", err);
+    } catch (err: any) {
+      console.warn("Error loading invoices from DB", err);
+      setLoadError(isRtl ? "تعذر تحميل الفواتير. تحقق من الاتصال والصلاحيات ثم أعد المحاولة." : "Invoices could not be loaded. Check the connection and permissions, then retry.");
       setInvoices([]);
     } finally {
       setIsLoading(false);
@@ -138,6 +142,7 @@ export default function BillingPage() {
         setPatients([]);
       }
     } catch (err) {
+      console.warn("Error loading invoice patient names", err);
       setPatients([]);
     }
   };
@@ -269,7 +274,7 @@ export default function BillingPage() {
 
   const pendingAmount = invoices
     .filter((inv) => inv.status === "انتظار")
-    .reduce((sum, inv) => sum + parseInt(String(inv.amount).replace(/[^0-9]/g, "") || "0"), 0);
+    .reduce((sum, inv) => sum + parseCurrencyAmount(inv.amount), 0);
 
   const dynamicStats = [
     {
@@ -357,7 +362,13 @@ export default function BillingPage() {
                 </tr>
               </thead>
               <tbody className={`divide-y divide-border/60 text-sm text-slate-700 ${isRtl ? "text-right" : "text-left"}`}>
-                {invoices.map((inv) => (
+                {loadError && (
+          <div role="alert" className="flex flex-col gap-3 border-b border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 sm:flex-row sm:items-center sm:justify-between">
+            <span>{loadError}</span>
+            <Button type="button" variant="outline" size="sm" onClick={() => { loadInvoices(); loadPatients(); }} className="border-rose-300 bg-white text-rose-800">{isRtl ? "إعادة المحاولة" : "Retry"}</Button>
+          </div>
+        )}
+        {invoices.map((inv) => (
                   <tr key={inv.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="py-4 px-6 font-mono font-semibold text-slate-900">{inv.id}</td>
                     <td className="py-4 px-6 font-medium text-slate-800">
@@ -465,18 +476,28 @@ export default function BillingPage() {
                 ? "أدخل قيمة الخصم كنسبة مئوية (مثل 10%) أو قيمة نقدية لتطبيقها على الفاتورة الحالية." 
                 : "Enter discount value as a percentage (e.g. 10%) or flat amount to apply it to the current invoice."}
             </DialogDescription>
-            <div className={`w-full mt-4 flex flex-wrap gap-2 justify-center`}>
-              {[10, 20, 30, 50, 100].map(pct => (
-                <Button 
-                  key={pct}
-                  type="button"
-                  variant={discountValue === `${pct}%` ? "default" : "outline"}
-                  onClick={() => setDiscountValue(`${pct}%`)}
-                  className={`flex-1 min-w-[30%] ${discountValue === `${pct}%` ? "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white" : ""}`}
-                >
-                  {pct === 100 ? (isRtl ? "مجاني 100%" : "Free 100%") : `${pct}%`}
-                </Button>
-              ))}
+            <div className="w-full space-y-3 mt-4">
+              <Input
+                value={discountValue}
+                onChange={(event) => setDiscountValue(event.target.value)}
+                placeholder={isRtl ? "مثال: 10% أو 100 خصم نقدي" : "Example: 10% or 100 as a fixed discount"}
+                inputMode="decimal"
+                className="text-center"
+                aria-label={isRtl ? "قيمة الخصم" : "Discount value"}
+              />
+              <div className="flex flex-wrap gap-2 justify-center">
+                {[10, 20, 30, 50, 100].map(pct => (
+                  <Button
+                    key={pct}
+                    type="button"
+                    variant={discountValue === `${pct}%` ? "default" : "outline"}
+                    onClick={() => setDiscountValue(`${pct}%`)}
+                    className={`flex-1 min-w-[30%] ${discountValue === `${pct}%` ? "bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white" : ""}`}
+                  >
+                    {pct === 100 ? (isRtl ? "مجاني 100%" : "Free 100%") : `${pct}%`}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
           <div className={`mt-6 flex gap-3 w-full ${isRtl ? "flex-row-reverse" : "flex-row"}`}>
@@ -491,12 +512,19 @@ export default function BillingPage() {
                   const item = selectedInvoiceForDiscount;
                   if (!item) return;
                   
-                  const originalNumeric = parseInt(item.amount.replace(/[^0-9]/g, "") || "0");
-                  const pct = parseInt(discountValue.replace(/[^0-9]/g, "") || "0");
-                  let newNumeric = originalNumeric - Math.round(originalNumeric * pct / 100);
-                  if (newNumeric < 0) newNumeric = 0;
-                  const currency = item.amount.replace(/[0-9,]/g, "").trim(); 
-                  const newAmount = `${newNumeric.toLocaleString()} ${currency}`;
+                  const originalNumeric = parseCurrencyAmount(item.amount);
+                  const discountNumeric = parseCurrencyAmount(discountValue);
+                  const isPercentage = discountValue.trim().endsWith("%");
+                  if (originalNumeric <= 0 || discountNumeric <= 0 || (isPercentage && discountNumeric > 100)) {
+                    alert(isRtl ? "أدخل خصمًا صحيحًا، والنسبة يجب ألا تتجاوز 100%." : "Enter a valid discount; percentage discounts cannot exceed 100%.");
+                    return;
+                  }
+                  const requestedDiscount = isPercentage
+                    ? Math.round(originalNumeric * discountNumeric / 100)
+                    : discountNumeric;
+                  const newNumeric = Math.max(0, originalNumeric - Math.min(originalNumeric, requestedDiscount));
+                  const currency = String(item.amount || "").replace(/[0-9٠-٩٬,٫.\-]/g, "").trim();
+                  const newAmount = \`\${newNumeric.toLocaleString()} \${currency}\`.trim();
 
                   try {
                     const { data: updatedInvoice, error } = await supabase.from("invoices")
