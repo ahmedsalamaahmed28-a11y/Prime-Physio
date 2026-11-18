@@ -228,3 +228,41 @@
   unicode-bidi:isolate;
   line-height:1.08em;
 }
+
+
+/* Floating AI customer support chat — landing page only */
+.pp-support-chat{position:fixed;z-index:120;right:24px;bottom:24px;font-family:inherit}
+.pp-support-launcher{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;width:62px;height:62px;border:0;border-radius:999px;background:var(--pp-brand,#0B4C96);color:#fff;box-shadow:0 10px 28px rgba(6,42,85,.28),0 3px 8px rgba(6,42,85,.16);cursor:pointer;transition:transform .18s,background .18s,box-shadow .18s}
+.pp-support-launcher:hover{transform:translateY(-3px);background:var(--pp-brand-700,#083B76);box-shadow:0 14px 32px rgba(6,42,85,.32)}
+.pp-support-launcher.is-open{width:54px;height:54px}
+.pp-support-launcher-label{position:absolute;right:72px;white-space:nowrap;border-radius:999px;padding:9px 13px;background:#fff;color:var(--pp-brand-900,#062A55);font-size:12px;font-weight:800;box-shadow:0 5px 18px rgba(6,42,85,.14);opacity:0;transform:translateX(5px);pointer-events:none;transition:opacity .18s,transform .18s}
+.pp-support-launcher:hover .pp-support-launcher-label{opacity:1;transform:translateX(0)}
+.pp-support-panel{position:absolute;right:0;bottom:76px;display:flex;flex-direction:column;width:min(370px,calc(100vw - 32px));height:min(540px,calc(100dvh - 120px));min-height:360px;overflow:hidden;border:1px solid #DCE5F0;border-radius:20px;background:#fff;box-shadow:0 24px 70px rgba(6,42,85,.24),0 5px 18px rgba(6,42,85,.12);animation:pp-chat-appear .18s ease-out}
+@keyframes pp-chat-appear{from{opacity:0;transform:translateY(9px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+.pp-support-head{display:flex;align-items:center;gap:11px;flex:none;padding:16px;background:linear-gradient(135deg,var(--pp-brand,#0B4C96),var(--pp-brand-900,#062A55));color:#fff}
+.pp-support-avatar{display:grid;place-items:center;width:42px;height:42px;flex:none;border:1px solid rgba(255,255,255,.2);border-radius:14px;background:rgba(255,255,255,.14)}
+.pp-support-heading{display:grid;gap:5px;min-width:0;flex:1}
+.pp-support-heading strong{font-size:14px;font-weight:900}
+.pp-support-heading small{display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.8);font-size:11px}
+.pp-support-heading small i{width:7px;height:7px;border-radius:50%;background:#86EFAC;box-shadow:0 0 0 3px rgba(134,239,172,.16)}
+.pp-support-close{display:grid;place-items:center;width:34px;height:34px;flex:none;border:0;border-radius:10px;background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+.pp-support-close:hover{background:rgba(255,255,255,.22)}
+.pp-support-messages{display:flex;flex:1;flex-direction:column;gap:12px;overflow-y:auto;padding:17px 14px;background:#F5F8FC;overscroll-behavior:contain}
+.pp-support-row{display:flex;width:100%}
+.pp-support-row.is-assistant{justify-content:flex-start}
+.pp-support-row.is-user{justify-content:flex-end}
+.pp-support-bubble{max-width:88%;margin:0;padding:11px 13px;border:1px solid #E1E8F0;border-radius:15px;background:#fff;color:#24364B;font-size:13px;line-height:1.85;white-space:pre-wrap;overflow-wrap:anywhere;box-shadow:0 2px 5px rgba(15,27,45,.035)}
+.pp-support-row.is-assistant .pp-support-bubble{border-top-right-radius:5px}
+.pp-support-row.is-user .pp-support-bubble{border-color:var(--pp-brand,#0B4C96);border-top-left-radius:5px;background:var(--pp-brand,#0B4C96);color:#fff}
+.pp-support-typing{display:flex;align-items:center;gap:8px;color:#64748B}
+.pp-support-typing svg{animation:pp-chat-spin 1s linear infinite}
+@keyframes pp-chat-spin{to{transform:rotate(360deg)}}
+.pp-support-form{display:flex;flex:none;gap:8px;padding:11px 12px;border-top:1px solid #E7EDF4;background:#fff}
+.pp-support-form input{width:100%;min-width:0;height:44px;padding:0 13px;border:1px solid #DCE5EF;border-radius:12px;background:#F8FAFC;color:#172B45;font:inherit;font-size:13px;outline:none}
+.pp-support-form input:focus{border-color:var(--pp-brand,#0B4C96);box-shadow:0 0 0 3px rgba(11,76,150,.1)}
+.pp-support-form input:disabled{opacity:.65}
+.pp-support-form button{display:grid;place-items:center;width:44px;height:44px;flex:none;border:0;border-radius:12px;background:var(--pp-brand,#0B4C96);color:#fff;cursor:pointer}
+.pp-support-form button:disabled{opacity:.45;cursor:not-allowed}
+.pp-support-disclaimer{flex:none;margin:0;padding:0 12px 10px;background:#fff;color:#8996A8;text-align:center;font-size:10px;line-height:1.6}
+@media(max-width:560px){.pp-support-chat{right:16px;bottom:16px}.pp-support-panel{right:0;bottom:68px;width:min(370px,calc(100vw - 32px));height:min(520px,calc(100dvh - 100px))}.pp-support-launcher{width:58px;height:58px}.pp-support-launcher-label{display:none}}
+@media(prefers-reduced-motion:reduce){.pp-support-panel{animation:none}.pp-support-launcher,.pp-support-launcher-label{transition:none}}
