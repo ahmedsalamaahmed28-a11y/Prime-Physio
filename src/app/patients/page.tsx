@@ -11,9 +11,7 @@ import {
   FileText,
   Activity,
   Phone,
-  Trash2,
-  Archive,
-  RotateCcw
+  Trash2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -378,7 +376,7 @@ function PatientsContent() {
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" variant="outline" onClick={() => setShowArchived((value) => !value)} className="gap-2">
-            {showArchived ? <RotateCcw className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
+            {showArchived ? <Activity className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
             {showArchived ? (isRtl ? "العودة للمرضى النشطين" : "Active patients") : (isRtl ? "المرضى المؤرشفون" : "Archived patients")}
           </Button>
           {!showArchived && <Button 
@@ -623,7 +621,7 @@ function PatientsContent() {
         <DialogContent className="sm:max-w-md text-center" showCloseButton={false}>
           <div className="flex flex-col items-center justify-center space-y-3 pt-4">
             <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-2 ${deleteMode === "permanent" ? "bg-rose-50 text-rose-600" : "bg-blue-50 text-blue-600"}`}>
-              {deleteMode === "permanent" ? <Trash2 className="w-8 h-8" /> : deleteMode === "restore" ? <RotateCcw className="w-8 h-8" /> : <Archive className="w-8 h-8" />}
+              {deleteMode === "permanent" ? <Trash2 className="w-8 h-8" /> : deleteMode === "restore" ? <Activity className="w-8 h-8" /> : <FileText className="w-8 h-8" />}
             </div>
             <DialogTitle className="text-xl font-bold text-slate-800">
               {deleteMode === "archive" ? (isRtl ? "أرشفة ملف المريض" : "Archive patient")
@@ -775,7 +773,7 @@ function PatientsContent() {
                                 onClick={() => handleDeletePatientClick(p.id, showArchived ? "restore" : "archive")}
                                 className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-2 rounded-lg"
                               >
-                                {showArchived ? <RotateCcw className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
+                                {showArchived ? <Activity className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
                               </Button>
                               <Button
                                 variant="ghost"
