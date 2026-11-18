@@ -506,3 +506,13 @@ tbody tr:hover{background:#f8faff}
  .login-page .login-site-brand small{max-width:145px}
 }
 @media(prefers-reduced-motion:reduce){.login-page *{transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* Login icon rendering: inline SVGs, no icon-font dependency */
+.login-page .login-icon{display:block;width:19px;height:19px;flex:0 0 19px;color:currentColor;overflow:visible}
+.login-page .input-wrap>.login-icon{color:#64748b}
+.login-page .eye-toggle{display:grid;place-items:center;min-width:34px;min-height:34px;padding:6px;border-radius:8px;background:transparent;color:#64748b;font-family:inherit;font-size:0;line-height:1}
+.login-page .eye-toggle:hover{background:#e5e9ff;color:#3525cd}
+.login-page .eye-toggle .login-icon{width:20px;height:20px}
+.login-page .security-fingerprint{display:inline-flex;align-items:center;justify-content:center;color:#4f46e5;font-family:inherit;font-size:initial;line-height:1}
+.login-page .security-fingerprint .login-icon{width:20px;height:20px}
+.login-page .recovery-destination>.login-icon{color:#4f46e5}
