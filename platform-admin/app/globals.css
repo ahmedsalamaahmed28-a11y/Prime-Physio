@@ -514,5 +514,5 @@ tbody tr:hover{background:#f8faff}
 .login-page .eye-toggle:hover{background:#e5e9ff;color:#3525cd}
 .login-page .eye-toggle .login-icon{width:20px;height:20px}
 .login-page .security-fingerprint{display:inline-flex;align-items:center;justify-content:center;color:#4f46e5;font-family:inherit;font-size:initial;line-height:1}
-.login-page .security-fingerprint .login-icon{width:20px;height:20px}
+.login-page .security-fingerprint .login-icon{width:23px;height:23px;flex:0 0 23px;overflow:visible;stroke-width:1.7}
 .login-page .recovery-destination>.login-icon{color:#4f46e5}
