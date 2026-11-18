@@ -52,6 +52,7 @@ export default function ProfileSettingsPage() {
   
   // Profile Tab States
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
   const [clinicName, setClinicName] = useState("");
   const [email, setEmail] = useState("");
   
@@ -98,6 +99,7 @@ export default function ProfileSettingsPage() {
   const [iban, setIban] = useState("");
   const [swiftCode, setSwiftCode] = useState("");
   const [bankSaved, setBankSaved] = useState(false);
+  const [bankSaving, setBankSaving] = useState(false);
 
   // Default Pricing States
   const [defaultExamPrice, setDefaultExamPrice] = useState("200");
@@ -145,6 +147,11 @@ export default function ProfileSettingsPage() {
         if (!active || !data) return;
 
         if (data.clinic_name) setClinicName(data.clinic_name);
+        if (data.logo_url) setLogoUrl(data.logo_url);
+        if (data.account_holder_name) setAccountHolderName(data.account_holder_name);
+        if (data.bank_name) setBankName(data.bank_name);
+        if (data.iban) setIban(data.iban);
+        if (data.swift_code) setSwiftCode(data.swift_code);
         if (data.email) setEmail(data.email);
         if (data.phone) setPhone(data.phone);
         if (data.address) setAddress(data.address);
@@ -272,36 +279,29 @@ export default function ProfileSettingsPage() {
 
   const handleBranchHoursSave = async (idx: number, e: React.FormEvent) => {
     e.preventDefault();
-    const updated = [...branches];
-    updated[idx].hoursSaved = true;
-    setBranches(updated);
-    
+    if (!clinicId || !branches[idx]) return;
+    const updated = branches.map((branch, index) => index === idx ? { ...branch, hoursSaved: true } : branch);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const { error } = await supabase.from("clinic_settings").upsert({
-          clinic_id: clinicId, user_id: user.id, branches: updated,
-          ...(idx === 0 ? { working_hours: JSON.stringify(updated[0].hours) } : {}),
-          updated_at: new Date().toISOString()
-        }, { onConflict: "clinic_id" });
-        if (error) throw error;
-      }
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!user) throw new Error("Authentication required");
+      const { error } = await supabase.from("clinic_settings").upsert({
+        clinic_id: clinicId, user_id: user.id, branches: updated,
+        ...(idx === 0 ? { working_hours: JSON.stringify(updated[0].hours) } : {}),
+        updated_at: new Date().toISOString()
+      }, { onConflict: "clinic_id" });
+      if (error) throw error;
+      setBranches(updated);
+      window.setTimeout(() => {
+        setBranches((current) => current.map((branch, index) => index === idx ? { ...branch, hoursSaved: false } : branch));
+      }, 3000);
     } catch (err) {
       console.error("Failed to save branch working hours", err);
       alert(isRtl ? "تعذر حفظ مواعيد العمل. حاول مرة أخرى." : "Could not save working hours. Please try again.");
-      return;
     }
-
-    setTimeout(() => {
-      const reset = [...branches];
-      if (reset[idx]) {
-        reset[idx].hoursSaved = false;
-        setBranches(reset);
-      }
-    }, 3000);
   };
 
-  const handleAddBranch = () => {
+  const handleAddBranch = async () => {
     const nextBranchNum = branches.length + 1;
     const numNames = ["", "الرئيسي", "الثاني", "الثالث", "الرابع", "الخامس"];
     const branchTitleName = numNames[nextBranchNum] || `الفرع رقم ${nextBranchNum}`;
@@ -324,28 +324,110 @@ export default function ProfileSettingsPage() {
         { day: "السبت", from: "09:00 AM", to: "05:00 PM", isOpen: false },
       ]
     };
-    setBranches([...branches, newBranch]);
+    if (!clinicId) {
+      alert(isRtl ? "تعذر تحديد المركز الحالي." : "Could not identify the current clinic.");
+      return;
+    }
+    const updated = [...branches, newBranch];
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!user) throw new Error("Authentication required");
+      const { error } = await supabase.from("clinic_settings").upsert({
+        clinic_id: clinicId, user_id: user.id, branches: updated, updated_at: new Date().toISOString()
+      }, { onConflict: "clinic_id" });
+      if (error) throw error;
+      setBranches(updated);
+    } catch (err) {
+      console.error("Failed to persist new branch", err);
+      alert(isRtl ? "تعذر حفظ الفرع الجديد. حاول مرة أخرى." : "Could not save the new branch. Please try again.");
+    }
   };
 
-  const handleBankSave = (e: React.FormEvent) => {
+  const handleBankSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setBankSaved(true);
-    setTimeout(() => setBankSaved(false), 3000);
+    if (!clinicId) {
+      alert(isRtl ? "تعذر تحديد المركز الحالي." : "Could not identify the current clinic.");
+      return;
+    }
+    setBankSaving(true);
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!user) throw new Error("Authentication required");
+      const { error } = await supabase.from("clinic_settings").upsert({
+        clinic_id: clinicId,
+        user_id: user.id,
+        account_holder_name: accountHolderName.trim(),
+        bank_name: bankName.trim(),
+        iban: iban.replace(/\s+/g, "").toUpperCase(),
+        swift_code: swiftCode.trim().toUpperCase() || null,
+        updated_at: new Date().toISOString()
+      }, { onConflict: "clinic_id" });
+      if (error) throw error;
+      setBankSaved(true);
+      window.setTimeout(() => setBankSaved(false), 3000);
+    } catch (err: any) {
+      console.error("Failed to save bank details", err);
+      alert((isRtl ? "تعذر حفظ البيانات البنكية: " : "Could not save bank details: ") + (err?.message || "Unknown error"));
+    } finally {
+      setBankSaving(false);
+    }
   };
 
-  const handleBankCancel = () => {
-    setAccountHolderName("");
-    setBankName("");
-    setIban("");
-    setSwiftCode("");
-    alert(isRtl ? "تم تفريغ البيانات البنكية" : "Bank data cleared");
+  const handleBankCancel = async () => {
+    if (!clinicId) return;
+    const { data, error } = await supabase.from("clinic_settings")
+      .select("account_holder_name, bank_name, iban, swift_code")
+      .eq("clinic_id", clinicId).maybeSingle();
+    if (error) {
+      alert(isRtl ? "تعذر استرجاع البيانات البنكية المحفوظة." : "Could not reload saved bank details.");
+      return;
+    }
+    setAccountHolderName(data?.account_holder_name || "");
+    setBankName(data?.bank_name || "");
+    setIban(data?.iban || "");
+    setSwiftCode(data?.swift_code || "");
   };
 
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setLogoUrl(url);
+    e.target.value = "";
+    if (!file) return;
+    if (!clinicId) {
+      alert(isRtl ? "تعذر تحديد المركز الحالي." : "Could not identify the current clinic.");
+      return;
+    }
+    const allowedTypes = ["image/png", "image/jpeg", "image/webp"];
+    if (!allowedTypes.includes(file.type) || file.size > 2 * 1024 * 1024) {
+      alert(isRtl ? "اختر صورة PNG أو JPG أو WebP بحجم لا يتجاوز 2 ميجابايت." : "Choose a PNG, JPG, or WebP image no larger than 2 MB.");
+      return;
+    }
+    setLogoUploading(true);
+    let uploadedPath: string | null = null;
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError) throw authError;
+      if (!user) throw new Error("Authentication required");
+      const extension = file.type === "image/jpeg" ? "jpg" : file.type.split("/")[1];
+      uploadedPath = clinicId + "/logo-" + Date.now() + "-" + crypto.randomUUID() + "." + extension;
+      const { error: uploadError } = await supabase.storage.from("branch-logos").upload(uploadedPath, file, {
+        cacheControl: "3600", upsert: false, contentType: file.type
+      });
+      if (uploadError) throw uploadError;
+      const { data: publicData } = supabase.storage.from("branch-logos").getPublicUrl(uploadedPath);
+      if (!publicData?.publicUrl) throw new Error("Could not create logo URL");
+      const { error: saveError } = await supabase.from("clinic_settings").upsert({
+        clinic_id: clinicId, user_id: user.id, logo_url: publicData.publicUrl, updated_at: new Date().toISOString()
+      }, { onConflict: "clinic_id" });
+      if (saveError) throw saveError;
+      setLogoUrl(publicData.publicUrl);
+    } catch (err: any) {
+      if (uploadedPath) await supabase.storage.from("branch-logos").remove([uploadedPath]).catch(() => undefined);
+      console.error("Failed to upload clinic logo", err);
+      alert((isRtl ? "تعذر رفع شعار المركز: " : "Could not upload clinic logo: ") + (err?.message || "Unknown error"));
+    } finally {
+      setLogoUploading(false);
     }
   };
 
@@ -387,6 +469,7 @@ export default function ProfileSettingsPage() {
         city: city,
         country: country,
         description: description,
+        logo_url: logoUrl,
         branches: branches,
         default_exam_price: defaultExamPrice,
         default_session_price: defaultSessionPrice,
@@ -495,7 +578,7 @@ export default function ProfileSettingsPage() {
                   type="file" 
                   ref={fileInputRef} 
                   onChange={handleLogoUpload} 
-                  accept="image/*" 
+                  accept="image/png,image/jpeg,image/webp" 
                   className="hidden" 
                 />
                 
@@ -762,6 +845,7 @@ export default function ProfileSettingsPage() {
                     <X className="w-4 h-4" />
                     {isRtl ? "إلغاء" : "Cancel"}
                   </Button>
+                  {bankSaving && <span className="text-xs text-slate-500">{isRtl ? "جارٍ الحفظ..." : "Saving..."}</span>}
                   {bankSaved && (
                     <span className={`text-xs text-emerald-600 font-bold flex items-center gap-1 ${isRtl ? "ml-auto" : "mr-auto"}`}>
                       <Check className="w-4 h-4" />
