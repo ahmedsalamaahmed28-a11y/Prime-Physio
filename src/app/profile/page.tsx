@@ -144,7 +144,6 @@ export default function ProfileSettingsPage() {
           .from("clinic_settings")
           .select("*")
           .eq("clinic_id", clinicId)
-          .eq("user_id", user.id)
           .maybeSingle();
 
         if (error) {
