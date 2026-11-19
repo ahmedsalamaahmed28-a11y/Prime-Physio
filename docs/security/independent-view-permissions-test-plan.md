@@ -36,6 +36,7 @@ Server routes using the service-role client must enforce these permissions and c
 |---|---|
 | Explicit list contains only `view_patients` | Patient list/detail readable; patient writes denied |
 | Explicit list contains only `edit_patient` | Patient GET denied; authorized PATCH succeeds through the server API and returns no patient data |
+| Explicit list contains only `edit_emr` | Clinical GET and patient-file download denied; authorized clinical POST may update a known in-clinic patient ID but returns no clinical record |
 | Explicit list contains only `view_appointments` | Calendar readable; patient directory not returned |
 | Explicit list contains only `edit_appointments` | Appointment PATCH is authorized by API; appointment GET remains denied. Booking POST also requires `create_invoice` because it creates an invoice |
 | Explicit list contains only `view_invoices` | Invoice list readable; status/amount/delete mutations denied |
@@ -50,6 +51,7 @@ Server routes using the service-role client must enforce these permissions and c
 | Staff member from Clinic A requests Clinic B patient/invoice/appointment IDs | 403/404; no data returned |
 | Direct Data API request bypassing the UI | RLS denies rows without the matching read permission |
 | Direct query of clinical tables, waitlist, peer reviews, or patient-file Storage without `view_patients` | Denied even if the user has clinical-history/edit permission |
+| Clinical read with `edit_emr` but without `view_patient_history` | Denied; edit permission must not imply history visibility |
 | Patient-linked chat conversation/messages without `view_patients` | Patient conversations hidden/denied; team conversations remain participant-scoped |
 | Backup or attachment export without `export_data` | 403; no backup rows or signed file URLs returned |
 | Direct API request using a service-role-backed route | Server-side permission and clinic checks deny unauthorized access |
