@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireRole } from "@/app/api/utils/auth";
-import { getAdminClient } from "@/lib/supabase-admin";
+import { getClinicContext } from "@/lib/server/clinic-context";
+import { hasStaffPermission } from "@/lib/server/staff-permissions";
 import bcrypt from "bcryptjs";
 import { validateNewPassword } from "@/lib/passwordSecurity";
 
@@ -16,14 +16,13 @@ export async function POST(req: NextRequest) {
     const email = rawEmail.toLowerCase().trim();
 
     // Only an authenticated administrator may invite staff into their own clinic.
-    let session;
-    try {
-      session = await requireRole(req, ["admin"]);
-    } catch {
-      return NextResponse.json({ error: "غير مصرح" }, { status: 403 });
+    const auth = await getClinicContext(req);
+    if ("response" in auth) return auth.response;
+    if (!hasStaffPermission(auth.staff, "manage_staff")) {
+      return NextResponse.json({ error: "ليس لديك صلاحية إدارة فريق العمل" }, { status: 403 });
     }
 
-    if (!session.clinicId || session.clinicId !== clinicId) {
+    if (!auth.clinicId || auth.clinicId !== clinicId) {
       return NextResponse.json({ error: "لا يمكنك إضافة موظفين إلى عيادة أخرى" }, { status: 403 });
     }
 
@@ -46,7 +45,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "دور غير صالح. الأدوار المسموحة: استشاري، أخصائي، ممارس، موظف استقبال" }, { status: 400 });
     }
 
-    const admin = getAdminClient();
+    const admin = auth.admin;
 
     // Check both identity and staff tables to avoid duplicate/cross-clinic identities.
     const [{ data: existing }, { data: existingStaff }] = await Promise.all([
