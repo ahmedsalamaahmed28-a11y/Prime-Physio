@@ -146,7 +146,7 @@ begin
       return false;
     end if;
 
-    return v_permission_json ? permission_key;
+    return (v_permission_json ? permission_key) or (v_permission_json ? '*');
   end if;
 
   -- Role defaults apply only when there is no explicit override.
