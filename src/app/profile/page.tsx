@@ -55,23 +55,7 @@ export default function ProfileSettingsPage() {
   const [isClinicAdmin, setIsClinicAdmin] = useState(false);
 
   useEffect(() => {
-    let active = true;
-    if (!clinicId) {
-      setIsClinicAdmin(false);
-      return;
-    }
-    const resolveClinicAdmin = async () => {
-      const { data, error } = await supabase.rpc("is_clinic_admin");
-      if (!active) return;
-      if (error) {
-        console.warn("Could not resolve clinic administrator access", error);
-        setIsClinicAdmin(canManageSettings);
-        return;
-      }
-      setIsClinicAdmin(Boolean(data) && canManageSettings);
-    };
-    resolveClinicAdmin();
-    return () => { active = false; };
+    setIsClinicAdmin(Boolean(clinicId && canManageSettings));
   }, [clinicId, canManageSettings]);
   
   // Profile Tab States
