@@ -126,7 +126,7 @@ export default function HomePage() {
   const canViewPatients = hasPermission("view_patients");
   const canViewAppointments = hasPermission("view_appointments");
   const canViewInvoices = hasPermission("view_invoices");
-  const canViewClinicalHistory = hasPermission("view_patient_history") || hasPermission("edit_emr");
+  const canViewClinicalHistory = canViewPatients && (hasPermission("view_patient_history") || hasPermission("edit_emr"));
   const setDashboardPageLoading = useContext(DashboardPageLoadingContext);
   const clinicId = user?.clinicId;
   const [data, setData] = useState<DashboardData>(EMPTY_DATA);
