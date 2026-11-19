@@ -220,18 +220,6 @@ using (
   and public.has_staff_permission('view_invoices')
 );
 
--- Recovery logs are clinical records.
-drop policy if exists "Allow clinic staff to view their recovery_logs" on public.recovery_logs;
-create policy "Allow clinic staff to view their recovery_logs"
-on public.recovery_logs
-for select
-to authenticated
-using (
-  auth.uid() is not null
-  and clinic_id = public.get_my_clinic_id()
-  and public.has_staff_permission('view_patient_history')
-);
-
 -- Analytics reports contain revenue and clinic performance information.
 drop policy if exists "Allow clinic staff to view their daily_reports" on public.daily_reports;
 create policy "Allow clinic staff to view their daily_reports"
@@ -521,7 +509,7 @@ using (
 
 -- Intentionally unchanged:
 -- * auth_session_expiry_guard restrictive policies
--- * patient_medical_records clinical-history policies
+-- * patient clinical write policies remain mapped to edit_emr/delete_emr; SELECT policies above require view_patients
 -- * subscriptions_self_read and service-role subscription policy
 -- * clinic_bank_details admin-only policies
 -- * payroll_drafts manage_staff policies
