@@ -6,17 +6,6 @@ import { supabase } from "./supabase";
 
 type ParsedPermissionList = { defined: false } | { defined: true; permissions: string[] };
 
-const ADMIN_DEFAULT_PERMISSIONS = [
-  "view_patients", "edit_patient", "delete_patient",
-  "view_appointments", "edit_appointments",
-  "view_invoices", "create_invoice", "delete_invoice",
-  "refund_invoice", "apply_discount", "print_invoice",
-  "view_patient_history", "edit_emr", "delete_emr",
-  "send_messages", "manage_staff", "view_analytics",
-  "export_data", "manage_settings", "manage_inventory",
-  "manage_reports",
-];
-
 function parsePermissionList(value: unknown): ParsedPermissionList {
   if (value === null || value === undefined || (typeof value === "string" && !value.trim())) {
     return { defined: false };
@@ -40,7 +29,7 @@ function parsePermissionList(value: unknown): ParsedPermissionList {
 }
 
 function defaultPermissions(roleKey: string | undefined): string[] {
-  if (roleKey === "admin") return ADMIN_DEFAULT_PERMISSIONS;
+  if (roleKey === "admin") return ["*"];
   if (roleKey === "doctor") {
     return ["view_patients", "view_appointments", "edit_emr", "edit_patient", "view_patient_history"];
   }
@@ -111,7 +100,8 @@ export function usePermissions() {
     // Owners without a staff row are recognized by the database permission function.
     if (action === "manage_staff" && serverManageStaff) return true;
 
-    return defaultPermissions(user?.roleKey).includes(action);
+    const defaults = defaultPermissions(user?.roleKey);
+    return defaults.includes(action) || defaults.includes("*");
   };
 
   return {
