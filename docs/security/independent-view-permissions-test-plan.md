@@ -25,6 +25,7 @@ Status: review branch only. No production migration, deployment, or data mutatio
 | Appointment calendar | `view_appointments` | `edit_appointments`; clinical fields also require `edit_emr` |
 | Invoice list | `view_invoices` | `create_invoice`, `apply_discount`, `refund_invoice`, `delete_invoice` |
 | Analytics aggregates/reports | `view_analytics` | `manage_reports` |
+| Staff list and permission administration | Clinic-scoped staff listing; permission editor gated by `manage_staff` | `manage_staff` (also enforced by the staff RLS write policy) |
 | Clinical records, evaluations, plans, attachments, and patient-file storage | `view_patients` plus `view_patient_history` (or `edit_emr`, which must read the existing record to edit it) | `edit_emr`, `delete_emr` |
 | Full clinic backup and attachment export | `export_data` | `export_data` (explicitly grants whole-clinic export scope) |
 
@@ -44,7 +45,8 @@ Server routes using the service-role client must enforce these permissions and c
 | Explicit list contains only `apply_discount` | Invoice PATCH can apply discount through API; invoice list remains denied and response contains no invoice data |
 | Explicit list contains only `create_invoice` | Invoice creation allowed where supported; invoice list remains denied |
 | Explicit list contains only `view_analytics` | Analytics aggregates/reports readable; patient and invoice detail endpoints remain denied |
-| Admin role + explicit empty array | All staff permissions denied |
+| Admin role + explicit empty array | All staff permissions denied, including staff-management writes |
+| Admin role + explicit list without `manage_staff` | Cannot open the permission editor or write staff rows |
 | Admin role + explicit restricted array | Only listed permissions allowed |
 | Doctor/receptionist with null permissions | Only documented role defaults apply |
 | Malformed permission JSON | All permissions denied; no fallback to role defaults |
