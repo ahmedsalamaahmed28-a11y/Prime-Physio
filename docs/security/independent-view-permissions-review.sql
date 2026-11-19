@@ -45,7 +45,8 @@ where (
       'patient_programs', 'patient_risks', 'progress_tracking',
       'rom_assessments', 'sessions', 'soap_notes', 'special_tests',
       'treatment_plans', 'subscriptions', 'payroll_drafts',
-      'clinic_bank_details'
+      'clinic_bank_details', 'peer_reviews', 'waitlist',
+      'chat_conversations', 'chat_messages'
     )
   )
   or (
@@ -528,6 +529,124 @@ using (
   and clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
   and public.has_staff_permission('view_patient_history')
+);
+
+-- Patient-linked quality reviews and waitlist records.
+drop policy if exists "Users can view peer_reviews for their clinic" on public.peer_reviews;
+create policy "Users can view peer_reviews for their clinic"
+on public.peer_reviews
+for select
+to authenticated
+using (
+  auth.uid() is not null
+  and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_patients')
+  and public.has_staff_permission('view_patient_history')
+);
+
+drop policy if exists "Users can insert peer_reviews for their clinic" on public.peer_reviews;
+create policy "Users can insert peer_reviews for their clinic"
+on public.peer_reviews
+for insert
+to authenticated
+with check (
+  auth.uid() is not null
+  and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('edit_emr')
+);
+
+drop policy if exists "Users can update peer_reviews for their clinic" on public.peer_reviews;
+create policy "Users can update peer_reviews for their clinic"
+on public.peer_reviews
+for update
+to authenticated
+using (
+  auth.uid() is not null
+  and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('edit_emr')
+)
+with check (
+  auth.uid() is not null
+  and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('edit_emr')
+);
+
+drop policy if exists "Allow clinic staff to view their waitlist" on public.waitlist;
+create policy "Allow clinic staff to view their waitlist"
+on public.waitlist
+for select
+to authenticated
+using (
+  auth.uid() is not null
+  and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_patients')
+);
+
+drop policy if exists "Allow clinic staff to insert waitlist" on public.waitlist;
+create policy "Allow clinic staff to insert waitlist"
+on public.waitlist
+for insert
+to authenticated
+with check (
+  auth.uid() is not null
+  and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('edit_patient')
+);
+
+drop policy if exists "Allow clinic staff to update waitlist" on public.waitlist;
+create policy "Allow clinic staff to update waitlist"
+on public.waitlist
+for update
+to authenticated
+using (
+  auth.uid() is not null
+  and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('edit_patient')
+)
+with check (
+  auth.uid() is not null
+  and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('edit_patient')
+);
+
+-- Patient-linked chat conversations are hidden unless the caller can view patients.
+drop policy if exists chat_conversations_participant_read on public.chat_conversations;
+create policy chat_conversations_participant_read
+on public.chat_conversations
+for select
+to authenticated
+using (
+  clinic_id = public.get_my_clinic_id()
+  and (kind <> 'patient' or public.has_staff_permission('view_patients'))
+  and exists (
+    select 1
+    from public.chat_participants p
+    where p.conversation_id = chat_conversations.id
+      and p.clinic_id = chat_conversations.clinic_id
+      and p.email = pg_catalog.lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
+);
+
+drop policy if exists chat_messages_participant_read on public.chat_messages;
+create policy chat_messages_participant_read
+on public.chat_messages
+for select
+to authenticated
+using (
+  clinic_id = public.get_my_clinic_id()
+  and exists (
+    select 1
+    from public.chat_participants p
+    where p.conversation_id = chat_messages.conversation_id
+      and p.clinic_id = chat_messages.clinic_id
+      and p.email = pg_catalog.lower(coalesce(auth.jwt() ->> 'email', ''))
+  )
+  and exists (
+    select 1
+    from public.chat_conversations c
+    where c.id = chat_messages.conversation_id
+      and c.clinic_id = chat_messages.clinic_id
+  )
 );
 
 -- Intentionally unchanged:
