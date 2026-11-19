@@ -126,6 +126,7 @@ export default function HomePage() {
   const canViewPatients = hasPermission("view_patients");
   const canViewAppointments = hasPermission("view_appointments");
   const canViewInvoices = hasPermission("view_invoices");
+  const canViewFinancialDashboard = canViewInvoices && hasPermission("view_analytics");
   const canViewClinicalHistory = canViewPatients && (hasPermission("view_patient_history") || hasPermission("edit_emr"));
   const setDashboardPageLoading = useContext(DashboardPageLoadingContext);
   const clinicId = user?.clinicId;
@@ -509,7 +510,7 @@ export default function HomePage() {
               <div className="pp-stitch-kpi-top"><div><span>{isRtl ? "تحسن الألم وفق التقييمات" : "Pain improvement from assessments"}</span><strong>{painImprovement === null ? "—" : painImprovement + "%"}</strong><small>{isRtl ? "مقارنة درجات VAS المتتابعة" : "Compared sequential VAS scores"}</small></div><i className="kpi-violet"><Activity size={25} /></i></div>
               <div className="pp-stitch-kpi-foot"><span>{comparisons.length} {isRtl ? "مريض بتقييمين أو أكثر" : "patients with 2+ assessments"}</span><small>{isRtl ? "لا تُحسب دون تقييمات مقارنة" : "No estimate without comparisons"}</small></div>
             </article>
-            {canViewInvoices && <article className="pp-stitch-kpi">
+            {canViewFinancialDashboard && <article className="pp-stitch-kpi">
               <div className="pp-stitch-kpi-top"><div><span>{isRtl ? "الإيراد المتوقع اليوم" : "Expected revenue today"}</span><strong>{expectedIncome.toLocaleString(locale)}</strong><small>{isRtl ? "ج.م" : "EGP"}</small></div><i className="kpi-blue"><CreditCard size={25} /></i></div>
               <div className="pp-stitch-kpi-foot"><span>{isRtl ? "تم تحصيل: " : "Collected: "}<b>{collectedIncome.toLocaleString(locale)} {isRtl ? "ج.م" : "EGP"}</b></span><small>{expectedIncome > 0 ? Math.round((collectedIncome / expectedIncome) * 100) + "%" : "—"}</small></div>
             </article>}
