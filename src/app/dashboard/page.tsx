@@ -201,7 +201,7 @@ export default function HomePage() {
         patients: patientsResult.data || [],
         invoices: invoicesResult.data || [],
         staff: staffResult.data || [],
-        evaluations: evaluationsResult.data || [],
+        evaluations: (evaluationsResult.data || []).filter((evaluation: Row) => !activeBranchId || branchPatientIds.has(String(evaluation.patient_id))),
         notifications: notificationsResult.error ? [] : (notificationsResult.data || []),
         branches: branchesResult.error ? [] : (branchesResult.data || []),
       };
@@ -546,7 +546,7 @@ export default function HomePage() {
                           <td><b>{item.appointment_type || (isRtl ? "جلسة علاج" : "Therapy session")}</b><small className="pp-stitch-subline">{item.session_intervention || item.session_objectives || "—"}</small></td>
                           <td><b>{formatTime(start, locale)} – {formatTime(end, locale)}</b><small className="pp-stitch-subline">{item.room_id ? (isRtl ? "غرفة " : "Room ") + shortId(item.room_id) : (isRtl ? "لم تحدد غرفة" : "No room assigned")}</small></td>
                           <td><span className={"pp-stitch-status status-" + kind}><i />{stateLabel}</span></td>
-                          <td><div className="pp-stitch-row-actions"><Link href={patientId ? "/patients/" + patientId : "/calendar"} title={isRtl ? "تفاصيل الملف الطبي" : "Patient record"}><ChevronLeft size={17} /></Link><Link href="/calendar" title={isRtl ? "جدول المواعيد" : "Appointment schedule"}><Calendar size={16} /></Link></div></td>
+                          <td><div className="pp-stitch-row-actions">{canViewPatients && patientId && <Link href={"/patients/" + patientId} title={isRtl ? "تفاصيل الملف الطبي" : "Patient record"}><ChevronLeft size={17} /></Link>}{canViewAppointments && <Link href="/calendar" title={isRtl ? "جدول المواعيد" : "Appointment schedule"}><Calendar size={16} /></Link>}</div></td>
                         </tr>;
                       }) : <tr><td colSpan={6} className="pp-stitch-empty">{isRtl ? "لا توجد مواعيد في هذه الفئة اليوم" : "No appointments in this category today"}</td></tr>}
                     </tbody>
