@@ -18,21 +18,36 @@ export async function GET(req: NextRequest) {
   }
   try {
     const canViewPatients = hasStaffPermission(auth.staff, "view_patients");
+    const canReadClinicalDetails = canViewPatientHistory(auth.staff);
+    const canViewInvoices = hasStaffPermission(auth.staff, "view_invoices");
+    const appointmentColumns = [
+      "id", "clinic_id", "branch_id", "patient_id", "patient_name",
+      "doctor_name", "therapist", "therapist_id", "appointment_type",
+      "status", "date", "time", "start_time", "end_time", "duration",
+      "room_id", "starts_at", "ends_at", "recurrence_id",
+      "recurrence_index", "recurrence_total", "is_group_session",
+      ...(canViewInvoices ? ["price"] : []),
+      ...(canReadClinicalDetails
+        ? ["treatment_plan_id", "session_intervention", "session_objectives", "target_exercises",
+            "treatment_plan:treatment_plans!appointments_treatment_plan_patient_clinic_fkey(id,goals)"]
+        : []),
+    ].join(",");
     const [patients, appointments, doctors, rooms, participants] = await Promise.all([
       canViewPatients
         ? auth.admin.from("patients").select("id,nameAr,nameEn").eq("clinic_id", auth.clinicId).order("id", { ascending: true })
         : Promise.resolve({ data: [], error: null }),
-      auth.admin.from("appointments").select("*, treatment_plan:treatment_plans!appointments_treatment_plan_patient_clinic_fkey(id,goals)").eq("clinic_id", auth.clinicId),
+      auth.admin.from("appointments").select(appointmentColumns).eq("clinic_id", auth.clinicId),
       auth.admin.from("staff").select("name,email,role").eq("clinic_id", auth.clinicId),
       auth.admin.from("appointment_rooms").select("id,name,branch_id").eq("clinic_id", auth.clinicId).eq("is_active", true).order("name"),
-      auth.admin.from("appointment_group_participants").select("appointment_id,patient_id").eq("clinic_id", auth.clinicId),
+      canViewPatients
+        ? auth.admin.from("appointment_group_participants").select("appointment_id,patient_id").eq("clinic_id", auth.clinicId)
+        : Promise.resolve({ data: [], error: null }),
     ]);
     if (patients.error) throw patients.error;
     if (appointments.error) throw appointments.error;
     if (doctors.error) throw doctors.error;
     if (rooms.error) throw rooms.error;
     if (participants.error) throw participants.error;
-    const canReadClinicalDetails = canViewPatientHistory(auth.staff);
     const safeAppointments = (appointments.data || []).map((appointment: Record<string, unknown>) => {
       if (canReadClinicalDetails) return appointment;
       const safe = { ...appointment };
@@ -52,7 +67,7 @@ export async function GET(req: NextRequest) {
       appointments: safeAppointments,
       doctors: safeDoctors,
       rooms: rooms.data || [],
-      groupParticipants: participants.data || [],
+      groupParticipants: canViewPatients ? (participants.data || []) : [],
     }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error: any) {
     console.error("[Calendar API] Load failed:", error);
