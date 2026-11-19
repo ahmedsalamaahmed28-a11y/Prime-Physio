@@ -26,6 +26,7 @@ Status: review branch only. No production migration, deployment, or data mutatio
 | Invoice list | `view_invoices` | `create_invoice`, `apply_discount`, `refund_invoice`, `delete_invoice` |
 | Analytics aggregates/reports | `view_analytics` | `manage_reports` |
 | Staff list and permission administration | Clinic-scoped staff listing; permission editor gated by `manage_staff` | `manage_staff` (also enforced by the staff RLS write policy) |
+| Clinic settings, bank details, and branch logos | Clinic settings remain tenant-readable; sensitive bank details are restricted to settings managers | `manage_settings` (explicitly checked by clinic settings, bank-detail, and branch-logo RLS) |
 | Clinical records, evaluations, plans, attachments, and patient-file storage | `view_patients` plus `view_patient_history` (or `edit_emr`, which must read the existing record to edit it) | `edit_emr`, `delete_emr` |
 | Full clinic backup and attachment export | `export_data` | `export_data` (explicitly grants whole-clinic export scope) |
 
@@ -47,6 +48,7 @@ Server routes using the service-role client must enforce these permissions and c
 | Explicit list contains only `view_analytics` | Analytics aggregates/reports readable; patient and invoice detail endpoints remain denied |
 | Admin role + explicit empty array | All staff permissions denied, including staff-management writes |
 | Admin role + explicit list without `manage_staff` | Cannot open the permission editor or write staff rows |
+| Admin role + explicit list without `manage_settings` | Cannot save clinic settings, view/manage bank details, or upload/delete branch logos |
 | Admin role + explicit restricted array | Only listed permissions allowed |
 | Doctor/receptionist with null permissions | Only documented role defaults apply |
 | Malformed permission JSON | All permissions denied; no fallback to role defaults |
@@ -79,7 +81,7 @@ After migration in a non-production test database:
 2. Verify cross-clinic isolation with two test clinics and test users.
 3. Verify UPDATE paths through the server APIs, because PostgreSQL UPDATE via the Data API also requires a matching SELECT policy.
 4. Run Supabase security advisors and inspect the resulting RLS policy inventory.
-5. Verify that subscriptions, clinic bank details, payroll permissions, platform-admin policies, and auth-session expiry guards remain unchanged.
+5. Verify that clinic settings, bank details, staff writes, and branch-logo storage now require their explicit management permissions; subscriptions, payroll permissions, platform-admin exceptions, and auth-session expiry guards remain unchanged.
 
 ## Trusted automation exception
 
