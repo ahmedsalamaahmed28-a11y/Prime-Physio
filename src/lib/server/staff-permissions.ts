@@ -26,18 +26,7 @@ const RECEPTION_ROLES = new Set([
   "موظفة استقبال رئيسية",
 ]);
 
-const ADMIN_DEFAULT_PERMISSIONS = [
-  "view_patients", "edit_patient", "delete_patient",
-  "view_appointments", "edit_appointments",
-  "view_invoices", "create_invoice", "delete_invoice",
-  "refund_invoice", "apply_discount", "print_invoice",
-  "view_patient_history", "edit_emr", "delete_emr",
-  "send_messages", "manage_staff", "view_analytics",
-  "export_data", "manage_settings", "manage_inventory",
-  "manage_reports",
-] as const;
-
-type PermissionOverride = { defined: false } | { defined: true; permissions: string[] };
+ype PermissionOverride = { defined: false } | { defined: true; permissions: string[] };
 
 function parsePermissionOverride(value: unknown): PermissionOverride {
   if (value === null || value === undefined || (typeof value === "string" && !value.trim())) {
@@ -66,7 +55,7 @@ function parsePermissionOverride(value: unknown): PermissionOverride {
 }
 
 function defaultPermissionsForRole(role: string): readonly string[] {
-  if (ADMIN_ROLES.has(role)) return ADMIN_DEFAULT_PERMISSIONS;
+  if (ADMIN_ROLES.has(role)) return ["*"];
   if (DOCTOR_ROLES.has(role)) {
     return ["view_patients", "view_appointments", "edit_emr", "edit_patient", "view_patient_history"];
   }
@@ -90,7 +79,7 @@ export function hasStaffPermission(
     ? override.permissions
     : defaultPermissionsForRole(role);
 
-  return permissions.includes(permission);
+  return permissions.includes(permission) || permissions.includes("*");
 }
 
 export function canViewPatientHistory(staff: StaffPermissionRecord | null | undefined) {
