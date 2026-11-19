@@ -418,6 +418,7 @@ to authenticated
 with check (
   auth.uid() is not null
   and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_invoices')
   and public.has_staff_permission('create_invoice')
 );
 
@@ -429,11 +430,13 @@ to authenticated
 using (
   auth.uid() is not null
   and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_invoices')
   and public.has_staff_permission('create_invoice')
 )
 with check (
   auth.uid() is not null
   and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_invoices')
   and public.has_staff_permission('create_invoice')
 );
 
@@ -445,6 +448,7 @@ to authenticated
 with check (
   auth.uid() is not null
   and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_patients')
   and public.has_staff_permission('edit_emr')
 );
 
@@ -715,6 +719,82 @@ using (clinic_id = public.get_my_clinic_id()
   and (public.has_staff_permission('view_patient_history')
        or public.has_staff_permission('edit_emr')));
 
+-- Patient-linked clinical write policies require patient visibility as well as the relevant write permission.
+-- This keeps direct Data API writes aligned with the protected server routes.
+do $write_policies$
+declare
+  v record;
+  v_insert_policy text;
+  v_update_policy text;
+  v_delete_policy text;
+begin
+  for v in
+    select * from (values
+      ('assessments', 'assessments_clinical'),
+      ('balance_tests', 'balance_tests_clinical'),
+      ('gait_tests', 'gait_tests_clinical'),
+      ('mmt_assessments', 'mmt_assessments_clinical'),
+      ('patient_attachments', 'patient_attachments_clinic'),
+      ('patient_evaluations', 'patient_evaluations_clinical'),
+      ('patient_medical_records', 'patient_medical_records'),
+      ('patient_nutrition', 'patient_nutrition_clinical'),
+      ('patient_programs', 'patient_programs_clinical'),
+      ('patient_risks', 'patient_risks_clinical'),
+      ('progress_tracking', 'progress_tracking_clinical'),
+      ('rom_assessments', 'rom_assessments_clinical'),
+      ('sessions', 'sessions_clinic'),
+      ('soap_notes', 'soap_notes_clinical'),
+      ('special_tests', 'special_tests_clinical'),
+      ('treatment_plans', 'treatment_plans_clinical')
+    ) as policy_map(table_name, policy_prefix)
+  loop
+    v_insert_policy := v.policy_prefix || '_insert';
+    v_update_policy := v.policy_prefix || '_update';
+    v_delete_policy := v.policy_prefix || '_delete';
+
+    execute pg_catalog.format('drop policy if exists %I on public.%I', v_insert_policy, v.table_name);
+    execute pg_catalog.format(
+      'create policy %I on public.%I for insert to authenticated with check (
+        auth.uid() is not null
+        and clinic_id = public.get_my_clinic_id()
+        and public.has_staff_permission(''view_patients'')
+        and public.has_staff_permission(''edit_emr'')
+      )',
+      v_insert_policy, v.table_name
+    );
+
+    execute pg_catalog.format('drop policy if exists %I on public.%I', v_update_policy, v.table_name);
+    execute pg_catalog.format(
+      'create policy %I on public.%I for update to authenticated
+        using (
+          auth.uid() is not null
+          and clinic_id = public.get_my_clinic_id()
+          and public.has_staff_permission(''view_patients'')
+          and public.has_staff_permission(''edit_emr'')
+        )
+        with check (
+          auth.uid() is not null
+          and clinic_id = public.get_my_clinic_id()
+          and public.has_staff_permission(''view_patients'')
+          and public.has_staff_permission(''edit_emr'')
+        )',
+      v_update_policy, v.table_name
+    );
+
+    execute pg_catalog.format('drop policy if exists %I on public.%I', v_delete_policy, v.table_name);
+    execute pg_catalog.format(
+      'create policy %I on public.%I for delete to authenticated using (
+        auth.uid() is not null
+        and clinic_id = public.get_my_clinic_id()
+        and public.has_staff_permission(''view_patients'')
+        and public.has_staff_permission(''delete_emr'')
+      )',
+      v_delete_policy, v.table_name
+    );
+  end loop;
+end;
+$write_policies$;
+
 -- Recovery logs are patient-linked clinical/financial records and require both scopes.
 drop policy if exists "Allow clinic staff to view their recovery_logs" on public.recovery_logs;
 create policy "Allow clinic staff to view their recovery_logs"
@@ -860,6 +940,48 @@ using (
         or public.has_staff_permission('view_patients')
       )
   )
+);
+
+-- Appointment writes require the corresponding read/association scopes in direct Data API access.
+drop policy if exists appointments_clinic_insert on public.appointments;
+create policy appointments_clinic_insert
+on public.appointments
+for insert
+to authenticated
+with check (
+  clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_patients')
+  and public.has_staff_permission('edit_appointments')
+  and public.has_staff_permission('create_invoice')
+);
+
+drop policy if exists appointments_clinic_update on public.appointments;
+create policy appointments_clinic_update
+on public.appointments
+for update
+to authenticated
+using (
+  clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_appointments')
+  and public.has_staff_permission('view_patients')
+  and public.has_staff_permission('edit_appointments')
+)
+with check (
+  clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_appointments')
+  and public.has_staff_permission('view_patients')
+  and public.has_staff_permission('edit_appointments')
+);
+
+drop policy if exists appointments_clinic_delete on public.appointments;
+create policy appointments_clinic_delete
+on public.appointments
+for delete
+to authenticated
+using (
+  clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_appointments')
+  and public.has_staff_permission('edit_appointments')
 );
 
 -- Intentionally unchanged:
