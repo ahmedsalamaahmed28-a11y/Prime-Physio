@@ -8,8 +8,8 @@ export const revalidate = 0;
 export async function GET(request: NextRequest) {
   const auth = await getClinicContext(request);
   if ("response" in auth) return auth.response;
-  if (!hasStaffPermission(auth.staff, "edit_emr")) {
-    return NextResponse.json({ error: "هذه الصفحة متاحة للأخصائي أو مدير المركز فقط." }, { status: 403 });
+  if (!hasStaffPermission(auth.staff, "view_patients") || !hasStaffPermission(auth.staff, "edit_emr")) {
+    return NextResponse.json({ error: "تتطلب مشاهدة طلبات المجموعات صلاحية مشاهدة المرضى والصلاحيات السريرية." }, { status: 403 });
   }
   try {
     const { data: requests, error } = await auth.admin.from("group_booking_requests")
