@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
   }
   try {
     const canViewPatients = hasStaffPermission(auth.staff, "view_patients");
-    const canReadClinicalDetails = canViewPatientHistory(auth.staff);
+    const canReadClinicalDetails = canViewPatients && canViewPatientHistory(auth.staff);
     const canViewInvoices = hasStaffPermission(auth.staff, "view_invoices");
     const appointmentColumns = [
       "id", "clinic_id", "branch_id", "patient_id", "patient_name",
