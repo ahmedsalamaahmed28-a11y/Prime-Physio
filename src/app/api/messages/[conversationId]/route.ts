@@ -67,6 +67,9 @@ export async function POST(req: NextRequest, context: RouteContext) {
   if ("response" in clinic) return clinic.response;
   try {
     const auth = await requireRole(req, ["admin", "doctor", "receptionist"]);
+    if (!hasStaffPermission(clinic.staff, "send_messages")) {
+      return fail("ليس لديك صلاحية إرسال الرسائل", 403);
+    }
     const { conversationId } = await context.params;
     const { data: conversation, error: conversationError } = await clinic.admin.from("chat_conversations")
       .select("id,kind,patient_id").eq("clinic_id", clinic.clinicId).eq("id", conversationId).maybeSingle();
