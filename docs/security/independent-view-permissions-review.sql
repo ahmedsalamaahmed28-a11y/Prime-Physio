@@ -673,6 +673,13 @@ using (
     from public.chat_conversations c
     where c.id = chat_messages.conversation_id
       and c.clinic_id = chat_messages.clinic_id
+      and coalesce(c.kind, 'team') <> 'patient'
+        or (
+          c.id = chat_messages.conversation_id
+          and c.clinic_id = chat_messages.clinic_id
+          and c.kind = 'patient'
+          and public.has_staff_permission('view_patients')
+        )
   )
 );
 
