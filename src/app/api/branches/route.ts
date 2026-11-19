@@ -7,7 +7,8 @@ export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await requireRole(req, ["admin", "doctor", "receptionist"]);
+    const auth = await getClinicContext(req);
+    if ("response" in auth) return auth.response;
     const clinicId = new URL(req.url).searchParams.get("clinicId");
 
     if (!clinicId || !auth.clinicId || clinicId !== auth.clinicId) {
