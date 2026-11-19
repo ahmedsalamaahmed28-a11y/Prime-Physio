@@ -83,5 +83,7 @@ export function hasStaffPermission(
 }
 
 export function canViewPatientHistory(staff: StaffPermissionRecord | null | undefined) {
-  return hasStaffPermission(staff, "view_patient_history");
+  // Editing clinical records necessarily requires reading the existing history.
+  return hasStaffPermission(staff, "view_patient_history")
+    || hasStaffPermission(staff, "edit_emr");
 }
