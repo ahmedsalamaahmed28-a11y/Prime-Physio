@@ -867,7 +867,7 @@ export default function CalendarPage() {
       setEvents(formatted);
     };
     loadData();
-  }, [clinicId]);
+  }, [clinicId, canViewAppointments]);
 
   const syncEventsState = (newEvents: CalendarEvent[]) => {
     setEvents(newEvents);
