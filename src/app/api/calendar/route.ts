@@ -21,7 +21,8 @@ export async function GET(req: NextRequest) {
     const canReadClinicalDetails = canViewPatients && canViewPatientHistory(auth.staff);
     const canViewInvoices = hasStaffPermission(auth.staff, "view_invoices");
     const appointmentColumns = [
-      "id", "clinic_id", "branch_id", "patient_id", "patient_name",
+      "id", "clinic_id", "branch_id",
+      ...(canViewPatients ? ["patient_id", "patient_name"] : []),
       "doctor_name", "therapist", "therapist_id", "appointment_type",
       "status", "date", "time", "start_time", "end_time", "duration",
       "room_id", "starts_at", "ends_at", "recurrence_id",
@@ -115,6 +116,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, room });
     }
 
+    if (!hasStaffPermission(auth.staff, "view_patients")) {
+      return NextResponse.json({ error: "تتطلب جدولة موعد صلاحية مشاهدة المرضى" }, { status: 403 });
+    }
     if (!hasStaffPermission(auth.staff, "edit_appointments") || !hasStaffPermission(auth.staff, "create_invoice")) {
       return NextResponse.json({ error: "ليس لديك صلاحية حجز المواعيد وإنشاء الفواتير" }, { status: 403 });
     }
