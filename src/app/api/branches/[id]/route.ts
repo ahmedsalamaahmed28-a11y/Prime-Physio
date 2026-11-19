@@ -1,32 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase-admin";
-import { requireRole } from "../../utils/auth";
+import { getClinicContext } from "@/lib/server/clinic-context";
+import { hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 async function resolveOwnedBranch(req: NextRequest, id: string) {
-  const user = await requireRole(req, ["admin"]);
-  if (!user.clinicId) return { error: "Forbidden" as const, status: 403 as const };
+  const auth = await getClinicContext(req);
+  if ("response" in auth) return { response: auth.response } as const;
+  if (!hasStaffPermission(auth.staff, "manage_settings")) return { error: "Forbidden" as const, status: 403 as const };
+  if (!auth.clinicId) return { error: "Forbidden" as const, status: 403 as const };
 
-  const admin = getAdminClient();
+  const admin = auth.admin;
   const { data: branch, error } = await admin
     .from("branches")
     .select("id, clinic_id")
     .eq("id", id)
+    .eq("clinic_id", auth.clinicId)
     .maybeSingle();
 
   if (error) throw error;
   if (!branch) return { error: "Not found" as const, status: 404 as const };
-  if (branch.clinic_id !== user.clinicId) return { error: "Forbidden" as const, status: 403 as const };
+  if (branch.clinic_id !== auth.clinicId) return { error: "Forbidden" as const, status: 403 as const };
 
-  return { user, admin };
+  return { clinicId: auth.clinicId, admin };
 }
 
 export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
     const ownership = await resolveOwnedBranch(req, id);
+    if ("response" in ownership) return ownership.response;
     if ("error" in ownership) {
       return NextResponse.json({ error: ownership.error }, { status: ownership.status });
     }
@@ -76,7 +80,7 @@ export async function PATCH(req: NextRequest, context: { params: Promise<{ id: s
       .from("branches")
       .update(updates)
       .eq("id", id)
-      .eq("clinic_id", ownership.user.clinicId)
+      .eq("clinic_id", ownership.clinicId)
       .select("id, short_name, full_name, slug, logo_url")
       .single();
 
@@ -109,7 +113,7 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
       .from("branches")
       .delete()
       .eq("id", id)
-      .eq("clinic_id", ownership.user.clinicId);
+      .eq("clinic_id", ownership.clinicId);
 
     if (error) {
       console.error("[Branches DELETE] Delete failed:", error);
