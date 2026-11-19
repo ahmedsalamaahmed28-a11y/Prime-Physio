@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { getAdminClient } from "@/lib/supabase-admin";
-import { requireRole } from "../../utils/auth";
+import { getClinicContext } from "@/lib/server/clinic-context";
+import { hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -23,8 +24,11 @@ function hasValidImageSignature(buffer: Buffer, mime: string): boolean {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await requireRole(req, ["admin"]);
-    if (!user.clinicId) return NextResponse.json({ error: "Clinic administrator access required" }, { status: 403 });
+    const auth = await getClinicContext(req);
+    if ("response" in auth) return auth.response;
+    if (!hasStaffPermission(auth.staff, "manage_settings")) {
+      return NextResponse.json({ error: "ليس لديك صلاحية تغيير شعار المركز" }, { status: 403 });
+    }
 
     const formData = await req.formData();
     const file = formData.get("file");
@@ -38,7 +42,7 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
     if (!hasValidImageSignature(buffer, mime)) return NextResponse.json({ error: "Invalid image file" }, { status: 415 });
 
-    const path = `${user.clinicId}/${randomUUID()}.${extension}`;
+    const path = `${auth.clinicId}/${randomUUID()}.${extension}`;
     const admin = getAdminClient();
     const { error: uploadError } = await admin.storage.from("branch-logos").upload(path, buffer, {
       contentType: mime,
