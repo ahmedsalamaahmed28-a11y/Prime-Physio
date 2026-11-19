@@ -38,7 +38,7 @@ where (
     (
       p.schemaname = 'public'
       and p.tablename in (
-        'patients', 'appointments', 'discharges', 'invoices',
+        'patients', 'appointments', 'discharges', 'invoices', 'staff',
         'insurance_claims', 'recovery_logs', 'daily_reports',
         'executive_reports', 'assessments', 'balance_tests',
         'gait_tests', 'mmt_assessments', 'patient_attachments',
@@ -176,6 +176,21 @@ begin
   return false;
 end;
 $function$;
+
+-- Staff administration must follow the explicit manage_staff permission, not role-only is_clinic_admin().
+drop policy if exists staff_clinic_write on public.staff;
+create policy staff_clinic_write
+on public.staff
+for all
+to authenticated
+using (
+  clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('manage_staff')
+)
+with check (
+  clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('manage_staff')
+);
 
 -- Patients: read access is independent from edit/delete access.
 drop policy if exists patients_clinic_select on public.patients;
