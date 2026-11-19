@@ -53,7 +53,12 @@ where (
     or (
       p.schemaname = 'storage'
       and p.tablename = 'objects'
-      and p.policyname = 'patient_files_clinic_read'
+      and p.policyname in (
+        'patient_files_clinic_read',
+        'patient_files_clinic_upload',
+        'patient_files_clinic_update',
+        'patient_files_clinic_delete'
+      )
     )
   )
   and not exists (
@@ -394,6 +399,9 @@ with check (
 
 -- Private patient-file storage must enforce the same independent patient/history scope.
 drop policy if exists patient_files_clinic_read on storage.objects;
+drop policy if exists patient_files_clinic_upload on storage.objects;
+drop policy if exists patient_files_clinic_update on storage.objects;
+drop policy if exists patient_files_clinic_delete on storage.objects;
 create policy patient_files_clinic_read
 on storage.objects
 for select
@@ -406,6 +414,51 @@ using (
     public.has_staff_permission('view_patient_history')
     or public.has_staff_permission('edit_emr')
   )
+);
+
+-- Patient-file writes require both the patient visibility scope and the corresponding write permission.
+create policy patient_files_clinic_upload
+on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'patient-files'
+  and (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  and public.has_staff_permission('view_patients')
+  and exists (
+    select 1 from public.patients p
+    where p.id = (storage.foldername(name))[2]
+      and p.clinic_id = public.get_my_clinic_id()
+  )
+  and public.has_staff_permission('edit_emr')
+);
+
+create policy patient_files_clinic_update
+on storage.objects
+for update
+to authenticated
+using (
+  bucket_id = 'patient-files'
+  and (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  and public.has_staff_permission('view_patients')
+  and public.has_staff_permission('edit_emr')
+)
+with check (
+  bucket_id = 'patient-files'
+  and (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  and public.has_staff_permission('view_patients')
+  and public.has_staff_permission('edit_emr')
+);
+
+create policy patient_files_clinic_delete
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'patient-files'
+  and (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  and public.has_staff_permission('view_patients')
+  and public.has_staff_permission('delete_emr')
 );
 
 -- Patient-linked clinical tables: clinical-history visibility also requires patient visibility.
