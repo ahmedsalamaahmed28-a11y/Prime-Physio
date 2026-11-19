@@ -25,6 +25,8 @@ Status: review branch only. No production migration, deployment, or data mutatio
 | Appointment calendar | `view_appointments` | `edit_appointments`; clinical fields also require `edit_emr` |
 | Invoice list | `view_invoices` | `create_invoice`, `apply_discount`, `refund_invoice`, `delete_invoice` |
 | Analytics aggregates/reports | `view_analytics` | `manage_reports` |
+| Clinical records, evaluations, plans, attachments, and patient-file storage | `view_patients` plus `view_patient_history` (or the existing clinical-edit implication) | `edit_emr`, `delete_emr` |
+| Full clinic backup and attachment export | `export_data` | `export_data` (explicitly grants whole-clinic export scope) |
 
 Server routes using the service-role client must enforce these permissions and clinic scope themselves. The invoice and analytics APIs return only aggregate/authorized data; invoice mutation responses omit invoice details when the caller lacks `view_invoices`.
 
@@ -47,6 +49,8 @@ Server routes using the service-role client must enforce these permissions and c
 | Inactive/deleted staff | All protected reads and writes denied |
 | Staff member from Clinic A requests Clinic B patient/invoice/appointment IDs | 403/404; no data returned |
 | Direct Data API request bypassing the UI | RLS denies rows without the matching read permission |
+| Direct query of clinical tables or patient-file Storage without `view_patients` | Denied even if the user has clinical-history/edit permission |
+| Backup or attachment export without `export_data` | 403; no backup rows or signed file URLs returned |
 | Direct API request using a service-role-backed route | Server-side permission and clinic checks deny unauthorized access |
 | Clinic owner without a staff row | Owner-level access remains available |
 | Session expired | Existing restrictive auth-session guard continues to deny access |
@@ -70,6 +74,10 @@ After migration in a non-production test database:
 3. Verify UPDATE paths through the server APIs, because PostgreSQL UPDATE via the Data API also requires a matching SELECT policy.
 4. Run Supabase security advisors and inspect the resulting RLS policy inventory.
 5. Verify that subscriptions, clinic bank details, payroll permissions, platform-admin policies, and auth-session expiry guards remain unchanged.
+
+## Trusted automation exception
+
+The n8n endpoint is a server-to-server integration, not a staff-session API. It is currently scoped by a long `N8N_SECURE_TOKEN` and a fixed `N8N_ALLOWED_CLINIC_ID`, and its actions can read/write clinic data through service role. It remains a separate trusted integration principal; staff `view_*` permissions do not apply to it. Its token must remain private and its clinic scope must be verified independently. The existing owner-only center export endpoint is another deliberate owner-level exception.
 
 ## Explicitly not done
 
