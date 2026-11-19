@@ -23,8 +23,8 @@ async function getAuthorizedClinic(req: NextRequest) {
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await getAuthorizedClinic(request);
   if ("response" in auth) return auth.response;
-  if (!hasStaffPermission(auth.staff, "edit_patient") && !canViewPatientHistory(auth.staff)) {
-    return NextResponse.json({ error: "ليس لديك صلاحية الاطلاع على ملف المريض" }, { status: 403 });
+  if (!hasStaffPermission(auth.staff, "view_patients")) {
+    return NextResponse.json({ error: "ليس لديك صلاحية مشاهدة ملف المريض" }, { status: 403 });
   }
   const { id } = await context.params;
   const canReadMedical = canViewPatientHistory(auth.staff);
@@ -187,6 +187,9 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       responsePatient.bloodType = medical.bloodType || "";
       responsePatient.allergies = medical.allergies || "";
       responsePatient.dvt = medical.dvt || "";
+    }
+    if (!hasStaffPermission(auth.staff, "view_patients")) {
+      return NextResponse.json({ success: true }, { headers: { "Cache-Control": "no-store, private" } });
     }
     return NextResponse.json({ success: true, patient: responsePatient }, {
       headers: { "Cache-Control": "no-store, private" },
