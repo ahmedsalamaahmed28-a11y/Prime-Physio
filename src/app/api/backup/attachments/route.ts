@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase-admin";
-import { requireRole } from "../../utils/auth";
+import { getClinicContext } from "@/lib/server/clinic-context";
+import { hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,16 +14,16 @@ const headers = {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await requireRole(req, ["admin"]);
-    if (!user.clinicId) {
-      return NextResponse.json({ error: "Clinic Admin access required." }, { status: 403, headers });
+    const auth = await getClinicContext(req);
+    if ("response" in auth) return auth.response;
+    if (!hasStaffPermission(auth.staff, "export_data")) {
+      return NextResponse.json({ error: "ليس لديك صلاحية تصدير مرفقات المرضى" }, { status: 403, headers });
     }
-
-    const admin = getAdminClient();
+    const admin = auth.admin;
     const { data, error } = await admin
       .from("patient_attachments")
       .select("id, clinic_id, patient_id, file_path, file_name, mime_type, file_size, category, notes, created_at")
-      .eq("clinic_id", user.clinicId)
+      .eq("clinic_id", auth.clinicId)
       .order("created_at", { ascending: true });
 
     if (error) {
