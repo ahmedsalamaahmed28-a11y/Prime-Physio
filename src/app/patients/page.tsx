@@ -46,6 +46,8 @@ function PatientsContent() {
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
+  const canViewPatients = hasPermission("view_patients");
+  const canEditPatients = hasPermission("edit_patient");
   const { user } = useAuth();
   const clinicId = user?.clinicId;
   
@@ -81,6 +83,11 @@ function PatientsContent() {
   // Load patients and seed if empty
   useEffect(() => {
     if (!clinicId) return;
+    if (!canViewPatients) {
+      setPatients([]);
+      setIsLoading(false);
+      return;
+    }
     async function loadPatients() {
       try {
         setIsLoading(true);
@@ -133,7 +140,7 @@ function PatientsContent() {
     loadPatients();
     loadDefaultSettings();
     loadDoctors();
-  }, [clinicId, showArchived]);
+  }, [clinicId, showArchived, canViewPatients]);
 
   const getPatientName = (p: any) => {
     return isRtl ? p.nameAr : (
@@ -160,6 +167,7 @@ function PatientsContent() {
 
   const handleAddPatient = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEditPatients) return;
     if (!formData.nameAr || !formData.phone) {
       alert(isRtl ? "الرجاء إدخال الاسم ورقم الجوال" : "Please enter name and phone number");
       return;
@@ -362,6 +370,14 @@ function PatientsContent() {
     }
   };
 
+  if (!canViewPatients) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900" dir={isRtl ? "rtl" : "ltr"}>
+        {isRtl ? "ليس لديك صلاحية مشاهدة ملفات المرضى." : "You do not have permission to view patient records."}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6" dir={isRtl ? "rtl" : "ltr"}>
       
@@ -379,7 +395,7 @@ function PatientsContent() {
             {showArchived ? <Activity className="w-4 h-4" /> : <FileText className="w-4 h-4" />}
             {showArchived ? (isRtl ? "العودة للمرضى النشطين" : "Active patients") : (isRtl ? "المرضى المؤرشفون" : "Archived patients")}
           </Button>
-          {!showArchived && <Button 
+          {!showArchived && canEditPatients && <Button 
             onClick={() => setIsOpen(true)}
             className={`bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9] gap-2 self-start sm:self-auto ${isRtl ? "" : "flex-row-reverse"}`}
           >
