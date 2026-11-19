@@ -11,6 +11,7 @@ import { logAuditAction } from "@/lib/audit";
 import { Loader } from "@/components/Loader";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { usePermissions } from "@/lib/usePermissions";
 
 const AVAILABLE_PERMISSIONS = [
   { id: "view_patients", labelAr: "مشاهدة قائمة وملفات المرضى", labelEn: "View Patients", category: "Patients" },
@@ -67,6 +68,8 @@ export default function PermissionsPage() {
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
   const { user } = useAuth(); const clinicId = user?.clinicId;
+  const { hasPermission } = usePermissions();
+  const canManageStaff = hasPermission("manage_staff");
   const [staff, setStaff] = useState<any[]>([]);
   const [selectedStaffEmail, setSelectedStaffEmail] = useState<string | null>(null);
   
@@ -76,7 +79,7 @@ export default function PermissionsPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!clinicId) return;
+    if (!clinicId || !canManageStaff) return;
     let cancelled = false;
 
     async function loadData() {
@@ -106,7 +109,7 @@ export default function PermissionsPage() {
 
     loadData();
     return () => { cancelled = true; };
-  }, [clinicId]);
+  }, [clinicId, canManageStaff]);
 
   const handleTogglePermission = (permissionId: string) => {
     if (!selectedStaffEmail || !activeStaffMember) return;
@@ -127,7 +130,7 @@ export default function PermissionsPage() {
   };
 
   const handleSave = async () => {
-    if (!selectedStaffEmail || !clinicId) return;
+    if (!canManageStaff || !selectedStaffEmail || !clinicId) return;
     setIsSaving(true);
     
     try {
@@ -159,6 +162,14 @@ export default function PermissionsPage() {
   const activeUserPerms = selectedStaffEmail 
     ? (permissionsMap[selectedStaffEmail] !== undefined ? permissionsMap[selectedStaffEmail] : (activeStaffMember ? getDefaultPerms(activeStaffMember.role) : [])) 
     : [];
+
+  if (!canManageStaff) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900" dir={isRtl ? "rtl" : "ltr"}>
+        {isRtl ? "ليس لديك صلاحية إدارة صلاحيات الموظفين." : "You do not have permission to manage staff permissions."}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6" dir={isRtl ? "rtl" : "ltr"}>
