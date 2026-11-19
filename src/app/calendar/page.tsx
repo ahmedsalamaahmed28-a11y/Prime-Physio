@@ -594,9 +594,7 @@ function EventDetailsDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg font-heading">
             <div className={`w-4 h-4 rounded-full shadow-sm ${VISIT_COLOR_CLASSES[event.visitType]}`} />
-            <Link href={"/patients/" + event.patientId} className="text-[#4F46BA] hover:underline dark:text-[#818cf8] font-bold">
-              {event.patientName}
-            </Link>
+            <span className="text-[#4F46BA] dark:text-[#818cf8] font-bold">{event.patientName}</span>
           </DialogTitle>
           <DialogDescription className="font-medium text-muted-foreground/80">
             {format(event.start, "EEEE d MMMM yyyy", { locale: ar })}
@@ -778,6 +776,8 @@ export default function CalendarPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
+  const canViewAppointments = hasPermission("view_appointments");
+  const canViewPatients = hasPermission("view_patients");
   const { user, activeBranchId } = useAuth(); const clinicId = user?.clinicId;
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
@@ -790,7 +790,7 @@ export default function CalendarPage() {
 
   // Load patients and events from Supabase
   useEffect(() => {
-    if (!clinicId) return;
+    if (!clinicId || !canViewAppointments) return;
     const loadData = async () => {
       let dbEvents: any[] = [];
       let roomData: { id: string; name: string; branch_id: string | null }[] = [];
@@ -1077,6 +1077,14 @@ export default function CalendarPage() {
     }
   };
 
+  if (!canViewAppointments) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900" dir={isRtl ? "rtl" : "ltr"}>
+        {isRtl ? "ليس لديك صلاحية مشاهدة جدول المواعيد." : "You do not have permission to view the appointments calendar."}
+      </div>
+    );
+  }
+
   return (
     <div className="pp-calendar-shell" dir={isRtl ? "rtl" : "ltr"}>
     <CalendarModernSidebar />
@@ -1091,7 +1099,7 @@ export default function CalendarPage() {
               <p className="text-xs text-muted-foreground mt-0.5">{isRtl ? "التقويم التفاعلي للمواعيد" : "Interactive appointments calendar"}</p>
             </div>
           </div>
-          {hasPermission("edit_appointments") && (
+          {canViewPatients && hasPermission("edit_appointments") && (
             <Button
               className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white gap-2 rounded-xl font-bold px-6 shadow-md transition-all active:scale-95"
               onClick={() => setSelectedDate(new Date())}
@@ -1108,10 +1116,10 @@ export default function CalendarPage() {
           currentDate={currentDate}
           onDateChange={setCurrentDate}
           onSelectSlot={(date) => {
-            if (hasPermission("edit_appointments")) setSelectedDate(date);
+            if (canViewPatients && hasPermission("edit_appointments")) setSelectedDate(date);
           }}
           onSelectEvent={setSelectedEvent}
-          selectable={hasPermission("edit_appointments")}
+          selectable={canViewPatients && hasPermission("edit_appointments")}
           doctorsList={doctorsList}
           roomsList={rooms}
         />
