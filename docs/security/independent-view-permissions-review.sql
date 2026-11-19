@@ -411,112 +411,112 @@ create policy assessments_clinic_select on public.assessments
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists balance_tests_clinic_select on public.balance_tests;
 create policy balance_tests_clinic_select on public.balance_tests
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists gait_tests_clinic_select on public.gait_tests;
 create policy gait_tests_clinic_select on public.gait_tests
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists mmt_assessments_clinic_select on public.mmt_assessments;
 create policy mmt_assessments_clinic_select on public.mmt_assessments
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists patient_attachments_clinic_select on public.patient_attachments;
 create policy patient_attachments_clinic_select on public.patient_attachments
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists patient_evaluations_clinic_select on public.patient_evaluations;
 create policy patient_evaluations_clinic_select on public.patient_evaluations
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists patient_medical_records_select on public.patient_medical_records;
 create policy patient_medical_records_select on public.patient_medical_records
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists patient_nutrition_clinic_select on public.patient_nutrition;
 create policy patient_nutrition_clinic_select on public.patient_nutrition
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists patient_programs_clinic_select on public.patient_programs;
 create policy patient_programs_clinic_select on public.patient_programs
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists patient_risks_clinic_select on public.patient_risks;
 create policy patient_risks_clinic_select on public.patient_risks
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists progress_tracking_clinic_select on public.progress_tracking;
 create policy progress_tracking_clinic_select on public.progress_tracking
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists rom_assessments_clinic_select on public.rom_assessments;
 create policy rom_assessments_clinic_select on public.rom_assessments
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists sessions_clinic_select on public.sessions;
 create policy sessions_clinic_select on public.sessions
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists soap_notes_clinic_select on public.soap_notes;
 create policy soap_notes_clinic_select on public.soap_notes
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists special_tests_clinic_select on public.special_tests;
 create policy special_tests_clinic_select on public.special_tests
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 drop policy if exists treatment_plans_clinic_select on public.treatment_plans;
 create policy treatment_plans_clinic_select on public.treatment_plans
 for select to authenticated
 using (clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_patients')
-  and (public.has_staff_permission('view_patient_history') or public.has_staff_permission('edit_emr')));
+  and public.has_staff_permission('view_patient_history'));
 
 -- Recovery logs are patient-linked clinical/financial records and require both scopes.
 drop policy if exists "Allow clinic staff to view their recovery_logs" on public.recovery_logs;
