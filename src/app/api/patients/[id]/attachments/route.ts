@@ -57,7 +57,7 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await authorize(request);
   if ("response" in auth) return auth.response;
-  if (!hasStaffPermission(auth.staff, "edit_emr")) {
+  if (!hasStaffPermission(auth.staff, "view_patients") || !hasStaffPermission(auth.staff, "edit_emr")) {
     return NextResponse.json({ error: "ليس لديك صلاحية رفع المرفقات الطبية" }, { status: 403 });
   }
 
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest, context: { params: Promise<{ id
 export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await authorize(request);
   if ("response" in auth) return auth.response;
-  if (!hasStaffPermission(auth.staff, "delete_emr")) {
+  if (!hasStaffPermission(auth.staff, "view_patients") || !hasStaffPermission(auth.staff, "delete_emr")) {
     return NextResponse.json({ error: "ليس لديك صلاحية حذف المرفقات الطبية" }, { status: 403 });
   }
 
