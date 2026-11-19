@@ -34,17 +34,24 @@ insert into private.rls_policies_backup_20261119
 select p.schemaname, p.tablename, p.policyname, p.permissive, p.roles, p.cmd,
        p.qual, p.with_check, now()
 from pg_catalog.pg_policies p
-where p.schemaname = 'public'
-  and p.tablename in (
-    'patients', 'appointments', 'discharges', 'invoices',
-    'insurance_claims', 'recovery_logs', 'daily_reports',
-    'executive_reports', 'assessments', 'balance_tests',
-    'gait_tests', 'mmt_assessments', 'patient_attachments',
-    'patient_evaluations', 'patient_medical_records', 'patient_nutrition',
-    'patient_programs', 'patient_risks', 'progress_tracking',
-    'rom_assessments', 'sessions', 'soap_notes', 'special_tests',
-    'treatment_plans', 'subscriptions', 'payroll_drafts',
-    'clinic_bank_details'
+where (
+    p.schemaname = 'public'
+    and p.tablename in (
+      'patients', 'appointments', 'discharges', 'invoices',
+      'insurance_claims', 'recovery_logs', 'daily_reports',
+      'executive_reports', 'assessments', 'balance_tests',
+      'gait_tests', 'mmt_assessments', 'patient_attachments',
+      'patient_evaluations', 'patient_medical_records', 'patient_nutrition',
+      'patient_programs', 'patient_risks', 'progress_tracking',
+      'rom_assessments', 'sessions', 'soap_notes', 'special_tests',
+      'treatment_plans', 'subscriptions', 'payroll_drafts',
+      'clinic_bank_details'
+    )
+  )
+  or (
+    p.schemaname = 'storage'
+    and p.tablename = 'objects'
+    and p.policyname = 'patient_files_clinic_read'
   )
   and not exists (
     select 1
@@ -377,6 +384,22 @@ with check (
   auth.uid() is not null
   and clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('manage_reports')
+);
+
+-- Private patient-file storage must enforce the same independent patient/history scope.
+drop policy if exists patient_files_clinic_read on storage.objects;
+create policy patient_files_clinic_read
+on storage.objects
+for select
+to authenticated
+using (
+  bucket_id = 'patient-files'
+  and (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  and public.has_staff_permission('view_patients')
+  and (
+    public.has_staff_permission('view_patient_history')
+    or public.has_staff_permission('edit_emr')
+  )
 );
 
 -- Patient-linked clinical tables: clinical-history visibility also requires patient visibility.
