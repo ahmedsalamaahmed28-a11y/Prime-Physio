@@ -17,7 +17,7 @@ async function authorize(req: NextRequest) {
 export async function GET(_request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await authorize(_request);
   if ("response" in auth) return auth.response;
-  if (!canViewPatientHistory(auth.staff)) {
+  if (!hasStaffPermission(auth.staff, "view_patients") || !canViewPatientHistory(auth.staff)) {
     return NextResponse.json({ error: "ليس لديك صلاحية الاطلاع على المرفقات الطبية" }, { status: 403 });
   }
 
