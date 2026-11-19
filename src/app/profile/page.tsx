@@ -38,6 +38,7 @@ import { Badge } from "@/components/ui/badge";
 
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
+import { usePermissions } from "@/lib/usePermissions";
 import { supabase } from "@/lib/supabase";
 
 type TabType = "profile" | "clinic" | "verification" | "security" | "delete_account";
@@ -48,6 +49,8 @@ export default function ProfileSettingsPage() {
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
   const { user } = useAuth();
+  const { hasPermission } = usePermissions();
+  const canManageSettings = hasPermission("manage_settings");
   const clinicId = user?.clinicId;
   const [isClinicAdmin, setIsClinicAdmin] = useState(false);
 
@@ -62,14 +65,14 @@ export default function ProfileSettingsPage() {
       if (!active) return;
       if (error) {
         console.warn("Could not resolve clinic administrator access", error);
-        setIsClinicAdmin(user?.roleKey === "admin");
+        setIsClinicAdmin(canManageSettings);
         return;
       }
-      setIsClinicAdmin(Boolean(data));
+      setIsClinicAdmin(Boolean(data) && canManageSettings);
     };
     resolveClinicAdmin();
     return () => { active = false; };
-  }, [clinicId, user?.roleKey]);
+  }, [clinicId, canManageSettings]);
   
   // Profile Tab States
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
