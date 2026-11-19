@@ -13,9 +13,15 @@ async function authorize(req: NextRequest) {
 export async function GET(req: NextRequest) {
   const auth = await authorize(req);
   if ("response" in auth) return auth.response;
+  if (!hasStaffPermission(auth.staff, "view_appointments")) {
+    return NextResponse.json({ error: "ليس لديك صلاحية مشاهدة جدول المواعيد" }, { status: 403 });
+  }
   try {
+    const canViewPatients = hasStaffPermission(auth.staff, "view_patients");
     const [patients, appointments, doctors, rooms, participants] = await Promise.all([
-      auth.admin.from("patients").select("id,nameAr,nameEn").eq("clinic_id", auth.clinicId).order("id", { ascending: true }),
+      canViewPatients
+        ? auth.admin.from("patients").select("id,nameAr,nameEn").eq("clinic_id", auth.clinicId).order("id", { ascending: true })
+        : Promise.resolve({ data: [], error: null }),
       auth.admin.from("appointments").select("*, treatment_plan:treatment_plans!appointments_treatment_plan_patient_clinic_fkey(id,goals)").eq("clinic_id", auth.clinicId),
       auth.admin.from("staff").select("name,email,role").eq("clinic_id", auth.clinicId),
       auth.admin.from("appointment_rooms").select("id,name,branch_id").eq("clinic_id", auth.clinicId).eq("is_active", true).order("name"),
