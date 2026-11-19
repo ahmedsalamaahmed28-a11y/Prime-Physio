@@ -68,6 +68,13 @@ export async function POST(req: NextRequest, context: RouteContext) {
   try {
     const auth = await requireRole(req, ["admin", "doctor", "receptionist"]);
     const { conversationId } = await context.params;
+    const { data: conversation, error: conversationError } = await clinic.admin.from("chat_conversations")
+      .select("id,kind,patient_id").eq("clinic_id", clinic.clinicId).eq("id", conversationId).maybeSingle();
+    if (conversationError) throw conversationError;
+    if (!conversation) return fail("هذه المحادثة غير متاحة لحسابك", 404);
+    if (conversation.kind === "patient" && !hasStaffPermission(clinic.staff, "view_patients")) {
+      return fail("ليس لديك صلاحية إرسال رسائل في محادثات المرضى", 403);
+    }
     const membership = await getMembership(clinic.admin, clinic.clinicId, conversationId, auth.email);
     if (!membership) return fail("هذه المحادثة غير متاحة لحسابك", 404);
 
