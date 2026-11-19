@@ -309,6 +309,7 @@ to authenticated
 using (
   clinic_id = public.get_my_clinic_id()
   and public.has_staff_permission('view_appointments')
+  and public.has_staff_permission('view_patients')
 );
 
 -- Invoices: financial visibility is independent from invoice creation/discount/refund/delete.
