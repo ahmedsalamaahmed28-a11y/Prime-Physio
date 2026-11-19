@@ -109,6 +109,9 @@ export async function POST(req: NextRequest) {
     const auth = await requireRole(req, ["admin", "doctor", "receptionist"]);
     const { admin, clinicId } = context;
     const body = await req.json();
+    if (!hasStaffPermission(context.staff, "send_messages")) {
+      return fail("ليس لديك صلاحية إرسال الرسائل", 403);
+    }
     const kind = body?.kind === "patient" ? "patient" : "team";
     if (kind === "patient" && !hasStaffPermission(context.staff, "view_patients")) {
       return fail("ليس لديك صلاحية إنشاء محادثة مرتبطة بمريض", 403);
