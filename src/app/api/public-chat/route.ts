@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// Keep this route within the Vercel Hobby maximum while allowing more time for n8n.
+export const maxDuration = 60;
 
 const WINDOW_MS = 60_000;
 const MAX_REQUESTS = 12;
@@ -74,15 +76,26 @@ export async function POST(request: NextRequest) {
         conversationId,
       }),
       cache: "no-store",
-      signal: AbortSignal.timeout(25_000),
+      signal: AbortSignal.timeout(55_000),
     });
     const result = await upstream.json().catch(() => ({}));
     if (!upstream.ok) {
       return NextResponse.json({ error: "خدمة المحادثة غير متاحة حالياً." }, { status: 502 });
     }
-    return NextResponse.json({
-      reply: typeof result.reply === "string" ? result.reply.slice(0, 6000) : "",
-    });
+    // n8n may return { reply: "..." } or an AI-node { text: "..." } shape,
+    // sometimes wrapped in an array.
+    const responseItem = Array.isArray(result) ? result[0] : result;
+    const reply = typeof responseItem?.reply === "string"
+      ? responseItem.reply
+      : typeof responseItem?.text === "string"
+        ? responseItem.text
+        : "";
+
+    if (!reply.trim()) {
+      return NextResponse.json({ error: "وصل رد غير مكتمل من خدمة المحادثة." }, { status: 502 });
+    }
+
+    return NextResponse.json({ reply: reply.slice(0, 6000) });
   } catch {
     return NextResponse.json({ error: "تعذر الوصول إلى خدمة المحادثة حالياً." }, { status: 502 });
   }
