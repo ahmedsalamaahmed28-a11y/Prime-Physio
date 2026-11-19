@@ -136,16 +136,7 @@ begin
 
   -- Role defaults apply only when there is no explicit override.
   if v_role in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده', 'مدير العياره', 'مدير النظام') then
-    return permission_key in (
-      'view_patients', 'edit_patient', 'delete_patient',
-      'view_appointments', 'edit_appointments',
-      'view_invoices', 'create_invoice', 'delete_invoice',
-      'refund_invoice', 'apply_discount', 'print_invoice',
-      'view_patient_history', 'edit_emr', 'delete_emr',
-      'send_messages', 'manage_staff', 'view_analytics',
-      'export_data', 'manage_settings', 'manage_inventory',
-      'manage_reports'
-    );
+    return true;
   end if;
 
   if v_role in ('doctor', 'استشاري علاج طبيعي', 'أخصائي علاج طبيعي', 'ممارس علاج طبيعي') then
