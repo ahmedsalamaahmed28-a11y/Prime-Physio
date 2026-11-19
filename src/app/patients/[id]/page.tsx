@@ -2463,6 +2463,9 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
   const { hasPermission } = usePermissions();
   const canViewPatients = hasPermission("view_patients");
   const canViewPatientHistory = hasPermission("view_patient_history");
+  const canEditPatient = hasPermission("edit_patient");
+  const canEditClinical = hasPermission("edit_emr");
+  const canExportPatientRecord = canViewPatientHistory || hasPermission("export_data");
   const { user } = useAuth();
   const clinicId = user?.clinicId;
 
@@ -2677,7 +2680,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
 
   const handleMedicalEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSavingMedicalFile) return;
+    if (!canEditClinical || isSavingMedicalFile) return;
     setIsSavingMedicalFile(true);
     try {
       const response = await fetch(`/api/patients/${encodeURIComponent(patient.id)}`, {
@@ -2699,7 +2702,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSavingProfile) return;
+    if (!canEditPatient || isSavingProfile) return;
     setIsSavingProfile(true);
     try {
       const response = await fetch(`/api/patients/${encodeURIComponent(patient.id)}`, {
@@ -2761,15 +2764,15 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
               )}
             </div>
 
-            <Button variant="outline" size="sm" onClick={() => handlePrint()} className="gap-1.5 text-teal-700 border-teal-200 hover:bg-teal-50">
+            {canExportPatientRecord && <Button variant="outline" size="sm" onClick={() => handlePrint()} className="gap-1.5 text-teal-700 border-teal-200 hover:bg-teal-50">
               <FileText className="w-4 h-4" />
               {isRtl ? "تصدير PDF" : "Export PDF"}
-            </Button>
+            </Button>}
             
-            <Button variant="default" size="sm" onClick={() => setIsEditOpen(true)} className="gap-1.5 bg-[#4F46BA] hover:bg-[#433aa3] text-white">
+            {canEditPatient && <Button variant="default" size="sm" onClick={() => setIsEditOpen(true)} className="gap-1.5 bg-[#4F46BA] hover:bg-[#433aa3] text-white">
               <Edit className="w-4 h-4" />
               {isRtl ? "تعديل البيانات" : "Edit Profile"}
-            </Button>
+            </Button>}
           </div>
         </div>
       </div>
@@ -2789,8 +2792,8 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
           {hasPermission("view_patient_history") && <TabsContent value="radiology"><PatientAttachmentsTab patientId={resolvedParams.id} /></TabsContent>}
           {hasPermission("view_patient_history") && <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>}
           {hasPermission("view_patient_history") && <TabsContent value="reports"><SmartReportsTab patient={patient} /></TabsContent>}
-          {hasPermission("view_patient_history") && <TabsContent value="clinical"><ClinicalWorkflowTab patientId={patient.id} clinicId={clinicId || undefined} isRtl={isRtl} /></TabsContent>}
-          {hasPermission("view_patient_history") && <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} initialState={typeof patient.active_protocol === 'string' ? JSON.parse(patient.active_protocol) : patient.active_protocol} onSaveState={handleSaveProtocolState} /></TabsContent>}
+          {hasPermission("view_patient_history") && <TabsContent value="clinical"><ClinicalWorkflowTab patientId={patient.id} clinicId={clinicId || undefined} isRtl={isRtl} canEdit={canEditClinical} /></TabsContent>}
+          {hasPermission("view_patient_history") && <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} initialState={typeof patient.active_protocol === 'string' ? JSON.parse(patient.active_protocol) : patient.active_protocol} readOnly={!canEditClinical} onSaveState={canEditClinical ? handleSaveProtocolState : undefined} /></TabsContent>}
           <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} /></TabsContent>
           <TabsContent value="neuro"><NeuroReferenceTab /></TabsContent>
         </Tabs>
