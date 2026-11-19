@@ -2461,6 +2461,8 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
     documentTitle: `Medical_Report_${resolvedParams.id}`,
   });
   const { hasPermission } = usePermissions();
+  const canViewPatients = hasPermission("view_patients");
+  const canViewPatientHistory = hasPermission("view_patient_history");
   const { user } = useAuth();
   const clinicId = user?.clinicId;
 
@@ -2512,7 +2514,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
 
   // Load real patient data from Supabase
   useEffect(() => {
-    if (!clinicId) return;
+    if (!clinicId || !canViewPatients) return;
     async function fetchPatient() {
       try {
         const response = await fetch(`/api/patients/${encodeURIComponent(resolvedParams.id)}`, {
@@ -2558,12 +2560,12 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
       }
     }
     fetchPatient();
-  }, [resolvedParams.id, clinicId]);
+  }, [resolvedParams.id, clinicId, canViewPatients]);
 
   // Load the active protocol from the existing clinic-scoped programs table.
   // Keep auto-save disabled until this lookup finishes to avoid overwriting saved progress.
   useEffect(() => {
-    if (!clinicId || !patient.id) return;
+    if (!clinicId || !patient.id || !canViewPatients || !canViewPatientHistory) return;
 
     let active = true;
     const loadSavedProtocol = async () => {
@@ -2587,7 +2589,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
 
     loadSavedProtocol();
     return () => { active = false; };
-  }, [clinicId, patient.id]);
+  }, [clinicId, patient.id, canViewPatients, canViewPatientHistory]);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -2715,6 +2717,14 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
       setIsSavingProfile(false);
     }
   };
+
+  if (!canViewPatients) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900" dir={isRtl ? "rtl" : "ltr"}>
+        {isRtl ? "ليس لديك صلاحية مشاهدة ملف المريض." : "You do not have permission to view this patient record."}
+      </div>
+    );
+  }
 
   return (    <div className="min-h-screen bg-background" dir={isRtl ? "rtl" : "ltr"}>
       <div className="border-b bg-card sticky top-16 z-40 print:hidden">
