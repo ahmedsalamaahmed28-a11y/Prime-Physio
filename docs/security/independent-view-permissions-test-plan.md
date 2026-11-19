@@ -25,7 +25,7 @@ Status: review branch only. No production migration, deployment, or data mutatio
 | Appointment calendar | `view_appointments` | `edit_appointments`; clinical fields also require `edit_emr` |
 | Invoice list | `view_invoices` | `create_invoice`, `apply_discount`, `refund_invoice`, `delete_invoice` |
 | Analytics aggregates/reports | `view_analytics` | `manage_reports` |
-| Clinical records, evaluations, plans, attachments, and patient-file storage | `view_patients` plus `view_patient_history` | `edit_emr`, `delete_emr` |
+| Clinical records, evaluations, plans, attachments, and patient-file storage | `view_patients` plus `view_patient_history` (or `edit_emr`, which must read the existing record to edit it) | `edit_emr`, `delete_emr` |
 | Full clinic backup and attachment export | `export_data` | `export_data` (explicitly grants whole-clinic export scope) |
 
 Server routes using the service-role client must enforce these permissions and clinic scope themselves. The invoice and analytics APIs return only aggregate/authorized data; invoice mutation responses omit invoice details when the caller lacks `view_invoices`.
@@ -36,8 +36,9 @@ Server routes using the service-role client must enforce these permissions and c
 |---|---|
 | Explicit list contains only `view_patients` | Patient list/detail readable; patient writes denied |
 | Explicit list contains only `edit_patient` | Patient GET denied; authorized PATCH succeeds through the server API and returns no patient data |
-| Explicit list contains only `edit_emr` | Clinical GET and patient-file download denied; authorized clinical POST may update a known in-clinic patient ID but returns no clinical record |
-| Explicit list contains only `view_appointments` | Calendar readable; patient directory not returned |
+| Explicit list contains only `edit_emr` | Patient/clinical APIs denied because `view_patients` is absent; no patient data is returned |
+| Explicit list contains `view_patients` + `edit_emr`, but not `view_patient_history` | Clinical record read needed for editing is allowed; clinical writes are allowed; other history-only users remain read-only |
+| Explicit list contains only `view_appointments` | Calendar schedule readable with patient names/IDs and clinical fields removed; patient directory not returned |
 | Explicit list contains only `edit_appointments` | Appointment PATCH is authorized by API; appointment GET remains denied. Booking POST also requires `create_invoice` because it creates an invoice |
 | Explicit list contains only `view_invoices` | Invoice list readable; status/amount/delete mutations denied |
 | Explicit list contains only `apply_discount` | Invoice PATCH can apply discount through API; invoice list remains denied and response contains no invoice data |
@@ -51,7 +52,7 @@ Server routes using the service-role client must enforce these permissions and c
 | Staff member from Clinic A requests Clinic B patient/invoice/appointment IDs | 403/404; no data returned |
 | Direct Data API request bypassing the UI | RLS denies rows without the matching read permission |
 | Direct query of clinical tables, waitlist, peer reviews, or patient-file Storage without `view_patients` | Denied even if the user has clinical-history/edit permission |
-| Clinical read with `edit_emr` but without `view_patient_history` | Denied; edit permission must not imply history visibility |
+| Clinical read with `view_patients` + `edit_emr` but without `view_patient_history` | Allowed only because EMR editing requires reading the existing clinical record; `view_patients` is still mandatory |
 | Patient-linked chat conversation/messages without `view_patients` | Patient conversations hidden/denied; team conversations remain participant-scoped |
 | Backup or attachment export without `export_data` | 403; no backup rows or signed file URLs returned |
 | Direct API request using a service-role-backed route | Server-side permission and clinic checks deny unauthorized access |
