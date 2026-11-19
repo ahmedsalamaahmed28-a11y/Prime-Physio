@@ -34,7 +34,7 @@ Server routes using the service-role client must enforce these permissions and c
 | Explicit list contains only `view_patients` | Patient list/detail readable; patient writes denied |
 | Explicit list contains only `edit_patient` | Patient GET denied; authorized PATCH succeeds through the server API and returns no patient data |
 | Explicit list contains only `view_appointments` | Calendar readable; patient directory not returned |
-| Explicit list contains only `edit_appointments` | Appointment mutation can be authorized by API; appointment GET remains denied |
+| Explicit list contains only `edit_appointments` | Appointment PATCH is authorized by API; appointment GET remains denied. Booking POST also requires `create_invoice` because it creates an invoice |
 | Explicit list contains only `view_invoices` | Invoice list readable; status/amount/delete mutations denied |
 | Explicit list contains only `apply_discount` | Invoice PATCH can apply discount through API; invoice list remains denied and response contains no invoice data |
 | Explicit list contains only `create_invoice` | Invoice creation allowed where supported; invoice list remains denied |
@@ -49,6 +49,10 @@ Server routes using the service-role client must enforce these permissions and c
 | Direct API request using a service-role-backed route | Server-side permission and clinic checks deny unauthorized access |
 | Clinic owner without a staff row | Owner-level access remains available |
 | Session expired | Existing restrictive auth-session guard continues to deny access |
+
+## Current production permission inventory (read-only)
+
+The current database inspection returned 2 staff rows and 0 non-empty explicit permission lists. Both rows currently rely on role defaults; one admin-role row has no clinic_id, so it is not treated as an ordinary clinic staff membership. No staff permission backfill is required for the current inventory. This count should be rechecked immediately before the eventual migration.
 
 ## Data preservation checks
 
