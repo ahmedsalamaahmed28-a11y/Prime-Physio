@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
     if (doctors.error) throw doctors.error;
     if (rooms.error) throw rooms.error;
     if (participants.error) throw participants.error;
-    const safeAppointments = ((appointments.data || []) as Record<string, unknown>[]).map((appointment) => {
+    const safeAppointments = ((appointments.data || []) as unknown as Record<string, unknown>[]).map((appointment) => {
       if (canReadClinicalDetails) return appointment;
       const safe = { ...appointment };
       delete safe.treatment_plan;
