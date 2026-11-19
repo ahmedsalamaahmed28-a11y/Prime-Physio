@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { UploadCloud } from "lucide-react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
+import { usePermissions } from "@/lib/usePermissions";
 import { supabase } from "@/lib/supabase";
 
 const translateDay = (day: string, isRtl: boolean) => {
@@ -28,6 +29,9 @@ export default function ClinicSettingsPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { user } = useAuth();
+  const { hasPermission } = usePermissions();
+  const canManageSettings = hasPermission("manage_settings");
+  const canExportData = hasPermission("export_data");
   const clinicId = user?.clinicId;
 
   const [clinicName, setClinicName] = useState("");
@@ -120,6 +124,7 @@ export default function ClinicSettingsPage() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canManageSettings) return;
     const { error } = await supabase.from("clinic_settings").upsert({
       clinic_id: clinicId,
       clinic_name: clinicName,
@@ -148,7 +153,7 @@ export default function ClinicSettingsPage() {
   };
 
   const handleCoverUpload = async (file?: File) => {
-    if (!file) return;
+    if (!canManageSettings || !file) return;
     setCoverUploading(true);
     try {
       const form = new FormData();
@@ -167,6 +172,7 @@ export default function ClinicSettingsPage() {
   };
 
   const handleBackupNow = async () => {
+    if (!canExportData) return;
     setBackupLoading(true);
     try {
       const res = await fetch("/api/backup", { method: "POST" });
@@ -212,6 +218,7 @@ export default function ClinicSettingsPage() {
         <p className="text-sm text-muted-foreground mt-0.5">{isRtl ? "إدارة تفاصيل المركز الطبي وساعات العمل والفروع" : "Manage medical center details, working hours, and branches"}</p>
       </div>
 
+      {!canManageSettings && <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{isRtl ? "وضع المشاهدة فقط: تحتاج إلى صلاحية إدارة الإعدادات لحفظ التغييرات." : "Read-only mode: manage_settings permission is required to save changes."}</p>}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Basic Info form */}
         <Card className="lg:col-span-2 shadow-xs">
@@ -260,7 +267,7 @@ export default function ClinicSettingsPage() {
                     {isRtl ? "تم حفظ الإعدادات بنجاح!" : "Settings saved successfully!"}
                   </span>
                 )}
-                <Button type="submit" className={`bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white ${isRtl ? "mr-auto" : "ml-auto"} rounded-xl gap-1.5 font-bold px-6 shadow-md transition-all active:scale-95 ${isRtl ? "" : "flex-row-reverse"}`}>
+                <Button type="submit" disabled={!canManageSettings} className={`bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white ${isRtl ? "mr-auto" : "ml-auto"} rounded-xl gap-1.5 font-bold px-6 shadow-md transition-all active:scale-95 ${isRtl ? "" : "flex-row-reverse"}`}>
                   <Save className="w-4 h-4" />
                   {isRtl ? "حفظ التغييرات" : "Save Changes"}
                 </Button>
@@ -286,9 +293,9 @@ export default function ClinicSettingsPage() {
                 <label className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-[#4F46BA]/20 bg-violet-50 px-4 py-2.5 text-xs font-bold text-[#4F46BA]">
                   <UploadCloud className="h-4 w-4" />
                   {coverUploading ? (isRtl ? "جارٍ رفع الغلاف..." : "Uploading cover...") : (isRtl ? "رفع صورة الغلاف" : "Upload cover image")}
-                  <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" disabled={coverUploading} onChange={(e) => { void handleCoverUpload(e.target.files?.[0]); e.currentTarget.value = ""; }} />
+                  <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" disabled={!canManageSettings || coverUploading} onChange={(e) => { void handleCoverUpload(e.target.files?.[0]); e.currentTarget.value = ""; }} />
                 </label>
-                {coverUrl && <Button type="button" variant="outline" className="h-9 text-xs" onClick={() => setCoverUrl("")}>{isRtl ? "إزالة الغلاف" : "Remove cover"}</Button>}
+                {coverUrl && <Button type="button" variant="outline" className="h-9 text-xs" disabled={!canManageSettings} onClick={() => setCoverUrl("")}>{isRtl ? "إزالة الغلاف" : "Remove cover"}</Button>}
                 <span className="text-[11px] text-slate-400">{isRtl ? "PNG أو JPG أو WebP — حتى 5 ميجابايت" : "PNG, JPG or WebP — up to 5 MB"}</span>
               </div>
               <div className="space-y-1.5">
@@ -303,7 +310,7 @@ export default function ClinicSettingsPage() {
                 <div className="space-y-1.5 md:col-span-2"><label className="text-xs font-bold text-slate-700">{isRtl ? "رابط الموقع على خرائط Google (اختياري)" : "Google Maps URL (optional)"}</label><Input value={mapsUrl} onChange={(e) => setMapsUrl(e.target.value)} placeholder="https://maps.google.com/..." dir="ltr" /></div>
               </div>
               <div className="flex justify-end border-t pt-4">
-                <Button type="submit" className="rounded-xl bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] px-6 font-bold text-white">
+                <Button type="submit" disabled={!canManageSettings} className="rounded-xl bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] px-6 font-bold text-white">
                   <Save className="mr-2 h-4 w-4" /> {isRtl ? "حفظ صفحة المركز" : "Save public page"}
                 </Button>
               </div>
@@ -351,6 +358,7 @@ export default function ClinicSettingsPage() {
 
               <div className={`pt-4 flex justify-end gap-3 ${isRtl ? "" : "flex-row-reverse"}`}>
                 <Button 
+                  disabled={!canManageSettings}
                   onClick={handleSave} 
                   variant="outline"
                   className={`border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl font-bold px-6 ${isRtl ? "ml-auto" : "mr-auto"}`}
@@ -358,9 +366,9 @@ export default function ClinicSettingsPage() {
                   {isRtl ? "حفظ إعدادات درايف" : "Save Drive Settings"}
                 </Button>
                 
-                <Button 
+                {canExportData && <Button 
                   onClick={handleBackupNow} 
-                  disabled={backupLoading}
+                  disabled={backupLoading || !canExportData}
                   className={`bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl gap-2 font-bold px-6 shadow-md transition-all active:scale-95 flex items-center`}
                 >
                   {backupLoading ? (
@@ -374,7 +382,7 @@ export default function ClinicSettingsPage() {
                       {isRtl ? "أخذ نسخة احتياطية الآن" : "Backup Now"}
                     </span>
                   )}
-                </Button>
+                </Button>}
               </div>
             </div>
           </CardContent>
