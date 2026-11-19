@@ -49,7 +49,8 @@ Server routes using the service-role client must enforce these permissions and c
 | Inactive/deleted staff | All protected reads and writes denied |
 | Staff member from Clinic A requests Clinic B patient/invoice/appointment IDs | 403/404; no data returned |
 | Direct Data API request bypassing the UI | RLS denies rows without the matching read permission |
-| Direct query of clinical tables or patient-file Storage without `view_patients` | Denied even if the user has clinical-history/edit permission |
+| Direct query of clinical tables, waitlist, peer reviews, or patient-file Storage without `view_patients` | Denied even if the user has clinical-history/edit permission |
+| Patient-linked chat conversation/messages without `view_patients` | Patient conversations hidden/denied; team conversations remain participant-scoped |
 | Backup or attachment export without `export_data` | 403; no backup rows or signed file URLs returned |
 | Direct API request using a service-role-backed route | Server-side permission and clinic checks deny unauthorized access |
 | Clinic owner without a staff row | Owner-level access remains available |
