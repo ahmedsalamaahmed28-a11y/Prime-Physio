@@ -987,9 +987,8 @@ using (
 
 -- Intentionally unchanged:
 -- * auth_session_expiry_guard restrictive policies
--- * patient clinical write policies remain mapped to edit_emr/delete_emr; SELECT policies above require view_patients
+-- * patient clinical write policies now require view_patients plus edit_emr/delete_emr
 -- * subscriptions_self_read and service-role subscription policy
--- * clinic_bank_details admin-only policies
 -- * payroll_drafts manage_staff policies
 -- * platform-admin policies (their existing predicates remain intact)
 
