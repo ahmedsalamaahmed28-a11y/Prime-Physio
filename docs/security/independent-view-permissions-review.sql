@@ -46,7 +46,7 @@ where (
         'patient_programs', 'patient_risks', 'progress_tracking',
         'rom_assessments', 'sessions', 'soap_notes', 'special_tests',
         'treatment_plans', 'subscriptions', 'payroll_drafts',
-        'clinic_bank_details', 'peer_reviews', 'waitlist',
+        'clinic_bank_details', 'clinic_settings', 'peer_reviews', 'waitlist',
         'chat_conversations', 'chat_messages'
       )
     )
@@ -57,7 +57,9 @@ where (
         'patient_files_clinic_read',
         'patient_files_clinic_upload',
         'patient_files_clinic_update',
-        'patient_files_clinic_delete'
+        'patient_files_clinic_delete',
+        'clinic_logo_upload_own_center',
+        'clinic_logo_delete_own_center'
       )
     )
   )
@@ -176,6 +178,101 @@ begin
   return false;
 end;
 $function$;
+
+-- Sensitive clinic bank details and clinic settings use explicit manage_settings permission.
+drop policy if exists clinic_bank_details_admin_select on public.clinic_bank_details;
+create policy clinic_bank_details_admin_select
+on public.clinic_bank_details
+for select
+to authenticated
+using (
+  clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('manage_settings')
+);
+
+drop policy if exists clinic_bank_details_admin_insert on public.clinic_bank_details;
+create policy clinic_bank_details_admin_insert
+on public.clinic_bank_details
+for insert
+to authenticated
+with check (
+  clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('manage_settings')
+);
+
+drop policy if exists clinic_bank_details_admin_update on public.clinic_bank_details;
+create policy clinic_bank_details_admin_update
+on public.clinic_bank_details
+for update
+to authenticated
+using (
+  clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('manage_settings')
+)
+with check (
+  clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('manage_settings')
+);
+
+drop policy if exists clinic_bank_details_admin_delete on public.clinic_bank_details;
+create policy clinic_bank_details_admin_delete
+on public.clinic_bank_details
+for delete
+to authenticated
+using (
+  clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('manage_settings')
+);
+
+drop policy if exists clinic_settings_admin_write on public.clinic_settings;
+create policy clinic_settings_admin_write
+on public.clinic_settings
+for all
+to authenticated
+using (
+  auth.uid() is not null
+  and (
+    public.has_staff_permission('manage_settings')
+    or public.is_platform_admin()
+  )
+  and (
+    clinic_id = public.get_my_clinic_id()
+    or public.is_platform_admin()
+  )
+)
+with check (
+  auth.uid() is not null
+  and (
+    public.has_staff_permission('manage_settings')
+    or public.is_platform_admin()
+  )
+  and (
+    clinic_id = public.get_my_clinic_id()
+    or public.is_platform_admin()
+  )
+);
+
+drop policy if exists clinic_logo_upload_own_center on storage.objects;
+create policy clinic_logo_upload_own_center
+on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'branch-logos'
+  and (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  and public.has_staff_permission('manage_settings')
+);
+
+drop policy if exists clinic_logo_delete_own_center on storage.objects;
+create policy clinic_logo_delete_own_center
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'branch-logos'
+  and (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  and public.has_staff_permission('manage_settings')
+);
 
 -- Staff administration must follow the explicit manage_staff permission, not role-only is_clinic_admin().
 drop policy if exists staff_clinic_write on public.staff;
