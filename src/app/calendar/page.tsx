@@ -790,7 +790,15 @@ export default function CalendarPage() {
 
   // Load patients and events from Supabase
   useEffect(() => {
-    if (!clinicId || !canViewAppointments) return;
+    if (!clinicId || !canViewAppointments) {
+      setEvents([]);
+      setPatients([]);
+      setDoctorsList([]);
+      setRooms([]);
+      setSelectedEvent(null);
+      setSelectedDate(null);
+      return;
+    }
     const loadData = async () => {
       let dbEvents: any[] = [];
       let roomData: { id: string; name: string; branch_id: string | null }[] = [];
