@@ -50,7 +50,7 @@ function parsePermissionList(value: unknown): string[] | null {
 }
 
 const getDefaultPerms = (role: string) => {
-  const roleName = role || "";
+  const roleName = String(role || "").trim().toLowerCase();
   if (["مدير العيادة", "مدير العياده", "مدير العياره", "مدير النظام", "admin", "clinic_admin"].includes(roleName)) {
     return AVAILABLE_PERMISSIONS.map(p => p.id);
   }
