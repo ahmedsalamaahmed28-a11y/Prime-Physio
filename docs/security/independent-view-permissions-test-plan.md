@@ -25,7 +25,7 @@ Status: review branch only. No production migration, deployment, or data mutatio
 | Appointment calendar | `view_appointments` | `edit_appointments`; clinical fields also require `edit_emr` |
 | Invoice list | `view_invoices` | `create_invoice`, `apply_discount`, `refund_invoice`, `delete_invoice` |
 | Analytics aggregates/reports | `view_analytics` | `manage_reports` |
-| Clinical records, evaluations, plans, attachments, and patient-file storage | `view_patients` plus `view_patient_history` (or the existing clinical-edit implication) | `edit_emr`, `delete_emr` |
+| Clinical records, evaluations, plans, attachments, and patient-file storage | `view_patients` plus `view_patient_history` | `edit_emr`, `delete_emr` |
 | Full clinic backup and attachment export | `export_data` | `export_data` (explicitly grants whole-clinic export scope) |
 
 Server routes using the service-role client must enforce these permissions and clinic scope themselves. The invoice and analytics APIs return only aggregate/authorized data; invoice mutation responses omit invoice details when the caller lacks `view_invoices`.
