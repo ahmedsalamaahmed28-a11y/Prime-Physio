@@ -26,7 +26,7 @@ const RECEPTION_ROLES = new Set([
   "موظفة استقبال رئيسية",
 ]);
 
-ype PermissionOverride = { defined: false } | { defined: true; permissions: string[] };
+type PermissionOverride = { defined: false } | { defined: true; permissions: string[] };
 
 function parsePermissionOverride(value: unknown): PermissionOverride {
   if (value === null || value === undefined || (typeof value === "string" && !value.trim())) {
