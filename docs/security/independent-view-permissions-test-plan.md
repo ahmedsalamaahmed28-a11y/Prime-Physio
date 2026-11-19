@@ -6,6 +6,7 @@ Status: review branch only. No production migration, deployment, or data mutatio
 
 - Clinic owners remain owner-level administrators.
 - Staff with a non-empty explicit `permissions` array receive exactly the permissions in that array, regardless of their role name.
+- Admin-role staff with no explicit list retain the legacy all-permissions default; an explicit list overrides that default.
 - Empty/null permissions use the documented role defaults.
 - Malformed JSON, non-array JSON, and arrays containing non-string values fail closed (no permissions).
 - The independent read permissions are:
