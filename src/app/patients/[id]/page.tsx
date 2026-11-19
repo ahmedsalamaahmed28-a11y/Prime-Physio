@@ -766,6 +766,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
+  const canViewPatientHistory = hasPermission("view_patient_history") || hasPermission("edit_emr");
   const { user: authUser } = useAuth();
   const clinicId = authUser?.clinicId;
   
