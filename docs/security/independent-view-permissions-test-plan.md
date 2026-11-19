@@ -22,12 +22,12 @@ Status: review branch only. No production migration, deployment, or data mutatio
 | Resource | Read permission | Write permission(s) |
 |---|---|---|
 | Patient directory/detail | `view_patients` | `edit_patient`, `edit_emr`, `delete_patient` |
-| Appointment calendar | `view_appointments` | `edit_appointments`; clinical fields also require `edit_emr` |
+| Appointment calendar | `view_appointments`; patient names/IDs require `view_patients` | Direct appointment insert requires `view_patients` + `edit_appointments` + `create_invoice`; direct update/delete require `view_appointments` + `view_patients` + `edit_appointments`; clinical fields also require `edit_emr` |
 | Invoice list | `view_invoices` | `create_invoice`, `apply_discount`, `refund_invoice`, `delete_invoice` |
-| Analytics aggregates/reports | `view_analytics` | `manage_reports` |
+| Analytics aggregates/reports | `view_analytics`; report records are also readable to `manage_reports` users so they can edit them | `manage_reports` |
 | Staff list and permission administration | Clinic-scoped staff listing; permission editor gated by `manage_staff` | `manage_staff` (also enforced by the staff RLS write policy) |
 | Clinic settings, bank details, and branch logos | Clinic settings remain tenant-readable; sensitive bank details are restricted to settings managers | `manage_settings` (explicitly checked by clinic settings, bank-detail, and branch-logo RLS) |
-| Clinical records, evaluations, plans, attachments, and patient-file storage | `view_patients` plus `view_patient_history` (or `edit_emr`, which must read the existing record to edit it) | `edit_emr`, `delete_emr` |
+| Clinical records, evaluations, plans, attachments, and patient-file storage | `view_patients` plus `view_patient_history` (or `edit_emr`, which must read the existing record to edit it) | Direct RLS writes also require `view_patients` plus `edit_emr` / `delete_emr`; server routes enforce the same scopes |
 | Full clinic backup and attachment export | `export_data` | `export_data` (explicitly grants whole-clinic export scope) |
 
 Server routes using the service-role client must enforce these permissions and clinic scope themselves. The invoice and analytics APIs return only aggregate/authorized data; invoice mutation responses omit invoice details when the caller lacks `view_invoices`.
@@ -55,7 +55,9 @@ Server routes using the service-role client must enforce these permissions and c
 | Inactive/deleted staff | All protected reads and writes denied |
 | Staff member from Clinic A requests Clinic B patient/invoice/appointment IDs | 403/404; no data returned |
 | Direct Data API request bypassing the UI | RLS denies rows without the matching read permission |
-| Direct query of clinical tables, waitlist, peer reviews, or patient-file Storage without `view_patients` | Denied even if the user has clinical-history/edit permission |
+| Direct query or write to clinical tables, waitlist, peer reviews, or patient-file Storage without `view_patients` | Denied even if the user has clinical-history/edit permission |
+| Direct appointment INSERT without `view_patients` or `create_invoice` | Denied by RLS; server booking API applies the same patient/invoice scopes |
+| Direct insurance-claim write without `view_invoices` | Denied by RLS; invoice creation permission alone does not expose claim rows |
 | Clinical read with `view_patients` + `edit_emr` but without `view_patient_history` | Allowed only because EMR editing requires reading the existing clinical record; `view_patients` is still mandatory |
 | Patient-linked chat conversation/messages without `view_patients` | Patient conversations hidden/denied; team conversations remain participant-scoped |
 | Backup or attachment export without `export_data` | 403; no backup rows or signed file URLs returned |
