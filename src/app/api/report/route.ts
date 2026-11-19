@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getClinicContext } from "@/lib/server/clinic-context";
-import { hasStaffPermission } from "@/lib/server/staff-permissions";
+import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
 
 const deepseekApiKey = process.env.DEEPSEEK_API_KEY || "";
 const geminiApiKey = process.env.GEMINI_API_KEY || "";
@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
   try {
     const auth = await getClinicContext(req);
     if ("response" in auth) return auth.response;
-    if (!hasStaffPermission(auth.staff, "view_patients") || !hasStaffPermission(auth.staff, "view_patient_history")) {
+    if (!hasStaffPermission(auth.staff, "view_patients") || !canViewPatientHistory(auth.staff)) {
       return NextResponse.json({ error: "ليس لديك صلاحية مشاهدة بيانات المريض والسجل السريري" }, { status: 403 });
     }
     const body = await req.json().catch(() => null);
