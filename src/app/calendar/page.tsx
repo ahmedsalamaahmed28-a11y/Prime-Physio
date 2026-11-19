@@ -778,7 +778,7 @@ export default function CalendarPage() {
   const { hasPermission } = usePermissions();
   const canViewAppointments = hasPermission("view_appointments");
   const canViewPatients = hasPermission("view_patients");
-  const canCreateAppointments = canCreateAppointments && hasPermission("create_invoice");
+  const canCreateAppointments = canViewPatients && hasPermission("edit_appointments") && hasPermission("create_invoice");
   const { user, activeBranchId } = useAuth(); const clinicId = user?.clinicId;
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
