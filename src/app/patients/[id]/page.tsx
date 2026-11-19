@@ -1370,7 +1370,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
 
 // ─── Tab: Packages ────────────────────────────────────────────────────────────
 
-function PackagesTab({ patient, onUpdatePatient }: { patient: any, onUpdatePatient: (p: any) => void }) {
+function PackagesTab({ patient, onUpdatePatient, canEditPatient, canConsumeSession }: { patient: any, onUpdatePatient: (p: any) => void, canEditPatient: boolean, canConsumeSession: boolean }) {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { user: authUser } = useAuth();
@@ -1392,7 +1392,7 @@ function PackagesTab({ patient, onUpdatePatient }: { patient: any, onUpdatePatie
   const isFinished = remaining <= 0 && pkg.totalSessions > 0;
 
   const handleConsumeSession = async () => {
-    if (remaining <= 0 || isUpdating || !clinicId) return;
+    if (!canConsumeSession || remaining <= 0 || isUpdating || !clinicId) return;
     setIsUpdating(true);
 
     try {
@@ -1415,7 +1415,7 @@ function PackagesTab({ patient, onUpdatePatient }: { patient: any, onUpdatePatie
   };
 
   const handleRenewPackage = async () => {
-    if (isUpdating) return;
+    if (!canEditPatient || isUpdating) return;
     setIsUpdating(true);
     
     const newPackageName = prompt(isRtl ? "أدخل اسم الباقة الجديدة:" : "Enter new package name:", "باقة 6 جلسات");
@@ -1498,23 +1498,23 @@ function PackagesTab({ patient, onUpdatePatient }: { patient: any, onUpdatePatie
             </div>
           </div>
           <Separator />
-          <div className="flex gap-2 pt-1">
-            <Button 
+          {(canEditPatient || canConsumeSession) && <div className="flex gap-2 pt-1">
+            {canConsumeSession && <Button 
               onClick={handleConsumeSession} 
               disabled={remaining <= 0 || isUpdating} 
               className="flex-1 bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]"
             >
               {isUpdating ? (isRtl ? "جاري..." : "Processing...") : (isRtl ? "استهلاك جلسة" : "Consume Session")}
-            </Button>
-            <Button 
+            </Button>}
+            {canEditPatient && <Button 
               onClick={handleRenewPackage}
               disabled={isUpdating}
               variant="outline" 
               className="flex-1"
             >
               {isRtl ? "تجديد/تغيير الباقة" : "Renew/Change Package"}
-            </Button>
-          </div>
+            </Button>}
+          </div>}
         </CardContent>
       </Card>
       <div>
@@ -2794,7 +2794,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
           {hasPermission("view_patient_history") && <TabsContent value="reports"><SmartReportsTab patient={patient} /></TabsContent>}
           {hasPermission("view_patient_history") && <TabsContent value="clinical"><ClinicalWorkflowTab patientId={patient.id} clinicId={clinicId || undefined} isRtl={isRtl} canEdit={canEditClinical} /></TabsContent>}
           {hasPermission("view_patient_history") && <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} initialState={typeof patient.active_protocol === 'string' ? JSON.parse(patient.active_protocol) : patient.active_protocol} readOnly={!canEditClinical} onSaveState={canEditClinical ? handleSaveProtocolState : undefined} /></TabsContent>}
-          <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} /></TabsContent>
+          <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} canEditPatient={canEditPatient} canConsumeSession={canEditPatient && canEditClinical} /></TabsContent>
           <TabsContent value="neuro"><NeuroReferenceTab /></TabsContent>
         </Tabs>
       </div>
