@@ -89,6 +89,8 @@ export default function BillingPage() {
   const { hasPermission, isAdmin } = usePermissions();
   const { user } = useAuth();
   const clinicId = user?.clinicId;
+  const canViewInvoices = hasPermission("view_invoices");
+  const canViewPatients = hasPermission("view_patients");
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
   const [selectedInvoiceForDiscount, setSelectedInvoiceForDiscount] = useState<any>(null);
   const [discountValue, setDiscountValue] = useState("");
@@ -97,6 +99,7 @@ export default function BillingPage() {
   const [deleteInvoiceId, setDeleteInvoiceId] = useState<string | null>(null);
 
   const loadInvoices = async () => {
+    if (!canViewInvoices) { setInvoices([]); setIsLoading(false); setLoadError(""); return; }
     if (!clinicId) { setInvoices([]); setIsLoading(false); setLoadError(""); return; }
     try {
       setIsLoading(true);
@@ -133,7 +136,7 @@ export default function BillingPage() {
   };
 
   const loadPatients = async () => {
-    if (!clinicId) { setPatients([]); return; }
+    if (!canViewPatients || !clinicId) { setPatients([]); return; }
     try {
       const { data, error } = await supabase.from("patients").select("id, nameAr").eq("clinic_id", clinicId);
       if (!error && data) {
@@ -180,7 +183,7 @@ export default function BillingPage() {
   useEffect(() => {
     loadInvoices();
     loadPatients();
-  }, [clinicId, isRtl]);
+  }, [clinicId, isRtl, canViewInvoices, canViewPatients]);
 
   const handleExportPDF = () => {
     let iframe = document.getElementById('print-iframe') as HTMLIFrameElement;
@@ -303,6 +306,14 @@ export default function BillingPage() {
     },
   ];
 
+  if (!canViewInvoices) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900" dir={isRtl ? "rtl" : "ltr"}>
+        {isRtl ? "ليس لديك صلاحية مشاهدة الفواتير والبيانات المالية." : "You do not have permission to view invoices and financial data."}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6" dir={isRtl ? "rtl" : "ltr"}>
       
@@ -375,9 +386,13 @@ export default function BillingPage() {
                   <tr key={inv.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="py-4 px-6 font-mono font-semibold text-slate-900">{inv.id}</td>
                     <td className="py-4 px-6 font-medium text-slate-800">
-                      <Link href={`/patients/${inv.patientId}`} className="text-[#0d8a8a] hover:underline dark:text-[#1ab0b2]">
-                        {patients.find(p => p.id === inv.patientId)?.nameAr || inv.patientName}
-                      </Link>
+                      {canViewPatients ? (
+                        <Link href={`/patients/${inv.patientId}`} className="text-[#0d8a8a] hover:underline dark:text-[#1ab0b2]">
+                          {patients.find(p => p.id === inv.patientId)?.nameAr || inv.patientName}
+                        </Link>
+                      ) : (
+                        <span>{inv.patientName}</span>
+                      )}
                     </td>
                     <td className="py-4 px-6 text-slate-600">{inv.description}</td>
                     <td className="py-4 px-6 font-semibold text-slate-900 font-mono">{inv.amount}</td>
@@ -395,7 +410,7 @@ export default function BillingPage() {
                     <td className="py-4 px-6">
                       <select
                         value={inv.status}
-                        disabled={!hasPermission("create_invoice") && !isAdmin}
+                        disabled={!hasPermission("create_invoice")}
                         onChange={async (e) => {
                           const newStatus = normalizeInvoiceStatus(e.target.value);
                           
@@ -443,7 +458,7 @@ export default function BillingPage() {
                             {isRtl ? "تطبيق خصم" : "Discount"}
                           </Button>
                         )}
-                        {(isAdmin || hasPermission("create_invoice")) && (
+                        {hasPermission("delete_invoice") && (
                           <Button 
                             variant="ghost" 
                             size="sm" 
