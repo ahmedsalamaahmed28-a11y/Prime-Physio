@@ -32,7 +32,7 @@ begin
       ', '
     )
     into v_roles
-    from pg_catalog.unnest(p.roles) as role_name;
+    from pg_catalog.unnest(p.roles) as roles(role_name);
 
     if v_roles is null or v_roles = '' then
       v_roles := 'PUBLIC';
