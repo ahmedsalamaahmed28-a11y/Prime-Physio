@@ -1292,7 +1292,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
         </CardContent>
       </Card>
       )}      {/* Progress Chart and Timeline side-by-side */}
-      {hasPermission("view_patient_history") ? (
+      {canViewPatientHistory ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Sessions Timeline */}
           <div>
@@ -2462,10 +2462,10 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
   });
   const { hasPermission } = usePermissions();
   const canViewPatients = hasPermission("view_patients");
-  const canViewPatientHistory = hasPermission("view_patient_history");
+  const canViewPatientHistory = hasPermission("view_patient_history") || hasPermission("edit_emr");
   const canEditPatient = hasPermission("edit_patient");
   const canEditClinical = hasPermission("edit_emr");
-  const canExportPatientRecord = canViewPatientHistory || hasPermission("export_data");
+  const canExportPatientRecord = canViewPatientHistory && hasPermission("export_data");
   const { user } = useAuth();
   const clinicId = user?.clinicId;
 
@@ -2780,20 +2780,20 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">        <Tabs defaultValue="general">
           <TabsList className="flex overflow-x-auto whitespace-nowrap scrollbar-hide h-auto w-full max-w-5xl justify-start gap-1.5 p-1.5 print:hidden bg-slate-100/50 dark:bg-slate-800/50 rounded-lg border border-slate-200/50">
             <TabsTrigger value="general" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "المعلومات العامة" : "General Info"}</TabsTrigger>
-            {hasPermission("view_patient_history") && <TabsTrigger value="radiology" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "الأشعة والتحاليل" : "Scans & Reports"}</TabsTrigger>}
-            {hasPermission("view_patient_history") && <TabsTrigger value="records" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "السجلات الطبية" : "Medical Records"}</TabsTrigger>}
-            {hasPermission("view_patient_history") && <TabsTrigger value="reports" className="text-teal-700 dark:text-teal-400 font-medium rounded-md data-[state=active]:bg-teal-50 data-[state=active]:text-teal-800"><FileText className="w-3.5 h-3.5 mr-1.5 ml-1.5"/> {isRtl ? "التقارير الذكية" : "Smart Reports"}</TabsTrigger>}
-            {hasPermission("view_patient_history") && <TabsTrigger value="clinical" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "التقييم والخطة العلاجية" : "Evaluation & Care Plan"}</TabsTrigger>}
-            {hasPermission("view_patient_history") && <TabsTrigger value="protocols" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "بروتوكولات التأهيل" : "Rehab Protocols"}</TabsTrigger>}
+            {canViewPatientHistory && <TabsTrigger value="radiology" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "الأشعة والتحاليل" : "Scans & Reports"}</TabsTrigger>}
+            {canViewPatientHistory && <TabsTrigger value="records" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "السجلات الطبية" : "Medical Records"}</TabsTrigger>}
+            {canViewPatientHistory && <TabsTrigger value="reports" className="text-teal-700 dark:text-teal-400 font-medium rounded-md data-[state=active]:bg-teal-50 data-[state=active]:text-teal-800"><FileText className="w-3.5 h-3.5 mr-1.5 ml-1.5"/> {isRtl ? "التقارير الذكية" : "Smart Reports"}</TabsTrigger>}
+            {canViewPatientHistory && <TabsTrigger value="clinical" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "التقييم والخطة العلاجية" : "Evaluation & Care Plan"}</TabsTrigger>}
+            {canViewPatientHistory && <TabsTrigger value="protocols" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "بروتوكولات التأهيل" : "Rehab Protocols"}</TabsTrigger>}
             <TabsTrigger value="packages" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "الباقات" : "Packages"}</TabsTrigger>
             <TabsTrigger value="neuro" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "دليل الأعصاب" : "Neuro Reference"}</TabsTrigger>
           </TabsList>
           <TabsContent value="general"><GeneralInfoTab patient={patient} /></TabsContent>
-          {hasPermission("view_patient_history") && <TabsContent value="radiology"><PatientAttachmentsTab patientId={resolvedParams.id} /></TabsContent>}
-          {hasPermission("view_patient_history") && <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>}
-          {hasPermission("view_patient_history") && <TabsContent value="reports"><SmartReportsTab patient={patient} /></TabsContent>}
-          {hasPermission("view_patient_history") && <TabsContent value="clinical"><ClinicalWorkflowTab patientId={patient.id} clinicId={clinicId || undefined} isRtl={isRtl} canEdit={canEditClinical} /></TabsContent>}
-          {hasPermission("view_patient_history") && <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} initialState={typeof patient.active_protocol === 'string' ? JSON.parse(patient.active_protocol) : patient.active_protocol} readOnly={!canEditClinical} onSaveState={canEditClinical ? handleSaveProtocolState : undefined} /></TabsContent>}
+          {canViewPatientHistory && <TabsContent value="radiology"><PatientAttachmentsTab patientId={resolvedParams.id} /></TabsContent>}
+          {canViewPatientHistory && <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>}
+          {canViewPatientHistory && <TabsContent value="reports"><SmartReportsTab patient={patient} /></TabsContent>}
+          {canViewPatientHistory && <TabsContent value="clinical"><ClinicalWorkflowTab patientId={patient.id} clinicId={clinicId || undefined} isRtl={isRtl} canEdit={canEditClinical} /></TabsContent>}
+          {canViewPatientHistory && <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} initialState={typeof patient.active_protocol === 'string' ? JSON.parse(patient.active_protocol) : patient.active_protocol} readOnly={!canEditClinical} onSaveState={canEditClinical ? handleSaveProtocolState : undefined} /></TabsContent>}
           <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} canEditPatient={canEditPatient} canConsumeSession={canEditPatient && canEditClinical} /></TabsContent>
           <TabsContent value="neuro"><NeuroReferenceTab /></TabsContent>
         </Tabs>
