@@ -37,7 +37,10 @@ export async function GET(req: NextRequest) {
   try {
     const auth = await getClinicContext(req);
     if ("response" in auth) return auth.response;
-    const { admin, clinicId } = auth;
+    const { admin, clinicId, staff } = auth;
+    if (!hasStaffPermission(staff, "view_patients")) {
+      return NextResponse.json({ error: "ليس لديك صلاحية مشاهدة ملفات المرضى" }, { status: 403 });
+    }
 
     const archivedView = req.nextUrl.searchParams.get("archived") === "true";
     const { data, error } = await admin
