@@ -373,7 +373,10 @@ to authenticated
 using (
   auth.uid() is not null
   and clinic_id = public.get_my_clinic_id()
-  and public.has_staff_permission('view_analytics')
+  and (
+    public.has_staff_permission('view_analytics')
+    or public.has_staff_permission('manage_reports')
+  )
 );
 
 -- Tighten clinic-staff write policies that were previously broad.
@@ -764,11 +767,13 @@ to authenticated
 using (
   auth.uid() is not null
   and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_patients')
   and public.has_staff_permission('edit_emr')
 )
 with check (
   auth.uid() is not null
   and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_patients')
   and public.has_staff_permission('edit_emr')
 );
 
@@ -791,6 +796,7 @@ to authenticated
 with check (
   auth.uid() is not null
   and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_patients')
   and public.has_staff_permission('edit_patient')
 );
 
@@ -802,11 +808,13 @@ to authenticated
 using (
   auth.uid() is not null
   and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_patients')
   and public.has_staff_permission('edit_patient')
 )
 with check (
   auth.uid() is not null
   and clinic_id = public.get_my_clinic_id()
+  and public.has_staff_permission('view_patients')
   and public.has_staff_permission('edit_patient')
 );
 
