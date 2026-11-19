@@ -39,8 +39,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await getClinicContext(request);
   if ("response" in auth) return auth.response;
-  if (!hasStaffPermission(auth.staff, "edit_emr")) {
-    return NextResponse.json({ error: "اعتماد المجموعات وتحديد عدد الجلسات يتطلب صلاحية الأخصائي." }, { status: 403 });
+  if (!hasStaffPermission(auth.staff, "edit_emr")
+    || !hasStaffPermission(auth.staff, "edit_appointments")
+    || !hasStaffPermission(auth.staff, "edit_patient")) {
+    return NextResponse.json({ error: "اعتماد المجموعات يتطلب صلاحيات التعديل السريري والمرضى والمواعيد." }, { status: 403 });
   }
   try {
     const body = await request.json();
