@@ -21,6 +21,7 @@ export function usePermissions() {
   const { user } = useAuth();
   const [customPerms, setCustomPerms] = useState<string[]>([]);
   const [hasOverride, setHasOverride] = useState(false);
+  const [serverManageStaff, setServerManageStaff] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -29,7 +30,19 @@ export function usePermissions() {
       if (!user?.email || !user.clinicId) {
         setCustomPerms([]);
         setHasOverride(false);
+        setServerManageStaff(false);
         return;
+      }
+
+      // Ask the database's authoritative permission function. This also recognizes
+      // clinic owners stored in clinic_owners even when they have no staff row.
+      try {
+        const { data, error } = await supabase.rpc("has_staff_permission", {
+          permission_key: "manage_staff",
+        });
+        if (!cancelled) setServerManageStaff(!error && data === true);
+      } catch {
+        if (!cancelled) setServerManageStaff(false);
       }
 
       try {
@@ -61,6 +74,10 @@ export function usePermissions() {
 
   const hasPermission = (action: string) => {
     if (user?.roleKey === "admin") return true;
+
+    // The server-side permission result is authoritative for staff management
+    // and supports clinic owners who are not represented in the staff table.
+    if (action === "manage_staff" && serverManageStaff) return true;
 
     if (hasOverride) return customPerms.includes(action);
 
