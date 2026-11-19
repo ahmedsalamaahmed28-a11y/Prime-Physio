@@ -40,7 +40,7 @@ Server routes using the service-role client must enforce these permissions and c
 | Explicit list contains only `edit_patient` | Patient GET denied; authorized PATCH succeeds through the server API and returns no patient data |
 | Explicit list contains only `edit_emr` | Patient/clinical APIs denied because `view_patients` is absent; no patient data is returned |
 | Explicit list contains `view_patients` + `edit_emr`, but not `view_patient_history` | Clinical record read needed for editing is allowed; clinical writes are allowed; other history-only users remain read-only |
-| Explicit list contains only `view_appointments` | Calendar schedule readable with patient names/IDs and clinical fields removed; patient directory not returned |
+| Explicit list contains only `view_appointments` | Calendar API returns anonymized schedule; direct Data API SELECT on appointments is denied without `view_patients`; patient directory is not returned |
 | Explicit list contains only `edit_appointments` | Appointment PATCH is authorized by API; appointment GET remains denied. Booking POST also requires `create_invoice` because it creates an invoice |
 | Explicit list contains only `view_invoices` | Invoice list readable; status/amount/delete mutations denied |
 | Explicit list contains only `apply_discount` | Invoice PATCH can apply discount through API; invoice list remains denied and response contains no invoice data |
@@ -56,6 +56,7 @@ Server routes using the service-role client must enforce these permissions and c
 | Staff member from Clinic A requests Clinic B patient/invoice/appointment IDs | 403/404; no data returned |
 | Direct Data API request bypassing the UI | RLS denies rows without the matching read permission |
 | Direct query or write to clinical tables, waitlist, peer reviews, or patient-file Storage without `view_patients` | Denied even if the user has clinical-history/edit permission |
+| Direct appointment SELECT without `view_patients` | Denied by RLS so the patient_id/patient_name columns cannot be read around the calendar API redaction |
 | Direct appointment INSERT without `view_patients` or `create_invoice` | Denied by RLS; server booking API applies the same patient/invoice scopes |
 | Direct insurance-claim write without `view_invoices` | Denied by RLS; invoice creation permission alone does not expose claim rows |
 | Clinical read with `view_patients` + `edit_emr` but without `view_patient_history` | Allowed only because EMR editing requires reading the existing clinical record; `view_patients` is still mandatory |
