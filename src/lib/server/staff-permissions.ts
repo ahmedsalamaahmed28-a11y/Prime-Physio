@@ -73,7 +73,7 @@ export function hasStaffPermission(
   const status = String(staff.status || "").trim().toLowerCase();
   if (["محذوف", "deleted", "inactive", "غير نشط"].includes(status)) return false;
 
-  const role = String(staff.role || "").trim();
+  const role = String(staff.role || "").trim().toLowerCase();
   const override = parsePermissionOverride(staff.permissions);
   const permissions = override.defined
     ? override.permissions
