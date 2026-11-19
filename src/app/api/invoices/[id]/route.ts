@@ -68,6 +68,11 @@ export async function PATCH(
     if (error) throw error;
     if (!data) return NextResponse.json({ error: "الفاتورة غير موجودة في العيادة الحالية" }, { status: 404 });
 
+    if (!hasStaffPermission(auth.staff, "view_invoices")) {
+      return NextResponse.json({ success: true }, {
+        headers: { "Cache-Control": "no-store, private" },
+      });
+    }
     return NextResponse.json({ success: true, invoice: data }, {
       headers: { "Cache-Control": "no-store, private" },
     });
