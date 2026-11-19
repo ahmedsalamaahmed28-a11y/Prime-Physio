@@ -94,12 +94,12 @@ export function usePermissions() {
   }, [user?.email, user?.clinicId]);
 
   const hasPermission = (action: string) => {
-    // The database permission function is authoritative for staff administration,
-    // including the owner account which may not have a staff row.
-    if (action === "manage_staff" && serverManageStaff) return true;
-
-    // A saved explicit list always takes precedence for all other permissions.
+    // A saved explicit list always takes precedence, including for admin-role staff.
+    // Keep this ahead of the database fallback until the matching RLS migration is applied.
     if (hasOverride) return customPerms.includes(action) || customPerms.includes("*");
+
+    // Owners without a staff row are recognized by the database permission function.
+    if (action === "manage_staff" && serverManageStaff) return true;
 
     const defaults = defaultPermissions(user?.roleKey);
     return defaults.includes(action) || defaults.includes("*");
