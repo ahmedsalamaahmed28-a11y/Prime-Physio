@@ -778,6 +778,7 @@ export default function CalendarPage() {
   const { hasPermission } = usePermissions();
   const canViewAppointments = hasPermission("view_appointments");
   const canViewPatients = hasPermission("view_patients");
+  const canCreateAppointments = canCreateAppointments && hasPermission("create_invoice");
   const { user, activeBranchId } = useAuth(); const clinicId = user?.clinicId;
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [patients, setPatients] = useState<any[]>([]);
@@ -842,16 +843,18 @@ export default function CalendarPage() {
         const participantIds = participantsByAppointment.get(e.id) || [];
         const participantNames = participantIds.map((id) => patientNames.get(id) || id);
         const isGroupSession = Boolean(e.is_group_session || participantIds.length > 1);
-        const displayPatientName = isGroupSession
-          ? (isRtl ? `جلسة جماعية (${participantIds.length})` : `Group session (${participantIds.length})`)
-          : (patientNames.get(e.patient_id) || e.patient_name || "");
+        const displayPatientName = !canViewPatients
+          ? (isRtl ? "موعد محجوز" : "Booked appointment")
+          : isGroupSession
+            ? (isRtl ? `جلسة جماعية (${participantIds.length})` : `Group session (${participantIds.length})`)
+            : (patientNames.get(e.patient_id) || e.patient_name || "");
         return {
           id: e.id,
           title: `${displayPatientName} - ${e.appointment_type || e.type || ""}`,
           start,
           end,
           patientName: displayPatientName,
-          patientId: e.patient_id,
+          patientId: canViewPatients ? (e.patient_id || "") : "",
           isGroupSession,
           groupParticipantIds: participantIds,
           groupParticipantNames: participantNames,
@@ -1107,7 +1110,7 @@ export default function CalendarPage() {
               <p className="text-xs text-muted-foreground mt-0.5">{isRtl ? "التقويم التفاعلي للمواعيد" : "Interactive appointments calendar"}</p>
             </div>
           </div>
-          {canViewPatients && hasPermission("edit_appointments") && (
+          {canCreateAppointments && (
             <Button
               className="bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] hover:from-[#4338ca] hover:to-[#6d28d9] text-white gap-2 rounded-xl font-bold px-6 shadow-md transition-all active:scale-95"
               onClick={() => setSelectedDate(new Date())}
@@ -1124,10 +1127,10 @@ export default function CalendarPage() {
           currentDate={currentDate}
           onDateChange={setCurrentDate}
           onSelectSlot={(date) => {
-            if (canViewPatients && hasPermission("edit_appointments")) setSelectedDate(date);
+            if (canCreateAppointments) setSelectedDate(date);
           }}
           onSelectEvent={setSelectedEvent}
-          selectable={canViewPatients && hasPermission("edit_appointments")}
+          selectable={canCreateAppointments}
           doctorsList={doctorsList}
           roomsList={rooms}
         />
