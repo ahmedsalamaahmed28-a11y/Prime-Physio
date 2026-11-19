@@ -644,7 +644,7 @@ for select
 to authenticated
 using (
   clinic_id = public.get_my_clinic_id()
-  and (kind <> 'patient' or public.has_staff_permission('view_patients'))
+  and (coalesce(kind, 'team') <> 'patient' or public.has_staff_permission('view_patients'))
   and exists (
     select 1
     from public.chat_participants p
@@ -673,13 +673,10 @@ using (
     from public.chat_conversations c
     where c.id = chat_messages.conversation_id
       and c.clinic_id = chat_messages.clinic_id
-      and coalesce(c.kind, 'team') <> 'patient'
-        or (
-          c.id = chat_messages.conversation_id
-          and c.clinic_id = chat_messages.clinic_id
-          and c.kind = 'patient'
-          and public.has_staff_permission('view_patients')
-        )
+      and (
+        coalesce(c.kind, 'team') <> 'patient'
+        or public.has_staff_permission('view_patients')
+      )
   )
 );
 
