@@ -167,7 +167,7 @@ test("clinic-scoped RLS resolves canonical identity and immutable clinic claims"
   assert.match(migration, /create or replace function public\.get_auth_email\(\)/);
   assert.match(migration, /auth_source' = 'clinic-scoped-shadow'/);
   assert.match(migration, /app_metadata' ->> 'canonical_email'/);
-  assert.match(migration, /app_metadata ->> 'clinic_id'/);
+  assert.match(migration, /app_metadata' ->> 'clinic_id'/);
   assert.match(migration, /clinic-scoped-shadow/);
   assert.match(migration, /and coalesce\(auth\.jwt\(\) -> 'app_metadata' ->> 'auth_source', ''\) <> 'clinic-scoped-shadow'/);
   assert.match(migration, /create policy chat_participants_self_read/);
