@@ -1,6 +1,8 @@
 import { supabase } from "@/lib/supabase";
 
-export async function activateClinicSession(clinicId: string): Promise<void> {
+const pendingExchanges = new Map<string, Promise<void>>();
+
+async function exchangeClinicSession(clinicId: string): Promise<void> {
   const response = await fetch("/api/auth/clinic-session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -35,5 +37,19 @@ export async function activateClinicSession(clinicId: string): Promise<void> {
   if (typeof window !== "undefined") {
     sessionStorage.removeItem("prime-physio:tab-logged-out");
     sessionStorage.setItem("preferred_clinic_id", clinicId);
+    sessionStorage.setItem("prime-physio:active-clinic-id", clinicId);
+  }
+}
+
+export async function activateClinicSession(clinicId: string): Promise<void> {
+  const existing = pendingExchanges.get(clinicId);
+  if (existing) return existing;
+
+  const pending = exchangeClinicSession(clinicId);
+  pendingExchanges.set(clinicId, pending);
+  try {
+    await pending;
+  } finally {
+    pendingExchanges.delete(clinicId);
   }
 }
