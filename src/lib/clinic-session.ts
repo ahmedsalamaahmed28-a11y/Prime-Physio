@@ -1,0 +1,39 @@
+import { supabase } from "@/lib/supabase";
+
+export async function activateClinicSession(clinicId: string): Promise<void> {
+  const response = await fetch("/api/auth/clinic-session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    cache: "no-store",
+    credentials: "same-origin",
+    body: JSON.stringify({ clinic_id: clinicId }),
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.session?.access_token || !payload.session?.refresh_token) {
+    throw new Error(payload.error || "Unable to activate the independent clinic session");
+  }
+  if (payload.clinic_id !== clinicId) {
+    throw new Error("The issued session does not match the selected clinic");
+  }
+
+  const { data, error } = await supabase.auth.setSession({
+    access_token: payload.session.access_token,
+    refresh_token: payload.session.refresh_token,
+  });
+  if (error) throw error;
+
+  const metadata = data.user?.app_metadata || {};
+  if (
+    metadata.auth_source !== "clinic-scoped-shadow" ||
+    metadata.clinic_id !== clinicId ||
+    metadata.canonical_email !== payload.canonical_email
+  ) {
+    await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+    throw new Error("The clinic session identity could not be verified");
+  }
+
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem("prime-physio:tab-logged-out");
+    sessionStorage.setItem("preferred_clinic_id", clinicId);
+  }
+}
