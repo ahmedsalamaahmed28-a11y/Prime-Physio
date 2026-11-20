@@ -156,7 +156,7 @@ export default function BrandedClinicPage() {
         sessionStorage.removeItem("preferred_clinic_id");
         throw new Error(isRtl ? "البريد الإلكتروني أو كلمة المرور غير صحيحة" : "Invalid email or password");
       }
-      await activateClinicSession(clinic.id);
+      await activateClinicSession(clinic.id, email.trim().toLowerCase());
       window.location.replace("/dashboard");
     } catch (error) {
       if (clinic?.id && sessionStorage.getItem("preferred_clinic_id") === clinic.id) {
