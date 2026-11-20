@@ -77,13 +77,12 @@ The browser currently has one shared NextAuth session cookie per origin. In addi
 
 ### Verification
 
-- GitHub Actions ran the draft migration against a disposable PostgreSQL 16 database. The tenant-isolation job **passed** on commit `7c551ff645243fad787f4313eb86793ad5657bb7`, including the identity-map binding, clinic A/B read/write checks, expiry checks, and private mapping-table access.
-- On that run, the static/API security tests, dependency audit, TypeScript, ESLint, and CSP check also completed successfully; the production build was still running when this note was written.
+- GitHub Actions disposable PostgreSQL 16 integration job **passed** on commit `f9dbabfbb4b5bd22fd233370c940dab0a307d77d`. It applied the draft migration to an isolated database and tested clinic A/B read/write isolation, mapped identity claims, expiry handling, private identity-map access, platform-admin separation, Storage tenant paths, and the clinic admin-email trigger.
+- GitHub Actions security/application validation **passed** on the same commit: unit/API security tests, production dependency audit, TypeScript, ESLint, strict CSP checks, and production build.
 - The separate live Supabase tenant A/B test was **skipped** because no dedicated non-production project credentials and test fixtures are configured in GitHub Actions.
-- The connected Supabase account currently exposes the Prime Physio production project and no Supabase development branches. No SQL was run against that production project, and no paid test project/branch was created.
+- The connected Supabase account exposes the Prime Physio production project and no Supabase development branches. No SQL was run against that production project, and no paid test project/branch was created.
 - The browser-level Balance/Bedaya two-tab test has **not** been run. Therefore the user-visible tab isolation is not yet proven end-to-end.
-- API bearer authorization now also requires an exact match in `clinic_auth_identities` for `auth.uid()`, canonical email, and clinic ID; this is checked in both API authorization and the RLS tenant resolver.
-
+- API bearer authorization and `/api/auth/enrich` require an exact `clinic_auth_identities` row matching the signed-in shadow user ID, canonical email, and clinic ID. The login exchange also binds to the expected email in the current tab to guard against a shared NextAuth-cookie race.
 
 ### Remaining before activation
 
