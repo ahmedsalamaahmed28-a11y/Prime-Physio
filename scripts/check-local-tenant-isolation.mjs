@@ -221,6 +221,14 @@ async function uploadPatientFile(token, clinicId, patientId, label) {
   return { response, path };
 }
 
+async function downloadPatientFile(token, path) {
+  return fetch(`${baseUrl}/storage/v1/object/authenticated/patient-files/${path.split("/").map(encodeURIComponent).join("/")}`, {
+    method: "GET",
+    headers: headers(token),
+    signal: AbortSignal.timeout(20000),
+  });
+}
+
 async function main() {
   const userA = await createTestUser("A");
   const userB = await createTestUser("B");
@@ -314,6 +322,10 @@ async function main() {
   const fileB = await uploadPatientFile(tokenB, clinicB, baseRowsB.patients.id, "tenant-b");
   assert("A can upload to its own private patient folder", fileA.response.ok);
   assert("B can upload to its own private patient folder", fileB.response.ok);
+  assert("A can download its own private patient file", (await downloadPatientFile(tokenA, fileA.path)).ok);
+  assert("B can download its own private patient file", (await downloadPatientFile(tokenB, fileB.path)).ok);
+  assert("A cannot download B's private patient file", !(await downloadPatientFile(tokenA, fileB.path)).ok);
+  assert("B cannot download A's private patient file", !(await downloadPatientFile(tokenB, fileA.path)).ok);
   const crossFileA = await uploadPatientFile(tokenA, clinicB, baseRowsB.patients.id, "tenant-a-cross");
   const crossFileB = await uploadPatientFile(tokenB, clinicA, baseRowsA.patients.id, "tenant-b-cross");
   assert("A cannot upload into B's private patient folder", !crossFileA.response.ok);
