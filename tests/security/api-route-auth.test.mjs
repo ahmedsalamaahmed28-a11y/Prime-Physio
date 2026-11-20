@@ -281,6 +281,16 @@ test("clinic enrichment trusts verified bearer claims instead of the shared cook
   assert.match(source, /staffProfileQuery\.eq\("clinic_id", scopedClinicId\)/);
 });
 
+test("a single active clinic owner is routed to that clinic dashboard after generic login", async () => {
+  const source = await readFile(path.join(root, "src", "app", "api", "auth", "enrich", "route.ts"), "utf8");
+  assert.match(source, /ownedCenters \|\| \[\]\)\.length === 1/);
+  assert.match(source, /\.eq\("is_active", true\)/);
+  assert.match(source, /\.eq\("status", "active"\)/);
+  assert.match(source, /clinicId: ownedClinicId/);
+  assert.match(source, /roleKey: "admin"/);
+  assert.match(source, /Multi-clinic owners still land in the center manager/);
+});
+
 test("RLS migration removes legacy staff email policy and scopes owner rows", async () => {
   const migration = await readFile(path.join(root, "supabase", "migrations", "20261120191500_clinic_scoped_shadow_identity_rls.sql"), "utf8");
   assert.match(migration, /drop policy if exists staff_self_read on public\.staff/);

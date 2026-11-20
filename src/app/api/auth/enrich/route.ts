@@ -193,6 +193,37 @@ export async function GET(req: NextRequest) {
       console.error("[AuthEnrich] Center ownership lookup failed", { code: ownershipError.code, message: ownershipError.message });
       return NextResponse.json({ error: "Unable to load center ownership" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
     }
+    if ((ownedCenters || []).length === 1) {
+      // A user who owns exactly one active clinic can enter its dashboard directly
+      // after a generic login. Multi-clinic owners still land in the center manager.
+      const ownedClinicId = ownedCenters[0].clinic_id;
+      const { data: ownedClinic, error: ownedClinicError } = await admin
+        .from("clinics")
+        .select("id")
+        .eq("id", ownedClinicId)
+        .eq("is_active", true)
+        .eq("status", "active")
+        .maybeSingle();
+
+      if (ownedClinicError) {
+        console.error("[AuthEnrich] Single owned-center lookup failed", { code: ownedClinicError.code });
+        return NextResponse.json({ error: "Unable to verify owned center" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
+      }
+
+      if (ownedClinic) {
+        const presentation = await clinicPresentation(admin, ownedClinicId);
+        return NextResponse.json({
+          clinicId: ownedClinicId,
+          displayName,
+          role: "admin",
+          roleKey: "admin",
+          roleAr: "مدير العيادة",
+          roleEn: "Clinic Admin",
+          ...presentation,
+        }, { headers: { "Cache-Control": "no-store, private" } });
+      }
+    }
+
     if ((ownedCenters || []).length > 0) {
       return NextResponse.json({
         clinicId: null,
