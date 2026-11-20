@@ -9,7 +9,7 @@ test("AI report API requires explicit external processing consent", async () => 
   assert.match(route, /body\.consentToExternalProcessing !== true/);
   assert.match(route, /patientInfo/);
   assert.match(route, /\.eq\("clinic_id", auth\.clinicId\)/);
-  assert.match(route, /\.select\("id, diagnosis"\)/);
+  assert.match(route, /\.select\("id, diagnosis, nameAr, nameEn, phone"\)/);
   assert.match(route, /cleanClinicalText\(patientRecord\.diagnosis/);
   assert.match(route, /do not read or forward patientInfo/i);
   assert.match(route, /Cache-Control.*no-store, private/);
@@ -22,6 +22,8 @@ test("AI report API sends only bounded clinical fields and rejects identifying c
   assert.match(route, /cleanClinicalText\(clinicalData\.notes/);
   assert.match(route, /REDACTED CONTACT/);
   assert.match(route, /REDACTED NUMBER/);
+  assert.match(route, /sensitiveValues = \[patientId, patientRecord\.nameAr, patientRecord\.nameEn, patientRecord\.phone\]/);
+  assert.match(route, /REDACTED PATIENT DATA/);
   assert.match(route, /patient names, file IDs, phone numbers, DOB, or gender/i);
 });
 
