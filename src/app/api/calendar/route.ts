@@ -313,11 +313,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "رقم الموعد مطلوب" }, { status: 400 });
     }
     if (body.action === "complete") {
-      if (!hasStaffPermission(auth.staff, "edit_emr")) {
-        return NextResponse.json({ error: "ليس لديك صلاحية إنهاء الجلسة وتسجيل التقدم الطبي" }, { status: 403 });
+      if (!hasStaffPermission(auth.staff, "view_appointments")
+        || !hasStaffPermission(auth.staff, "view_patients")
+        || !hasStaffPermission(auth.staff, "edit_emr")) {
+        return NextResponse.json({ error: "إنهاء الجلسة يتطلب صلاحيات مشاهدة المواعيد والمرضى وتعديل السجل الطبي" }, { status: 403 });
       }
-    } else if (!hasStaffPermission(auth.staff, "edit_appointments")) {
-      return NextResponse.json({ error: "ليس لديك صلاحية تعديل أو إلغاء المواعيد" }, { status: 403 });
+    } else if (!hasStaffPermission(auth.staff, "view_appointments")
+      || !hasStaffPermission(auth.staff, "view_patients")
+      || !hasStaffPermission(auth.staff, "edit_appointments")) {
+      return NextResponse.json({ error: "تعديل أو إلغاء الموعد يتطلب صلاحيات مشاهدة المواعيد والمرضى وإدارة المواعيد" }, { status: 403 });
     }
     const { data: existing, error: lookupError } = await auth.admin.from("appointments")
       .select("id,patient_id").eq("id", body.appointmentId).eq("clinic_id", auth.clinicId).maybeSingle();
