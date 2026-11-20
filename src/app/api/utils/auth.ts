@@ -60,54 +60,56 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
   // It must be checked before the origin-wide NextAuth cookie, otherwise a
   // second clinic login in another tab can silently replace this tab's scope.
   const authHeader = req.headers.get("authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    const token = authHeader.slice(7).trim();
-    if (token) {
-      const { data: { user }, error } = await admin.auth.getUser(token);
-      if (!error && user && (user.email_confirmed_at || user.confirmed_at)) {
-        const metadata = user.app_metadata || {};
-        if (metadata.auth_source === "clinic-scoped-shadow") {
-          const canonicalEmail = typeof metadata.canonical_email === "string"
-            ? metadata.canonical_email.trim().toLowerCase()
-            : "";
-          const clinicId = typeof metadata.clinic_id === "string" ? metadata.clinic_id : "";
-          // Fail closed. The provisioning bridge must issue both immutable
-          // claims; never infer a tenant from URL params or a shared cookie.
-          const expiresAt = Number(metadata.nextauth_expires_at || 0);
-          if (
-            !canonicalEmail ||
-            !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clinicId) ||
-            !Number.isSafeInteger(expiresAt) ||
-            expiresAt <= Math.floor(Date.now() / 1000)
-          ) {
-            throw new Error("Invalid or expired clinic-scoped session");
-          }
+  if (authHeader) {
+    const tokenMatch = authHeader.match(/^Bearer\\s+(.+)$/i);
+    const token = tokenMatch?.[1]?.trim();
+    if (!token) throw new Error("Unauthorized");
 
-          const [{ data: clinic, error: clinicError }, { data: owner, error: ownerError }, { data: staff, error: staffError }] = await Promise.all([
-            admin.from("clinics").select("id,is_active,status").eq("id", clinicId).maybeSingle(),
-            admin.from("clinic_owners").select("clinic_id").eq("clinic_id", clinicId).eq("owner_email", canonicalEmail).maybeSingle(),
-            admin.from("staff").select("clinic_id,status").eq("clinic_id", clinicId).eq("email", canonicalEmail).maybeSingle(),
-          ]);
-          if (clinicError || ownerError || staffError) throw new Error("Unable to verify clinic-scoped membership");
-          const blockedStatuses = new Set(["inactive", "disabled", "suspended", "deleted", "غير نشط", "موقوف", "محذوف"]);
-          if (!clinic || clinic.is_active === false || blockedStatuses.has(String(clinic.status || "").trim().toLowerCase())) {
-            throw new Error("Forbidden: Clinic is inactive");
-          }
-          const activeStaff = Boolean(staff && !["محذوف", "deleted", "inactive", "غير نشط"].includes(String(staff.status || "").trim().toLowerCase()));
-          if (!owner && !activeStaff) throw new Error("Forbidden: Clinic membership is inactive");
-
-          return { email: canonicalEmail, userId: user.id, clinicId, authSource: "clinic-scoped-shadow" };
-        }
-
-        if (metadata.auth_source !== "nextauth-shadow" && user.email) {
-          return {
-            email: user.email.trim().toLowerCase(),
-            userId: user.id,
-            clinicId: typeof metadata.active_clinic_id === "string" ? metadata.active_clinic_id : undefined,
-          };
-        }
-      }
+    const { data: { user }, error } = await admin.auth.getUser(token);
+    if (error || !user || !(user.email_confirmed_at || user.confirmed_at)) {
+      // Never fall back to the shared NextAuth cookie when a caller supplied
+      // an invalid/expired bearer token; doing so could change this tab's user.
+      throw new Error("Unauthorized");
     }
+
+    const metadata = user.app_metadata || {};
+    if (metadata.auth_source === "clinic-scoped-shadow") {
+      const canonicalEmail = typeof metadata.canonical_email === "string"
+        ? metadata.canonical_email.trim().toLowerCase()
+        : "";
+      const clinicId = typeof metadata.clinic_id === "string" ? metadata.clinic_id : "";
+      const expiresAt = Number(metadata.nextauth_expires_at || 0);
+      if (
+        !canonicalEmail ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clinicId) ||
+        !Number.isSafeInteger(expiresAt) ||
+        expiresAt <= Math.floor(Date.now() / 1000)
+      ) {
+        throw new Error("Invalid or expired clinic-scoped session");
+      }
+
+      const [{ data: clinic, error: clinicError }, { data: owner, error: ownerError }, { data: staff, error: staffError }] = await Promise.all([
+        admin.from("clinics").select("id,is_active,status").eq("id", clinicId).maybeSingle(),
+        admin.from("clinic_owners").select("clinic_id").eq("clinic_id", clinicId).eq("owner_email", canonicalEmail).maybeSingle(),
+        admin.from("staff").select("clinic_id,status").eq("clinic_id", clinicId).eq("email", canonicalEmail).maybeSingle(),
+      ]);
+      if (clinicError || ownerError || staffError) throw new Error("Unable to verify clinic-scoped membership");
+      const blockedStatuses = new Set(["inactive", "disabled", "suspended", "deleted", "غير نشط", "موقوف", "محذوف"]);
+      if (!clinic || clinic.is_active === false || blockedStatuses.has(String(clinic.status || "").trim().toLowerCase())) {
+        throw new Error("Forbidden: Clinic is inactive");
+      }
+      const activeStaff = Boolean(staff && !["محذوف", "deleted", "inactive", "غير نشط"].includes(String(staff.status || "").trim().toLowerCase()));
+      if (!owner && !activeStaff) throw new Error("Forbidden: Clinic membership is inactive");
+
+      return { email: canonicalEmail, userId: user.id, clinicId, authSource: "clinic-scoped-shadow" };
+    }
+
+    if (metadata.auth_source === "nextauth-shadow" || !user.email) throw new Error("Unauthorized");
+    return {
+      email: user.email.trim().toLowerCase(),
+      userId: user.id,
+      clinicId: typeof metadata.active_clinic_id === "string" ? metadata.active_clinic_id : undefined,
+    };
   }
 
   // Legacy sign-in compatibility: the NextAuth cookie remains the initial
