@@ -102,20 +102,16 @@ test("independent center provisioning creates a fresh tenant without copying pat
   assert.doesNotMatch(migration, /insert into public\.(patients|appointments|invoices|sessions)\b/i);
 });
 
-test("local Supabase integration is isolated, synthetic, and covers center provisioning", async () => {
-  const script = await source("scripts/check-local-tenant-isolation.mjs");
-  assert.match(script, /127\.0\.0\.1/);
-  assert.match(script, /Refusing to run local tenant tests against any non-local Supabase host/);
-  assert.match(script, /create_independent_center/);
-  assert.match(script, /Balance row counts/);
-  assert.match(script, /new center starts with zero/);
-  assert.match(script, /cannot read B/);
-  assert.match(script, /cannot insert into B/);
-  assert.match(script, /cannot update B/);
-  assert.match(script, /cannot delete B/);
-  assert.match(script, /private patient folder/);
-  assert.match(script, /downloadPatientFile/);
-  assert.match(script, /cannot download B/);
+test("isolated PostgreSQL harness tests real tenant RLS semantics and rolls back", async () => {
+  const sql = await source("tests/security/tenant-isolation-rls.sql");
+  assert.match(sql, /CREATE POLICY auth_session_expiry_guard ON public\.patients\s+AS RESTRICTIVE/);
+  assert.match(sql, /public\.get_my_clinic_id\(\)/);
+  assert.match(sql, /public\.assert_tenant_crud/);
+  assert.match(sql, /Cross-tenant insert was allowed/);
+  assert.match(sql, /Cross-tenant update was allowed/);
+  assert.match(sql, /Cross-tenant delete was allowed/);
+  assert.match(sql, /Creating the second center changed the original Balance fixture counts/);
+  assert.match(sql, /ROLLBACK;/);
 });
 
 test("service-role attachment signing and deletion validate clinic/patient storage paths", async () => {
