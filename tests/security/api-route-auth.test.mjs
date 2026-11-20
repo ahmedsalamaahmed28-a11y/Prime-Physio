@@ -190,6 +190,7 @@ test("tab-scoped API bridge never forwards tokens to external or public endpoint
   const bridge = await readFile(path.join(root, "src", "lib", "clinic-api-fetch.ts"), "utf8");
   assert.match(bridge, /requestUrl\.origin !== window\.location\.origin/);
   assert.match(bridge, /requestUrl\.pathname\.startsWith\("\/api\/public\/"\)/);
+  assert.match(bridge, /requestUrl\.pathname\.startsWith\("\/api\/auth\/"\) && requestUrl\.pathname !== "\/api\/auth\/enrich"/);
   assert.match(bridge, /clinic-session/);
   assert.match(bridge, /auth_source !== "clinic-scoped-shadow"/);
   assert.match(bridge, /headers\.set\("Authorization"/);
