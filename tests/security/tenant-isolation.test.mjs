@@ -114,6 +114,8 @@ test("local Supabase integration is isolated, synthetic, and covers center provi
   assert.match(script, /cannot update B/);
   assert.match(script, /cannot delete B/);
   assert.match(script, /private patient folder/);
+  assert.match(script, /downloadPatientFile/);
+  assert.match(script, /cannot download B/);
 });
 
 test("service-role attachment signing and deletion validate clinic/patient storage paths", async () => {
