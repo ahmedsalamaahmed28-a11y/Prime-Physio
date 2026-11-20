@@ -194,6 +194,7 @@ test("tab-scoped API bridge never forwards tokens to external or public endpoint
   assert.match(bridge, /requestUrl\.pathname\.startsWith\("\/api\/public\/"\)/);
   assert.match(bridge, /requestUrl\.pathname\.startsWith\("\/api\/auth\/"\) && requestUrl\.pathname !== "\/api\/auth\/enrich"/);
   assert.match(bridge, /activeClinicAccessToken/);
+  assert.doesNotMatch(bridge, /supabase\.auth\.getSession\(/);
   assert.match(bridge, /setClinicApiAccessToken/);
   assert.match(bridge, /headers\.set\("Authorization"/);
 });
@@ -202,6 +203,7 @@ test("auth provider preserves a scoped tab identity and signs out locally", asyn
   const authSource = await readFile(path.join(root, "src", "lib", "auth.tsx"), "utf8");
   assert.match(authSource, /tabMetadata\.auth_source === "clinic-scoped-shadow"/);
   assert.match(authSource, /setClinicApiAccessToken\(/);
+  assert.doesNotMatch(authSource, /onAuthStateChange\(async/);
   assert.match(authSource, /tabEmail !== sessionEmail/);
   assert.match(authSource, /activateClinicSession\(enriched\.clinicId\)/);
   assert.match(authSource, /supabase\.auth\.signOut\(\{ scope: "local" \}\)/);
@@ -216,6 +218,7 @@ test("clinic enrichment trusts verified bearer claims instead of the shared cook
   assert.match(source, /metadata\.clinic_id/);
   assert.match(source, /Clinic scope mismatch/);
   assert.match(source, /platformAdmin && !scopedClinicId/);
+  assert.match(source, /expiresAt <= Math\.floor\(Date\.now\(\) \/ 1000\)/);
   assert.match(source, /staffProfileQuery\.eq\("clinic_id", scopedClinicId\)/);
 });
 
