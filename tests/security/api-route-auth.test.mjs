@@ -186,6 +186,17 @@ test("clinic-scoped RLS resolves canonical identity and immutable clinic claims"
 });
 
 
+test("clinic exchange binds the selected tab to its expected login email", async () => {
+  const sessionSource = await readFile(path.join(root, "src", "lib", "clinic-session.ts"), "utf8");
+  const authSource = await readFile(path.join(root, "src", "lib", "auth.tsx"), "utf8");
+  const brandedLoginSource = await readFile(path.join(root, "src", "app", "[slug]", "page.tsx"), "utf8");
+  assert.match(sessionSource, /expectedEmail: string/);
+  assert.match(sessionSource, /expected_email: expectedEmail\.trim\(\)\.toLowerCase\(\)/);
+  assert.match(authSource, /activateClinicSession\(enriched\.clinicId, enriched\.email\)/);
+  assert.match(brandedLoginSource, /activateClinicSession\(clinic\.id, email\.trim\(\)\.toLowerCase\(\)\)/);
+});
+
+
 test("clinic-scoped bearer identities cannot enter platform administration", async () => {
   const authSource = await readFile(
     path.join(root, "src", "app", "api", "utils", "auth.ts"),
