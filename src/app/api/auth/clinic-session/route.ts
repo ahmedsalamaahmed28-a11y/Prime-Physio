@@ -82,11 +82,10 @@ export async function POST(req: NextRequest) {
     if (!owner && !activeStaff) return noStoreJson({ error: "Access denied" }, 403);
 
     const parsedExpiry = Date.parse(session.expires || "");
-    const nowSeconds = Math.floor(Date.now() / 1000);
-    const nextAuthExpiresAt =
-      Number.isFinite(parsedExpiry) && parsedExpiry > Date.now()
-        ? Math.floor(parsedExpiry / 1000)
-        : nowSeconds + 8 * 60 * 60;
+    if (!Number.isFinite(parsedExpiry) || parsedExpiry <= Date.now()) {
+      return noStoreJson({ error: "The login session has expired" }, 401);
+    }
+    const nextAuthExpiresAt = Math.floor(parsedExpiry / 1000);
 
     // A deterministic, non-human sign-in identity is created for each (canonical
     // account, clinic) pair. It is never used as the clinic's business email.
