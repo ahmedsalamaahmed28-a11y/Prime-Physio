@@ -280,43 +280,28 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       let active = true;
 
       const loadRoleState = async () => {
+        // A verified clinic identity stored in this tab always wins over the
+        // shared NextAuth cookie, which may have changed in another tab.
+        const { data: tabAuth } = await supabase.auth.getSession();
+        const tabMetadata = tabAuth.session?.user?.app_metadata || {};
+        if (tabMetadata.auth_source === "clinic-scoped-shadow") {
+          const tabEmail = typeof tabMetadata.canonical_email === "string"
+            ? tabMetadata.canonical_email.trim().toLowerCase()
+            : "";
+          if (tabEmail && tabEmail !== sessionEmail) return;
+          if (tabEmail === sessionEmail) return;
+        }
+
         const currentUser = session.user!;
         const email = currentUser.email || "";
-        // Never trust a role stored in localStorage. enrichUserWithClinic resolves it from the server-side staff record.
         const finalRoleKey = "doctor" as const;
 
-        // Sync NextAuth session to Supabase so RLS policies work!
-        try {
-          // A dashboard opened from the account overview can request a specific
-          // clinic in its URL. Persist it before syncing Supabase so this tab
-          // uses the same verified tenant for RLS and subsequent enrichment.
-          const requestedClinicId =
-            typeof window !== "undefined" &&
-            (window.location.pathname.replace(/\/+$/, "") || "/") === "/dashboard"
-              ? new URLSearchParams(window.location.search).get("clinicId")
-              : null;
-          if (requestedClinicId) {
-            sessionStorage.setItem("preferred_clinic_id", requestedClinicId);
-          }
-          const preferredClinicId =
-            requestedClinicId ||
-            (typeof window !== "undefined" ? sessionStorage.getItem("preferred_clinic_id") : null);
-          const sessionUrl = preferredClinicId
-            ? `/api/auth/supabase-session?clinic_id=${encodeURIComponent(preferredClinicId)}`
-            : "/api/auth/supabase-session";
-          const res = await fetch(sessionUrl, { signal: AbortSignal.timeout(10000) });
-          if (res.ok) {
-            const { session: supaSession } = await res.json();
-            if (supaSession && active) {
-              await supabase.auth.setSession({
-                access_token: supaSession.access_token,
-                refresh_token: supaSession.refresh_token,
-              });
-            }
-          }
-        } catch (err) {
-          console.error("Failed to sync Supabase session:", err);
-        }
+        const requestedClinicId =
+          typeof window !== "undefined" &&
+          (window.location.pathname.replace(/\\/+$/, "") || "/") === "/dashboard"
+            ? new URLSearchParams(window.location.search).get("clinicId")
+            : null;
+        if (requestedClinicId) sessionStorage.setItem("preferred_clinic_id", requestedClinicId);
 
         const name = currentUser.name || email.split("@")[0];
         const initials = name.substring(0, 2).toUpperCase();
@@ -338,7 +323,18 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         const enriched = await enrichUserWithClinic(newUser);
         endEnrichment();
         if (!active) return;
-        // Do not keep stale clinic data from an earlier enrichment attempt.
+
+        if (enriched.clinicId && !enriched.isPlatformAdmin) {
+          try {
+            await activateClinicSession(enriched.clinicId);
+          } catch (error) {
+            console.error("Failed to activate independent clinic session:", error);
+            setUser({ ...enriched, clinicId: undefined });
+            setIsEnriching(false);
+            return;
+          }
+        }
+
         setUser(enriched);
         setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
         const currentPath = typeof window !== "undefined" ? (window.location.pathname.replace(/[/]+$/, "") || "/") : "";
@@ -346,11 +342,10 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         const isAuthEntryPath = currentPath === "/login.php" || currentPath === "/login" || currentPath === "/signup" || currentPath === "/rgstr.php" || currentPath === "/home" || currentPath.startsWith("/setup");
         if (enriched.clinicId && typeof window !== "undefined" && isAuthEntryPath && !isClinicLandingPage) {
           window.location.href = "/dashboard";
-        } else if (enriched.clinicId === null && typeof window !== "undefined" && currentPath !== "/" && !currentPath.startsWith("/setup") && currentPath !== "/center-management" && currentPath !== "/center-management.php" && !/^\/(?:centers|overview|export|account|plans|notices)\.php$/.test(currentPath) && currentPath !== "/create-center" && currentPath !== "/addcenter.php" && currentPath !== "/my-centers/create" && !/^\/[a-z][a-z0-9-]+$/.test(currentPath) && !isClinicLandingPage) {
+        } else if (enriched.clinicId === null && typeof window !== "undefined" && currentPath !== "/" && !currentPath.startsWith("/setup") && currentPath !== "/center-management" && currentPath !== "/center-management.php" && !/^\\/(?:centers|overview|export|account|plans|notices)\\.php$/.test(currentPath) && currentPath !== "/create-center" && currentPath !== "/addcenter.php" && currentPath !== "/my-centers/create" && !/^\\/[a-z][a-z0-9-]+$/.test(currentPath) && !isClinicLandingPage) {
           window.location.href = "/overview.php/";
         }
-
-      };
+      };;
 
       loadRoleState();
       return () => { active = false; };
