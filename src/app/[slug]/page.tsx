@@ -165,7 +165,7 @@ export default function BrandedClinicPage() {
       for (let attempt = 0; attempt < 5; attempt += 1) {
         const candidate = await getSession();
         const candidateEmail = candidate?.user?.email?.trim().toLowerCase();
-        const candidateClinicId = (candidate?.user as (typeof candidate.user & { clinicId?: string | null }) | undefined)?.clinicId;
+        const candidateClinicId = (candidate?.user as { clinicId?: string | null } | undefined)?.clinicId;
         const expiresAt = Date.parse(candidate?.expires || "");
 
         if (
