@@ -344,7 +344,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         const isAuthEntryPath = currentPath === "/login.php" || currentPath === "/login" || currentPath === "/signup" || currentPath === "/rgstr.php" || currentPath === "/home" || currentPath.startsWith("/setup");
         if (enriched.clinicId && typeof window !== "undefined" && isAuthEntryPath && !isClinicLandingPage) {
           window.location.href = "/dashboard";
-        } else if (enriched.clinicId === null && typeof window !== "undefined" && currentPath !== "/" && !currentPath.startsWith("/setup") && currentPath !== "/center-management" && currentPath !== "/center-management.php" && !/^\\/(?:centers|overview|export|account|plans|notices)\\.php$/.test(currentPath) && currentPath !== "/create-center" && currentPath !== "/addcenter.php" && currentPath !== "/my-centers/create" && !/^\\/[a-z][a-z0-9-]+$/.test(currentPath) && !isClinicLandingPage) {
+        } else if (enriched.clinicId === null && typeof window !== "undefined" && currentPath !== "/" && !currentPath.startsWith("/setup") && currentPath !== "/center-management" && currentPath !== "/center-management.php" && !/^\/(?:centers|overview|export|account|plans|notices)\.php$/.test(currentPath) && currentPath !== "/create-center" && currentPath !== "/addcenter.php" && currentPath !== "/my-centers/create" && !/^\/[a-z][a-z0-9-]+$/.test(currentPath) && !isClinicLandingPage) {
           window.location.href = "/overview.php/";
         }
       };
