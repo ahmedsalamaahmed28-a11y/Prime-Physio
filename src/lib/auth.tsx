@@ -280,6 +280,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       let active = true;
 
       const loadRoleState = async () => {
+        if (typeof window !== "undefined" && sessionStorage.getItem("prime-physio:tab-logged-out") === "1") return;
+
         // A verified clinic identity stored in this tab always wins over the
         // shared NextAuth cookie, which may have changed in another tab.
         const { data: tabAuth } = await supabase.auth.getSession();
@@ -345,7 +347,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         } else if (enriched.clinicId === null && typeof window !== "undefined" && currentPath !== "/" && !currentPath.startsWith("/setup") && currentPath !== "/center-management" && currentPath !== "/center-management.php" && !/^\\/(?:centers|overview|export|account|plans|notices)\\.php$/.test(currentPath) && currentPath !== "/create-center" && currentPath !== "/addcenter.php" && currentPath !== "/my-centers/create" && !/^\\/[a-z][a-z0-9-]+$/.test(currentPath) && !isClinicLandingPage) {
           window.location.href = "/overview.php/";
         }
-      };;
+      };
 
       loadRoleState();
       return () => { active = false; };
@@ -356,8 +358,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       setIsEnriching(false);
       setUser((prev) => prev?.email?.toLowerCase() === expiredEmail ? null : prev);
       setAppValue("current_user", null).catch(() => {});
-      // Revoke the long-lived Supabase shadow session when its NextAuth owner expires.
-      supabase.auth.signOut().catch((error) => console.error("Failed to revoke expired shadow session:", error));
+      // Revoke only this tab's clinic session; other tabs use separate sessions.
+      supabase.auth.signOut({ scope: "local" }).catch((error) => console.error("Failed to revoke expired clinic session:", error));
     }
   }, [session, status]);
 
@@ -407,6 +409,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   }, [user, pathname, isAuthLoading, status]);
 
   const loginWithGoogle = async (email: string) => {
+    if (typeof window !== "undefined") sessionStorage.removeItem("prime-physio:tab-logged-out");
     const activeSession = await getSession();
     if (!activeSession?.user?.email || activeSession.user.email.toLowerCase() !== email.toLowerCase()) return;
     const name = email.split("@")[0];
@@ -431,6 +434,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginWithCredentials = async (email: string, name: string, _role: string) => {
+    if (typeof window !== "undefined") sessionStorage.removeItem("prime-physio:tab-logged-out");
     const activeSession = await getSession();
     if (!activeSession?.user?.email || activeSession.user.email.toLowerCase() !== email.toLowerCase()) return;
     const initials = name.substring(0, 2).toUpperCase();
@@ -499,17 +503,15 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       ? `/${encodeURIComponent(clinicSlug)}`
       : "/login.php/";
 
-    if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("preferred_clinic_id");
+      sessionStorage.setItem("prime-physio:tab-logged-out", "1");
+    }
     setUser(null);
     setAppValue("current_user", null).catch(() => {});
-
-    try {
-      await supabase.auth.signOut();
-    } finally {
-      signOut({ callbackUrl }).catch(() => {
-        window.location.href = callbackUrl;
-      });
-    }
+    // Keep the shared NextAuth cookie for other tabs and revoke only this tab session.
+    await supabase.auth.signOut({ scope: "local" });
+    window.location.replace(callbackUrl);
   };
 
   useEffect(() => {
