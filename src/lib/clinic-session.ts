@@ -3,19 +3,38 @@ import { setClinicApiAccessToken } from "@/lib/clinic-api-fetch";
 
 const pendingExchanges = new Map<string, Promise<void>>();
 
-async function exchangeClinicSession(clinicId: string, expectedEmail: string): Promise<void> {
-  const response = await fetch("/api/auth/clinic-session", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    cache: "no-store",
-    credentials: "same-origin",
-    body: JSON.stringify({ clinic_id: clinicId, expected_email: expectedEmail.trim().toLowerCase() }),
+async function clearTabClinicSession(): Promise<void> {
+  setClinicApiAccessToken(null);
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem("preferred_clinic_id");
+    sessionStorage.removeItem("prime-physio:active-clinic-id");
+  }
+  await supabase.auth.signOut({ scope: "local" }).catch((error) => {
+    console.error("Failed to clear stale tab clinic session:", error);
   });
+}
+
+async function exchangeClinicSession(clinicId: string, expectedEmail: string): Promise<void> {
+  let response: Response;
+  try {
+    response = await fetch("/api/auth/clinic-session", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+      credentials: "same-origin",
+      body: JSON.stringify({ clinic_id: clinicId, expected_email: expectedEmail.trim().toLowerCase() }),
+    });
+  } catch (error) {
+    await clearTabClinicSession();
+    throw error;
+  }
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || !payload.session?.access_token || !payload.session?.refresh_token) {
+    await clearTabClinicSession();
     throw new Error(payload.error || "Unable to activate the independent clinic session");
   }
   if (payload.clinic_id !== clinicId) {
+    await clearTabClinicSession();
     throw new Error("The issued session does not match the selected clinic");
   }
 
