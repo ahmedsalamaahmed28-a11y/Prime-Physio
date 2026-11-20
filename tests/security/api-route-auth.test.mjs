@@ -197,6 +197,8 @@ test("tab-scoped API bridge never forwards tokens to external or public endpoint
   assert.doesNotMatch(bridge, /supabase\.auth\.getSession\(/);
   assert.match(bridge, /setClinicApiAccessToken/);
   assert.match(bridge, /headers\.set\("Authorization"/);
+  assert.match(bridge, /headers\.has\("Authorization"\)/);
+  assert.match(bridge, /requestUrl\.pathname === "\/api\/n8n"/);
 });
 
 test("auth provider preserves a scoped tab identity and signs out locally", async () => {
