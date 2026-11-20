@@ -55,6 +55,18 @@ The browser currently has one shared NextAuth session cookie per origin. In addi
 - Direct Supabase Data API/RLS requests with the wrong clinic token.
 - Platform-admin isolation and no bearer leakage to external origins.
 
+## Implementation progress (branch only)
+
+The first API-auth foundation has now been implemented on this branch:
+
+- `requireAuth` checks a verified Supabase bearer token before consulting the shared NextAuth cookie.
+- It recognizes a new `clinic-scoped-shadow` token type and reads its canonical account email and clinic ID only from Supabase-verified `app_metadata` claims.
+- Missing canonical email or clinic ID on that token type fails closed.
+- `resolveActiveClinicId` now preserves a clinic ID already derived from the verified bearer token instead of allowing a shared Supabase cookie to overwrite it.
+- Security regression assertions were added to verify bearer-token precedence and required claims.
+
+This is groundwork, not a complete feature. The clinic-scoped session provisioning endpoint, per-tab browser session storage/Supabase client, RLS identity mapping, policy updates, and end-to-end tests have **not** been implemented yet. The existing login bridge still issues the legacy shared shadow identity, so users should not expect the two-tab behavior to be fixed by this commit alone.
+
 ## Current state
 
-No application code or SQL migration has been changed in this audit step. This report is committed only to the isolated feature branch for review. Do not deploy or apply a database migration until the identity model, SQL policy coverage, and tests have been completed and reviewed.
+Changes are committed only to the isolated feature branch. No production database, `main`, or Vercel deployment was changed. Do not deploy or apply a database migration until the identity model, SQL policy coverage, and tests have been completed and reviewed.
