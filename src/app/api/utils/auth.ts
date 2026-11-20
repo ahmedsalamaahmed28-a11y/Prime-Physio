@@ -53,6 +53,42 @@ function parseAuthCookie(req: NextRequest): string | null {
 }
 
 export async function requireAuth(req: NextRequest): Promise<AuthUser> {
+  const admin = getAdminClient();
+
+  // A clinic-scoped bearer token is the authoritative identity for this tab.
+  // It must be checked before the origin-wide NextAuth cookie, otherwise a
+  // second clinic login in another tab can silently replace this tab's scope.
+  const authHeader = req.headers.get("authorization");
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7).trim();
+    if (token) {
+      const { data: { user }, error } = await admin.auth.getUser(token);
+      if (!error && user && (user.email_confirmed_at || user.confirmed_at)) {
+        const metadata = user.app_metadata || {};
+        if (metadata.auth_source === "clinic-scoped-shadow") {
+          const canonicalEmail = typeof metadata.canonical_email === "string"
+            ? metadata.canonical_email.trim().toLowerCase()
+            : "";
+          const clinicId = typeof metadata.clinic_id === "string" ? metadata.clinic_id : "";
+          // Fail closed. The provisioning bridge must issue both immutable
+          // claims; never infer a tenant from URL params or a shared cookie.
+          if (!canonicalEmail || !clinicId) throw new Error("Invalid clinic-scoped session");
+          return { email: canonicalEmail, userId: user.id, clinicId };
+        }
+
+        if (metadata.auth_source !== "nextauth-shadow" && user.email) {
+          return {
+            email: user.email.trim().toLowerCase(),
+            userId: user.id,
+            clinicId: typeof metadata.active_clinic_id === "string" ? metadata.active_clinic_id : undefined,
+          };
+        }
+      }
+    }
+  }
+
+  // Legacy sign-in compatibility: the NextAuth cookie remains the initial
+  // identity for existing sessions until the clinic-scoped exchange is wired.
   try {
     const session = await getServerSession(authOptions);
     if (session?.user?.email) {
@@ -60,7 +96,7 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
       let clinicId = typeof (session.user as any).clinicId === "string" ? (session.user as any).clinicId : undefined;
       const shadowToken = parseAuthCookie(req);
       if (shadowToken) {
-        const { data: { user }, error } = await getAdminClient().auth.getUser(shadowToken);
+        const { data: { user }, error } = await admin.auth.getUser(shadowToken);
         if (!error && user?.email?.toLowerCase() === email && user.app_metadata?.auth_source === "nextauth-shadow") {
           const activeClinicId = user.app_metadata?.active_clinic_id;
           if (typeof activeClinicId === "string") clinicId = activeClinicId;
@@ -77,7 +113,6 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
     console.error("[auth] NextAuth session error:", err);
   }
 
-  const admin = getAdminClient();
   const cookieToken = parseAuthCookie(req);
   if (cookieToken) {
     try {
@@ -90,22 +125,7 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
         };
       }
     } catch {
-      // Continue to supported bearer-token authentication.
-    }
-  }
-
-  const authHeader = req.headers.get("authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    const token = authHeader.slice(7).trim();
-    if (token) {
-      const { data: { user }, error } = await admin.auth.getUser(token);
-      if (!error && user?.email && (user.email_confirmed_at || user.confirmed_at) && user.app_metadata?.auth_source !== "nextauth-shadow") {
-        return {
-          email: user.email.trim().toLowerCase(),
-          userId: user.id,
-          clinicId: typeof user.app_metadata?.active_clinic_id === "string" ? user.app_metadata.active_clinic_id : undefined,
-        };
-      }
+      // Invalid cookies do not establish identity.
     }
   }
 
