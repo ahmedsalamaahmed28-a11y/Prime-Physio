@@ -151,3 +151,21 @@ test("clinic-session exchange issues a distinct, membership-verified identity pe
   assert.match(routeSource, /isSameOrigin\(req\)/,
     "the cookie-authenticated exchange must reject cross-origin POST requests");
 });
+
+
+test("clinic-scoped RLS resolves canonical identity and immutable clinic claims", async () => {
+  const migration = await readFile(
+    path.join(root, "supabase", "migrations", "20261120191500_clinic_scoped_shadow_identity_rls.sql"),
+    "utf8",
+  );
+  assert.match(migration, /create table if not exists public\.clinic_auth_identities/);
+  assert.match(migration, /revoke all on public\.clinic_auth_identities from public, anon, authenticated/);
+  assert.match(migration, /create or replace function public\.get_auth_email\(\)/);
+  assert.match(migration, /auth_source' = 'clinic-scoped-shadow'/);
+  assert.match(migration, /app_metadata ->> 'canonical_email'/);
+  assert.match(migration, /app_metadata ->> 'clinic_id'/);
+  assert.match(migration, /clinic-scoped-shadow/);
+  assert.match(migration, /and coalesce\(auth\.jwt\(\) -> 'app_metadata' ->> 'auth_source', ''\) <> 'clinic-scoped-shadow'/);
+  assert.match(migration, /create policy chat_participants_self_read/);
+  assert.match(migration, /create policy hr_attendance_clinic_update/);
+});
