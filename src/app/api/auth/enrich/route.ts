@@ -60,8 +60,14 @@ export async function GET(req: NextRequest) {
       }
       email = typeof metadata.canonical_email === "string" ? metadata.canonical_email.trim().toLowerCase() : null;
       scopedClinicId = typeof metadata.clinic_id === "string" ? metadata.clinic_id : null;
-      if (!email || !scopedClinicId) {
-        return NextResponse.json({ error: "Invalid clinic identity" }, { status: 401, headers: { "Cache-Control": "no-store, private" } });
+      const expiresAt = Number(metadata.nextauth_expires_at || 0);
+      if (
+        !email ||
+        !scopedClinicId ||
+        !Number.isSafeInteger(expiresAt) ||
+        expiresAt <= Math.floor(Date.now() / 1000)
+      ) {
+        return NextResponse.json({ error: "Invalid or expired clinic identity" }, { status: 401, headers: { "Cache-Control": "no-store, private" } });
       }
     } else {
       const session = await getServerSession(authOptions);
