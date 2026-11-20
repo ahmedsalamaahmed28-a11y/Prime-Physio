@@ -224,56 +224,76 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   // Never restore an authenticated user from localStorage. Only verified server sessions
   // (NextAuth) or a live Supabase Auth session may establish identity.
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, authSession) => {
+    let active = true;
+    let authEventVersion = 0;
+    const pendingTimers = new Set<ReturnType<typeof setTimeout>>();
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, authSession) => {
+      const eventVersion = ++authEventVersion;
       setIsLoading(false);
       const metadata = authSession?.user?.app_metadata || {};
       setClinicApiAccessToken(
         metadata.auth_source === "clinic-scoped-shadow" ? authSession?.access_token || null : null,
       );
-      if (authSession?.user) {
-        const metadata = authSession.user.app_metadata || {};
-        if (metadata.auth_source === "nextauth-shadow") return;
-        const isClinicScoped = metadata.auth_source === "clinic-scoped-shadow";
-        const canonicalEmail = isClinicScoped && typeof metadata.canonical_email === "string"
-          ? metadata.canonical_email.trim().toLowerCase()
-          : (authSession.user.email || "").trim().toLowerCase();
-        if (!canonicalEmail) return;
 
-        const roleKey = "doctor" as const;
-        const name = authSession.user.user_metadata?.full_name || canonicalEmail.split("@")[0] || "مستخدم";
-        const newUser: User = {
-          name: prefixArabicName(name, roleKey),
-          email: canonicalEmail,
-          initials: name.substring(0, 2).toUpperCase(),
-          role: getArabicRoleLabel(roleKey),
-          roleKey,
-          clinicId: isClinicScoped && typeof metadata.clinic_id === "string" ? metadata.clinic_id : undefined,
-          bg: "bg-gradient-to-br from-emerald-500 to-teal-600",
-          nameEn: prefixEnglishName(name, roleKey),
-          roleEn: getEnglishRoleLabel(roleKey),
-          initialsEn: name.substring(0, 2).toUpperCase(),
-        };
-
-        beginEnrichment();
-        const enriched = await enrichUserWithClinic(newUser);
-        endEnrichment();
-
-        // Always accept the latest authoritative enrichment result. A previous null clinicId
-        // must not block a later successful lookup for the same email.
-        setUser(enriched);
-        setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-        setAppValue("pending_role", "doctor").catch(() => {});
-      } else if (event === "SIGNED_OUT") {
-        setUser(null);
-        setAppValue("current_user", null).catch(() => {});
+      if (!authSession?.user) {
+        if (event === "SIGNED_OUT") {
+          setUser(null);
+          setAppValue("current_user", null).catch(() => {});
+        }
+        return;
       }
+
+      if (metadata.auth_source === "nextauth-shadow") return;
+      const isClinicScoped = metadata.auth_source === "clinic-scoped-shadow";
+      const canonicalEmail = isClinicScoped && typeof metadata.canonical_email === "string"
+        ? metadata.canonical_email.trim().toLowerCase()
+        : (authSession.user.email || "").trim().toLowerCase();
+      if (!canonicalEmail) return;
+
+      const roleKey = "doctor" as const;
+      const name = authSession.user.user_metadata?.full_name || canonicalEmail.split("@")[0] || "مستخدم";
+      const newUser: User = {
+        name: prefixArabicName(name, roleKey),
+        email: canonicalEmail,
+        initials: name.substring(0, 2).toUpperCase(),
+        role: getArabicRoleLabel(roleKey),
+        roleKey,
+        clinicId: isClinicScoped && typeof metadata.clinic_id === "string" ? metadata.clinic_id : undefined,
+        bg: "bg-gradient-to-br from-emerald-500 to-teal-600",
+        nameEn: prefixEnglishName(name, roleKey),
+        roleEn: getEnglishRoleLabel(roleKey),
+        initialsEn: name.substring(0, 2).toUpperCase(),
+      };
+
+      // Supabase warns against awaiting other Supabase operations inside its
+      // auth-state callback. Defer enrichment until after the callback releases
+      // the internal auth lock; the token is already available to the API bridge.
+      beginEnrichment();
+      const timer = setTimeout(() => {
+        pendingTimers.delete(timer);
+        void enrichUserWithClinic(newUser)
+          .then((enriched) => {
+            if (!active || eventVersion !== authEventVersion) return;
+            setUser(enriched);
+            setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
+            setAppValue("pending_role", "doctor").catch(() => {});
+          })
+          .catch((error) => {
+            console.error("Failed to enrich authenticated clinic user:", error);
+          })
+          .finally(() => endEnrichment());
+      }, 0);
+      pendingTimers.add(timer);
     });
 
     return () => {
+      active = false;
+      authEventVersion += 1;
+      pendingTimers.forEach((timer) => clearTimeout(timer));
+      pendingTimers.clear();
       authListener.subscription.unsubscribe();
     };
   }, []);
-
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
       const sessionEmail = (session.user.email || "").toLowerCase();
