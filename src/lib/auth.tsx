@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { SessionProvider, useSession, getSession } from "next-auth/react";
 import { supabase } from "@/lib/supabase";
 import { getAppValue, setAppValue } from "@/lib/appStorage";
-import { installClinicApiFetch } from "@/lib/clinic-api-fetch";
+import { installClinicApiFetch, setClinicApiAccessToken } from "@/lib/clinic-api-fetch";
 import { activateClinicSession } from "@/lib/clinic-session";
 
 interface User {
@@ -224,11 +224,12 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   // Never restore an authenticated user from localStorage. Only verified server sessions
   // (NextAuth) or a live Supabase Auth session may establish identity.
   useEffect(() => {
-    setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, authSession) => {
+      setIsLoading(false);
+      const metadata = authSession?.user?.app_metadata || {};
+      setClinicApiAccessToken(
+        metadata.auth_source === "clinic-scoped-shadow" ? authSession?.access_token || null : null,
+      );
       if (authSession?.user) {
         const metadata = authSession.user.app_metadata || {};
         if (metadata.auth_source === "nextauth-shadow") return;
