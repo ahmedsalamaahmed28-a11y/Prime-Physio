@@ -98,3 +98,23 @@ test("API access is not granted by the proxy's cookie-presence check", async () 
   assert.match(authSource, /admin\.auth\.getUser\(token\)/,
     "Bearer tokens must be validated with Supabase Auth");
 });
+
+
+test("clinic-scoped bearer identity takes precedence over the shared NextAuth cookie", async () => {
+  const authSource = await readFile(
+    path.join(root, "src", "app", "api", "utils", "auth.ts"),
+    "utf8",
+  );
+  const bearerLookup = authSource.indexOf('req.headers.get("authorization")');
+  const nextAuthLookup = authSource.indexOf("getServerSession(authOptions)");
+  assert.ok(bearerLookup >= 0 && nextAuthLookup > bearerLookup,
+    "tab-scoped bearer identity must be evaluated before the shared NextAuth cookie");
+  assert.match(authSource, /metadata\.auth_source === "clinic-scoped-shadow"/,
+    "clinic-scoped tokens must use an explicit, separately provisioned identity type");
+  assert.match(authSource, /metadata\.canonical_email/,
+    "the canonical account email must come from verified server-issued token metadata");
+  assert.match(authSource, /metadata\.clinic_id/,
+    "the clinic scope must come from verified server-issued token metadata");
+  assert.match(authSource, /if \(!canonicalEmail \|\| !clinicId\) throw/,
+    "incomplete clinic-scoped claims must fail closed");
+});
