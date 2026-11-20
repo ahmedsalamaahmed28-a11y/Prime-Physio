@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase-admin";
-import { requireAuthOnly, requireRole } from "../utils/auth";
-import { hasStaffPermission } from "@/lib/server/staff-permissions";
+import { requireAuthOnly } from "../utils/auth";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
