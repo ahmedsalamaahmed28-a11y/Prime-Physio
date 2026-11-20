@@ -36,6 +36,26 @@ test("central overview is restricted to explicit clinic owners", async () => {
   assert.match(route, /\.in\(["']clinic_id["'], clinicIds\)/);
 });
 
+test("RLS clinic resolver validates the active claim against a real membership", async () => {
+  const migration = await source("supabase/migrations/20261109224321_multi_center_ownership_and_tenant_context.sql");
+  const start = migration.indexOf("create or replace function public.get_my_clinic_id()");
+  const end = migration.indexOf("$function$;", start);
+  const resolver = migration.slice(start, end);
+  assert.match(resolver, /auth\.jwt\(\) -> 'app_metadata' ->> 'active_clinic_id'/);
+  assert.match(resolver, /where o\.clinic_id = v_active_id/);
+  assert.match(resolver, /where s\.clinic_id = v_active_id/);
+  assert.match(resolver, /if v_count = 1 then return v_only_id/);
+  assert.match(resolver, /return null/);
+});
+
+test("active clinic broadcasts update the browser's tenant context", async () => {
+  const auth = await source("src/lib/auth.tsx");
+  assert.match(auth, /auth_source === "nextauth-shadow"/);
+  assert.match(auth, /active_clinic_id/);
+  assert.match(auth, /sessionStorage\.setItem\("preferred_clinic_id", activeClinicId\)/);
+  assert.match(auth, /sync active clinic across tabs/);
+});
+
 test("tenant-facing APIs use a server-verified active clinic context", async () => {
   const paths = [
     "src/app/api/patients/route.ts",
