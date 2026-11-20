@@ -2,7 +2,7 @@
   "schema_version": 1,
   "snapshot_date": "2026-11-20",
   "project_id": "crrhrjhftwostjomzmfj",
-  "note": "Git blob SHA-1 identifies the current source blob only. Production SQL hashes are intentionally null because Supabase migration history lists versions/names, not the original SQL bodies.",
+  "note": "Git blob SHA-1 identifies the current source blob only. Production SQL hashes are intentionally null because Supabase migration history lists versions/names, not the original SQL bodies. Historical/semantic candidates are explicitly labeled as unverified and are not treated as SQL matches.",
   "counts": {
     "production_applied": 130,
     "source_files": 122,
@@ -30,7 +30,9 @@
       "source_git_blob_sha1": null,
       "production_sql_sha256": null,
       "sql_body_equivalence": "NOT_VERIFIED",
-      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup",
+      "historical_or_semantic_candidate": "20261105151000_pin_security_function_search_path.sql",
+      "candidate_evidence": "Historical reconciliation note in merged commit 1432e625f85e4b38249ed066e6b132e20cb31814; candidate only, SQL body not compared"
     },
     {
       "production_version": "20261105150212",
@@ -40,7 +42,9 @@
       "source_git_blob_sha1": null,
       "production_sql_sha256": null,
       "sql_body_equivalence": "NOT_VERIFIED",
-      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup",
+      "historical_or_semantic_candidate": "20261105152500_restrict_clinic_lookup_and_provision.sql",
+      "candidate_evidence": "Candidate inferred from combined migration filename/content; no production body proof"
     },
     {
       "production_version": "20261105150218",
@@ -50,7 +54,9 @@
       "source_git_blob_sha1": null,
       "production_sql_sha256": null,
       "sql_body_equivalence": "NOT_VERIFIED",
-      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup",
+      "historical_or_semantic_candidate": "20261105152500_restrict_clinic_lookup_and_provision.sql",
+      "candidate_evidence": "Candidate inferred from combined migration filename/content; no production body proof"
     },
     {
       "production_version": "20261105150238",
@@ -80,7 +86,9 @@
       "source_git_blob_sha1": null,
       "production_sql_sha256": null,
       "sql_body_equivalence": "NOT_VERIFIED",
-      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup",
+      "historical_or_semantic_candidate": "20261105155000_restrict_security_definer_function_grants.sql",
+      "candidate_evidence": "Candidate inferred from migration's function grant statements; no production body proof"
     },
     {
       "production_version": "20261105150715",
@@ -90,7 +98,9 @@
       "source_git_blob_sha1": null,
       "production_sql_sha256": null,
       "sql_body_equivalence": "NOT_VERIFIED",
-      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup",
+      "historical_or_semantic_candidate": "20261105155000_restrict_security_definer_function_grants.sql",
+      "candidate_evidence": "Candidate inferred from migration's helper-function grant statements; no production body proof"
     },
     {
       "production_version": "20261105152656",
@@ -280,7 +290,9 @@
       "source_git_blob_sha1": null,
       "production_sql_sha256": null,
       "sql_body_equivalence": "NOT_VERIFIED",
-      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup",
+      "historical_or_semantic_candidate": "20261105194500_unique_paymob_subscription_ids.sql",
+      "candidate_evidence": "Candidate inferred from Paymob uniqueness migration naming; no production body proof"
     },
     {
       "production_version": "20261105162204",
@@ -300,7 +312,9 @@
       "source_git_blob_sha1": null,
       "production_sql_sha256": null,
       "sql_body_equivalence": "NOT_VERIFIED",
-      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup",
+      "historical_or_semantic_candidate": "20261105195500_restrict_system_broadcasts_to_clinics.sql",
+      "candidate_evidence": "Candidate inferred from broadcast access-control migration naming; no production body proof"
     },
     {
       "production_version": "20261105162328",
@@ -850,7 +864,9 @@
       "source_git_blob_sha1": null,
       "production_sql_sha256": null,
       "sql_body_equivalence": "NOT_VERIFIED",
-      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup",
+      "historical_or_semantic_candidate": "20261114171000_count_center_owners_in_user_quotas.sql",
+      "candidate_evidence": "Candidate source file exists and has matching owner-quota purpose; timestamp and SQL body still unverified"
     },
     {
       "production_version": "20261114191737",
@@ -940,7 +956,9 @@
       "source_git_blob_sha1": null,
       "production_sql_sha256": null,
       "sql_body_equivalence": "NOT_VERIFIED",
-      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup",
+      "historical_or_semantic_candidate": "20261115160000_make_group_sessions_one_hour.sql",
+      "candidate_evidence": "Commit 293af0496d1c103509b0e5ea89dc14a02e79588c added this source file; production version/name discrepancy remains"
     },
     {
       "production_version": "20261115162925",
@@ -980,7 +998,9 @@
       "source_git_blob_sha1": null,
       "production_sql_sha256": null,
       "sql_body_equivalence": "NOT_VERIFIED",
-      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup",
+      "historical_or_semantic_candidate": "20261115210000_index_uncovered_foreign_keys.sql",
+      "candidate_evidence": "Candidate inferred from foreign-key index migration; SQL body not compared"
     },
     {
       "production_version": "20261115205229",
@@ -990,7 +1010,9 @@
       "source_git_blob_sha1": null,
       "production_sql_sha256": null,
       "sql_body_equivalence": "NOT_VERIFIED",
-      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup",
+      "historical_or_semantic_candidate": "20261115210500_revoke_anonymous_app_key_values.sql",
+      "candidate_evidence": "Candidate inferred from anonymous app-key grant migration; SQL body not compared"
     },
     {
       "production_version": "20261115205709",
@@ -1010,7 +1032,9 @@
       "source_git_blob_sha1": null,
       "production_sql_sha256": null,
       "sql_body_equivalence": "NOT_VERIFIED",
-      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup",
+      "historical_or_semantic_candidate": "20261115212000_wrap_rls_auth_uid_initplans.sql",
+      "candidate_evidence": "Commit 5fc97153e26f64ae482b5fcebf625b6652e03a1a added the current RLS auth.uid optimization source; production body not compared"
     },
     {
       "production_version": "20261115205940",
@@ -1020,7 +1044,9 @@
       "source_git_blob_sha1": null,
       "production_sql_sha256": null,
       "sql_body_equivalence": "NOT_VERIFIED",
-      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup",
+      "historical_or_semantic_candidate": "20261115213000_wrap_direct_rls_uid_calls.sql",
+      "candidate_evidence": "Commit 349759ce2e8ecd7c94a1203402ab4c893a00d918 added the current direct auth.uid optimization source; production body not compared"
     },
     {
       "production_version": "20261116082011",
@@ -1404,5 +1430,6 @@
       "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
       "action": "Do not apply until proven required or superseded"
     }
-  ]
+  ],
+  "historical_candidate_count": 13
 }
