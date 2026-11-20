@@ -47,14 +47,36 @@ async function clinicPresentation(admin: ReturnType<typeof getAdminClient>, clin
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    const email = session?.user?.email?.toLowerCase().trim();
+    const admin = getAdminClient();
+    const bearer = req.headers.get("authorization")?.match(/^Bearer\\s+(.+)$/i)?.[1]?.trim();
+    let email: string | null = null;
+    let scopedClinicId: string | null = null;
+
+    if (bearer) {
+      const { data, error } = await admin.auth.getUser(bearer);
+      const metadata = data.user?.app_metadata || {};
+      if (error || !data.user || metadata.auth_source !== "clinic-scoped-shadow") {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: { "Cache-Control": "no-store, private" } });
+      }
+      email = typeof metadata.canonical_email === "string" ? metadata.canonical_email.trim().toLowerCase() : null;
+      scopedClinicId = typeof metadata.clinic_id === "string" ? metadata.clinic_id : null;
+      if (!email || !scopedClinicId) {
+        return NextResponse.json({ error: "Invalid clinic identity" }, { status: 401, headers: { "Cache-Control": "no-store, private" } });
+      }
+    } else {
+      const session = await getServerSession(authOptions);
+      email = session?.user?.email?.toLowerCase().trim() || null;
+    }
+
     if (!email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: { "Cache-Control": "no-store, private" } });
     }
 
-    const preferredClinicId = new URL(req.url).searchParams.get("preferred_clinic_id");
-    const admin = getAdminClient();
+    const requestedClinicId = new URL(req.url).searchParams.get("preferred_clinic_id");
+    if (scopedClinicId && requestedClinicId && requestedClinicId !== scopedClinicId) {
+      return NextResponse.json({ error: "Clinic scope mismatch" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
+    }
+    const preferredClinicId = scopedClinicId || requestedClinicId;
     const [
       { data: profile, error: profileResultError },
       { data: accountProfile, error: accountProfileResultError },
