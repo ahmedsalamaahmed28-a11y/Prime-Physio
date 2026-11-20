@@ -89,6 +89,9 @@ The following tests ran inside separate database transactions. Test staff role/p
 | Admin role with explicit `[\"view_patients\"]` | Only patient viewing among the tested permissions allowed; invoice, staff, and settings permissions denied |
 | Explicit empty list `[]` | All tested permissions denied; RLS patient rows invisible |
 | Malformed explicit permission JSON | All tested permissions denied; no role-default fallback |
+| Explicit array containing a non-string item | All tested permissions denied; no role-default fallback |
+| Explicit wildcard `[\"*\"]` | Tested permissions allowed, including `manage_staff` |
+| Inactive staff status | All tested permissions denied |
 | Explicit `[\"view_patients\"]` RLS check | One patient row visible; invoice rows invisible |
 | Wrong active clinic ID | Clinic context rejected; zero patient rows visible |
 | Clinic owner membership | Owner-level permissions remained allowed |
