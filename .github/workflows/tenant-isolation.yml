@@ -63,6 +63,8 @@ jobs:
           if [ ! -f supabase/config.toml ]; then
             supabase init
           fi
+          # Match the hosted Prime Physio database major version.
+          sed -i 's/^major_version = .*/major_version = 17/' supabase/config.toml
 
       - name: Start isolated local Supabase stack and apply migrations
         run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector
