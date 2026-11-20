@@ -97,6 +97,8 @@ test("API access is not granted by the proxy's cookie-presence check", async () 
     "Supabase cookies must be validated with Supabase Auth, not trusted by presence");
   assert.match(authSource, /admin\.auth\.getUser\(token\)/,
     "Bearer tokens must be validated with Supabase Auth");
+  assert.match(authSource, /Never fall back to the shared NextAuth cookie/,
+    "an invalid bearer token must not fall back to a different tab's NextAuth cookie");
 });
 
 
