@@ -24,7 +24,7 @@ async function verifyPatient(admin: ReturnType<typeof getAdminClient>, patientId
 export async function GET(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await getAuthorizedClinic(request);
   if ("response" in auth) return auth.response;
-  if (!canViewPatientHistory(auth.staff)) {
+  if (!hasStaffPermission(auth.staff, "view_patients") || !canViewPatientHistory(auth.staff)) {
     return NextResponse.json({ error: "ليس لديك صلاحية الاطلاع على السجل العلاجي" }, { status: 403 });
   }
   const { id } = await context.params;
@@ -64,7 +64,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
 export async function POST(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const auth = await getAuthorizedClinic(request);
   if ("response" in auth) return auth.response;
-  if (!hasStaffPermission(auth.staff, "edit_emr")) {
+  if (!hasStaffPermission(auth.staff, "view_patients") || !hasStaffPermission(auth.staff, "edit_emr")) {
     return NextResponse.json({ error: "ليس لديك صلاحية تعديل السجل العلاجي" }, { status: 403 });
   }
   const { id } = await context.params;

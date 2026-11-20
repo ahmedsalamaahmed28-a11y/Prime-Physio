@@ -26,42 +26,64 @@ const RECEPTION_ROLES = new Set([
   "موظفة استقبال رئيسية",
 ]);
 
-function parsePermissionOverride(value: unknown): string[] | null {
-  if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === "string");
+type PermissionOverride = { defined: false } | { defined: true; permissions: string[] };
+
+function parsePermissionOverride(value: unknown): PermissionOverride {
+  if (value === null || value === undefined || (typeof value === "string" && !value.trim())) {
+    return { defined: false };
   }
-  if (typeof value !== "string" || !value.trim()) return null;
+
+  if (Array.isArray(value)) {
+    if (!value.every((item) => typeof item === "string")) {
+      return { defined: true, permissions: [] };
+    }
+    return { defined: true, permissions: value };
+  }
+
+  if (typeof value !== "string") return { defined: true, permissions: [] };
+
   try {
     const parsed: unknown = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === "string")
-      : null;
+    if (!Array.isArray(parsed) || !parsed.every((item) => typeof item === "string")) {
+      return { defined: true, permissions: [] };
+    }
+    return { defined: true, permissions: parsed };
   } catch {
-    return null;
+    // A malformed explicit override must never restore role-default privileges.
+    return { defined: true, permissions: [] };
   }
+}
+
+function defaultPermissionsForRole(role: string): readonly string[] {
+  if (ADMIN_ROLES.has(role)) return ["*"];
+  if (DOCTOR_ROLES.has(role)) {
+    return ["view_patients", "view_appointments", "edit_emr", "edit_patient", "view_patient_history"];
+  }
+  if (RECEPTION_ROLES.has(role)) {
+    return ["view_patients", "view_appointments", "view_invoices", "create_invoice", "edit_patient"];
+  }
+  return [];
 }
 
 export function hasStaffPermission(
   staff: StaffPermissionRecord | null | undefined,
   permission: string,
 ): boolean {
-  if (!staff || staff.status === "محذوف") return false;
-  const role = staff.role || "";
-  if (ADMIN_ROLES.has(role)) return true;
+  if (!staff) return false;
+  const status = String(staff.status || "").trim().toLowerCase();
+  if (["محذوف", "deleted", "inactive", "غير نشط"].includes(status)) return false;
 
+  const role = String(staff.role || "").trim().toLowerCase();
   const override = parsePermissionOverride(staff.permissions);
-  if (override !== null) return override.includes(permission);
+  const permissions = override.defined
+    ? override.permissions
+    : defaultPermissionsForRole(role);
 
-  if (DOCTOR_ROLES.has(role)) {
-    return ["edit_emr", "edit_patient", "view_patient_history"].includes(permission);
-  }
-  if (RECEPTION_ROLES.has(role)) {
-    return ["create_invoice", "edit_patient"].includes(permission);
-  }
-  return false;
+  return permissions.includes(permission) || permissions.includes("*");
 }
 
 export function canViewPatientHistory(staff: StaffPermissionRecord | null | undefined) {
+  // Editing clinical records necessarily requires reading the existing history.
   return hasStaffPermission(staff, "view_patient_history")
     || hasStaffPermission(staff, "edit_emr");
 }

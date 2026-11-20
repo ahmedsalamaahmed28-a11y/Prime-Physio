@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase-admin";
-import { requireRole } from "../utils/auth";
+import { getClinicContext } from "@/lib/server/clinic-context";
+import { hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,18 +29,16 @@ const noStoreHeaders = {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await requireRole(req, ["admin"]);
-    if (!user.clinicId) {
-      return NextResponse.json({ error: "Clinic Admin access required." }, {
-        status: 403, headers: noStoreHeaders,
-      });
+    const auth = await getClinicContext(req);
+    if ("response" in auth) return auth.response;
+    if (!hasStaffPermission(auth.staff, "export_data")) {
+      return NextResponse.json({ error: "ليس لديك صلاحية تصدير بيانات المركز" }, { status: 403, headers: noStoreHeaders });
     }
-
-    const admin = getAdminClient();
+    const admin = auth.admin;
     const { data: clinic, error: clinicError } = await admin
       .from("clinics")
       .select("id, name, name_en, admin_email, phone, address, city, country, logo_url, status, is_active, slug, created_at, updated_at")
-      .eq("id", user.clinicId)
+      .eq("id", auth.clinicId)
       .maybeSingle();
 
     if (clinicError || !clinic) {
@@ -59,9 +57,9 @@ export async function POST(req: NextRequest) {
 
       while (true) {
         const pageQuery = tableName === "patient_nutrition" || tableName === "patient_medical_records"
-          ? admin.from(tableName).select("*").eq("clinic_id", user.clinicId)
+          ? admin.from(tableName).select("*").eq("clinic_id", auth.clinicId)
               .order("patient_id", { ascending: true }).range(offset, offset + PAGE_SIZE - 1)
-          : admin.from(tableName).select("*").eq("clinic_id", user.clinicId)
+          : admin.from(tableName).select("*").eq("clinic_id", auth.clinicId)
               .order("id", { ascending: true }).range(offset, offset + PAGE_SIZE - 1);
 
         const { data, error } = await pageQuery;
@@ -87,7 +85,7 @@ export async function POST(req: NextRequest) {
       format: "prime-physio-clinic-backup",
       formatVersion: 2,
       exportedAt: new Date().toISOString(),
-      clinicId: user.clinicId,
+      clinicId: auth.clinicId,
       scope: "Clinic-owned public tables only. Excludes Auth users, Storage objects, database schema, and platform-wide records.",
       clinic,
       tableCounts,
@@ -101,7 +99,7 @@ export async function POST(req: NextRequest) {
       headers: {
         ...noStoreHeaders,
         "Content-Type": "application/json; charset=utf-8",
-        "Content-Disposition": `attachment; filename="prime-physio-backup-${user.clinicId}-${date}.json"`,
+        "Content-Disposition": `attachment; filename="prime-physio-backup-${auth.clinicId}-${date}.json"`,
       },
     });
   } catch (err: unknown) {

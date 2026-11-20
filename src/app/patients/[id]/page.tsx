@@ -766,6 +766,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
   const { hasPermission } = usePermissions();
+  const canViewPatientHistory = hasPermission("view_patient_history") || hasPermission("edit_emr");
   const { user: authUser } = useAuth();
   const clinicId = authUser?.clinicId;
   
@@ -1292,7 +1293,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
         </CardContent>
       </Card>
       )}      {/* Progress Chart and Timeline side-by-side */}
-      {hasPermission("view_patient_history") ? (
+      {canViewPatientHistory ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Sessions Timeline */}
           <div>
@@ -1370,7 +1371,7 @@ function MedicalRecordsTab({ patient, onEditMedicalClick }: { patient: Patient; 
 
 // ─── Tab: Packages ────────────────────────────────────────────────────────────
 
-function PackagesTab({ patient, onUpdatePatient }: { patient: any, onUpdatePatient: (p: any) => void }) {
+function PackagesTab({ patient, onUpdatePatient, canEditPatient, canConsumeSession }: { patient: any, onUpdatePatient: (p: any) => void, canEditPatient: boolean, canConsumeSession: boolean }) {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { user: authUser } = useAuth();
@@ -1392,7 +1393,7 @@ function PackagesTab({ patient, onUpdatePatient }: { patient: any, onUpdatePatie
   const isFinished = remaining <= 0 && pkg.totalSessions > 0;
 
   const handleConsumeSession = async () => {
-    if (remaining <= 0 || isUpdating || !clinicId) return;
+    if (!canConsumeSession || remaining <= 0 || isUpdating || !clinicId) return;
     setIsUpdating(true);
 
     try {
@@ -1415,7 +1416,7 @@ function PackagesTab({ patient, onUpdatePatient }: { patient: any, onUpdatePatie
   };
 
   const handleRenewPackage = async () => {
-    if (isUpdating) return;
+    if (!canEditPatient || isUpdating) return;
     setIsUpdating(true);
     
     const newPackageName = prompt(isRtl ? "أدخل اسم الباقة الجديدة:" : "Enter new package name:", "باقة 6 جلسات");
@@ -1498,23 +1499,23 @@ function PackagesTab({ patient, onUpdatePatient }: { patient: any, onUpdatePatie
             </div>
           </div>
           <Separator />
-          <div className="flex gap-2 pt-1">
-            <Button 
+          {(canEditPatient || canConsumeSession) && <div className="flex gap-2 pt-1">
+            {canConsumeSession && <Button 
               onClick={handleConsumeSession} 
               disabled={remaining <= 0 || isUpdating} 
               className="flex-1 bg-gradient-to-r from-[#4F46BA] to-[#7c3aed] text-white hover:from-[#4338ca] hover:to-[#6d28d9]"
             >
               {isUpdating ? (isRtl ? "جاري..." : "Processing...") : (isRtl ? "استهلاك جلسة" : "Consume Session")}
-            </Button>
-            <Button 
+            </Button>}
+            {canEditPatient && <Button 
               onClick={handleRenewPackage}
               disabled={isUpdating}
               variant="outline" 
               className="flex-1"
             >
               {isRtl ? "تجديد/تغيير الباقة" : "Renew/Change Package"}
-            </Button>
-          </div>
+            </Button>}
+          </div>}
         </CardContent>
       </Card>
       <div>
@@ -2461,6 +2462,11 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
     documentTitle: `Medical_Report_${resolvedParams.id}`,
   });
   const { hasPermission } = usePermissions();
+  const canViewPatients = hasPermission("view_patients");
+  const canViewPatientHistory = hasPermission("view_patient_history") || hasPermission("edit_emr");
+  const canEditPatient = hasPermission("edit_patient");
+  const canEditClinical = hasPermission("edit_emr");
+  const canExportPatientRecord = canViewPatientHistory && hasPermission("export_data");
   const { user } = useAuth();
   const clinicId = user?.clinicId;
 
@@ -2512,7 +2518,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
 
   // Load real patient data from Supabase
   useEffect(() => {
-    if (!clinicId) return;
+    if (!clinicId || !canViewPatients) return;
     async function fetchPatient() {
       try {
         const response = await fetch(`/api/patients/${encodeURIComponent(resolvedParams.id)}`, {
@@ -2558,12 +2564,12 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
       }
     }
     fetchPatient();
-  }, [resolvedParams.id, clinicId]);
+  }, [resolvedParams.id, clinicId, canViewPatients]);
 
   // Load the active protocol from the existing clinic-scoped programs table.
   // Keep auto-save disabled until this lookup finishes to avoid overwriting saved progress.
   useEffect(() => {
-    if (!clinicId || !patient.id) return;
+    if (!clinicId || !patient.id || !canViewPatients || !canViewPatientHistory) return;
 
     let active = true;
     const loadSavedProtocol = async () => {
@@ -2587,7 +2593,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
 
     loadSavedProtocol();
     return () => { active = false; };
-  }, [clinicId, patient.id]);
+  }, [clinicId, patient.id, canViewPatients, canViewPatientHistory]);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -2675,7 +2681,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
 
   const handleMedicalEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSavingMedicalFile) return;
+    if (!canEditClinical || isSavingMedicalFile) return;
     setIsSavingMedicalFile(true);
     try {
       const response = await fetch(`/api/patients/${encodeURIComponent(patient.id)}`, {
@@ -2697,7 +2703,7 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
 
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isSavingProfile) return;
+    if (!canEditPatient || isSavingProfile) return;
     setIsSavingProfile(true);
     try {
       const response = await fetch(`/api/patients/${encodeURIComponent(patient.id)}`, {
@@ -2715,6 +2721,14 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
       setIsSavingProfile(false);
     }
   };
+
+  if (!canViewPatients) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900" dir={isRtl ? "rtl" : "ltr"}>
+        {isRtl ? "ليس لديك صلاحية مشاهدة ملف المريض." : "You do not have permission to view this patient record."}
+      </div>
+    );
+  }
 
   return (    <div className="min-h-screen bg-background" dir={isRtl ? "rtl" : "ltr"}>
       <div className="border-b bg-card sticky top-16 z-40 print:hidden">
@@ -2751,15 +2765,15 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
               )}
             </div>
 
-            <Button variant="outline" size="sm" onClick={() => handlePrint()} className="gap-1.5 text-teal-700 border-teal-200 hover:bg-teal-50">
+            {canExportPatientRecord && <Button variant="outline" size="sm" onClick={() => handlePrint()} className="gap-1.5 text-teal-700 border-teal-200 hover:bg-teal-50">
               <FileText className="w-4 h-4" />
               {isRtl ? "تصدير PDF" : "Export PDF"}
-            </Button>
+            </Button>}
             
-            <Button variant="default" size="sm" onClick={() => setIsEditOpen(true)} className="gap-1.5 bg-[#4F46BA] hover:bg-[#433aa3] text-white">
+            {canEditPatient && <Button variant="default" size="sm" onClick={() => setIsEditOpen(true)} className="gap-1.5 bg-[#4F46BA] hover:bg-[#433aa3] text-white">
               <Edit className="w-4 h-4" />
               {isRtl ? "تعديل البيانات" : "Edit Profile"}
-            </Button>
+            </Button>}
           </div>
         </div>
       </div>
@@ -2767,21 +2781,21 @@ export default function PatientProfilePage({ params }: { params: Promise<{ id: s
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">        <Tabs defaultValue="general">
           <TabsList className="flex overflow-x-auto whitespace-nowrap scrollbar-hide h-auto w-full max-w-5xl justify-start gap-1.5 p-1.5 print:hidden bg-slate-100/50 dark:bg-slate-800/50 rounded-lg border border-slate-200/50">
             <TabsTrigger value="general" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "المعلومات العامة" : "General Info"}</TabsTrigger>
-            {hasPermission("view_patient_history") && <TabsTrigger value="radiology" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "الأشعة والتحاليل" : "Scans & Reports"}</TabsTrigger>}
-            {hasPermission("view_patient_history") && <TabsTrigger value="records" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "السجلات الطبية" : "Medical Records"}</TabsTrigger>}
-            {hasPermission("view_patient_history") && <TabsTrigger value="reports" className="text-teal-700 dark:text-teal-400 font-medium rounded-md data-[state=active]:bg-teal-50 data-[state=active]:text-teal-800"><FileText className="w-3.5 h-3.5 mr-1.5 ml-1.5"/> {isRtl ? "التقارير الذكية" : "Smart Reports"}</TabsTrigger>}
-            {hasPermission("view_patient_history") && <TabsTrigger value="clinical" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "التقييم والخطة العلاجية" : "Evaluation & Care Plan"}</TabsTrigger>}
-            {hasPermission("view_patient_history") && <TabsTrigger value="protocols" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "بروتوكولات التأهيل" : "Rehab Protocols"}</TabsTrigger>}
+            {canViewPatientHistory && <TabsTrigger value="radiology" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "الأشعة والتحاليل" : "Scans & Reports"}</TabsTrigger>}
+            {canViewPatientHistory && <TabsTrigger value="records" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "السجلات الطبية" : "Medical Records"}</TabsTrigger>}
+            {canViewPatientHistory && <TabsTrigger value="reports" className="text-teal-700 dark:text-teal-400 font-medium rounded-md data-[state=active]:bg-teal-50 data-[state=active]:text-teal-800"><FileText className="w-3.5 h-3.5 mr-1.5 ml-1.5"/> {isRtl ? "التقارير الذكية" : "Smart Reports"}</TabsTrigger>}
+            {canViewPatientHistory && <TabsTrigger value="clinical" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "التقييم والخطة العلاجية" : "Evaluation & Care Plan"}</TabsTrigger>}
+            {canViewPatientHistory && <TabsTrigger value="protocols" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "بروتوكولات التأهيل" : "Rehab Protocols"}</TabsTrigger>}
             <TabsTrigger value="packages" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "الباقات" : "Packages"}</TabsTrigger>
             <TabsTrigger value="neuro" className="rounded-md data-[state=active]:bg-white data-[state=active]:shadow-sm">{isRtl ? "دليل الأعصاب" : "Neuro Reference"}</TabsTrigger>
           </TabsList>
           <TabsContent value="general"><GeneralInfoTab patient={patient} /></TabsContent>
-          {hasPermission("view_patient_history") && <TabsContent value="radiology"><PatientAttachmentsTab patientId={resolvedParams.id} /></TabsContent>}
-          {hasPermission("view_patient_history") && <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>}
-          {hasPermission("view_patient_history") && <TabsContent value="reports"><SmartReportsTab patient={patient} /></TabsContent>}
-          {hasPermission("view_patient_history") && <TabsContent value="clinical"><ClinicalWorkflowTab patientId={patient.id} clinicId={clinicId || undefined} isRtl={isRtl} /></TabsContent>}
-          {hasPermission("view_patient_history") && <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} initialState={typeof patient.active_protocol === 'string' ? JSON.parse(patient.active_protocol) : patient.active_protocol} onSaveState={handleSaveProtocolState} /></TabsContent>}
-          <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} /></TabsContent>
+          {canViewPatientHistory && <TabsContent value="radiology"><PatientAttachmentsTab patientId={resolvedParams.id} /></TabsContent>}
+          {canViewPatientHistory && <TabsContent value="records"><MedicalRecordsTab patient={patient} onEditMedicalClick={() => setIsMedicalEditOpen(true)} /></TabsContent>}
+          {canViewPatientHistory && <TabsContent value="reports"><SmartReportsTab patient={patient} /></TabsContent>}
+          {canViewPatientHistory && <TabsContent value="clinical"><ClinicalWorkflowTab patientId={patient.id} clinicId={clinicId || undefined} isRtl={isRtl} canEdit={canEditClinical} /></TabsContent>}
+          {canViewPatientHistory && <TabsContent value="protocols"><PhaseBasedProtocolsTab patient={patient} initialState={typeof patient.active_protocol === 'string' ? JSON.parse(patient.active_protocol) : patient.active_protocol} readOnly={!canEditClinical} onSaveState={canEditClinical ? handleSaveProtocolState : undefined} /></TabsContent>}
+          <TabsContent value="packages"><PackagesTab patient={patient} onUpdatePatient={setPatient} canEditPatient={canEditPatient} canConsumeSession={canEditPatient && canEditClinical} /></TabsContent>
           <TabsContent value="neuro"><NeuroReferenceTab /></TabsContent>
         </Tabs>
       </div>

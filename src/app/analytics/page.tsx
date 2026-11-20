@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { BarChart3, TrendingUp, Users, DollarSign, Calendar, Activity, CheckCircle2, Minus, Sparkles, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/lib/supabase";
+import { usePermissions } from "@/lib/usePermissions";
 import { useAuth } from "@/lib/auth";
 import { useLanguage } from "@/lib/LanguageContext";
 
@@ -11,6 +11,8 @@ export default function AnalyticsPage() {
   const { language } = useLanguage();
   const isRtl = language === "ar";
   const { user } = useAuth(); const clinicId = user?.clinicId;
+  const { hasPermission } = usePermissions();
+  const canViewAnalytics = hasPermission("view_analytics");
   const [stats, setStats] = useState({
     totalPatients: 0,
     activePatients: 0,
@@ -26,74 +28,35 @@ export default function AnalyticsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!clinicId) {
+    if (!clinicId || !canViewAnalytics) {
       setIsLoading(false);
       return;
     }
 
     let cancelled = false;
-
     async function fetchAnalytics() {
       try {
         setIsLoading(true);
-        const [patientsResult, sessionsResult, invoicesResult, reportsResult] = await Promise.all([
-          supabase.from("patients").select("id,status,activePackage").eq("clinic_id", clinicId),
-          supabase.from("sessions").select("id").eq("clinic_id", clinicId),
-          supabase.from("invoices").select("amount,status").eq("clinic_id", clinicId),
-          supabase.from("executive_reports").select("*").eq("clinic_id", clinicId).order("created_at", { ascending: false }).limit(5),
-        ]);
-
-        const firstError = patientsResult.error || sessionsResult.error || invoicesResult.error || reportsResult.error;
-        if (firstError) throw firstError;
+        const response = await fetch("/api/analytics", { cache: "no-store" });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload?.error || "Failed to load analytics");
         if (cancelled) return;
-
-        const patients = patientsResult.data || [];
-        const sessions = sessionsResult.data || [];
-        const invoices = invoicesResult.data || [];
-        setExecutiveReports(reportsResult.data || []);
-
-        const totalPatients = patients.length;
-        const activePatients = patients.filter((patient) => patient.status === "نشط").length;
-        const inactivePatients = patients.filter((patient) => patient.status === "غير نشط").length;
-        const paidInvoices = invoices.filter((invoice) => ["مدفوع", "Paid"].includes(String(invoice.status || "")));
-        const netRevenue = paidInvoices.reduce((sum, invoice) => {
-          const amount = Number(String(invoice.amount ?? "").replace(/[^0-9.-]/g, ""));
-          return sum + (Number.isFinite(amount) ? amount : 0);
-        }, 0);
-
-        let backPackageCount = 0;
-        let kneePackageCount = 0;
-        let singleSessionsCount = 0;
-        patients.forEach((patient) => {
-          const packageName = patient.activePackage || "جلسات فردية";
-          if (packageName === "باقة علاج الظهر") backPackageCount++;
-          else if (packageName === "تأهيل الركبة") kneePackageCount++;
-          else singleSessionsCount++;
+        setStats(payload.stats || {
+          totalPatients: 0, activePatients: 0, inactivePatients: 0, totalSessions: 0,
+          netRevenue: 0, satisfactionRate: null, backPackageCount: 0,
+          kneePackageCount: 0, singleSessionsCount: 0,
         });
-
-        setStats({
-          totalPatients,
-          activePatients,
-          inactivePatients,
-          totalSessions: sessions.length,
-          netRevenue,
-          satisfactionRate: null,
-          backPackageCount,
-          kneePackageCount,
-          singleSessionsCount,
-        });
-      } catch (err) {
-        console.error("Failed to load analytics data:", err);
+        setExecutiveReports(payload.executiveReports || []);
+      } catch (error) {
+        console.error("Failed to load analytics data:", error);
       } finally {
         if (!cancelled) setIsLoading(false);
       }
     }
 
     fetchAnalytics();
-    return () => {
-      cancelled = true;
-    };
-  }, [clinicId]);
+    return () => { cancelled = true; };
+  }, [clinicId, canViewAnalytics]);
 
   const localizedStats = [
     { title: isRtl ? "إجمالي المرضى بالعيادة" : "Total Clinic Patients", value: `${stats.totalPatients} ${isRtl ? 'مريض' : 'Patients'}`, desc: isRtl ? `نشط: ${stats.activePatients} | غير نشط: ${stats.inactivePatients}` : `Active: ${stats.activePatients} | Inactive: ${stats.inactivePatients}`, icon: Users, color: "text-[#4F46BA] bg-indigo-50 dark:bg-indigo-950/20 ring-1 ring-indigo-100/50" },
@@ -101,6 +64,14 @@ export default function AnalyticsPage() {
     { title: isRtl ? "إجمالي التحصيل المدفوع" : "Paid Invoice Collections", value: `${stats.netRevenue.toLocaleString()} ${isRtl ? 'ج.م' : 'EGP'}`, desc: isRtl ? "إجمالي الفواتير المسجلة كمدفوعة" : "Total invoices recorded as paid", icon: DollarSign, color: "text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20 ring-1 ring-emerald-100/50" },
     { title: isRtl ? "معدل رضا المرضى" : "Patient Satisfaction", value: stats.satisfactionRate !== null ? `${stats.satisfactionRate}٪` : "—", desc: isRtl ? "لا توجد تقييمات بعد" : "No reviews yet", icon: stats.satisfactionRate !== null ? TrendingUp : Minus, color: "text-blue-600 bg-blue-50 dark:bg-blue-950/20 ring-1 ring-blue-100/50" },
   ];
+
+  if (!canViewAnalytics) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900" dir={isRtl ? "rtl" : "ltr"}>
+        {isRtl ? "ليس لديك صلاحية مشاهدة التحليلات والمؤشرات المالية." : "You do not have permission to view analytics and financial metrics."}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300" dir={isRtl ? "rtl" : "ltr"}>

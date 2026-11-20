@@ -1395,11 +1395,13 @@ const PROTOCOLS_LIBRARY: Protocol[] = [
 export function PhaseBasedProtocolsTab({ 
   patient,
   initialState,
-  onSaveState
+  onSaveState,
+  readOnly = false
 }: { 
   patient: Patient;
   initialState?: ProtocolProgressState | null;
   onSaveState?: (state: ProtocolProgressState) => void;
+  readOnly?: boolean;
 }) {
   const { language } = useLanguage();
   const isRtl = language === "ar";
@@ -1447,6 +1449,7 @@ export function PhaseBasedProtocolsTab({
 
 
   const handleToggleCriteria = (idx: number) => {
+    if (readOnly) return;
     setCheckedCriteria(prev => ({ ...prev, [idx]: !prev[idx] }));
   };
 
@@ -1457,6 +1460,7 @@ export function PhaseBasedProtocolsTab({
     : false;
 
   const handleAdvancePhase = () => {
+    if (readOnly) return;
     if (selectedProtocol && currentPhaseIndex < selectedProtocol.phases.length - 1) {
       setCurrentPhaseIndex(prev => prev + 1);
       setCheckedCriteria({});
@@ -1467,6 +1471,7 @@ export function PhaseBasedProtocolsTab({
 
   return (
     <div className="mt-4 grid grid-cols-1 lg:grid-cols-12 gap-6" dir={isRtl ? "rtl" : "ltr"}>
+      {readOnly && <div className="lg:col-span-12 text-xs text-muted-foreground">{isRtl ? "وضع المشاهدة فقط — لا يمكن تعديل تقدم البروتوكول." : "Read-only mode — protocol progress cannot be changed."}</div>}
       
       {/* Sidebar: Protocols List & Timeline */}
       <div className="lg:col-span-4 space-y-6">
@@ -1655,6 +1660,7 @@ export function PhaseBasedProtocolsTab({
                       className="sr-only"
                       checked={!!checkedCriteria[i]}
                       onChange={() => handleToggleCriteria(i)}
+                      disabled={readOnly}
                     />
                   </label>
                 ))}
@@ -1665,7 +1671,7 @@ export function PhaseBasedProtocolsTab({
                 <div className="mt-6 flex justify-end">
                   <Button 
                     className={`gap-2 ${allCriteriaChecked ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-slate-200 text-slate-500 cursor-not-allowed'}`}
-                    disabled={!allCriteriaChecked}
+                    disabled={!allCriteriaChecked || readOnly}
                     onClick={handleAdvancePhase}
                   >
                     {isRtl ? "ترقية للمرحلة القادمة" : "Advance to Next Phase"}

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getClinicContext } from "@/lib/server/clinic-context";
 import { requireRole } from "@/app/api/utils/auth";
+import { hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -28,6 +29,13 @@ export async function GET(req: NextRequest, context: RouteContext) {
   try {
     const auth = await requireRole(req, ["admin", "doctor", "receptionist"]);
     const { conversationId } = await context.params;
+    const { data: conversation, error: conversationError } = await clinic.admin.from("chat_conversations")
+      .select("id,kind,patient_id").eq("clinic_id", clinic.clinicId).eq("id", conversationId).maybeSingle();
+    if (conversationError) throw conversationError;
+    if (!conversation) return fail("هذه المحادثة غير متاحة لحسابك", 404);
+    if (conversation.kind === "patient" && !hasStaffPermission(clinic.staff, "view_patients")) {
+      return fail("ليس لديك صلاحية مشاهدة محادثات المرضى", 403);
+    }
     const membership = await getMembership(clinic.admin, clinic.clinicId, conversationId, auth.email);
     if (!membership) return fail("هذه المحادثة غير متاحة لحسابك", 404);
 
@@ -59,7 +67,17 @@ export async function POST(req: NextRequest, context: RouteContext) {
   if ("response" in clinic) return clinic.response;
   try {
     const auth = await requireRole(req, ["admin", "doctor", "receptionist"]);
+    if (!hasStaffPermission(clinic.staff, "send_messages")) {
+      return fail("ليس لديك صلاحية إرسال الرسائل", 403);
+    }
     const { conversationId } = await context.params;
+    const { data: conversation, error: conversationError } = await clinic.admin.from("chat_conversations")
+      .select("id,kind,patient_id").eq("clinic_id", clinic.clinicId).eq("id", conversationId).maybeSingle();
+    if (conversationError) throw conversationError;
+    if (!conversation) return fail("هذه المحادثة غير متاحة لحسابك", 404);
+    if (conversation.kind === "patient" && !hasStaffPermission(clinic.staff, "view_patients")) {
+      return fail("ليس لديك صلاحية إرسال رسائل في محادثات المرضى", 403);
+    }
     const membership = await getMembership(clinic.admin, clinic.clinicId, conversationId, auth.email);
     if (!membership) return fail("هذه المحادثة غير متاحة لحسابك", 404);
 

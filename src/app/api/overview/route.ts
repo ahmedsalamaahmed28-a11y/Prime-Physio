@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminClient } from "@/lib/supabase-admin";
 import { requireAuthOnly, requireRole } from "../utils/auth";
+import { hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -39,13 +40,26 @@ export async function GET(req: NextRequest) {
       .from("clinic_owners").select("clinic_id").eq("owner_email", email);
     if (ownershipError) throw ownershipError;
     let clinicIds = [...new Set((ownerships || []).map((x) => x.clinic_id).filter(Boolean))];
+    // Clinic owners retain their owner-level overview. Staff financial analytics
+    // are returned only when the active staff permission explicitly allows them.
+    let canViewFinancials = clinicIds.length > 0;
     if (!clinicIds.length) {
-      // Staff members should see only the center selected in their verified session.
       const member = await requireRole(req, ["admin", "doctor", "receptionist"]);
       if (!member.clinicId) {
         return NextResponse.json({ centers: [], totals: null, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, private" } });
       }
       clinicIds = [member.clinicId];
+      const { data: staffRecord, error: staffError } = await admin
+        .from("staff")
+        .select("role,permissions,status")
+        .eq("clinic_id", member.clinicId)
+        .ilike("email", email)
+        .maybeSingle();
+      if (staffError) throw staffError;
+      if (!staffRecord) {
+        return NextResponse.json({ error: "لا توجد عضوية نشطة لهذا المركز" }, { status: 403 });
+      }
+      canViewFinancials = hasStaffPermission(staffRecord, "view_analytics");
     }
 
     const now = new Date();
@@ -59,7 +73,9 @@ export async function GET(req: NextRequest) {
       admin.from("staff").select("id,clinic_id,status,role").in("clinic_id", clinicIds),
       admin.from("patients").select("id,clinic_id,status,created_at").in("clinic_id", clinicIds),
       admin.from("appointments").select("id,clinic_id,starts_at,status,price").in("clinic_id", clinicIds).gte("starts_at", previousStart).lt("starts_at", tomorrow),
-      admin.from("invoices").select("id,clinic_id,amount,status,created_at").in("clinic_id", clinicIds).gte("created_at", previousStart).lt("created_at", tomorrow),
+      canViewFinancials
+        ? admin.from("invoices").select("id,clinic_id,amount,status,created_at").in("clinic_id", clinicIds).gte("created_at", previousStart).lt("created_at", tomorrow)
+        : Promise.resolve({ data: [], error: null }),
       admin.from("subscriptions").select("clinic_id,plan_name,status,end_date,created_at").in("clinic_id", clinicIds).order("created_at", { ascending: false }),
       admin.from("clinic_settings").select("clinic_id,clinic_name,logo_url,default_session_price").in("clinic_id", clinicIds),
       admin.from("clinic_services").select("clinic_id,is_active,name,price").in("clinic_id", clinicIds),
@@ -95,7 +111,7 @@ export async function GET(req: NextRequest) {
         activeStaff.length > 0,
         cp.length > 0,
         ca.length > 0,
-        ci.some((i) => paidStatuses.includes(String(i.status || "").toLowerCase())),
+        ...(canViewFinancials ? [ci.some((i) => paidStatuses.includes(String(i.status || "").toLowerCase()))] : []),
       ];
       const previousAppointments = ca.filter((a) => new Date(a.starts_at).getTime() >= new Date(previousStart).getTime() && new Date(a.starts_at).getTime() < new Date(monthStart).getTime()).length;
       const previousPaid = ci.filter((i) => new Date(i.created_at).getTime() >= new Date(previousStart).getTime() && new Date(i.created_at).getTime() < new Date(monthStart).getTime() && paidStatuses.includes(String(i.status || "").toLowerCase())).reduce((sum, i) => sum + money(i.amount), 0);
@@ -104,7 +120,8 @@ export async function GET(req: NextRequest) {
         todayAppointments: ca.filter((a) => new Date(a.starts_at).getTime() >= new Date(todayStart).getTime() && new Date(a.starts_at).getTime() < new Date(tomorrow).getTime()).length,
         monthAppointments: monthAppointments.length, previousAppointments,
         attendanceRate: due.length ? Math.round(attended.length / due.length * 100) : null,
-        receivedPayments: paid.reduce((sum, i) => sum + money(i.amount), 0), previousPayments: previousPaid,
+        receivedPayments: canViewFinancials ? paid.reduce((sum, i) => sum + money(i.amount), 0) : null,
+        previousPayments: canViewFinancials ? previousPaid : null,
         activeStaff: activeStaff.length, activePatients: activePatients.length,
         setupProgress: { completed: checks.filter(Boolean).length, total: checks.length },
         setupChecks: checks,
@@ -128,11 +145,12 @@ export async function GET(req: NextRequest) {
         monthAppointments: sum("monthAppointments"),
         previousAppointments: sum("previousAppointments"),
         attendanceRate: dueAll.length ? Math.round(attendedAll.length / dueAll.length * 100) : null,
-        receivedPayments: currentPaid.reduce((total, item) => total + money(item.amount), 0),
-        previousPayments: previousPaid.reduce((total, item) => total + money(item.amount), 0),
+        receivedPayments: canViewFinancials ? currentPaid.reduce((total, item) => total + money(item.amount), 0) : null,
+        previousPayments: canViewFinancials ? previousPaid.reduce((total, item) => total + money(item.amount), 0) : null,
         activeStaff: sum("activeStaff"), activePatients: sum("activePatients"), activeUsers: sum("activeUsers"),
         userLimit: 20,
       },
+      permissions: { viewFinancials: canViewFinancials },
       updatedAt: now.toISOString(),
     }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error) {

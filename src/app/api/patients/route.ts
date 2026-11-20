@@ -37,7 +37,10 @@ export async function GET(req: NextRequest) {
   try {
     const auth = await getClinicContext(req);
     if ("response" in auth) return auth.response;
-    const { admin, clinicId } = auth;
+    const { admin, clinicId, staff } = auth;
+    if (!hasStaffPermission(staff, "view_patients")) {
+      return NextResponse.json({ error: "ليس لديك صلاحية مشاهدة ملفات المرضى" }, { status: 403 });
+    }
 
     const archivedView = req.nextUrl.searchParams.get("archived") === "true";
     const { data, error } = await admin
@@ -137,7 +140,7 @@ export async function POST(request: NextRequest) {
       return acc;
     }, {});
     if (Object.keys(medicalAtCreation).length > 0) {
-      if (!canViewPatientHistory(staff) || !hasStaffPermission(staff, "edit_emr")) {
+      if (!hasStaffPermission(staff, "view_patients") || !canViewPatientHistory(staff) || !hasStaffPermission(staff, "edit_emr")) {
         warnings.push("تم إنشاء ملف المريض، لكن لم تُحفظ البيانات الطبية الحساسة لعدم توفر الصلاحية.");
       } else {
         const { error: medicalError } = await admin.from("patient_medical_records").upsert({
@@ -172,7 +175,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (body.appointment && typeof body.appointment === "object" && hasStaffPermission(staff, "edit_appointments")) {
+    if (body.appointment && typeof body.appointment === "object" && hasStaffPermission(staff, "view_patients") && hasStaffPermission(staff, "edit_appointments") && hasStaffPermission(staff, "create_invoice")) {
       const appointment = {
         id: body.appointment.id,
         clinic_id: clinicId,
@@ -194,7 +197,7 @@ export async function POST(request: NextRequest) {
     if (body.invoice && !hasStaffPermission(staff, "create_invoice")) {
       warnings.push("تم إنشاء ملف المريض، لكن لم تُنشأ الفاتورة لعدم توفر صلاحية إنشاء الفواتير.");
     }
-    if (body.appointment && !hasStaffPermission(staff, "edit_appointments")) {
+    if (body.appointment && (!hasStaffPermission(staff, "view_patients") || !hasStaffPermission(staff, "edit_appointments") || !hasStaffPermission(staff, "create_invoice"))) {
       warnings.push("تم إنشاء ملف المريض، لكن لم يُنشأ الموعد لعدم توفر صلاحية إدارة المواعيد.");
     }
 

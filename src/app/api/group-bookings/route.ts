@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getClinicContext } from "@/lib/server/clinic-context";
-import { hasStaffPermission } from "@/lib/server/staff-permissions";
+import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -8,8 +8,8 @@ export const revalidate = 0;
 export async function GET(request: NextRequest) {
   const auth = await getClinicContext(request);
   if ("response" in auth) return auth.response;
-  if (!hasStaffPermission(auth.staff, "edit_emr")) {
-    return NextResponse.json({ error: "هذه الصفحة متاحة للأخصائي أو مدير المركز فقط." }, { status: 403 });
+  if (!hasStaffPermission(auth.staff, "view_patients") || !canViewPatientHistory(auth.staff)) {
+    return NextResponse.json({ error: "تتطلب مشاهدة طلبات المجموعات صلاحية مشاهدة المرضى والصلاحيات السريرية." }, { status: 403 });
   }
   try {
     const { data: requests, error } = await auth.admin.from("group_booking_requests")
@@ -39,8 +39,11 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await getClinicContext(request);
   if ("response" in auth) return auth.response;
-  if (!hasStaffPermission(auth.staff, "edit_emr")) {
-    return NextResponse.json({ error: "اعتماد المجموعات وتحديد عدد الجلسات يتطلب صلاحية الأخصائي." }, { status: 403 });
+  if (!hasStaffPermission(auth.staff, "view_patients")
+    || !hasStaffPermission(auth.staff, "edit_emr")
+    || !hasStaffPermission(auth.staff, "edit_appointments")
+    || !hasStaffPermission(auth.staff, "edit_patient")) {
+    return NextResponse.json({ error: "اعتماد المجموعات يتطلب صلاحيات التعديل السريري والمرضى والمواعيد." }, { status: 403 });
   }
   try {
     const body = await request.json();

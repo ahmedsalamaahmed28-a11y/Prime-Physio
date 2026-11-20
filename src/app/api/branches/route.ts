@@ -1,24 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAdminClient } from "@/lib/supabase-admin";
-import { requireRole } from "../utils/auth";
+import { getClinicContext } from "@/lib/server/clinic-context";
+import { hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
   try {
-    const user = await requireRole(req, ["admin", "doctor", "receptionist"]);
+    const auth = await getClinicContext(req);
+    if ("response" in auth) return auth.response;
     const clinicId = new URL(req.url).searchParams.get("clinicId");
 
-    if (!clinicId || !user.clinicId || clinicId !== user.clinicId) {
+    if (!clinicId || !auth.clinicId || clinicId !== auth.clinicId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
     }
 
-    const admin = getAdminClient();
+    const admin = auth.admin;
     const { data: branches, error } = await admin
       .from("branches")
       .select("id, short_name, full_name, slug, logo_url")
-      .eq("clinic_id", user.clinicId)
+      .eq("clinic_id", auth.clinicId)
       .order("created_at", { ascending: true });
 
     if (error) {
@@ -38,7 +39,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await requireRole(req, ["admin"]);
+    const auth = await getClinicContext(req);
+    if ("response" in auth) return auth.response;
+    if (!hasStaffPermission(auth.staff, "manage_settings")) {
+      return NextResponse.json({ error: "ليس لديك صلاحية إدارة الفروع" }, { status: 403 });
+    }
     const body = await req.json().catch(() => null);
     const clinicId = typeof body?.clinicId === "string" ? body.clinicId : "";
     const shortName = typeof body?.shortName === "string" ? body.shortName.trim() : "";
@@ -46,18 +51,18 @@ export async function POST(req: NextRequest) {
     const slug = typeof body?.slug === "string" ? body.slug.trim().toLowerCase() : "";
     const logoUrl = typeof body?.logoUrl === "string" ? body.logoUrl : null;
 
-    if (!user.clinicId || clinicId !== user.clinicId) {
+    if (!auth.clinicId || clinicId !== auth.clinicId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
     if (!shortName || shortName.length > 120 || fullName.length > 200 || !/^[a-z0-9-]{3,50}$/.test(slug)) {
       return NextResponse.json({ error: "Invalid branch details" }, { status: 400 });
     }
 
-    const admin = getAdminClient();
+    const admin = auth.admin;
     const { data: branch, error } = await admin
       .from("branches")
       .insert({
-        clinic_id: user.clinicId,
+        clinic_id: auth.clinicId,
         short_name: shortName,
         full_name: fullName || null,
         slug,

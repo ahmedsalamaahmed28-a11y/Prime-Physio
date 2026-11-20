@@ -123,6 +123,11 @@ export default function HomePage() {
   const locale = isRtl ? "ar-EG" : "en-US";
   const { user, logout, activeBranchId, setActiveBranchId, isEnriching } = useAuth();
   const { hasPermission } = usePermissions();
+  const canViewPatients = hasPermission("view_patients");
+  const canViewAppointments = hasPermission("view_appointments");
+  const canViewInvoices = hasPermission("view_invoices");
+  const canViewFinancialDashboard = hasPermission("view_analytics");
+  const canViewClinicalHistory = canViewPatients && (hasPermission("view_patient_history") || hasPermission("edit_emr"));
   const setDashboardPageLoading = useContext(DashboardPageLoadingContext);
   const clinicId = user?.clinicId;
   const [data, setData] = useState<DashboardData>(EMPTY_DATA);
@@ -139,46 +144,65 @@ export default function HomePage() {
     setLoading(true);
     setError("");
     try {
-      let appointmentsQuery = supabase.from("appointments")
-        .select("id,clinic_id,branch_id,patient_id,patient_name,doctor_name,therapist,therapist_id,appointment_type,status,date,time,start_time,end_time,starts_at,ends_at,room_id,treatment_plan_id,session_intervention,session_objectives,is_group_session")
-        .eq("clinic_id", clinicId);
-      let patientsQuery = supabase.from("patients")
-        .select("id,clinic_id,branch_id,nameAr,nameEn,doctor,status,sessionsUsed,sessionsTotal,created_at")
-        .eq("clinic_id", clinicId);
-      let invoicesQuery = supabase.from("invoices")
-        .select("id,clinic_id,branch_id,patient_id,patient_name,description,amount,status,date,created_at")
-        .eq("clinic_id", clinicId);
+      let appointmentsQuery = canViewAppointments
+        ? supabase.from("appointments")
+            .select("id,clinic_id,branch_id,patient_id,patient_name,doctor_name,therapist,therapist_id,appointment_type,status,date,time,start_time,end_time,starts_at,ends_at,room_id,treatment_plan_id,session_intervention,session_objectives,is_group_session")
+            .eq("clinic_id", clinicId)
+        : null;
+      let patientsQuery = canViewPatients
+        ? supabase.from("patients")
+            .select("id,clinic_id,branch_id,nameAr,nameEn,doctor,status,sessionsUsed,sessionsTotal,created_at")
+            .eq("clinic_id", clinicId)
+        : null;
+      let invoicesQuery = canViewInvoices
+        ? supabase.from("invoices")
+            .select("id,clinic_id,branch_id,patient_id,patient_name,description,amount,status,date,created_at")
+            .eq("clinic_id", clinicId)
+        : null;
       const staffQuery = supabase.from("staff")
         .select("id,clinic_id,name,role,specialty,status")
         .eq("clinic_id", clinicId);
-      const evaluationsQuery = supabase.from("patient_evaluations")
-        .select("id,clinic_id,patient_id,evaluation_date,evaluation_type,vas_score,rom_data,mmt_data,notes")
-        .eq("clinic_id", clinicId)
-        .order("evaluation_date", { ascending: false })
-        .limit(500);
+      const evaluationsQuery = canViewClinicalHistory
+        ? supabase.from("patient_evaluations")
+            .select("id,clinic_id,patient_id,evaluation_date,evaluation_type,vas_score,rom_data,mmt_data,notes")
+            .eq("clinic_id", clinicId)
+            .order("evaluation_date", { ascending: false })
+            .limit(500)
+        : null;
       const notificationsQuery = supabase.from("notifications")
         .select("id,clinic_id,title_ar,title_en,body_ar,body_en,type,action_url,is_read,created_at")
         .eq("clinic_id", clinicId)
         .order("created_at", { ascending: false })
         .limit(8);
+
       if (activeBranchId) {
-        appointmentsQuery = appointmentsQuery.eq("branch_id", activeBranchId);
-        patientsQuery = patientsQuery.eq("branch_id", activeBranchId);
-        invoicesQuery = invoicesQuery.eq("branch_id", activeBranchId);
+        appointmentsQuery = appointmentsQuery?.eq("branch_id", activeBranchId) ?? null;
+        patientsQuery = patientsQuery?.eq("branch_id", activeBranchId) ?? null;
+        invoicesQuery = invoicesQuery?.eq("branch_id", activeBranchId) ?? null;
       }
+
       const [appointmentsResult, patientsResult, invoicesResult, staffResult, evaluationsResult, notificationsResult, branchesResult] = await Promise.all([
-        appointmentsQuery, patientsQuery, invoicesQuery, staffQuery, evaluationsQuery, notificationsQuery,
+        appointmentsQuery ?? Promise.resolve({ data: [], error: null }),
+        patientsQuery ?? Promise.resolve({ data: [], error: null }),
+        invoicesQuery ?? Promise.resolve({ data: [], error: null }),
+        staffQuery,
+        evaluationsQuery ?? Promise.resolve({ data: [], error: null }),
+        notificationsQuery,
         supabase.from("branches").select("id,short_name,full_name,slug").eq("clinic_id", clinicId).order("created_at", { ascending: true }),
       ]);
-      if (appointmentsResult.error) throw appointmentsResult.error;
-      if (patientsResult.error) throw patientsResult.error;
+
+      if (appointmentsQuery && appointmentsResult.error) throw appointmentsResult.error;
+      if (patientsQuery && patientsResult.error) throw patientsResult.error;
+      if (invoicesQuery && invoicesResult.error) throw invoicesResult.error;
+      if (evaluationsQuery && evaluationsResult.error) throw evaluationsResult.error;
+
       const branchPatientIds = new Set((patientsResult.data || []).map((patient: Row) => String(patient.id)));
       const nextData: DashboardData = {
         appointments: appointmentsResult.data || [],
         patients: patientsResult.data || [],
         invoices: invoicesResult.data || [],
         staff: staffResult.data || [],
-        evaluations: evaluationsResult.error ? [] : (evaluationsResult.data || []).filter((evaluation: Row) => !activeBranchId || branchPatientIds.has(String(evaluation.patient_id))),
+        evaluations: (evaluationsResult.data || []).filter((evaluation: Row) => !activeBranchId || branchPatientIds.has(String(evaluation.patient_id))),
         notifications: notificationsResult.error ? [] : (notificationsResult.data || []),
         branches: branchesResult.error ? [] : (branchesResult.data || []),
       };
@@ -191,7 +215,7 @@ export default function HomePage() {
       setLoading(false);
       setDashboardPageLoading(false);
     }
-  }, [clinicId, activeBranchId, isRtl, setDashboardPageLoading]);
+  }, [clinicId, activeBranchId, isRtl, setDashboardPageLoading, canViewAppointments, canViewPatients, canViewInvoices, canViewClinicalHistory]);
 
   useEffect(() => {
     if (clinicId === undefined && isEnriching) return;
@@ -367,22 +391,18 @@ export default function HomePage() {
     { label: isRtl ? "الرسائل" : "Messages", href: "/chat", icon: MessageSquare },
     { label: isRtl ? "الإشعارات" : "Notifications", href: "/notifications", icon: Bell },
   ].filter((item) => {
+    if (item.href === "/patients" && !canViewPatients) return false;
+    if (item.href === "/calendar" && !canViewAppointments) return false;
+    if (item.href === "/billing" && !canViewInvoices) return false;
     if (item.href === "/analytics" && !hasPermission("view_analytics")) return false;
     if (item.href === "/profile" && !hasPermission("manage_settings")) return false;
     if (item.href === "/permissions" && !hasPermission("manage_settings")) return false;
     if (item.href === "/staff" && !hasPermission("manage_staff")) return false;
-    if (user?.roleKey === "admin") return true;
-    if (user?.roleKey === "doctor") {
-      return !["/billing", "/staff", "/analytics", "/profile", "/permissions"].includes(item.href);
-    }
-    if (user?.roleKey === "receptionist") {
-      return ["/dashboard", "/patients", "/billing", "/calendar", "/chat", "/notifications"].includes(item.href);
-    }
     return true;
   });
 
   const handleSearch = () => {
-    if (search.trim()) router.push("/patients?search=" + encodeURIComponent(search.trim()));
+    if (canViewPatients && search.trim()) router.push("/patients?search=" + encodeURIComponent(search.trim()));
   };
   const exportReport = () => downloadCsv(todayAppointments, "prime-physio-daily-report.csv");
 
@@ -453,7 +473,7 @@ export default function HomePage() {
             <button className="pp-stitch-icon-btn" onClick={toggleLanguage} title={isRtl ? "تغيير اللغة" : "Change language"}><Sparkles size={19} /><span>{isRtl ? "EN" : "عربي"}</span></button>
             <Link className="pp-stitch-icon-btn" href="/chat" title={isRtl ? "الرسائل" : "Messages"}><MessageSquare size={19} /></Link>
             <Link className="pp-stitch-icon-btn pp-stitch-bell" href="/notifications" title={isRtl ? "الإشعارات" : "Notifications"}><Bell size={19} />{unreadCount > 0 && <i />}</Link>
-            <Link href="/calendar" className="pp-stitch-new-appointment"><Plus size={19} /><span>{isRtl ? "موعد جديد" : "New appointment"}</span></Link>
+            {canViewAppointments && hasPermission("edit_appointments") && <Link href="/calendar" className="pp-stitch-new-appointment"><Plus size={19} /><span>{isRtl ? "موعد جديد" : "New appointment"}</span></Link>}
           </div>
         </header>
 
@@ -470,7 +490,7 @@ export default function HomePage() {
               </div>
               <div className="pp-stitch-hero-actions">
                 <button onClick={exportReport} className="pp-stitch-export"><FileText size={18} />{isRtl ? "تصدير التقرير اليومي" : "Export daily report"}</button>
-                <Link href="/patients" className="pp-stitch-primary"><User size={18} />{isRtl ? "إضافة مريض جديد" : "Add new patient"}</Link>
+                {canViewPatients && hasPermission("edit_patient") && <Link href="/patients" className="pp-stitch-primary"><User size={18} />{isRtl ? "إضافة مريض جديد" : "Add new patient"}</Link>}
               </div>
             </div>
           </section>
@@ -490,10 +510,10 @@ export default function HomePage() {
               <div className="pp-stitch-kpi-top"><div><span>{isRtl ? "تحسن الألم وفق التقييمات" : "Pain improvement from assessments"}</span><strong>{painImprovement === null ? "—" : painImprovement + "%"}</strong><small>{isRtl ? "مقارنة درجات VAS المتتابعة" : "Compared sequential VAS scores"}</small></div><i className="kpi-violet"><Activity size={25} /></i></div>
               <div className="pp-stitch-kpi-foot"><span>{comparisons.length} {isRtl ? "مريض بتقييمين أو أكثر" : "patients with 2+ assessments"}</span><small>{isRtl ? "لا تُحسب دون تقييمات مقارنة" : "No estimate without comparisons"}</small></div>
             </article>
-            <article className="pp-stitch-kpi">
+            {canViewFinancialDashboard && <article className="pp-stitch-kpi">
               <div className="pp-stitch-kpi-top"><div><span>{isRtl ? "الإيراد المتوقع اليوم" : "Expected revenue today"}</span><strong>{expectedIncome.toLocaleString(locale)}</strong><small>{isRtl ? "ج.م" : "EGP"}</small></div><i className="kpi-blue"><CreditCard size={25} /></i></div>
               <div className="pp-stitch-kpi-foot"><span>{isRtl ? "تم تحصيل: " : "Collected: "}<b>{collectedIncome.toLocaleString(locale)} {isRtl ? "ج.م" : "EGP"}</b></span><small>{expectedIncome > 0 ? Math.round((collectedIncome / expectedIncome) * 100) + "%" : "—"}</small></div>
-            </article>
+            </article>}
           </section>
 
           <div className="pp-stitch-columns">
@@ -527,7 +547,7 @@ export default function HomePage() {
                           <td><b>{item.appointment_type || (isRtl ? "جلسة علاج" : "Therapy session")}</b><small className="pp-stitch-subline">{item.session_intervention || item.session_objectives || "—"}</small></td>
                           <td><b>{formatTime(start, locale)} – {formatTime(end, locale)}</b><small className="pp-stitch-subline">{item.room_id ? (isRtl ? "غرفة " : "Room ") + shortId(item.room_id) : (isRtl ? "لم تحدد غرفة" : "No room assigned")}</small></td>
                           <td><span className={"pp-stitch-status status-" + kind}><i />{stateLabel}</span></td>
-                          <td><div className="pp-stitch-row-actions"><Link href={patientId ? "/patients/" + patientId : "/calendar"} title={isRtl ? "تفاصيل الملف الطبي" : "Patient record"}><ChevronLeft size={17} /></Link><Link href="/calendar" title={isRtl ? "جدول المواعيد" : "Appointment schedule"}><Calendar size={16} /></Link></div></td>
+                          <td><div className="pp-stitch-row-actions">{canViewPatients && patientId && <Link href={"/patients/" + patientId} title={isRtl ? "تفاصيل الملف الطبي" : "Patient record"}><ChevronLeft size={17} /></Link>}{canViewAppointments && <Link href="/calendar" title={isRtl ? "جدول المواعيد" : "Appointment schedule"}><Calendar size={16} /></Link>}</div></td>
                         </tr>;
                       }) : <tr><td colSpan={6} className="pp-stitch-empty">{isRtl ? "لا توجد مواعيد في هذه الفئة اليوم" : "No appointments in this category today"}</td></tr>}
                     </tbody>

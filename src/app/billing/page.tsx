@@ -86,9 +86,11 @@ export default function BillingPage() {
   const [loadError, setLoadError] = useState("");
   const { language } = useLanguage();
   const isRtl = language === "ar";
-  const { hasPermission, isAdmin } = usePermissions();
+  const { hasPermission } = usePermissions();
   const { user } = useAuth();
   const clinicId = user?.clinicId;
+  const canViewInvoices = hasPermission("view_invoices");
+  const canViewPatients = hasPermission("view_patients");
   const [discountModalOpen, setDiscountModalOpen] = useState(false);
   const [selectedInvoiceForDiscount, setSelectedInvoiceForDiscount] = useState<any>(null);
   const [discountValue, setDiscountValue] = useState("");
@@ -97,19 +99,17 @@ export default function BillingPage() {
   const [deleteInvoiceId, setDeleteInvoiceId] = useState<string | null>(null);
 
   const loadInvoices = async () => {
+    if (!canViewInvoices) { setInvoices([]); setIsLoading(false); setLoadError(""); return; }
     if (!clinicId) { setInvoices([]); setIsLoading(false); setLoadError(""); return; }
     try {
       setIsLoading(true);
       setLoadError("");
-      const { data: invs, error: invErr } = await supabase
-        .from("invoices")
-        .select("*")
-        .eq("clinic_id", clinicId)
-        .order("date", { ascending: false });
-
-      if (invErr) throw invErr;
+      const response = await fetch("/api/invoices", { cache: "no-store" });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload?.error || "Failed to load invoices");
+      const invs = payload.invoices || [];
       if (invs) {
-        const mapped = invs.map(inv => ({
+        const mapped = invs.map((inv: any) => ({
           id: inv.id,
           patientId: inv.patient_id,
           patientName: inv.patient_name,
@@ -133,7 +133,7 @@ export default function BillingPage() {
   };
 
   const loadPatients = async () => {
-    if (!clinicId) { setPatients([]); return; }
+    if (!canViewPatients || !clinicId) { setPatients([]); return; }
     try {
       const { data, error } = await supabase.from("patients").select("id, nameAr").eq("clinic_id", clinicId);
       if (!error && data) {
@@ -157,16 +157,11 @@ export default function BillingPage() {
     try {
       // An invoice is an independent financial record. Never delete its patient
       // or any other invoices/appointments/sessions as a side effect.
-      const { data: deletedInvoice, error } = await supabase
-        .from("invoices")
-        .delete()
-        .eq("clinic_id", clinicId)
-        .eq("id", deleteInvoiceId)
-        .select("id")
-        .maybeSingle();
-
-      if (error) throw error;
-      if (!deletedInvoice) throw new Error("Invoice was not deleted; it may no longer belong to this clinic.");
+      const response = await fetch("/api/invoices/" + encodeURIComponent(deleteInvoiceId), {
+        method: "DELETE",
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload?.error || "Invoice deletion failed.");
 
       setInvoices((prev) => prev.filter((inv) => inv.id !== deleteInvoiceId));
     } catch (err: any) {
@@ -180,7 +175,7 @@ export default function BillingPage() {
   useEffect(() => {
     loadInvoices();
     loadPatients();
-  }, [clinicId, isRtl]);
+  }, [clinicId, isRtl, canViewInvoices, canViewPatients]);
 
   const handleExportPDF = () => {
     let iframe = document.getElementById('print-iframe') as HTMLIFrameElement;
@@ -303,6 +298,14 @@ export default function BillingPage() {
     },
   ];
 
+  if (!canViewInvoices) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900" dir={isRtl ? "rtl" : "ltr"}>
+        {isRtl ? "ليس لديك صلاحية مشاهدة الفواتير والبيانات المالية." : "You do not have permission to view invoices and financial data."}
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6" dir={isRtl ? "rtl" : "ltr"}>
       
@@ -375,9 +378,13 @@ export default function BillingPage() {
                   <tr key={inv.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="py-4 px-6 font-mono font-semibold text-slate-900">{inv.id}</td>
                     <td className="py-4 px-6 font-medium text-slate-800">
-                      <Link href={`/patients/${inv.patientId}`} className="text-[#0d8a8a] hover:underline dark:text-[#1ab0b2]">
-                        {patients.find(p => p.id === inv.patientId)?.nameAr || inv.patientName}
-                      </Link>
+                      {canViewPatients ? (
+                        <Link href={`/patients/${inv.patientId}`} className="text-[#0d8a8a] hover:underline dark:text-[#1ab0b2]">
+                          {patients.find(p => p.id === inv.patientId)?.nameAr || inv.patientName}
+                        </Link>
+                      ) : (
+                        <span>{inv.patientName}</span>
+                      )}
                     </td>
                     <td className="py-4 px-6 text-slate-600">{inv.description}</td>
                     <td className="py-4 px-6 font-semibold text-slate-900 font-mono">{inv.amount}</td>
@@ -395,20 +402,18 @@ export default function BillingPage() {
                     <td className="py-4 px-6">
                       <select
                         value={inv.status}
-                        disabled={!hasPermission("create_invoice") && !isAdmin}
+                        disabled={!hasPermission("create_invoice")}
                         onChange={async (e) => {
                           const newStatus = normalizeInvoiceStatus(e.target.value);
                           
                           try {
-                            const { data: updatedInvoice, error: invoiceErr } = await supabase
-                              .from("invoices")
-                              .update({ status: newStatus })
-                              .eq("clinic_id", clinicId)
-                              .eq("id", inv.id)
-                              .select("id")
-                              .maybeSingle();
-                            if (invoiceErr) throw invoiceErr;
-                            if (!updatedInvoice) throw new Error("Invoice was not updated; it may no longer belong to this clinic.");
+                            const response = await fetch("/api/invoices/" + encodeURIComponent(inv.id), {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ status: newStatus }),
+                            });
+                            const payload = await response.json().catch(() => ({}));
+                            if (!response.ok) throw new Error(payload?.error || "Invoice status was not updated.");
                           } catch (err: any) {
                             console.error("Failed to update invoice status in Supabase:", err);
                             alert((isRtl ? "فشل حفظ حالة الفاتورة: " : "Failed to save invoice status: ") + (err?.message || JSON.stringify(err)));
@@ -424,7 +429,7 @@ export default function BillingPage() {
                       >
                         <option value="انتظار">{isRtl ? "⏳ انتظار" : "â³ Pending"}</option>
                         <option value="مدفوع">{isRtl ? "✅ مدفوع" : "âœ… Paid"}</option>
-                        <option value="ملغي">{isRtl ? "🚫 ملغي" : "ðŸš« Canceled"}</option>
+                        <option value="ملغي" disabled={!hasPermission("refund_invoice")}>{isRtl ? "🚫 ملغي" : "ðŸš« Canceled"}</option>
                       </select>
                     </td>
                     <td className="py-4 px-6">
@@ -443,7 +448,7 @@ export default function BillingPage() {
                             {isRtl ? "تطبيق خصم" : "Discount"}
                           </Button>
                         )}
-                        {(isAdmin || hasPermission("create_invoice")) && (
+                        {hasPermission("delete_invoice") && (
                           <Button 
                             variant="ghost" 
                             size="sm" 
@@ -530,14 +535,13 @@ export default function BillingPage() {
                   const newAmount = newNumeric.toLocaleString() + (currency ? " " + currency : "");
 
                   try {
-                    const { data: updatedInvoice, error } = await supabase.from("invoices")
-                      .update({ amount: newAmount })
-                      .eq("clinic_id", clinicId)
-                      .eq("id", item.id)
-                      .select("id")
-                      .maybeSingle();
-                    if (error) throw error;
-                    if (!updatedInvoice) throw new Error("Invoice was not updated; it may no longer belong to this clinic.");
+                    const response = await fetch("/api/invoices/" + encodeURIComponent(item.id), {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ amount: newAmount }),
+                    });
+                    const payload = await response.json().catch(() => ({}));
+                    if (!response.ok) throw new Error(payload?.error || "Invoice discount was not saved.");
                   } catch (err: any) {
                     console.error("Failed to save discount to Supabase", err);
                     alert((isRtl ? "فشل حفظ الخصم: " : "Failed to save discount: ") + (err?.message || String(err)));

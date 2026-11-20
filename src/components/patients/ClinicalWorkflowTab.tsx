@@ -8,9 +8,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 
-type Props = { patientId: string; clinicId?: string; isRtl: boolean };
+type Props = { patientId: string; clinicId?: string; isRtl: boolean; canEdit: boolean };
 
-export function ClinicalWorkflowTab({ patientId, clinicId, isRtl }: Props) {
+export function ClinicalWorkflowTab({ patientId, clinicId, isRtl, canEdit }: Props) {
   const [loading, setLoading] = useState(true);
   const [savingPlan, setSavingPlan] = useState(false);
   const [savingProgress, setSavingProgress] = useState(false);
@@ -60,7 +60,7 @@ export function ClinicalWorkflowTab({ patientId, clinicId, isRtl }: Props) {
 
   const saveCarePlan = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!clinicId || savingPlan) return;
+    if (!canEdit || !clinicId || savingPlan) return;
     setSavingPlan(true); setError(""); setNotice("");
     try {
       const vas = Number(evaluation.vas);
@@ -86,7 +86,7 @@ export function ClinicalWorkflowTab({ patientId, clinicId, isRtl }: Props) {
 
   const saveProgress = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!clinicId || savingProgress) return;
+    if (!canEdit || !clinicId || savingProgress) return;
     setSavingProgress(true); setError(""); setNotice("");
     try {
       const pain = Number(progress.pain);
@@ -111,13 +111,13 @@ export function ClinicalWorkflowTab({ patientId, clinicId, isRtl }: Props) {
   const field = (label: string, value: string, onChange: (value: string) => void, placeholder = "") => (
     <div className="space-y-1">
       <Label>{label}</Label>
-      <Input value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />
+      <Input value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} disabled={!canEdit} />
     </div>
   );
   const area = (label: string, value: string, onChange: (value: string) => void, placeholder = "") => (
     <div className="space-y-1">
       <Label>{label}</Label>
-      <Textarea value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} rows={3} />
+      <Textarea value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} rows={3} disabled={!canEdit} />
     </div>
   );
 
@@ -125,6 +125,7 @@ export function ClinicalWorkflowTab({ patientId, clinicId, isRtl }: Props) {
 
   return (
     <div className="space-y-5 pt-4" dir={isRtl ? "rtl" : "ltr"}>
+      {!canEdit && <p className="text-xs text-muted-foreground">{isRtl ? "وضع المشاهدة فقط — لا يمكنك تعديل السجل العلاجي." : "Read-only access — clinical records cannot be edited."}</p>}
       <Card>
         <CardHeader><CardTitle className="text-base">{isRtl ? "التقييم السريري والخطة العلاجية" : "Clinical Evaluation & Treatment Plan"}</CardTitle></CardHeader>
         <CardContent>
@@ -156,7 +157,7 @@ export function ClinicalWorkflowTab({ patientId, clinicId, isRtl }: Props) {
               {field(isRtl ? "اسم برنامج التمارين" : "Exercise program title", plan.programTitle, (v) => setPlan({ ...plan, programTitle: v }))}
               {area(isRtl ? "التمارين (تمرين في كل سطر)" : "Exercises (one per line)", plan.exercises, (v) => setPlan({ ...plan, exercises: v }))}
             </div>
-            <Button type="submit" disabled={savingPlan}>{savingPlan ? (isRtl ? "جارٍ الحفظ..." : "Saving...") : (isRtl ? "حفظ التقييم والخطة والبرنامج" : "Save evaluation, plan & program")}</Button>
+            <Button type="submit" disabled={!canEdit || savingPlan}>{savingPlan ? (isRtl ? "جارٍ الحفظ..." : "Saving...") : (isRtl ? "حفظ التقييم والخطة والبرنامج" : "Save evaluation, plan & program")}</Button>
           </form>
         </CardContent>
       </Card>
@@ -174,7 +175,7 @@ export function ClinicalWorkflowTab({ patientId, clinicId, isRtl }: Props) {
               {field(isRtl ? "حالة القوة العضلية" : "Strength status", progress.strength, (v) => setProgress({ ...progress, strength: v }))}
             </div>
             {area(isRtl ? "ملاحظات التقدم" : "Progress notes", progress.notes, (v) => setProgress({ ...progress, notes: v }))}
-            <Button type="submit" variant="outline" disabled={savingProgress}>{savingProgress ? (isRtl ? "جارٍ التسجيل..." : "Saving...") : (isRtl ? "تسجيل التقدم" : "Record progress")}</Button>
+            <Button type="submit" variant="outline" disabled={!canEdit || savingProgress}>{savingProgress ? (isRtl ? "جارٍ التسجيل..." : "Saving...") : (isRtl ? "تسجيل التقدم" : "Record progress")}</Button>
           </form>
         </CardContent>
       </Card>

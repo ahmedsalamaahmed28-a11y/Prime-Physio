@@ -4,17 +4,39 @@ import { useEffect, useState } from "react";
 import { useAuth } from "./auth";
 import { supabase } from "./supabase";
 
-function parsePermissionList(value: unknown): string[] | null {
-  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string");
-  if (typeof value !== "string" || !value.trim()) return null;
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === "string")
-      : null;
-  } catch {
-    return null;
+type ParsedPermissionList = { defined: false } | { defined: true; permissions: string[] };
+
+function parsePermissionList(value: unknown): ParsedPermissionList {
+  if (value === null || value === undefined || (typeof value === "string" && !value.trim())) {
+    return { defined: false };
   }
+  if (Array.isArray(value)) {
+    return value.every((item) => typeof item === "string")
+      ? { defined: true, permissions: value }
+      : { defined: true, permissions: [] };
+  }
+  if (typeof value !== "string") return { defined: true, permissions: [] };
+
+  try {
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) && parsed.every((item) => typeof item === "string")
+      ? { defined: true, permissions: parsed }
+      : { defined: true, permissions: [] };
+  } catch {
+    // Invalid explicit permission data fails closed instead of restoring role defaults.
+    return { defined: true, permissions: [] };
+  }
+}
+
+function defaultPermissions(roleKey: string | undefined): string[] {
+  if (roleKey === "admin") return ["*"];
+  if (roleKey === "doctor") {
+    return ["view_patients", "view_appointments", "edit_emr", "edit_patient", "view_patient_history"];
+  }
+  if (roleKey === "receptionist") {
+    return ["view_patients", "view_appointments", "view_invoices", "create_invoice", "edit_patient"];
+  }
+  return [];
 }
 
 export function usePermissions() {
@@ -34,8 +56,6 @@ export function usePermissions() {
         return;
       }
 
-      // Ask the database's authoritative permission function. This also recognizes
-      // clinic owners stored in clinic_owners even when they have no staff row.
       try {
         const { data, error } = await supabase.rpc("has_staff_permission", {
           permission_key: "manage_staff",
@@ -57,13 +77,14 @@ export function usePermissions() {
         if (cancelled) return;
 
         const parsed = parsePermissionList(data?.permissions);
-        setCustomPerms(parsed || []);
-        setHasOverride(parsed !== null);
+        setCustomPerms(parsed.defined ? parsed.permissions : []);
+        setHasOverride(parsed.defined);
       } catch (error) {
         if (!cancelled) {
           console.error("Failed to load permissions", error);
+          // If permission data cannot be loaded, do not grant role-default privileges.
           setCustomPerms([]);
-          setHasOverride(false);
+          setHasOverride(true);
         }
       }
     }
@@ -73,24 +94,19 @@ export function usePermissions() {
   }, [user?.email, user?.clinicId]);
 
   const hasPermission = (action: string) => {
-    if (user?.roleKey === "admin") return true;
+    // A saved explicit list always takes precedence, including for admin-role staff.
+    // Keep this ahead of the database fallback until the matching RLS migration is applied.
+    if (hasOverride) return customPerms.includes(action) || customPerms.includes("*");
 
-    // The server-side permission result is authoritative for staff management
-    // and supports clinic owners who are not represented in the staff table.
+    // Owners without a staff row are recognized by the database permission function.
     if (action === "manage_staff" && serverManageStaff) return true;
 
-    if (hasOverride) return customPerms.includes(action);
-
-    if (user?.roleKey === "doctor") {
-      return ["edit_emr", "edit_patient", "view_patient_history"].includes(action);
-    }
-
-    if (user?.roleKey === "receptionist") {
-      return ["create_invoice", "edit_patient"].includes(action);
-    }
-
-    return false;
+    const defaults = defaultPermissions(user?.roleKey);
+    return defaults.includes(action) || defaults.includes("*");
   };
 
-  return { hasPermission, isAdmin: user?.roleKey === "admin" };
+  return {
+    hasPermission,
+    isAdmin: user?.roleKey === "admin" && !hasOverride,
+  };
 }

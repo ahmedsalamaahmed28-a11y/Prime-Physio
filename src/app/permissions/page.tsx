@@ -11,10 +11,14 @@ import { logAuditAction } from "@/lib/audit";
 import { Loader } from "@/components/Loader";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/lib/auth";
+import { usePermissions } from "@/lib/usePermissions";
 
 const AVAILABLE_PERMISSIONS = [
+  { id: "view_patients", labelAr: "مشاهدة قائمة وملفات المرضى", labelEn: "View Patients", category: "Patients" },
   { id: "delete_patient", labelAr: "حذف ملف مريض نهائياً", labelEn: "Delete Patient", category: "Patients" },
   { id: "edit_patient", labelAr: "تعديل بيانات المريض", labelEn: "Edit Patient", category: "Patients" },
+  { id: "view_appointments", labelAr: "مشاهدة جدول المواعيد", labelEn: "View Appointments", category: "Reception" },
+  { id: "view_invoices", labelAr: "مشاهدة الفواتير والبيانات المالية", labelEn: "View Invoices & Finance", category: "Billing" },
   { id: "create_invoice", labelAr: "إنشاء وتحصيل فاتورة", labelEn: "Create Invoice", category: "Billing" },
   { id: "delete_invoice", labelAr: "إلغاء/حذف فاتورة", labelEn: "Delete Invoice", category: "Billing" },
   { id: "refund_invoice", labelAr: "إصدار مرتجع مالي", labelEn: "Refund Invoice", category: "Billing" },
@@ -30,31 +34,32 @@ const AVAILABLE_PERMISSIONS = [
   { id: "export_data", labelAr: "تصدير بيانات العيادة (Excel/PDF)", labelEn: "Export Data", category: "Admin" },
   { id: "manage_settings", labelAr: "تعديل الإعدادات الأساسية", labelEn: "Manage Settings", category: "Admin" },
   { id: "manage_inventory", labelAr: "إدارة المخزون والمعدات", labelEn: "Manage Inventory", category: "Admin" },
+  { id: "manage_reports", labelAr: "إنشاء وتعديل التقارير", labelEn: "Manage Reports", category: "Admin" },
 ];
 
 function parsePermissionList(value: unknown): string[] | null {
-  if (Array.isArray(value)) return value.filter((item): item is string => typeof item === "string");
-  if (typeof value !== "string" || !value.trim()) return null;
+  if (value === null || value === undefined || (typeof value === "string" && !value.trim())) return null;
+  if (Array.isArray(value)) return value.every((item) => typeof item === "string") ? value : [];
+  if (typeof value !== "string") return [];
   try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed)
-      ? parsed.filter((item): item is string => typeof item === "string")
-      : null;
+    const parsed: unknown = JSON.parse(value);
+    return Array.isArray(parsed) && parsed.every((item) => typeof item === "string") ? parsed : [];
   } catch {
-    return null;
+    // Invalid explicit permissions are represented as an empty override (deny all).
+    return [];
   }
 }
 
 const getDefaultPerms = (role: string) => {
-  const roleName = role || "";
-  if (["مدير العياده", "مدير النظام", "admin"].includes(roleName)) {
+  const roleName = String(role || "").trim().toLowerCase();
+  if (["مدير العيادة", "مدير العياده", "مدير العياره", "مدير النظام", "admin", "clinic_admin"].includes(roleName)) {
     return AVAILABLE_PERMISSIONS.map(p => p.id);
   }
   if (["استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي", "doctor"].includes(roleName)) {
-    return ["edit_emr", "edit_patient", "view_patient_history"];
+    return ["view_patients", "view_appointments", "edit_emr", "edit_patient", "view_patient_history"];
   }
   if (["موظف استقبال", "موظفة استقبال رئيسية", "receptionist"].includes(roleName)) {
-    return ["create_invoice", "edit_patient"];
+    return ["view_patients", "view_appointments", "view_invoices", "create_invoice", "edit_patient"];
   }
   return [];
 };
@@ -63,6 +68,8 @@ export default function PermissionsPage() {
   const { language, t } = useLanguage();
   const isRtl = language === "ar";
   const { user } = useAuth(); const clinicId = user?.clinicId;
+  const { hasPermission } = usePermissions();
+  const canManageStaff = hasPermission("manage_staff");
   const [staff, setStaff] = useState<any[]>([]);
   const [selectedStaffEmail, setSelectedStaffEmail] = useState<string | null>(null);
   
@@ -72,7 +79,7 @@ export default function PermissionsPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!clinicId) return;
+    if (!clinicId || !canManageStaff) return;
     let cancelled = false;
 
     async function loadData() {
@@ -102,7 +109,7 @@ export default function PermissionsPage() {
 
     loadData();
     return () => { cancelled = true; };
-  }, [clinicId]);
+  }, [clinicId, canManageStaff]);
 
   const handleTogglePermission = (permissionId: string) => {
     if (!selectedStaffEmail || !activeStaffMember) return;
@@ -123,7 +130,7 @@ export default function PermissionsPage() {
   };
 
   const handleSave = async () => {
-    if (!selectedStaffEmail || !clinicId) return;
+    if (!canManageStaff || !selectedStaffEmail || !clinicId) return;
     setIsSaving(true);
     
     try {
@@ -155,6 +162,14 @@ export default function PermissionsPage() {
   const activeUserPerms = selectedStaffEmail 
     ? (permissionsMap[selectedStaffEmail] !== undefined ? permissionsMap[selectedStaffEmail] : (activeStaffMember ? getDefaultPerms(activeStaffMember.role) : [])) 
     : [];
+
+  if (!canManageStaff) {
+    return (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900" dir={isRtl ? "rtl" : "ltr"}>
+        {isRtl ? "ليس لديك صلاحية إدارة صلاحيات الموظفين." : "You do not have permission to manage staff permissions."}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6" dir={isRtl ? "rtl" : "ltr"}>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getClinicContext } from "@/lib/server/clinic-context";
 import { requireRole } from "@/app/api/utils/auth";
+import { hasStaffPermission } from "@/lib/server/staff-permissions";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -18,12 +19,15 @@ export async function GET(req: NextRequest) {
     const auth = await requireRole(req, ["admin", "doctor", "receptionist"]);
     const { admin, clinicId } = context;
     const email = auth.email.toLowerCase();
+    const canViewPatients = hasStaffPermission(context.staff, "view_patients");
 
     const [{ data: conversations, error: conversationError }, { data: staffRows, error: staffError }, { data: owners, error: ownersError }, { data: patients, error: patientsError }] = await Promise.all([
       admin.from("chat_conversations").select("id,clinic_id,kind,title,patient_id,created_by_email,created_at,updated_at,last_message_at").eq("clinic_id", clinicId).order("last_message_at", { ascending: false }).limit(150),
       admin.from("staff").select("email,name,role,status").eq("clinic_id", clinicId),
       admin.from("clinic_owners").select("owner_email").eq("clinic_id", clinicId),
-      admin.from("patients").select("id,nameAr,phone").eq("clinic_id", clinicId).eq("is_archived", false).order("nameAr", { ascending: true }).limit(500),
+      canViewPatients
+        ? admin.from("patients").select("id,nameAr,phone").eq("clinic_id", clinicId).eq("is_archived", false).order("nameAr", { ascending: true }).limit(500)
+        : Promise.resolve({ data: [], error: null }),
     ]);
     if (conversationError || staffError || ownersError || patientsError) {
       console.error("[Messages API] Inbox query failed", conversationError || staffError || ownersError || patientsError);
@@ -79,7 +83,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const visibleConversations = (conversations || []).filter((item: any) => myConversationIds.has(item.id)).map((item: any) => ({
+    const visibleConversations = (conversations || []).filter((item: any) => myConversationIds.has(item.id) && (canViewPatients || item.kind !== "patient")).map((item: any) => ({
       ...item,
       participants: memberMap.get(item.id) || [],
       lastMessage: latestMap.get(item.id) || null,
@@ -89,7 +93,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       conversations: visibleConversations,
       directory: directory.filter((item: any) => item.email !== email),
-      patients: patients || [],
+      patients: canViewPatients ? (patients || []) : [],
       currentEmail: email,
     }, { headers: { "Cache-Control": "no-store, private" } });
   } catch (error) {
@@ -105,7 +109,13 @@ export async function POST(req: NextRequest) {
     const auth = await requireRole(req, ["admin", "doctor", "receptionist"]);
     const { admin, clinicId } = context;
     const body = await req.json();
+    if (!hasStaffPermission(context.staff, "send_messages")) {
+      return fail("ليس لديك صلاحية إرسال الرسائل", 403);
+    }
     const kind = body?.kind === "patient" ? "patient" : "team";
+    if (kind === "patient" && !hasStaffPermission(context.staff, "view_patients")) {
+      return fail("ليس لديك صلاحية إنشاء محادثة مرتبطة بمريض", 403);
+    }
     const titleInput = typeof body?.title === "string" ? body.title.trim().slice(0, 120) : "";
     const patientId = typeof body?.patientId === "string" ? body.patientId.trim() : "";
     const requestedEmails: string[] = Array.isArray(body?.participantEmails)
