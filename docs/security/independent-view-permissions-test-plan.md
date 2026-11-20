@@ -22,7 +22,7 @@ Status: database migrations applied to Supabase production on 2026-11-20. Applic
 | Resource | Read permission | Write permission(s) |
 |---|---|---|
 | Patient directory/detail | `view_patients` | `edit_patient`, `edit_emr`, `delete_patient` |
-| Appointment calendar | `view_appointments`; patient names/IDs require `view_patients` | Direct appointment insert requires `view_patients` + `edit_appointments` + `create_invoice`; direct update/delete require `view_appointments` + `view_patients` + `edit_appointments`; clinical fields also require `edit_emr` |
+| Appointment calendar | `view_appointments`; patient names/IDs require `view_patients` | Insert requires `view_patients` + `edit_appointments` + `create_invoice`; update/cancel requires `view_appointments` + `view_patients` + `edit_appointments`; completing a session requires `view_appointments` + `view_patients` + `edit_emr` |
 | Invoice list | `view_invoices` | `create_invoice`, `apply_discount`, `refund_invoice`, `delete_invoice` |
 | Analytics aggregates/reports | `view_analytics`; report records are also readable to `manage_reports` users so they can edit them | `manage_reports` |
 | Staff list and permission administration | Clinic-scoped staff listing; permission editor gated by `manage_staff` | `manage_staff` (also enforced by the staff RLS write policy) |
@@ -42,6 +42,10 @@ Server routes using the service-role client must enforce these permissions and c
 | Explicit list contains `view_patients` + `edit_emr`, but not `view_patient_history` | Clinical record read needed for editing is allowed; clinical writes are allowed; other history-only users remain read-only |
 | Explicit list contains only `view_appointments` | Calendar API returns anonymized schedule; direct Data API SELECT on appointments is denied without `view_patients`; patient directory is not returned |
 | Explicit list contains only `edit_appointments` | Appointment PATCH is authorized by API; appointment GET remains denied. Booking POST also requires `create_invoice` because it creates an invoice |
+
+| Explicit list contains `edit_emr` but not `view_patients` | Patient detail clinical PATCH, initial clinical data during patient creation, attachment operations, clinical routes, and session completion are denied or skipped; no clinical write is made |
+| Explicit list contains only `edit_appointments` | Calendar PATCH update/cancel denied because `view_appointments` and `view_patients` are missing; initial appointment creation is denied unless `view_patients` and `create_invoice` are also present |
+| Explicit list contains `view_appointments` + `edit_appointments` but not `view_patients` | Calendar PATCH update/cancel denied; appointment DELETE RLS policy denies this permission combination |
 | Explicit list contains only `view_invoices` | Invoice list readable; status/amount/delete mutations denied |
 | Explicit list contains only `apply_discount` | Invoice PATCH can apply discount through API; invoice list remains denied and response contains no invoice data |
 | Explicit list contains only `create_invoice` | Invoice creation allowed where supported; invoice list remains denied |
@@ -100,6 +104,7 @@ These are database-level JWT-claim simulations, not end-to-end sign-ins through 
 - Patient and invoice SELECT policies contain their independent `view_*` permissions.
 - Appointment SELECT and UPDATE policies require patient visibility as designed.
 - An initial review found the appointment DELETE policy lacked `view_patients`; follow-up migration `20261120030350_require_patient_visibility_for_appointment_deletes` corrected it. The live policy was then verified to require `view_appointments`, `view_patients`, and `edit_appointments`.
+- Static API review found the calendar PATCH handler, patient clinical PATCH handler, and patient-create subflows were not consistently enforcing the same combined permissions while using the service-role client. The review branch now requires `view_appointments` + `view_patients` for appointment update/cancel, additionally `edit_emr` for session completion, and `view_patients` + `edit_emr` for clinical writes. Initial appointment creation through the patient endpoint now also requires `view_patients` + `edit_appointments` + `create_invoice`.
 
 ### Cross-clinic isolation limitation
 
