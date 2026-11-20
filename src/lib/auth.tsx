@@ -379,7 +379,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname) && !knownPages.has(pathname.replace("/", ""));
       if (isSlugPage) return;
       if (pathname.startsWith("/setup") || pathname === "/plans" || pathname === "/center_setup") { window.location.replace("/center-management"); return; }
-      if (!user && status !== "authenticated") {
+      const tabWasLoggedOut = typeof window !== "undefined" && sessionStorage.getItem("prime-physio:tab-logged-out") === "1";
+      if (!user && (status !== "authenticated" || tabWasLoggedOut)) {
         // Legal documents are public and must remain accessible without an account.
         if (
           pathname !== "/login.php" &&
@@ -428,6 +429,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     beginEnrichment();
     const enriched = await enrichUserWithClinic(newUser);
     endEnrichment();
+    if (enriched.clinicId && !enriched.isPlatformAdmin) await activateClinicSession(enriched.clinicId);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
     window.location.href = enriched.clinicId ? "/dashboard" : "/overview.php/";
@@ -454,6 +456,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     beginEnrichment();
     const enriched = await enrichUserWithClinic(newUser);
     endEnrichment();
+    if (enriched.clinicId && !enriched.isPlatformAdmin) await activateClinicSession(enriched.clinicId);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
     window.location.href = enriched.clinicId ? "/dashboard" : "/overview.php/";
