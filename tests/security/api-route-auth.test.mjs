@@ -266,3 +266,35 @@ test("legacy shared Supabase session endpoint is authenticated but disabled", as
   assert.match(legacyRoute, /status: 410/);
   assert.doesNotMatch(legacyRoute, /active_clinic_id/);
 });
+
+test("clinic role APIs reject legacy shared-cookie identities", async () => {
+  const authSource = await readFile(
+    path.join(root, "src", "app", "api", "utils", "auth.ts"),
+    "utf8",
+  );
+  assert.match(
+    authSource,
+    /if \\(authed\\.authSource !== "clinic-scoped-shadow"\\) \\{[\\s\\S]*?throw new Error\\("Unauthorized: an independently verified clinic session is required"\\)/,
+    "clinic role authorization must fail closed unless the request carries a verified clinic-scoped identity",
+  );
+  assert.match(
+    authSource,
+    /allowedRoles\\.includes\\("platform_admin"\\) && authed\\.authSource !== "clinic-scoped-shadow"/,
+    "platform-admin access must remain a separate server-allowlisted path",
+  );
+});
+
+test("service-role patient attachment signing verifies clinic and patient folder ownership", async () => {
+  const patientRoute = await readFile(
+    path.join(root, "src", "app", "api", "patients", "[id]", "attachments", "route.ts"),
+    "utf8",
+  );
+  const backupRoute = await readFile(
+    path.join(root, "src", "app", "api", "backup", "attachments", "route.ts"),
+    "utf8",
+  );
+  assert.match(patientRoute, /const expectedPrefix = /);
+  assert.match(patientRoute, /item\\.file_path\\.startsWith\\(expectedPrefix\\)/);
+  assert.match(backupRoute, /validPatientIds\\.has\\(item\\.patient_id\\)/);
+  assert.match(backupRoute, /item\\.file_path\\.startsWith\\(expectedPrefix\\)/);
+});
