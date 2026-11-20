@@ -133,7 +133,11 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
 }
 
 async function resolveActiveClinicId(req: NextRequest, authed: AuthUser, admin: ReturnType<typeof getAdminClient>) {
-  let clinicId = authed.clinicId || null;
+  // A clinic ID derived from a verified bearer token is already tab-scoped.
+  // Never let an origin-wide Supabase cookie replace that verified tenant.
+  if (authed.clinicId) return authed.clinicId;
+
+  let clinicId: string | null = null;
   const token = parseAuthCookie(req);
   if (token) {
     const { data: { user }, error } = await admin.auth.getUser(token);
