@@ -2,17 +2,30 @@ import { NextRequest, NextResponse } from "next/server";
 import { getClinicContext } from "@/lib/server/clinic-context";
 import { canViewPatientHistory, hasStaffPermission } from "@/lib/server/staff-permissions";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const deepseekApiKey = process.env.DEEPSEEK_API_KEY || "";
 const geminiApiKey = process.env.GEMINI_API_KEY || "";
 
-const SYSTEM_INSTRUCTION = `You are a professional medical report writer and clinical documentation specialist at Prime Physio.
-Your goal is to generate formal, highly structured physical therapy progress reports and clinical referral letters in English.
-Your tone is professional, scientific, clinical, and objective. 
-You must output ONLY the final clinical report or letter in a clean, professional format. Do not add conversational intro/outro text.`;
+const SYSTEM_INSTRUCTION = `You are a professional physiotherapy clinical report writer.
+Write only a structured, objective report in English. Use only the supplied clinical facts.
+Do not infer, invent, or claim improvements, diagnoses, examination findings, interventions,
+tolerance, goals achieved, or discharge status that were not explicitly supplied.
+If information is missing, mark it as "Not provided". The patient is represented by a
+non-identifying reference; never request or infer their identity.`;
+
+function cleanClinicalText(value: unknown, max = 3000): string {
+  if (typeof value !== "string") return "";
+  return value
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[REDACTED CONTACT]")
+    .replace(/(?:\+?\d[\d\s().-]{7,}\d)/g, "[REDACTED NUMBER]")
+    .slice(0, max)
+    .trim();
+}
 
 async function callDeepSeek(prompt: string) {
-  const url = "https://api.deepseek.com/v1/chat/completions";
-  const response = await fetch(url, {
+  const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -22,50 +35,44 @@ async function callDeepSeek(prompt: string) {
       model: "deepseek-chat",
       messages: [
         { role: "system", content: SYSTEM_INSTRUCTION },
-        { role: "user", content: prompt }
+        { role: "user", content: prompt },
       ],
       temperature: 0.2,
       max_tokens: 2048,
     }),
+    cache: "no-store",
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => ({}));
   if (response.ok && data.choices?.[0]?.message?.content) {
-    return data.choices[0].message.content;
+    return data.choices[0].message.content as string;
   }
-  throw new Error(data?.error?.message || `DeepSeek status ${response.status}`);
+  throw new Error(`DeepSeek request failed with HTTP ${response.status}`);
 }
 
 async function callGemini(modelName: string, prompt: string) {
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiApiKey}`;
-
-  const body = {
-    system_instruction: {
-      parts: [{ text: SYSTEM_INSTRUCTION }],
-    },
-    contents: [
-      {
-        role: "user",
-        parts: [{ text: prompt }],
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": geminiApiKey,
       },
-    ],
-    generationConfig: {
-      temperature: 0.2,
-      maxOutputTokens: 2048,
+      body: JSON.stringify({
+        system_instruction: { parts: [{ text: SYSTEM_INSTRUCTION }] },
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.2, maxOutputTokens: 2048 },
+      }),
+      cache: "no-store",
     },
-  };
+  );
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  const data = await response.json();
+  const data = await response.json().catch(() => ({}));
   if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
-    return data.candidates[0].content.parts[0].text;
+    return data.candidates[0].content.parts[0].text as string;
   }
-  throw new Error(data?.error?.message || `Gemini status ${response.status}`);
+  throw new Error(`Gemini request failed with HTTP ${response.status}`);
 }
 
 export async function POST(req: NextRequest) {
@@ -73,122 +80,99 @@ export async function POST(req: NextRequest) {
     const auth = await getClinicContext(req);
     if ("response" in auth) return auth.response;
     if (!hasStaffPermission(auth.staff, "view_patients") || !canViewPatientHistory(auth.staff)) {
-      return NextResponse.json({ error: "ليس لديك صلاحية مشاهدة بيانات المريض والسجل السريري" }, { status: 403 });
+      return NextResponse.json(
+        { error: "ليس لديك صلاحية مشاهدة بيانات المريض والسجل السريري" },
+        { status: 403, headers: { "Cache-Control": "no-store, private" } },
+      );
     }
+
     const body = await req.json().catch(() => null);
-    const type = body?.type;
-    const patientInfo = body?.patientInfo;
-    const clinicalData = body?.clinicalData;
-    if (!["referral", "progress"].includes(type) || !patientInfo || typeof patientInfo !== "object" || !clinicalData || typeof clinicalData !== "object") {
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
       return NextResponse.json({ error: "Invalid report request" }, { status: 400 });
     }
-    const fields = [
-      patientInfo.nameEn, patientInfo.id, patientInfo.dob, patientInfo.gender,
-      clinicalData.diagnosis, clinicalData.rom, clinicalData.notes,
-    ];
-    if (fields.some((value) => typeof value !== "string" && typeof value !== "number")) {
-      return NextResponse.json({ error: "Invalid report data" }, { status: 400 });
-    }
-    if (fields.some((value) => String(value).length > 4000) ||
-        !Number.isFinite(Number(clinicalData.vasScore)) ||
-        Number(clinicalData.vasScore) < 0 || Number(clinicalData.vasScore) > 10) {
-      return NextResponse.json({ error: "Report data exceeds allowed limits" }, { status: 400 });
-    }
-    const reportPayloadSize = JSON.stringify({ patientInfo, clinicalData }).length;
-    if (reportPayloadSize > 12000) return NextResponse.json({ error: "Report request is too large" }, { status: 413 });
 
-    let prompt = "";
-
-    if (type === "referral") {
-      prompt = `Generate a formal Medical Referral Letter in English from Prime Physio Clinic to a referring physician.
-      
-Patient Information:
-- Full Name: ${patientInfo.nameEn}
-- File Number: ${patientInfo.id}
-- Date of Birth: ${patientInfo.dob}
-- Gender: ${patientInfo.gender}
-
-Clinical Records & Findings:
-- Diagnosis/Condition: ${clinicalData.diagnosis}
-- Subjective Complaints & Visual Analogue Scale (VAS): ${clinicalData.vasScore}/10 pain score
-- Objective Findings / Range of Motion (ROM): ${clinicalData.rom}
-- Treatment Plan / Clinical Notes: ${clinicalData.notes}
-
-Include standard clinical letter sections:
-1. Header (Prime Physio Clinic, Date)
-2. Recipient: "To Whom It May Concern / Referring Physician"
-3. Patient Demographics Summary
-4. Clinical Assessment & Progress Report (synthesize the diagnosis, ROM, and pain score)
-5. Treatment Summary (interventions performed, patient tolerance)
-6. Discharge/Follow-up Recommendation
-7. Professional closing signature placeholder (e.g., "Dr. Mona Hussein, PT, DPT").`;
-    } else {
-      prompt = `Generate a formal Physical Therapy Progress Report (suitable for insurance providers) in English.
-      
-Patient Information:
-- Full Name: ${patientInfo.nameEn}
-- File Number: ${patientInfo.id}
-- Date of Birth: ${patientInfo.dob}
-- Gender: ${patientInfo.gender}
-
-Clinical Records & Findings:
-- Diagnosis/Condition: ${clinicalData.diagnosis}
-- Subjective Complaints & Visual Analogue Scale (VAS): ${clinicalData.vasScore}/10 pain score
-- Objective Findings / Range of Motion (ROM): ${clinicalData.rom}
-- Treatment Plan / Clinical Notes: ${clinicalData.notes}
-
-Include standard insurance clinical report sections:
-1. Progress Report Header
-2. Patient Demographics & Identification
-3. Initial Assessment vs. Current Status (synthesize progress using the VAS score and ROM provided)
-4. Active Physical Therapy Interventions & Modalities Applied
-5. Functional Goals Status
-6. Continuation of Care Recommendation & Treatment Plan justification
-7. Sign-off credential block.`;
+    // Explicit, per-request consent is mandatory before any clinical data is sent to an external AI provider.
+    if (body.consentToExternalProcessing !== true) {
+      return NextResponse.json(
+        { error: "يلزم تأكيد موافقة المريض أو ممثله المخول قبل إرسال البيانات السريرية إلى مزود ذكاء اصطناعي خارجي." },
+        { status: 400, headers: { "Cache-Control": "no-store, private" } },
+      );
     }
 
-    // Try DeepSeek first
+    const type = body.type;
+    const clinicalData = body.clinicalData;
+    if (!["referral", "progress", "discharge"].includes(type) ||
+        !clinicalData || typeof clinicalData !== "object" || Array.isArray(clinicalData)) {
+      return NextResponse.json({ error: "Invalid report request" }, { status: 400 });
+    }
+
+    const diagnosis = cleanClinicalText(clinicalData.diagnosis, 1500);
+    const rom = cleanClinicalText(clinicalData.rom, 2500);
+    const notes = cleanClinicalText(clinicalData.notes, 3000);
+    const vasScore = Number(clinicalData.vasScore);
+    if (!Number.isInteger(vasScore) || vasScore < 0 || vasScore > 10 ||
+        !diagnosis || !rom || !notes) {
+      return NextResponse.json(
+        { error: "يرجى إدخال التشخيص ونتائج الحركة والملاحظات ودرجة الألم من 0 إلى 10." },
+        { status: 400, headers: { "Cache-Control": "no-store, private" } },
+      );
+    }
+
+    // Deliberately do not read or forward patientInfo, patient names, file IDs, phone numbers, DOB, or gender.
+    const reportKind = type === "referral"
+      ? "Medical Referral Letter"
+      : type === "progress"
+        ? "Physical Therapy Progress Report"
+        : "Physical Therapy Discharge Summary";
+
+    const prompt = `Generate a formal ${reportKind} in English.
+The report must remain de-identified. Refer to the subject only as "the patient".
+Do not include or request names, file numbers, phone numbers, dates of birth, addresses, or other identifiers.
+
+Verified clinical information supplied by the treating clinician:
+- Diagnosis/condition: ${diagnosis}
+- Pain score (VAS): ${vasScore}/10
+- Range of motion / objective findings: ${rom}
+- Treatment notes and recommendations: ${notes}
+
+Use clear clinical sections appropriate to the report type. Distinguish documented findings
+from recommendations. Do not state that goals were achieved or treatment was completed unless
+that is explicitly documented above. Mark missing information as "Not provided".`;
+
+    if (JSON.stringify({ diagnosis, rom, notes }).length > 8000) {
+      return NextResponse.json({ error: "Report request is too large" }, { status: 413 });
+    }
+
     if (deepseekApiKey) {
       try {
-        console.log("Generating report with DeepSeek...");
-        const text = await callDeepSeek(prompt);
-        return NextResponse.json({ report: text }, { headers: { "Cache-Control": "no-store, private" } });
-      } catch (err: any) {
-        console.warn("DeepSeek report failed, falling back to Gemini...", err.message);
+        const report = await callDeepSeek(prompt);
+        return NextResponse.json({ report }, { headers: { "Cache-Control": "no-store, private" } });
+      } catch {
+        // Provider failures are intentionally not logged with request data or provider response bodies.
       }
     }
 
-    // Try Gemini models if DeepSeek failed or is not configured
     if (geminiApiKey) {
-      const models = [
-        "gemini-2.0-flash",
-        "gemini-1.5-flash-latest",
-        "gemini-1.5-flash",
-      ];
-
-      for (const model of models) {
+      for (const model of ["gemini-2.0-flash", "gemini-1.5-flash-latest", "gemini-1.5-flash"]) {
         try {
-          console.log(`Generating report with Gemini (${model})...`);
-          const text = await callGemini(model, prompt);
-          if (text) {
-            return NextResponse.json({ report: text });
+          const report = await callGemini(model, prompt);
+          if (report) {
+            return NextResponse.json({ report }, { headers: { "Cache-Control": "no-store, private" } });
           }
-        } catch (e: any) {
-          console.warn(`Gemini (${model}) failed:`, e.message);
+        } catch {
+          // Try the next configured Gemini model without logging clinical request content.
         }
       }
     }
 
     return NextResponse.json(
-      { error: "فشل توليد التقرير باستخدام DeepSeek وGemini. يرجى مراجعة مفاتيح الـ API وصلاحيتها." },
-      { status: 500 }
+      { error: "تعذر توليد التقرير. يرجى مراجعة إعدادات مزود الذكاء الاصطناعي." },
+      { status: 502, headers: { "Cache-Control": "no-store, private" } },
     );
-  } catch (error: any) {
-    const status = /unauthorized/i.test(error.message) ? 401 : /forbidden|غير مصرح|صلاحية غير كافية/i.test(error.message) ? 403 : /Invalid report|Report data/i.test(error.message) ? 400 : 500;
-    console.error("Report Generator API Error:", error);
+  } catch {
     return NextResponse.json(
-      { error: status === 400 ? "Invalid report request" : status === 401 ? "Unauthorized" : status === 403 ? "Forbidden" : "Internal server error" },
-      { status, headers: { "Cache-Control": "no-store, private" } }
+      { error: "حدث خطأ أثناء إنشاء التقرير." },
+      { status: 500, headers: { "Cache-Control": "no-store, private" } },
     );
   }
 }
