@@ -48,7 +48,7 @@ async function clinicPresentation(admin: ReturnType<typeof getAdminClient>, clin
 export async function GET(req: NextRequest) {
   try {
     const admin = getAdminClient();
-    const bearer = req.headers.get("authorization")?.match(/^Bearer\\s+(.+)$/i)?.[1]?.trim();
+    const bearer = req.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
     let email: string | null = null;
     let scopedClinicId: string | null = null;
 
@@ -68,6 +68,20 @@ export async function GET(req: NextRequest) {
         expiresAt <= Math.floor(Date.now() / 1000)
       ) {
         return NextResponse.json({ error: "Invalid or expired clinic identity" }, { status: 401, headers: { "Cache-Control": "no-store, private" } });
+      }
+
+      const { data: identity, error: identityError } = await admin
+        .from("clinic_auth_identities")
+        .select("shadow_user_id")
+        .eq("clinic_id", scopedClinicId)
+        .eq("canonical_email", email)
+        .eq("shadow_user_id", data.user.id)
+        .maybeSingle();
+      if (identityError) {
+        return NextResponse.json({ error: "Unable to verify clinic identity" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
+      }
+      if (!identity) {
+        return NextResponse.json({ error: "Clinic identity mapping is invalid" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
       }
     } else {
       const session = await getServerSession(authOptions);
