@@ -61,10 +61,10 @@ export function SmartReportsTab({ patient }: { patient: Patient }) {
         cache: "no-store",
         body: JSON.stringify({
           type: reportType,
+          patientId: patient.id,
           consentToExternalProcessing: true,
-          // No patient name, phone, file number, date of birth, gender, or other direct identifier is sent.
+          // patientId is used only for a clinic-scoped server lookup and is never forwarded to the AI provider.
           clinicalData: {
-            diagnosis: patient.diagnosis,
             vasScore: Number(vasScore),
             rom,
             notes,
