@@ -296,5 +296,5 @@ test("service-role patient attachment signing verifies clinic and patient folder
   assert.match(patientRoute, /const expectedPrefix = /);
   assert.match(patientRoute, /item\.file_path\.startsWith\(expectedPrefix\)/);
   assert.match(backupRoute, /validPatientIds\.has\(item\.patient_id\)/);
-  assert.match(backupRoute, /item\\.file_path\\.startsWith\\(expectedPrefix\\)/);
+  assert.match(backupRoute, /item\.file_path\.startsWith\(expectedPrefix\)/);
 });
