@@ -23,14 +23,7 @@ function cleanClinicalText(value: unknown, max = 3000, sensitiveValues: unknown[
 
   for (const sensitiveValue of sensitiveValues) {
     if (typeof sensitiveValue !== "string" || sensitiveValue.trim().length < 3) continue;
-    const escaped = sensitiveValue.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\function cleanClinicalText(value: unknown, max = 3000): string {
-  if (typeof value !== "string") return "";
-  return value
-    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[REDACTED CONTACT]")
-    .replace(/(?:\+?\d[\d\s().-]{7,}\d)/g, "[REDACTED NUMBER]")
-    .slice(0, max)
-    .trim();
-}");
+    const escaped = sensitiveValue.trim().replace(/[.*+?^\${}()|[\]\\]/g, "\\$&");
     cleaned = cleaned.replace(new RegExp(escaped, "gi"), "[REDACTED PATIENT DATA]");
   }
 
