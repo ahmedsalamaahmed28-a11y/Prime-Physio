@@ -102,6 +102,16 @@ test("independent center provisioning creates a fresh tenant without copying pat
   assert.doesNotMatch(migration, /insert into public\.(patients|appointments|invoices|sessions)\b/i);
 });
 
+test("core clinic read policies remain scoped to the active clinic", async () => {
+  const migration = await source("supabase/migrations/20261120025936_independent_view_permissions_20261120.sql");
+  for (const policy of ["patients_clinic_select", "appointments_clinic_select", "invoices_clinic_select", "sessions_clinic_select"]) {
+    const start = migration.indexOf(`create policy ${policy}`);
+    assert.notEqual(start, -1, `${policy} must remain present in the permissions migration`);
+    const block = migration.slice(start, start + 900);
+    assert.match(block, /clinic_id = public\.get_my_clinic_id\(\)/, `${policy} must scope by the trusted active clinic`);
+  }
+});
+
 test("isolated PostgreSQL harness tests real tenant RLS semantics and rolls back", async () => {
   const sql = await source("tests/security/tenant-isolation-rls.sql");
   assert.match(sql, /CREATE POLICY auth_session_expiry_guard ON public\.patients\s+AS RESTRICTIVE/);
