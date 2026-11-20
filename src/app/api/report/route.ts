@@ -101,12 +101,27 @@ export async function POST(req: NextRequest) {
 
     const type = body.type;
     const clinicalData = body.clinicalData;
-    if (!["referral", "progress", "discharge"].includes(type) ||
+    const patientId = typeof body.patientId === "string" ? body.patientId.trim() : "";
+    if (!["referral", "progress", "discharge"].includes(type) || !patientId ||
         !clinicalData || typeof clinicalData !== "object" || Array.isArray(clinicalData)) {
       return NextResponse.json({ error: "Invalid report request" }, { status: 400 });
     }
 
-    const diagnosis = cleanClinicalText(clinicalData.diagnosis, 1500);
+    // Resolve the patient on the server and enforce the active clinic boundary.
+    const { data: patientRecord, error: patientLookupError } = await auth.admin
+      .from("patients")
+      .select("id, diagnosis")
+      .eq("id", patientId)
+      .eq("clinic_id", auth.clinicId)
+      .maybeSingle();
+    if (patientLookupError) {
+      return NextResponse.json({ error: "تعذر التحقق من سجل المريض." }, { status: 500 });
+    }
+    if (!patientRecord) {
+      return NextResponse.json({ error: "المريض غير موجود في المركز الحالي." }, { status: 404 });
+    }
+
+    const diagnosis = cleanClinicalText(patientRecord.diagnosis, 1500);
     const rom = cleanClinicalText(clinicalData.rom, 2500);
     const notes = cleanClinicalText(clinicalData.notes, 3000);
     const vasScore = Number(clinicalData.vasScore);
