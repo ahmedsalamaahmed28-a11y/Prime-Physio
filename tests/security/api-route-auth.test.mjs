@@ -119,6 +119,8 @@ test("clinic-scoped bearer identity takes precedence over the shared NextAuth co
     "the clinic scope must come from verified server-issued token metadata");
   assert.match(authSource, /Invalid or expired clinic-scoped session/);
   assert.match(authSource, /Unable to verify clinic-scoped membership/);
+  assert.match(authSource, /clinic_auth_identities/);
+  assert.match(authSource, /eq\("shadow_user_id", user\.id\)/);
   assert.match(authSource, /Forbidden: Clinic membership is inactive/,
     "missing or inactive membership must fail closed");
 });
