@@ -2,7 +2,7 @@ name: Prime Physio tenant isolation tests
 
 on:
   push:
-    branches: [security/independent-view-permissions]
+    branches: [security/strict-active-clinic-isolation]
   pull_request:
     branches: [main]
   schedule:
