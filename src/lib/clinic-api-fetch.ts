@@ -56,7 +56,7 @@ export function installClinicApiFetch(): () => void {
       pathname === "/api/public-chat" ||
       pathname === "/api/signup" ||
       pathname === "/api/slug-check" ||
-      pathname === "/api/n8n" ||
+      requestUrl.pathname === "/api/n8n" ||
       pathname.startsWith("/api/n8n/") ||
       pathname.startsWith("/api/centers/send-otp") ||
       pathname === "/api/sw" ||
