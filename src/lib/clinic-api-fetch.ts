@@ -20,6 +20,9 @@ function allowsSharedSessionBootstrap(pathname: string): boolean {
     "/api/has-clinic",
     "/api/centers/create",
     "/api/centers/upload-logo",
+    "/api/subscribe",
+    "/api/subscription/payment-methods",
+    "/api/subscription/payments",
     "/api/center-management/centers",
     "/api/center-management/export",
   ]).has(pathname);
