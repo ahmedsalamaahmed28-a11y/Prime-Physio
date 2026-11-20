@@ -49,7 +49,7 @@ export function installClinicApiFetch(): () => void {
     if (
       requestUrl.origin !== window.location.origin ||
       !pathname.startsWith("/api/") ||
-      pathname.startsWith("/api/public/") ||
+      requestUrl.pathname.startsWith("/api/public/") ||
       pathname === "/api/public-chat" ||
       pathname === "/api/signup" ||
       pathname === "/api/slug-check" ||
