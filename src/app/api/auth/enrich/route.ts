@@ -77,11 +77,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Clinic scope mismatch" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
     }
     const preferredClinicId = scopedClinicId || requestedClinicId;
+    let staffProfileQuery = admin.from("staff").select("name").eq("email", email).not("name", "is", null);
+    if (scopedClinicId) staffProfileQuery = staffProfileQuery.eq("clinic_id", scopedClinicId);
     const [
       { data: profile, error: profileResultError },
       { data: accountProfile, error: accountProfileResultError },
     ] = await Promise.all([
-      admin.from("staff").select("name").eq("email", email).not("name", "is", null).limit(1).maybeSingle(),
+      staffProfileQuery.limit(1).maybeSingle(),
       admin.from("auth_accounts").select("name").eq("email", email).maybeSingle(),
     ]);
     if (profileResultError || accountProfileResultError) {
@@ -103,7 +105,7 @@ export async function GET(req: NextRequest) {
       console.error("[AuthEnrich] Platform-admin lookup failed", { code: platformAdminError.code });
       return NextResponse.json({ error: "Unable to verify platform permissions" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
     }
-    if (platformAdmin) {
+    if (platformAdmin && !scopedClinicId) {
       return NextResponse.json({
         clinicId: null, displayName, role: "platform_admin", roleKey: "platform_admin",
         roleAr: "مدير المنصة", roleEn: "Platform Admin",
