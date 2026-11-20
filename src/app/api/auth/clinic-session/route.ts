@@ -19,10 +19,11 @@ function noStoreJson(body: unknown, status = 200) {
 
 function isSameOrigin(req: NextRequest) {
   const origin = req.headers.get("origin");
-  const host = req.headers.get("x-forwarded-host") || req.headers.get("host");
-  if (!origin || !host) return false;
+  if (!origin) return false;
   try {
-    return new URL(origin).host.toLowerCase() === host.toLowerCase();
+    // Compare full origins against the canonical request URL. Do not trust
+    // client-supplied forwarded-host headers for this credential-issuing route.
+    return new URL(origin).origin === new URL(req.url).origin;
   } catch {
     return false;
   }
