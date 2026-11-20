@@ -69,15 +69,11 @@ jobs:
 
       - name: Export local-only API credentials
         run: |
-          supabase status -o env \
-            --override-name api.url=SUPABASE_URL \
-            --override-name auth.anon_key=SUPABASE_ANON_KEY \
-            --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
-            >> "$GITHUB_ENV"
+          supabase status -o env >> "$GITHUB_ENV"
 
       - name: Run synthetic A/B tenant CRUD and storage isolation tests
         run: node scripts/check-local-tenant-isolation.mjs
 
       - name: Stop and discard local Supabase stack
         if: always()
-        run: supabase stop --no-backup
+        run: supabase stop --no-backup || true
