@@ -120,12 +120,24 @@ The production database currently has only one clinic. A true Clinic A → Clini
 
 - Real login-based role tests for separate owner, admin, doctor, receptionist, and restricted staff accounts.
 - Cross-clinic A/B access attempts through the application's API and direct Supabase Data API.
-- Full Next.js production build and browser-level UI checks. The earlier Vercel preview attempt was blocked by the free deployment daily quota; no paid retry was used.
+- Browser-level UI checks and real login-based role tests. The repository CI and Vercel Preview production builds now pass; this does not replace browser interaction or live-account authorization tests.
 - A fresh full Supabase Advisor review after the corrective migration.
 
 ## Trusted automation exception
 
 The n8n endpoint is a server-to-server integration, not a staff-session API. It is currently scoped by a long `N8N_SECURE_TOKEN` and a fixed `N8N_ALLOWED_CLINIC_ID`, and its actions can read/write clinic data through service role. It remains a separate trusted integration principal; staff `view_*` permissions do not apply to it. Its token must remain private and its clinic scope must be verified independently. The existing owner-only center export endpoint is another deliberate owner-level exception.
+
+## Repository architecture and CI verification (2026-11-20)
+
+- Fixed the TypeScript narrowing error in `src/app/api/branches/[id]/route.ts`: DELETE now returns the verified authentication response before accessing the service-role client.
+- Added the `security/independent-view-permissions` branch to push-triggered CI.
+- Added a dedicated Node test runner and 9 passing tests covering the employee permission matrix, explicit overrides, malformed permissions, inactive staff, API route authentication boundaries, platform-admin membership checks, and the proxy/cookie distinction.
+- CI completed successfully on commit `f842f782decb8d2ef78b251d4767ae6c9ed9bb5b`: dependency audit, TypeScript, ESLint, CSP checks, and Next.js production build all passed.
+- Both Vercel projects generated READY preview deployments for that review-branch commit. These deployments have no production target; no production alias was promoted.
+- Tenant A/B integration and database integrity steps were visibly marked **Skipped** because their dedicated test-project fixtures and read-only database credentials are not configured. They were not counted as passed.
+- 24 legacy SQL files from the repository root were moved into `docs/sql-archive/`. The ordered, approved migration source of truth remains `supabase/migrations/`; archived scripts are not migrations and must not be applied. The destructive reset script is retained only for historical reference.
+- A source-level inventory test now requires every API route to be either explicitly listed as public or to contain a server-side authentication guard. Routes under `/api/admin/` must additionally verify platform-admin membership.
+- The API boundary review confirms that the proxy's cookie-presence check is not the API security boundary: protected API handlers validate signed NextAuth sessions or Supabase tokens and enforce clinic membership/permissions themselves. Public chat's in-memory per-instance rate limit remains best-effort and is documented as a future hardening item.
 
 ## Explicitly not done
 
