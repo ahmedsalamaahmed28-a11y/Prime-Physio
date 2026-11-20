@@ -347,7 +347,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
         const requestedClinicId =
           typeof window !== "undefined" &&
-          (window.location.pathname.replace(/\\/+$/, "") || "/") === "/dashboard"
+          (window.location.pathname.replace(/\/+$/, "") || "/") === "/dashboard"
             ? new URLSearchParams(window.location.search).get("clinicId")
             : null;
         if (requestedClinicId) sessionStorage.setItem("preferred_clinic_id", requestedClinicId);
