@@ -18,6 +18,12 @@ async function exchangeClinicSession(clinicId: string): Promise<void> {
     throw new Error("The issued session does not match the selected clinic");
   }
 
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem("prime-physio:tab-logged-out");
+    sessionStorage.setItem("preferred_clinic_id", clinicId);
+    sessionStorage.setItem("prime-physio:active-clinic-id", clinicId);
+  }
+
   const { data, error } = await supabase.auth.setSession({
     access_token: payload.session.access_token,
     refresh_token: payload.session.refresh_token,
@@ -34,11 +40,6 @@ async function exchangeClinicSession(clinicId: string): Promise<void> {
     throw new Error("The clinic session identity could not be verified");
   }
 
-  if (typeof window !== "undefined") {
-    sessionStorage.removeItem("prime-physio:tab-logged-out");
-    sessionStorage.setItem("preferred_clinic_id", clinicId);
-    sessionStorage.setItem("prime-physio:active-clinic-id", clinicId);
-  }
 }
 
 export async function activateClinicSession(clinicId: string): Promise<void> {
