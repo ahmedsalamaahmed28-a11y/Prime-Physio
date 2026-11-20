@@ -3,6 +3,19 @@ import { setClinicApiAccessToken } from "@/lib/clinic-api-fetch";
 
 const pendingExchanges = new Map<string, Promise<void>>();
 
+export async function withNextAuthLoginLock<T>(operation: () => Promise<T>): Promise<T> {
+  if (typeof navigator !== "undefined" && navigator.locks?.request) {
+    return navigator.locks.request(
+      "prime-physio-nextauth-login",
+      { mode: "exclusive" },
+      operation,
+    );
+  }
+  // Older browsers keep tab-scoped clinic sessions, but cannot serialize
+  // cross-tab NextAuth sign-ins. The server still verifies identity fail-closed.
+  return operation();
+}
+
 async function clearTabClinicSession(): Promise<void> {
   setClinicApiAccessToken(null);
   if (typeof window !== "undefined") {

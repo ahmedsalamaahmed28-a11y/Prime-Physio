@@ -10,7 +10,7 @@ import {
   Clock, Eye, EyeOff, Globe, Lock, Mail,
   MapPin, Menu, Phone, ShieldCheck, Sparkles, Stethoscope, Users, X,
 } from "lucide-react";
-import { activateClinicSession } from "@/lib/clinic-session";
+import { activateClinicSession, withNextAuthLoginLock } from "@/lib/clinic-session";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Loader } from "@/components/Loader";
 
@@ -149,50 +149,45 @@ export default function BrandedClinicPage() {
       sessionStorage.setItem("preferred_clinic_id", clinic.id);
       sessionStorage.removeItem("prime-physio:tab-logged-out");
 
-      const result = await signIn("credentials", {
-        email: email.trim().toLowerCase(), password, clinicSlug: slug, redirect: false,
-      });
-      if (!result || result.error) {
-        sessionStorage.removeItem("preferred_clinic_id");
-        throw new Error(isRtl ? "البريد الإلكتروني أو كلمة المرور غير صحيحة" : "Invalid email or password");
-      }
-      // signIn(resolve: false) can finish before the browser's session
-      // endpoint exposes the newly issued JWT cookie. Confirm the fresh session
-      // before exchanging it for a clinic-scoped Supabase identity.
       const expectedEmail = email.trim().toLowerCase();
-      let verifiedSession: Awaited<ReturnType<typeof getSession>> = null;
-
-      for (let attempt = 0; attempt < 5; attempt += 1) {
-        const candidate = await getSession();
-        const candidateEmail = candidate?.user?.email?.trim().toLowerCase();
-        const candidateClinicId = (candidate?.user as { clinicId?: string | null } | undefined)?.clinicId;
-        const expiresAt = Date.parse(candidate?.expires || "");
-
-        if (
-          candidate &&
-          candidateEmail === expectedEmail &&
-          candidateClinicId === clinic.id &&
-          Number.isFinite(expiresAt) &&
-          expiresAt > Date.now()
-        ) {
-          verifiedSession = candidate;
-          break;
+      await withNextAuthLoginLock(async () => {
+        const result = await signIn("credentials", {
+          email: expectedEmail, password, clinicSlug: slug, redirect: false,
+        });
+        if (!result || result.error) {
+          throw new Error(isRtl ? "البريد الإلكتروني أو كلمة المرور غير صحيحة" : "Invalid email or password");
         }
 
-        if (attempt < 4) {
-          await new Promise((resolve) => setTimeout(resolve, 200));
+        let verifiedSession: Awaited<ReturnType<typeof getSession>> = null;
+        for (let attempt = 0; attempt < 8; attempt += 1) {
+          const candidate = await getSession();
+          const candidateEmail = candidate?.user?.email?.trim().toLowerCase();
+          const candidateClinicId = (candidate?.user as { clinicId?: string | null } | undefined)?.clinicId;
+          const expiresAt = Date.parse(candidate?.expires || "");
+
+          if (
+            candidate &&
+            candidateEmail === expectedEmail &&
+            candidateClinicId === clinic.id &&
+            Number.isFinite(expiresAt) &&
+            expiresAt > Date.now()
+          ) {
+            verifiedSession = candidate;
+            break;
+          }
+          if (attempt < 7) await new Promise((resolve) => setTimeout(resolve, 250));
         }
-      }
 
-      if (!verifiedSession) {
-        throw new Error(
-          isRtl
-            ? "تم التحقق من كلمة المرور، لكن تعذر تأكيد جلسة الدخول أو المركز المختار. حاول تسجيل الدخول مرة أخرى."
-            : "Your credentials were accepted, but the active login session could not be verified for this clinic. Please try again."
-        );
-      }
+        if (!verifiedSession) {
+          throw new Error(
+            isRtl
+              ? "تم التحقق من كلمة المرور، لكن تعذر تأكيد جلسة الدخول أو المركز المختار. حاول تسجيل الدخول مرة أخرى."
+              : "Your credentials were accepted, but the active login session could not be verified for this clinic. Please try again."
+          );
+        }
 
-      await activateClinicSession(clinic.id, expectedEmail);
+        await activateClinicSession(clinic.id, expectedEmail);
+      });
       window.location.replace("/dashboard");
     } catch (error) {
       if (clinic?.id && sessionStorage.getItem("preferred_clinic_id") === clinic.id) {

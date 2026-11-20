@@ -308,3 +308,41 @@ test("service-role patient attachment signing verifies clinic and patient folder
   assert.match(backupRoute, /validPatientIds\.has\(item\.patient_id\)/);
   assert.match(backupRoute, /item\.file_path\.startsWith\(expectedPrefix\)/);
 });
+
+
+test("clinic-session validates the signed NextAuth JWT expiry instead of trusting session.expires", async () => {
+  const routeSource = await readFile(
+    path.join(root, "src", "app", "api", "auth", "clinic-session", "route.ts"),
+    "utf8",
+  );
+  assert.match(routeSource, /import \{ getToken \} from "next-auth\/jwt"/);
+  assert.match(routeSource, /getToken\(\{ req, secret \}\)/);
+  assert.match(routeSource, /token\?\.exp/);
+  assert.match(routeSource, /tokenExpiry > nowSeconds/);
+  assert.match(routeSource, /nextAuthExpiresAt = tokenExpiry/);
+  assert.doesNotMatch(routeSource, /parsedExpiry <= Date\.now\(\)/);
+  assert.match(routeSource, /diagnosticId/);
+  assert.match(routeSource, /cookiePresent/);
+  assert.match(routeSource, /jwtExpiryValid/);
+  assert.doesNotMatch(routeSource, /cookie\.value/);
+});
+
+test("NextAuth login exchange is serialized across tabs and remains fail-closed", async () => {
+  const sessionSource = await readFile(path.join(root, "src", "lib", "clinic-session.ts"), "utf8");
+  const brandedSource = await readFile(path.join(root, "src", "app", "[slug]", "page.tsx"), "utf8");
+  const authSource = await readFile(path.join(root, "src", "lib", "auth.tsx"), "utf8");
+  assert.match(sessionSource, /navigator\.locks\.request\([\s\S]*?prime-physio-nextauth-login/);
+  assert.match(brandedSource, /withNextAuthLoginLock\(async \(\) =>/);
+  assert.match(brandedSource, /await activateClinicSession\(clinic\.id, expectedEmail\)/);
+  assert.match(authSource, /withNextAuthLoginLock\(async \(\) =>/);
+  assert.match(authSource, /latestEmail !== enriched\.email\.trim\(\)\.toLowerCase\(\)/);
+});
+
+test("a shared NextAuth status change cannot sign out a still-valid tab-scoped clinic session", async () => {
+  const authSource = await readFile(path.join(root, "src", "lib", "auth.tsx"), "utf8");
+  const unauthenticatedBranch = authSource.slice(authSource.indexOf('status === "unauthenticated"'));
+  assert.match(unauthenticatedBranch, /metadata\.auth_source === "clinic-scoped-shadow"/);
+  assert.match(unauthenticatedBranch, /scopedExpiry > Math\.floor\(Date\.now\(\) \/ 1000\)/);
+  assert.match(unauthenticatedBranch, /if \(Number\.isSafeInteger\(scopedExpiry\)[\s\S]*?return;/);
+  assert.match(unauthenticatedBranch, /supabase\.auth\.signOut\(\{ scope: "local" \}\)/);
+});

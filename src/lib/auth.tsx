@@ -6,7 +6,7 @@ import { SessionProvider, useSession, getSession } from "next-auth/react";
 import { supabase } from "@/lib/supabase";
 import { getAppValue, setAppValue } from "@/lib/appStorage";
 import { installClinicApiFetch, setClinicApiAccessToken } from "@/lib/clinic-api-fetch";
-import { activateClinicSession } from "@/lib/clinic-session";
+import { activateClinicSession, withNextAuthLoginLock } from "@/lib/clinic-session";
 
 interface User {
   name: string;
@@ -375,7 +375,34 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
         if (enriched.clinicId && !enriched.isPlatformAdmin) {
           try {
-            await activateClinicSession(enriched.clinicId, enriched.email);
+            await withNextAuthLoginLock(async () => {
+              const latestSession = await getSession();
+              const latestEmail = latestSession?.user?.email?.trim().toLowerCase();
+              const latestExpiry = Date.parse(latestSession?.expires || "");
+              if (
+                !latestSession ||
+                latestEmail !== enriched.email.trim().toLowerCase() ||
+                !Number.isFinite(latestExpiry) ||
+                latestExpiry <= Date.now()
+              ) {
+                throw new Error("The login identity changed in another tab; please sign in again in this tab.");
+              }
+
+              // The branded login may already have exchanged this tab's session.
+              // Reuse it rather than issuing a second scoped refresh-token pair.
+              const { data: currentTabAuth } = await supabase.auth.getSession();
+              const currentMetadata = currentTabAuth.session?.user?.app_metadata || {};
+              const currentExpiry = Number(currentMetadata.nextauth_expires_at || 0);
+              if (
+                currentMetadata.auth_source === "clinic-scoped-shadow" &&
+                currentMetadata.canonical_email === enriched.email.trim().toLowerCase() &&
+                currentMetadata.clinic_id === enriched.clinicId &&
+                Number.isSafeInteger(currentExpiry) &&
+                currentExpiry > Math.floor(Date.now() / 1000)
+              ) return;
+
+              await activateClinicSession(enriched.clinicId!, enriched.email);
+            });
           } catch (error) {
             console.error("Failed to activate independent clinic session:", error);
             setClinicApiAccessToken(null);
@@ -401,24 +428,35 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       loadRoleState();
       return () => { active = false; };
     } else if (status === "unauthenticated" && nextAuthEmailRef.current) {
-      const expiredEmail = nextAuthEmailRef.current;
+      const previousNextAuthEmail = nextAuthEmailRef.current;
       nextAuthEmailRef.current = null;
       enrichmentCountRef.current = 0;
       setIsEnriching(false);
-      setUser((prev) => prev?.email?.toLowerCase() === expiredEmail ? null : prev);
-      setAppValue("current_user", null).catch(() => {});
-      // A shared NextAuth cookie can expire/change because of another tab.
-      // Revoke this tab's Supabase session only when it belongs to that same account.
+
+      // NextAuth's cookie is shared across tabs. A change in another tab must
+      // not revoke this tab's independent sessionStorage-backed clinic identity.
       supabase.auth.getSession().then(({ data }) => {
         const metadata = data.session?.user?.app_metadata || {};
-        if (
-          metadata.auth_source === "clinic-scoped-shadow" &&
-          typeof metadata.canonical_email === "string" &&
-          metadata.canonical_email.toLowerCase() === expiredEmail
-        ) {
+        if (metadata.auth_source === "clinic-scoped-shadow") {
+          const scopedExpiry = Number(metadata.nextauth_expires_at || 0);
+          if (Number.isSafeInteger(scopedExpiry) && scopedExpiry > Math.floor(Date.now() / 1000)) {
+            return;
+          }
+
+          setClinicApiAccessToken(null);
+          setUser((prev) => prev?.email?.toLowerCase() === String(metadata.canonical_email || "").toLowerCase() ? null : prev);
+          setAppValue("current_user", null).catch(() => {});
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem("prime-physio:tab-logged-out", "1");
+            sessionStorage.removeItem("preferred_clinic_id");
+            sessionStorage.removeItem("prime-physio:active-clinic-id");
+          }
           return supabase.auth.signOut({ scope: "local" });
         }
-      }).catch((error) => console.error("Failed to validate expired tab session:", error));
+
+        setUser((prev) => prev?.email?.toLowerCase() === previousNextAuthEmail ? null : prev);
+        setAppValue("current_user", null).catch(() => {});
+      }).catch((error) => console.error("Failed to validate tab session after NextAuth status change:", error));
     }
   }, [session, status]);
 
