@@ -10,6 +10,10 @@ END
 $$;
 
 CREATE SCHEMA auth;
+CREATE SCHEMA storage;
+CREATE OR REPLACE FUNCTION storage.foldername(object_name text)
+RETURNS text[] LANGUAGE sql IMMUTABLE
+AS $ SELECT string_to_array(object_name, '/') $;
 CREATE TABLE auth.users (id uuid PRIMARY KEY);
 CREATE OR REPLACE FUNCTION auth.uid()
 RETURNS uuid LANGUAGE sql STABLE
@@ -47,6 +51,7 @@ CREATE TABLE public.hr_attendance (clinic_id uuid, staff_id uuid);
 CREATE TABLE public.patients (id uuid PRIMARY KEY, clinic_id uuid NOT NULL);
 CREATE TABLE public.invoices (id uuid PRIMARY KEY, clinic_id uuid NOT NULL);
 CREATE TABLE public.appointments (id uuid PRIMARY KEY, clinic_id uuid NOT NULL);
+CREATE TABLE storage.objects (id uuid PRIMARY KEY, bucket_id text NOT NULL, name text NOT NULL);
 
 ALTER TABLE public.clinics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.clinic_owners ENABLE ROW LEVEL SECURITY;
@@ -59,11 +64,14 @@ ALTER TABLE public.hr_attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.patients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.appointments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
 
 GRANT SELECT ON public.clinics, public.clinic_owners, public.staff,
   public.chat_conversations, public.chat_participants, public.chat_messages,
   public.hr_attendance TO authenticated;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.patients, public.invoices, public.appointments TO authenticated;
+GRANT USAGE ON SCHEMA storage TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON storage.objects TO authenticated;
 GRANT INSERT ON public.audit_logs TO authenticated;
 
 -- Two clinics intentionally share one canonical owner email.
@@ -89,6 +97,11 @@ INSERT INTO public.invoices (id, clinic_id) VALUES
 INSERT INTO public.appointments (id, clinic_id) VALUES
   ('56565656-5656-4565-8565-565656565656', '11111111-1111-4111-8111-111111111111'),
   ('67676767-6767-4676-8676-676767676767', '22222222-2222-4222-8222-222222222222');
+INSERT INTO storage.objects (id, bucket_id, name) VALUES
+  ('abababab-abab-4aba-8aba-111111111111', 'patient-files', '11111111-1111-4111-8111-111111111111/eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee/report.pdf'),
+  ('bcbcbcbc-bcbc-4bcb-8bcb-222222222222', 'patient-files', '22222222-2222-4222-8222-222222222222/ffffffff-ffff-4fff-8fff-ffffffffffff/report.pdf'),
+  ('cdcdcdcd-cdcd-4dcd-8dcd-333333333333', 'branch-logos', '11111111-1111-4111-8111-111111111111/logo.png'),
+  ('dededede-dede-4ede-8ede-444444444444', 'branch-logos', '22222222-2222-4222-8222-222222222222/logo.png');
 INSERT INTO public.chat_conversations (id, clinic_id, kind) VALUES
   ('34343434-3434-4434-8434-343434343434', '11111111-1111-4111-8111-111111111111', 'team'),
   ('45454545-4545-4454-8454-454545454545', '22222222-2222-4222-8222-222222222222', 'team');
@@ -103,6 +116,58 @@ INSERT INTO public.hr_attendance (clinic_id, staff_id) VALUES
   ('22222222-2222-4222-8222-222222222222', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd');
 
 \i supabase/migrations/20261120191500_clinic_scoped_shadow_identity_rls.sql
+
+-- Mirror the live Storage policies; their tenant scope is supplied by get_my_clinic_id().
+CREATE POLICY clinic_logo_delete_own_center ON storage.objects
+FOR DELETE TO authenticated USING (
+  bucket_id = 'branch-logos'
+  AND (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  AND public.has_staff_permission('manage_settings')
+);
+CREATE POLICY clinic_logo_upload_own_center ON storage.objects
+FOR INSERT TO authenticated WITH CHECK (
+  bucket_id = 'branch-logos'
+  AND (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  AND public.has_staff_permission('manage_settings')
+);
+CREATE POLICY patient_files_clinic_read ON storage.objects
+FOR SELECT TO authenticated USING (
+  bucket_id = 'patient-files'
+  AND (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  AND public.has_staff_permission('view_patients')
+  AND (public.has_staff_permission('view_patient_history') OR public.has_staff_permission('edit_emr'))
+);
+CREATE POLICY patient_files_clinic_upload ON storage.objects
+FOR INSERT TO authenticated WITH CHECK (
+  bucket_id = 'patient-files'
+  AND (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  AND public.has_staff_permission('view_patients')
+  AND EXISTS (
+    SELECT 1 FROM public.patients p
+    WHERE p.id = (storage.foldername(objects.name))[2]
+      AND p.clinic_id = public.get_my_clinic_id()
+  )
+  AND public.has_staff_permission('edit_emr')
+);
+CREATE POLICY patient_files_clinic_update ON storage.objects
+FOR UPDATE TO authenticated USING (
+  bucket_id = 'patient-files'
+  AND (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  AND public.has_staff_permission('view_patients')
+  AND public.has_staff_permission('edit_emr')
+) WITH CHECK (
+  bucket_id = 'patient-files'
+  AND (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  AND public.has_staff_permission('view_patients')
+  AND public.has_staff_permission('edit_emr')
+);
+CREATE POLICY patient_files_clinic_delete ON storage.objects
+FOR DELETE TO authenticated USING (
+  bucket_id = 'patient-files'
+  AND (storage.foldername(name))[1] = (public.get_my_clinic_id())::text
+  AND public.has_staff_permission('view_patients')
+  AND public.has_staff_permission('delete_emr')
+);
 
 -- Mirror the live tenant/permission policies for patients, invoices, and appointments.
 CREATE POLICY patients_clinic_select ON public.patients
@@ -225,6 +290,14 @@ BEGIN
     RAISE EXCEPTION 'Clinic A inserted an appointment into Clinic B';
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;
+  INSERT INTO storage.objects (id, bucket_id, name)
+    VALUES ('efefefef-efef-4fef-8fef-555555555555', 'branch-logos', '11111111-1111-4111-8111-111111111111/new-logo.png');
+  BEGIN
+    INSERT INTO storage.objects (id, bucket_id, name)
+      VALUES ('f0f0f0f0-f0f0-40f0-80f0-666666666666', 'patient-files', '22222222-2222-4222-8222-222222222222/ffffffff-ffff-4fff-8fff-ffffffffffff/unauthorized.pdf');
+    RAISE EXCEPTION 'Clinic A uploaded a patient file into Clinic B Storage';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
   INSERT INTO public.audit_logs (clinic_id, user_email)
     VALUES ('11111111-1111-4111-8111-111111111111', 'owner@example.test');
   BEGIN
@@ -241,6 +314,10 @@ BEGIN
   IF v_count <> 1 THEN RAISE EXCEPTION 'Participant policy leaked rows across centers: %', v_count; END IF;
   SELECT count(*) INTO v_count FROM public.hr_attendance;
   IF v_count <> 1 THEN RAISE EXCEPTION 'Attendance policy leaked rows across centers: %', v_count; END IF;
+  SELECT count(*) INTO v_count FROM storage.objects WHERE bucket_id = 'patient-files';
+  IF v_count <> 1 THEN RAISE EXCEPTION 'Patient file Storage policy leaked rows across centers: %', v_count; END IF;
+  SELECT count(*) INTO v_count FROM storage.objects WHERE bucket_id = 'branch-logos';
+  IF v_count <> 1 THEN RAISE EXCEPTION 'Clinic logo Storage policy leaked rows across centers: %', v_count; END IF;
 
   IF has_table_privilege('authenticated', 'public.clinic_auth_identities', 'SELECT') THEN
     RAISE EXCEPTION 'Authenticated users can read the private identity mapping table';
