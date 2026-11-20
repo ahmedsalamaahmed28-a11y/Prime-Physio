@@ -375,7 +375,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
 
         if (enriched.clinicId && !enriched.isPlatformAdmin) {
           try {
-            await activateClinicSession(enriched.clinicId);
+            await activateClinicSession(enriched.clinicId, enriched.email);
           } catch (error) {
             console.error("Failed to activate independent clinic session:", error);
             setUser({ ...enriched, clinicId: undefined });
@@ -486,7 +486,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     beginEnrichment();
     const enriched = await enrichUserWithClinic(newUser);
     endEnrichment();
-    if (enriched.clinicId && !enriched.isPlatformAdmin) await activateClinicSession(enriched.clinicId);
+    if (enriched.clinicId && !enriched.isPlatformAdmin) await activateClinicSession(enriched.clinicId, enriched.email);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
     window.location.href = enriched.clinicId ? "/dashboard" : "/overview.php/";
@@ -513,7 +513,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     beginEnrichment();
     const enriched = await enrichUserWithClinic(newUser);
     endEnrichment();
-    if (enriched.clinicId && !enriched.isPlatformAdmin) await activateClinicSession(enriched.clinicId);
+    if (enriched.clinicId && !enriched.isPlatformAdmin) await activateClinicSession(enriched.clinicId, enriched.email);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
     window.location.href = enriched.clinicId ? "/dashboard" : "/overview.php/";
