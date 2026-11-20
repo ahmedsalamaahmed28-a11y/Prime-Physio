@@ -1,7 +1,7 @@
 # Clinic Session Isolation — Implementation Audit
 
 Branch: `fix/clinic-session-isolation`
-Status: design/audit only; no production database, deployment, or `main` changes.
+Status: partial implementation on the feature branch; no production database, deployment, or `main` changes.
 
 ## Confirmed root cause
 
@@ -57,7 +57,7 @@ The browser currently has one shared NextAuth session cookie per origin. In addi
 
 ## Implementation progress (branch only)
 
-The first API-auth foundation has now been implemented on this branch:
+The initial API-auth foundation remains in place, with the following additions:
 
 - `requireAuth` checks a verified Supabase bearer token before consulting the shared NextAuth cookie.
 - It recognizes a new `clinic-scoped-shadow` token type and reads its canonical account email and clinic ID only from Supabase-verified `app_metadata` claims.
@@ -65,8 +65,8 @@ The first API-auth foundation has now been implemented on this branch:
 - `resolveActiveClinicId` now preserves a clinic ID already derived from the verified bearer token instead of allowing a shared Supabase cookie to overwrite it.
 - Security regression assertions were added to verify bearer-token precedence and required claims.
 
-This is groundwork, not a complete feature. The clinic-scoped session provisioning endpoint, per-tab browser session storage/Supabase client, RLS identity mapping, policy updates, and end-to-end tests have **not** been implemented yet. The existing login bridge still issues the legacy shared shadow identity, so users should not expect the two-tab behavior to be fixed by this commit alone.
+This is groundwork, not a complete feature. The following additional groundwork is now committed on this branch:\n\n- `src/app/api/auth/clinic-session/route.ts` adds a same-origin POST exchange. It verifies the signed NextAuth identity, checks that the requested clinic is active, verifies owner/staff membership, and issues a distinct synthetic Supabase Auth identity for each canonical-email + clinic pair. Authorization claims are written only to server-managed `app_metadata`.\n- The exchange uses `public.clinic_auth_identities` as a server-only mapping so normal exchanges can resolve the shadow Auth user by ID rather than scanning all Auth users. The table is created by the draft migration below and is granted only to `service_role`.\n- `supabase/migrations/20261120191500_clinic_scoped_shadow_identity_rls.sql` introduces `get_auth_email()`, changes tenant resolution to use immutable `clinic_id` and `canonical_email` claims for the new token type, retains legacy-session compatibility during migration, and updates direct-email policies discovered in the live schema: clinic owners, staff self-read, audit logs, chat participants/conversations/messages, and HR attendance.\n- The migration explicitly prevents a clinic-scoped token from satisfying `is_platform_admin()`. The API `requireRole` path now also refuses to treat a clinic-scoped bearer identity as a platform administrator.\n- Static security regression assertions were added for the exchange endpoint, identity claims, and RLS migration. They have **not** been run.\n\nThis is still not an active end-to-end fix. The existing frontend still calls the legacy `/api/auth/supabase-session` bridge; the new exchange route is not yet wired into login. Browser Supabase auth still uses the shared client configuration, tab-scoped `sessionStorage` and clinic-scoped app storage are not yet connected, and the API/RLS migration has not been applied. Users should not expect two-tab isolation to work yet.
 
 ## Current state
 
-Changes are committed only to the isolated feature branch. No production database, `main`, or Vercel deployment was changed. Do not deploy or apply a database migration until the identity model, SQL policy coverage, and tests have been completed and reviewed.
+Changes are committed only to the isolated feature branch. No production database, `main`, or Vercel deployment was changed. The new SQL migration is a branch-only draft and has not been applied. Do not deploy or apply a database migration until the identity model, SQL policy coverage, and tests have been completed and reviewed.
