@@ -17,7 +17,7 @@ test("AI report API requires explicit external processing consent", async () => 
 
 test("AI report API sends only bounded clinical fields and rejects identifying contact patterns", async () => {
   const route = await readFile(new URL("src/app/api/report/route.ts", root), "utf8");
-  assert.match(route, /cleanClinicalText\(clinicalData\.diagnosis/);
+  assert.match(route, /cleanClinicalText\(patientRecord\.diagnosis/);
   assert.match(route, /cleanClinicalText\(clinicalData\.rom/);
   assert.match(route, /cleanClinicalText\(clinicalData\.notes/);
   assert.match(route, /REDACTED CONTACT/);
