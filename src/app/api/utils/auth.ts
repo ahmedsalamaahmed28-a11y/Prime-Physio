@@ -231,6 +231,14 @@ export async function requireRole(
     if (platformAdmin) return { ...authed, roleKey: "platform_admin" };
   }
 
+  // Clinic-scoped APIs must never accept the shared NextAuth cookie or a
+  // legacy Supabase shadow session as tenant authorization. Those identities
+  // are origin-wide and can be changed by another browser tab. Platform-admin
+  // access is handled explicitly above through the server-managed allowlist.
+  if (authed.authSource !== "clinic-scoped-shadow") {
+    throw new Error("Unauthorized: an independently verified clinic session is required");
+  }
+
   const clinicId = await resolveActiveClinicId(req, authed, admin);
   if (!clinicId) throw new Error("يجب اختيار مركز قبل متابعة العملية");
 
