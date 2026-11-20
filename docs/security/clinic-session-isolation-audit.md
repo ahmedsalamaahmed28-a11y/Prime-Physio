@@ -66,9 +66,13 @@ The browser currently has one shared NextAuth session cookie per origin. In addi
 - Added a same-origin API fetch bridge. It attaches the active tab's bearer token to private API calls, excludes public endpoints and every auth endpoint except `/api/auth/enrich`, and never forwards credentials to external origins.
 - Updated `/api/auth/enrich` to validate the bearer token with Supabase Auth and derive email/clinic from verified `app_metadata`.
 - Updated `requireAuth` to verify the bearer token, expiry, active clinic, and current membership before returning the canonical identity.
+- API authorization and `/api/auth/enrich` now require the exact server-managed identity-map row for the bearer user's `auth.uid()`, canonical email, and clinic ID.
+- The clinic-session exchange now binds the request to the expected login email from the current tab, preventing a shared NextAuth-cookie change during the exchange from silently provisioning a different account. A failed exchange clears only that tab's stale Supabase credentials.
+- Updated the existing `clinics` admin-email trigger function to compare against `get_auth_email()` so synthetic shadow emails do not break center setup; a PostgreSQL trigger regression test covers the canonical-email check.
 - Changed logout to `signOut({ scope: "local" })` and deliberately retained the shared NextAuth cookie, so one tab does not sign out another.
 - Browser Supabase auth now persists in per-tab `sessionStorage`; app state is per-tab and namespaced by clinic.
 - The draft RLS migration replaces tenant helpers and direct-email policies for clinic owners, staff, audit logs, chat, and HR attendance; clinic-scoped tokens cannot become platform administrators.
+- A read-only inventory of the connected production schema confirmed the direct-email policy set and that Storage object policies already derive tenant scope through `get_my_clinic_id()`; those policies therefore inherit the new clinic-bound identity without changing their existing permission conditions.
 - Added static security assertions and a disposable PostgreSQL integration fixture.
 
 ### Verification
