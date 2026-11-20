@@ -102,6 +102,20 @@ test("independent center provisioning creates a fresh tenant without copying pat
   assert.doesNotMatch(migration, /insert into public\.(patients|appointments|invoices|sessions)\b/i);
 });
 
+test("local Supabase integration is isolated, synthetic, and covers center provisioning", async () => {
+  const script = await source("scripts/check-local-tenant-isolation.mjs");
+  assert.match(script, /127\.0\.0\.1/);
+  assert.match(script, /Refusing to run local tenant tests against any non-local Supabase host/);
+  assert.match(script, /create_independent_center/);
+  assert.match(script, /Balance row counts/);
+  assert.match(script, /new center starts with zero/);
+  assert.match(script, /cannot read B/);
+  assert.match(script, /cannot insert into B/);
+  assert.match(script, /cannot update B/);
+  assert.match(script, /cannot delete B/);
+  assert.match(script, /private patient folder/);
+});
+
 test("service-role attachment signing and deletion validate clinic/patient storage paths", async () => {
   const patientAttachments = await source("src/app/api/patients/[id]/attachments/route.ts");
   const backupAttachments = await source("src/app/api/backup/attachments/route.ts");
