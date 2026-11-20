@@ -19,7 +19,7 @@ async function findAuthUserByEmail(admin: ReturnType<typeof getAdminClient>, ema
   throw new Error("Could not safely resolve existing Supabase identity");
 }
 
-export async function GET(req: NextRequest) {
+async function establishSupabaseSession(req: NextRequest, selectedClinicId?: string | null) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
@@ -43,8 +43,11 @@ export async function GET(req: NextRequest) {
     }
 
     const admin = getAdminClient();
-    const requestedClinicId = new URL(req.url).searchParams.get("clinic_id")
-      || (typeof (session.user as any).clinicId === "string" ? (session.user as any).clinicId : null);
+    // GET only refreshes the currently signed-in clinic context. Tenant switching
+    // is an authenticated POST so browsers, crawlers, and prefetchers cannot mutate it.
+    const requestedClinicId = selectedClinicId === undefined
+      ? (typeof (session.user as any).clinicId === "string" ? (session.user as any).clinicId : null)
+      : selectedClinicId;
 
     if (requestedClinicId) {
       const { data: activeClinic, error: clinicError } = await admin
@@ -174,4 +177,22 @@ export async function GET(req: NextRequest) {
       { status: 503, headers: { "Cache-Control": "no-store, private" } }
     );
   }
+}
+
+
+export async function GET(req: NextRequest) {
+  return establishSupabaseSession(req);
+}
+
+export async function POST(req: NextRequest) {
+  const body = await req.json().catch(() => null);
+  const rawClinicId = body?.clinicId;
+  if (rawClinicId !== null && typeof rawClinicId !== "string") {
+    return NextResponse.json({ error: "Invalid clinic selection" }, { status: 400, headers: { "Cache-Control": "no-store, private" } });
+  }
+  const clinicId = typeof rawClinicId === "string" ? rawClinicId.trim() : null;
+  if (clinicId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clinicId)) {
+    return NextResponse.json({ error: "Invalid clinic selection" }, { status: 400, headers: { "Cache-Control": "no-store, private" } });
+  }
+  return establishSupabaseSession(req, clinicId);
 }

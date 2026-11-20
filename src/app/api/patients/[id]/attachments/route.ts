@@ -38,6 +38,12 @@ export async function GET(_request: NextRequest, context: { params: Promise<{ id
     return NextResponse.json({ error: "تعذر تحميل المرفقات" }, { status: 500 });
   }
 
+  const expectedPrefix = `${auth.clinicId}/${id}/`;
+  if ((data || []).some((item) => typeof item.file_path !== "string" || !item.file_path.startsWith(expectedPrefix))) {
+    console.error("[Patient Attachments] Refusing to sign a file outside the active clinic/patient folder.");
+    return NextResponse.json({ error: "تعذر التحقق من نطاق أحد المرفقات" }, { status: 500 });
+  }
+
   const attachments = await Promise.all((data || []).map(async (item) => {
     const { data: signed, error: signedError } = await auth.admin.storage
       .from(BUCKET).createSignedUrl(item.file_path, 300);
@@ -148,6 +154,9 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       .maybeSingle();
     if (lookupError) throw lookupError;
     if (!attachment) return NextResponse.json({ error: "المرفق غير موجود" }, { status: 404 });
+    if (typeof attachment.file_path !== "string" || !attachment.file_path.startsWith(`${auth.clinicId}/${id}/`)) {
+      return NextResponse.json({ error: "المرفق غير موجود في المركز الحالي" }, { status: 404 });
+    }
 
     const { error: removeError } = await auth.admin.storage.from(BUCKET).remove([attachment.file_path]);
     if (removeError) throw removeError;

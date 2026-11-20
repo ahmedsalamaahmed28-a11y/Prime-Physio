@@ -2,7 +2,7 @@ name: Prime Physio tenant isolation tests
 
 on:
   push:
-    branches: [security/independent-view-permissions]
+    branches: [security/strict-active-clinic-isolation]
   pull_request:
     branches: [main]
   schedule:
@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  cross-tenant-read-check:
+  cross-tenant-crud-check:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
@@ -38,10 +38,46 @@ jobs:
         with:
           node-version: 24
 
-      - name: Verify tenant isolation using dedicated test fixtures
+      - name: Verify cross-tenant read/write/update/delete isolation using disposable synthetic fixtures
         if: ${{ env.SUPABASE_TEST_PROJECT_REF != '' && env.SUPABASE_TEST_ANON_KEY != '' && env.TENANT_A_TEST_EMAIL != '' && env.TENANT_A_TEST_PASSWORD != '' && env.TENANT_B_TEST_EMAIL != '' && env.TENANT_B_TEST_PASSWORD != '' && env.TENANT_A_TEST_PATIENT_ID != '' && env.TENANT_B_TEST_PATIENT_ID != '' }}
         run: node scripts/check-tenant-isolation.mjs
 
       - name: Report integration test as skipped when fixtures are unavailable
         if: ${{ env.SUPABASE_TEST_PROJECT_REF == '' || env.SUPABASE_TEST_ANON_KEY == '' || env.TENANT_A_TEST_EMAIL == '' || env.TENANT_A_TEST_PASSWORD == '' || env.TENANT_B_TEST_EMAIL == '' || env.TENANT_B_TEST_PASSWORD == '' || env.TENANT_A_TEST_PATIENT_ID == '' || env.TENANT_B_TEST_PATIENT_ID == '' }}
         run: echo "::notice::SKIPPED — Clinic A/B integration tests require a dedicated non-production Supabase project and two synthetic tenant fixtures."
+
+  postgres-rls-harness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: prime_physio_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d prime_physio_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Run isolated synthetic A/B RLS CRUD and storage tests
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h 127.0.0.1 -p 5432 -U postgres -d prime_physio_test \
+            -v ON_ERROR_STOP=1 -f tests/security/tenant-isolation-rls.sql
+
+      - name: Report full migration replay limitation
+        run: echo "::warning::The repository does not yet contain a complete baseline schema migration. This job tests the current clinic RLS predicates in an isolated PostgreSQL 17 harness; it does not claim to replay all Supabase migrations."
