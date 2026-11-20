@@ -91,6 +91,19 @@ begin
     end if;
     v_active_id := v_active_text::uuid;
 
+    -- The JWT claims alone are not enough: bind auth.uid() to the server-managed
+    -- identity mapping so a stale, copied, or incorrectly provisioned token
+    -- cannot claim another user's clinic identity.
+    if not exists (
+      select 1
+      from public.clinic_auth_identities i
+      where i.shadow_user_id = auth.uid()
+        and i.clinic_id = v_active_id
+        and i.canonical_email = v_email
+    ) then
+      return null;
+    end if;
+
     if not exists (
       select 1 from public.clinics c
       where c.id = v_active_id and c.is_active = true and c.status = 'active'
