@@ -294,6 +294,12 @@ BEGIN
     VALUES ('efefefef-efef-4fef-8fef-555555555555', 'branch-logos', '11111111-1111-4111-8111-111111111111/new-logo.png');
   BEGIN
     INSERT INTO storage.objects (id, bucket_id, name)
+      VALUES ('f1f1f1f1-f1f1-41f1-81f1-777777777777', 'branch-logos', '22222222-2222-4222-8222-222222222222/unauthorized-logo.png');
+    RAISE EXCEPTION 'Clinic A uploaded a logo into Clinic B Storage';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  BEGIN
+    INSERT INTO storage.objects (id, bucket_id, name)
       VALUES ('f0f0f0f0-f0f0-40f0-80f0-666666666666', 'patient-files', '22222222-2222-4222-8222-222222222222/ffffffff-ffff-4fff-8fff-ffffffffffff/unauthorized.pdf');
     RAISE EXCEPTION 'Clinic A uploaded a patient file into Clinic B Storage';
   EXCEPTION WHEN insufficient_privilege THEN NULL;
@@ -316,8 +322,6 @@ BEGIN
   IF v_count <> 1 THEN RAISE EXCEPTION 'Attendance policy leaked rows across centers: %', v_count; END IF;
   SELECT count(*) INTO v_count FROM storage.objects WHERE bucket_id = 'patient-files';
   IF v_count <> 1 THEN RAISE EXCEPTION 'Patient file Storage policy leaked rows across centers: %', v_count; END IF;
-  SELECT count(*) INTO v_count FROM storage.objects WHERE bucket_id = 'branch-logos';
-  IF v_count <> 1 THEN RAISE EXCEPTION 'Clinic logo Storage policy leaked rows across centers: %', v_count; END IF;
 
   IF has_table_privilege('authenticated', 'public.clinic_auth_identities', 'SELECT') THEN
     RAISE EXCEPTION 'Authenticated users can read the private identity mapping table';
@@ -343,8 +347,6 @@ BEGIN
   IF v_count <> 1 THEN RAISE EXCEPTION 'Clinic B patient scope is not isolated'; END IF;
   SELECT count(*) INTO v_count FROM storage.objects WHERE bucket_id = 'patient-files';
   IF v_count <> 1 THEN RAISE EXCEPTION 'Clinic B patient file scope is not isolated'; END IF;
-  SELECT count(*) INTO v_count FROM storage.objects WHERE bucket_id = 'branch-logos';
-  IF v_count <> 1 THEN RAISE EXCEPTION 'Clinic B logo scope is not isolated'; END IF;
   IF EXISTS (SELECT 1 FROM public.patients WHERE id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee') THEN
     RAISE EXCEPTION 'Clinic B read Clinic A patient';
   END IF;
