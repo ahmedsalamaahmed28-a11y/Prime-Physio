@@ -2,9 +2,9 @@ import { Client } from "pg";
 
 const connectionString = process.env.SUPABASE_READONLY_DB_URL;
 if (!connectionString) {
-  console.log("SKIPPED: SUPABASE_READONLY_DB_URL is not configured.");
-  console.log("Configure a dedicated read-only database role; do not use the postgres owner connection for scheduled monitoring.");
-  process.exit(0);
+  throw new Error(
+    "Database integrity audit cannot run without SUPABASE_READONLY_DB_URL. The GitHub Actions workflow must mark this check as Skipped when read-only credentials are unavailable.",
+  );
 }
 
 const client = new Client({

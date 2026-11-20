@@ -11,11 +11,9 @@ const required = [
 
 const missing = required.filter((name) => !process.env[name]);
 if (missing.length) {
-  console.log(
-    `SKIPPED: tenant isolation integration test is not configured. Missing repository variables/secrets: ${missing.join(", ")}.`,
+  throw new Error(
+    `Tenant isolation test cannot run. Missing configuration: ${missing.join(", ")}. The GitHub Actions workflow must mark this test as Skipped when fixtures are unavailable.`,
   );
-  console.log("Configure a dedicated non-production Supabase test project and two synthetic test users/patients before enabling this test.");
-  process.exit(0);
 }
 
 const projectRef = process.env.SUPABASE_TEST_PROJECT_REF.trim();

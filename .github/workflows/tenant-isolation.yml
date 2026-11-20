@@ -1,6 +1,10 @@
 name: Prime Physio tenant isolation tests
 
 on:
+  push:
+    branches: [security/independent-view-permissions]
+  pull_request:
+    branches: [main]
   schedule:
     - cron: "15 3 * * 1"
   workflow_dispatch:
@@ -15,7 +19,16 @@ concurrency:
 jobs:
   cross-tenant-read-check:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
+    env:
+      SUPABASE_TEST_PROJECT_REF: ${{ vars.SUPABASE_TEST_PROJECT_REF }}
+      SUPABASE_TEST_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
+      TENANT_A_TEST_EMAIL: ${{ secrets.TENANT_A_TEST_EMAIL }}
+      TENANT_A_TEST_PASSWORD: ${{ secrets.TENANT_A_TEST_PASSWORD }}
+      TENANT_B_TEST_EMAIL: ${{ secrets.TENANT_B_TEST_EMAIL }}
+      TENANT_B_TEST_PASSWORD: ${{ secrets.TENANT_B_TEST_PASSWORD }}
+      TENANT_A_TEST_PATIENT_ID: ${{ vars.TENANT_A_TEST_PATIENT_ID }}
+      TENANT_B_TEST_PATIENT_ID: ${{ vars.TENANT_B_TEST_PATIENT_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,13 +39,9 @@ jobs:
           node-version: 24
 
       - name: Verify tenant isolation using dedicated test fixtures
-        env:
-          SUPABASE_TEST_PROJECT_REF: ${{ vars.SUPABASE_TEST_PROJECT_REF }}
-          SUPABASE_TEST_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
-          TENANT_A_TEST_EMAIL: ${{ secrets.TENANT_A_TEST_EMAIL }}
-          TENANT_A_TEST_PASSWORD: ${{ secrets.TENANT_A_TEST_PASSWORD }}
-          TENANT_B_TEST_EMAIL: ${{ secrets.TENANT_B_TEST_EMAIL }}
-          TENANT_B_TEST_PASSWORD: ${{ secrets.TENANT_B_TEST_PASSWORD }}
-          TENANT_A_TEST_PATIENT_ID: ${{ vars.TENANT_A_TEST_PATIENT_ID }}
-          TENANT_B_TEST_PATIENT_ID: ${{ vars.TENANT_B_TEST_PATIENT_ID }}
+        if: ${{ env.SUPABASE_TEST_PROJECT_REF != '' && env.SUPABASE_TEST_ANON_KEY != '' && env.TENANT_A_TEST_EMAIL != '' && env.TENANT_A_TEST_PASSWORD != '' && env.TENANT_B_TEST_EMAIL != '' && env.TENANT_B_TEST_PASSWORD != '' && env.TENANT_A_TEST_PATIENT_ID != '' && env.TENANT_B_TEST_PATIENT_ID != '' }}
         run: node scripts/check-tenant-isolation.mjs
+
+      - name: Report integration test as skipped when fixtures are unavailable
+        if: ${{ env.SUPABASE_TEST_PROJECT_REF == '' || env.SUPABASE_TEST_ANON_KEY == '' || env.TENANT_A_TEST_EMAIL == '' || env.TENANT_A_TEST_PASSWORD == '' || env.TENANT_B_TEST_EMAIL == '' || env.TENANT_B_TEST_PASSWORD == '' || env.TENANT_A_TEST_PATIENT_ID == '' || env.TENANT_B_TEST_PATIENT_ID == '' }}
+        run: echo "::notice::SKIPPED — Clinic A/B integration tests require a dedicated non-production Supabase project and two synthetic tenant fixtures."

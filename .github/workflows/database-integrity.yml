@@ -1,6 +1,10 @@
 name: Prime Physio database integrity
 
 on:
+  push:
+    branches: [security/independent-view-permissions]
+  pull_request:
+    branches: [main]
   schedule:
     - cron: "40 2 * * *"
   workflow_dispatch:
@@ -16,6 +20,8 @@ jobs:
   read-only-integrity-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    env:
+      SUPABASE_READONLY_DB_URL: ${{ secrets.SUPABASE_READONLY_DB_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,6 +36,9 @@ jobs:
         run: npm ci --legacy-peer-deps --ignore-scripts --no-audit --no-fund
 
       - name: Run read-only integrity checks
-        env:
-          SUPABASE_READONLY_DB_URL: ${{ secrets.SUPABASE_READONLY_DB_URL }}
+        if: ${{ env.SUPABASE_READONLY_DB_URL != '' }}
         run: node scripts/check-db-integrity.mjs
+
+      - name: Report integrity audit as skipped when read-only credentials are unavailable
+        if: ${{ env.SUPABASE_READONLY_DB_URL == '' }}
+        run: echo "::notice::SKIPPED — SUPABASE_READONLY_DB_URL is not configured; no database integrity query was run."

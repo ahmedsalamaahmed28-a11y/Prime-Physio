@@ -105,6 +105,7 @@ export async function DELETE(req: NextRequest, context: { params: Promise<{ id: 
   try {
     const { id } = await context.params;
     const ownership = await resolveOwnedBranch(req, id);
+    if ("response" in ownership) return ownership.response;
     if ("error" in ownership) {
       return NextResponse.json({ error: ownership.error }, { status: ownership.status });
     }
