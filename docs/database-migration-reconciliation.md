@@ -1,33 +1,66 @@
 # Prime Physio migration history reconciliation
 
-## Current production snapshot
+## Verified snapshot — 2026-11-20
 
-Inspected project `crrhrjhftwostjomzmfj` on 2026-11-05. Supabase reports 37 applied migration records. The security branch contains SQL migration files, but their filename timestamps do not consistently match the applied `schema_migrations.version` values.
+Production Supabase project: `crrhrjhftwostjomzmfj`.
 
-Examples observed:
-- Database: `20261105145318_enable_notifications_rls`; branch file: `20261105145500_enable_notifications_rls.sql`.
-- Database: `20261105150029_pin_search_path_security_functions`; branch file: `20261105151000_pin_security_function_search_path.sql`.
-- Database: `20261105152933_secure_auth_verification_storage`; branch file: `20261105150000_secure_auth_verification_storage.sql`.
-- Database: `20261105162204_revoke_legacy_app_key_values_access`; branch has multiple similarly named files, including a deferred no-op placeholder and later revocation scripts with different contents.
+A read-only comparison of the production migration inventory with the source-controlled `supabase/migrations` directory on `security/strict-active-clinic-isolation` found:
 
-There are also source files that appear to combine changes represented by more than one applied migration record. A filename/name similarity is not sufficient evidence that two migration SQL bodies are equivalent.
+| Check | Count |
+|---|---:|
+| Applied production migration records | 130 |
+| Source-controlled migration SQL files | 122 |
+| Exact version + name matches | 56 |
+| Applied records with a same-name file but a different version prefix | 51 |
+| Applied records with no same-name source file | 23 |
+| Source files with no same-name applied record | 15 |
 
-## Safety decision
+A matching name is not proof that the SQL body is identical. The 51 timestamp mismatches must be compared against historical SQL/deployment evidence before any rename or repair. The 23 unmatched production records must be recovered from trusted deployment history or classified as combined/no-op migrations with evidence. The 15 source-only files must also be classified; do not assume they are safe to apply.
 
-Do not run `supabase db push`, do not run `supabase migration repair`, and do not rename or delete migration files until each applied database version has been matched to its exact SQL body and ordering. The production database already contains the security changes; replaying a mismatched or incomplete migration sequence could fail or change access controls unexpectedly.
+## Confirmed clean-rebuild blockers
 
-## Required reconciliation procedure
+1. The repository has no `supabase/config.toml`, so a reproducible Supabase CLI local stack/reset is not configured.
+2. The earliest source migration, `20261105145500_enable_notifications_rls.sql`, only runs `ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY`; it does not create the table.
+3. The two legacy SQL archives, `docs/sql-archive/supabase-schema.sql` and `docs/sql-archive/supabase-full-setup.sql`, do not define `public.notifications`. They are historical snapshots, not a proven complete baseline for the current production schema.
+4. The current PostgreSQL RLS CI harness creates a small synthetic schema and tests its copied RLS rules. It does not replay the 122 migrations and must not be described as a full database rebuild test.
 
-1. Export the complete applied migration inventory from the production project's migration history.
-2. Recover the exact SQL for every applied version from the deployment history, prior commits, or a trusted schema-change archive.
-3. Compare each SQL body with the source-controlled migration files and the current production schema. Record exact one-to-one matches, combined migrations, no-op migrations, and missing source files separately.
-4. Restore the original version prefixes for exact matches. For combined or missing historical SQL, preserve the applied history and add a documented baseline/reconciliation strategy for fresh environments; do not fabricate old migration bodies.
-5. Validate the reconstructed sequence against a disposable staging database with `supabase db reset` before any production history change.
-6. Confirm `supabase migration list` shows local/remote alignment and that the resulting schema matches production before merging.
+Production currently contains `public.notifications`; this was checked read-only. No production table, migration record, policy, or setting was changed during this investigation.
 
-## Current status
+## Safe rebuild and integration-test route
 
-- Production migration history: 37 applied records.
-- Source-controlled SQL: present, but timestamp/name alignment is not yet proven.
-- Production schema changes: already applied; no production migration history rows were modified during this review.
-- Staging validation: pending creation of a Supabase development branch and test credentials.
+### Phase A — preserve and reconcile history
+
+1. Keep the current production migration history untouched.
+2. Recover each of the 130 applied SQL bodies from trusted Git history, deployment artifacts, or a verified schema-change archive.
+3. Build a machine-readable reconciliation ledger with one row per applied version: exact source file, SQL-body hash, ordering, classification (exact, renamed, combined, no-op, missing), and evidence.
+4. Compare the source-only files against production history and determine whether each is unapplied, superseded, or a duplicate. Never apply them merely because they exist in the repository.
+5. Do not fabricate historical migration SQL or rewrite timestamps based on names alone.
+
+### Phase B — establish a disposable local database
+
+1. Add a reviewed Supabase CLI configuration and a documented local-only environment. Use the local Supabase stack/Docker or a disposable PostgreSQL service; do not use a paid Supabase development branch.
+2. Build a complete baseline from verified schema objects, extensions, roles, functions, triggers, policies, storage metadata/policies, and required Auth/Storage compatibility objects. The old SQL archives are inputs for comparison only, not the baseline itself.
+3. Replay the reconciled migration sequence from an empty local database. Run it twice from clean state to detect ordering and idempotency assumptions.
+4. Compare resulting local schema metadata against a read-only production inventory: tables/columns, constraints, indexes, functions, triggers, grants, RLS flags/policies, and storage policies. Compare structure only; do not copy production patient or billing data.
+
+### Phase C — disposable integration fixtures
+
+1. Create synthetic Clinic A and Clinic B users/centers and synthetic patient, invoice, appointment, session, EMR, and attachment records in the isolated environment.
+2. Run positive and negative CRUD tests for every role and every patient-linked table: read, insert, update, delete, cross-clinic access, forged active-clinic claims, switching centers, and service-role API boundaries.
+3. Test Storage read/upload/update/delete isolation, not only folder-level select/insert.
+4. Test subscription quota boundaries and concurrent attempts in the isolated database.
+5. Test OTP end-to-end using a dedicated test mailbox and non-production email credentials. Do not expose secrets in logs.
+
+### Phase D — release gate
+
+Do not merge or deploy until the clean rebuild, schema comparison, role-based API integration, storage, quota, and OTP checks pass. Keep Vercel production deployment separate from database verification. A successful synthetic RLS harness or a skipped integration job is not evidence that the complete application is production-ready.
+
+## Current execution status
+
+- Production migration inventory: read-only, 130 records.
+- Source inventory: 122 files; reconciliation is incomplete.
+- Production schema/data/history: untouched.
+- Supabase development branches: none created; no branch cost incurred.
+- Full migration replay: not run because the verified baseline/configuration is missing.
+- Real two-user API CRUD integration: not run because isolated tenant credentials/fixtures are not configured.
+- Next safe action: recover the 23 unmatched historical migration bodies and reconcile all 51 same-name timestamp mismatches before constructing the local baseline.
