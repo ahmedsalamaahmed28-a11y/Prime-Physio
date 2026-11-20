@@ -63,11 +63,6 @@ GRANT SELECT ON public.clinics, public.clinic_owners, public.staff,
   public.hr_attendance, public.patients, public.invoices TO authenticated;
 GRANT INSERT ON public.audit_logs TO authenticated;
 
-CREATE POLICY patients_tenant_read ON public.patients
-FOR SELECT TO authenticated USING (clinic_id = public.get_my_clinic_id());
-CREATE POLICY invoices_tenant_read ON public.invoices
-FOR SELECT TO authenticated USING (clinic_id = public.get_my_clinic_id());
-
 -- Two clinics intentionally share one canonical owner email.
 INSERT INTO auth.users (id) VALUES
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
@@ -102,6 +97,12 @@ INSERT INTO public.hr_attendance (clinic_id, staff_id) VALUES
   ('22222222-2222-4222-8222-222222222222', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd');
 
 \i supabase/migrations/20261120191500_clinic_scoped_shadow_identity_rls.sql
+
+CREATE POLICY patients_tenant_read ON public.patients
+FOR SELECT TO authenticated USING (clinic_id = public.get_my_clinic_id());
+CREATE POLICY invoices_tenant_read ON public.invoices
+FOR SELECT TO authenticated USING (clinic_id = public.get_my_clinic_id());
+
 
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', false);
