@@ -138,7 +138,7 @@ begin
     return null;
   end if;
 
-  select count(distinct membership.clinic_id), min(membership.clinic_id)
+  select count(distinct membership.clinic_id), (pg_catalog.array_agg(distinct membership.clinic_id))[1]
     into v_count, v_only_id
   from (
     select s.clinic_id from public.staff s
@@ -297,8 +297,16 @@ $function$;
 drop policy if exists clinic_owners_owner_read on public.clinic_owners;
 create policy clinic_owners_owner_read on public.clinic_owners
 for select to authenticated
-using (public.is_valid_auth_session() and lower(owner_email) = public.get_auth_email());
+using (
+  public.is_valid_auth_session()
+  and lower(owner_email) = public.get_auth_email()
+  and (
+    coalesce(auth.jwt() -> 'app_metadata' ->> 'auth_source', '') <> 'clinic-scoped-shadow'
+    or clinic_id = public.get_my_clinic_id()
+  )
+);
 
+drop policy if exists staff_self_read on public.staff;
 drop policy if exists self_access_staff on public.staff;
 create policy self_access_staff on public.staff
 for select to authenticated
