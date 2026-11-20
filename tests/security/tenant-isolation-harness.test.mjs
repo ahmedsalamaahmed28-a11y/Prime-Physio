@@ -17,3 +17,10 @@ test("isolated tenant RLS harness covers cross-clinic CRUD and rolls back fixtur
   assert.match(sql, /Cross-tenant delete was allowed/);
   assert.match(sql, /ROLLBACK;/);
 });
+
+test("platform audit API never returns raw clinical details and bounds pagination", async () => {
+  const route = await readFile(new URL("src/app/api/admin/audit-logs/route.ts", root), "utf8");
+  assert.match(route, /Math\.min\(Math\.max\(requestedLimit, 1\), 200\)/);
+  assert.match(route, /\.select\("id, action, entity, created_at, user_email, user_name, clinic_id"\)/);
+  assert.match(route, /details: null/);
+});
