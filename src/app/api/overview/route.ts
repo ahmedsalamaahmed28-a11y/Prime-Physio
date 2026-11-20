@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
     const admin = getAdminClient();
     const email = session.email.toLowerCase().trim();
     const { data: ownerships, error: ownershipError } = await admin
-      .from("clinic_owners").select("clinic_id").eq("owner_email", email);
+      .from("clinic_owners").select("clinic_id").ilike("owner_email", email);
     if (ownershipError) throw ownershipError;
     let clinicIds = [...new Set((ownerships || []).map((x) => x.clinic_id).filter(Boolean))];
     // Resolve staff memberships directly when the authenticated session does not
