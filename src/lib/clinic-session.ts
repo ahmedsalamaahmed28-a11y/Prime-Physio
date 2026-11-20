@@ -28,7 +28,13 @@ async function exchangeClinicSession(clinicId: string): Promise<void> {
     access_token: payload.session.access_token,
     refresh_token: payload.session.refresh_token,
   });
-  if (error) throw error;
+  if (error) {
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("preferred_clinic_id");
+      sessionStorage.removeItem("prime-physio:active-clinic-id");
+    }
+    throw error;
+  }
 
   const metadata = data.user?.app_metadata || {};
   if (
@@ -37,6 +43,10 @@ async function exchangeClinicSession(clinicId: string): Promise<void> {
     metadata.canonical_email !== payload.canonical_email
   ) {
     await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("preferred_clinic_id");
+      sessionStorage.removeItem("prime-physio:active-clinic-id");
+    }
     throw new Error("The clinic session identity could not be verified");
   }
 
