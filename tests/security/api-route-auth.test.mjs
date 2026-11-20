@@ -195,7 +195,7 @@ test("clinic exchange binds the selected tab to its expected login email", async
   assert.match(sessionSource, /await clearTabClinicSession\(\)/);
   assert.match(sessionSource, /setClinicApiAccessToken\(null\)/);
   assert.match(authSource, /activateClinicSession\(enriched\.clinicId, enriched\.email\)/);
-  assert.match(brandedLoginSource, /activateClinicSession\(clinic\.id, email\.trim\(\)\.toLowerCase\(\)\)/);
+  assert.match(brandedLoginSource, /activateClinicSession\(clinic\.id, expectedEmail\)/);
   assert.match(brandedLoginSource, /import \{ getSession, signIn \} from "next-auth\/react"/);
   assert.match(brandedLoginSource, /const candidate = await getSession\(\)/);
   assert.match(brandedLoginSource, /candidateEmail === expectedEmail/);
