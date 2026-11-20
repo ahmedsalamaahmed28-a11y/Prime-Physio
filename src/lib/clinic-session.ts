@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { setClinicApiAccessToken } from "@/lib/clinic-api-fetch";
 
 const pendingExchanges = new Map<string, Promise<void>>();
 
@@ -29,6 +30,7 @@ async function exchangeClinicSession(clinicId: string): Promise<void> {
     refresh_token: payload.session.refresh_token,
   });
   if (error) {
+    setClinicApiAccessToken(null);
     if (typeof window !== "undefined") {
       sessionStorage.removeItem("preferred_clinic_id");
       sessionStorage.removeItem("prime-physio:active-clinic-id");
@@ -36,6 +38,7 @@ async function exchangeClinicSession(clinicId: string): Promise<void> {
     throw error;
   }
 
+  setClinicApiAccessToken(data.session?.access_token || null);
   const metadata = data.user?.app_metadata || {};
   if (
     metadata.auth_source !== "clinic-scoped-shadow" ||
