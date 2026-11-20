@@ -4,7 +4,7 @@ import type { FormEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import {
   ArrowLeft, ArrowRight, Activity, Building, CalendarDays, Check, MessageSquare,
   Clock, Eye, EyeOff, Globe, Lock, Mail,
@@ -156,7 +156,43 @@ export default function BrandedClinicPage() {
         sessionStorage.removeItem("preferred_clinic_id");
         throw new Error(isRtl ? "البريد الإلكتروني أو كلمة المرور غير صحيحة" : "Invalid email or password");
       }
-      await activateClinicSession(clinic.id, email.trim().toLowerCase());
+      // signIn(resolve: false) can finish before the browser's session
+      // endpoint exposes the newly issued JWT cookie. Confirm the fresh session
+      // before exchanging it for a clinic-scoped Supabase identity.
+      const expectedEmail = email.trim().toLowerCase();
+      let verifiedSession: Awaited<ReturnType<typeof getSession>> = null;
+
+      for (let attempt = 0; attempt < 5; attempt += 1) {
+        const candidate = await getSession();
+        const candidateEmail = candidate?.user?.email?.trim().toLowerCase();
+        const candidateClinicId = (candidate?.user as (typeof candidate.user & { clinicId?: string | null }) | undefined)?.clinicId;
+        const expiresAt = Date.parse(candidate?.expires || "");
+
+        if (
+          candidate &&
+          candidateEmail === expectedEmail &&
+          candidateClinicId === clinic.id &&
+          Number.isFinite(expiresAt) &&
+          expiresAt > Date.now()
+        ) {
+          verifiedSession = candidate;
+          break;
+        }
+
+        if (attempt < 4) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+      }
+
+      if (!verifiedSession) {
+        throw new Error(
+          isRtl
+            ? "تم التحقق من كلمة المرور، لكن تعذر تأكيد جلسة الدخول أو المركز المختار. حاول تسجيل الدخول مرة أخرى."
+            : "Your credentials were accepted, but the active login session could not be verified for this clinic. Please try again."
+        );
+      }
+
+      await activateClinicSession(clinic.id, expectedEmail);
       window.location.replace("/dashboard");
     } catch (error) {
       if (clinic?.id && sessionStorage.getItem("preferred_clinic_id") === clinic.id) {
