@@ -231,9 +231,36 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       const eventVersion = ++authEventVersion;
       setIsLoading(false);
       const metadata = authSession?.user?.app_metadata || {};
-      setClinicApiAccessToken(
-        metadata.auth_source === "clinic-scoped-shadow" ? authSession?.access_token || null : null,
-      );
+      const isClinicScoped = metadata.auth_source === "clinic-scoped-shadow";
+      const scopedEmail = typeof metadata.canonical_email === "string"
+        ? metadata.canonical_email.trim().toLowerCase()
+        : "";
+      const scopedClinicId = typeof metadata.clinic_id === "string" ? metadata.clinic_id : "";
+      const scopedExpiry = Number(metadata.nextauth_expires_at || 0);
+      const scopedSessionValid =
+        isClinicScoped &&
+        Boolean(scopedEmail && scopedClinicId) &&
+        Number.isSafeInteger(scopedExpiry) &&
+        scopedExpiry > Math.floor(Date.now() / 1000);
+      setClinicApiAccessToken(scopedSessionValid ? authSession?.access_token || null : null);
+
+      if (isClinicScoped && !scopedSessionValid) {
+        setUser(null);
+        setAppValue("current_user", null).catch(() => {});
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("prime-physio:tab-logged-out", "1");
+          sessionStorage.removeItem("preferred_clinic_id");
+          sessionStorage.removeItem("prime-physio:active-clinic-id");
+        }
+        const cleanupTimer = setTimeout(() => {
+          pendingTimers.delete(cleanupTimer);
+          void supabase.auth.signOut({ scope: "local" }).catch((error) => {
+            console.error("Failed to clear expired clinic session:", error);
+          });
+        }, 0);
+        pendingTimers.add(cleanupTimer);
+        return;
+      }
 
       if (!authSession?.user) {
         if (event === "SIGNED_OUT") {
@@ -244,9 +271,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (metadata.auth_source === "nextauth-shadow") return;
-      const isClinicScoped = metadata.auth_source === "clinic-scoped-shadow";
-      const canonicalEmail = isClinicScoped && typeof metadata.canonical_email === "string"
-        ? metadata.canonical_email.trim().toLowerCase()
+      const canonicalEmail = isClinicScoped
+        ? scopedEmail
         : (authSession.user.email || "").trim().toLowerCase();
       if (!canonicalEmail) return;
 
@@ -258,7 +284,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         initials: name.substring(0, 2).toUpperCase(),
         role: getArabicRoleLabel(roleKey),
         roleKey,
-        clinicId: isClinicScoped && typeof metadata.clinic_id === "string" ? metadata.clinic_id : undefined,
+        clinicId: isClinicScoped ? scopedClinicId : undefined,
         bg: "bg-gradient-to-br from-emerald-500 to-teal-600",
         nameEn: prefixEnglishName(name, roleKey),
         roleEn: getEnglishRoleLabel(roleKey),
