@@ -1,7 +1,10 @@
-import { supabase } from "@/lib/supabase";
-
+let activeClinicAccessToken: string | null = null;
 let installed = false;
 let originalFetch: typeof window.fetch | null = null;
+
+export function setClinicApiAccessToken(token: string | null) {
+  activeClinicAccessToken = token;
+}
 
 /**
  * Attach the active tab's verified clinic access token to same-origin private
@@ -32,29 +35,20 @@ export function installClinicApiFetch(): () => void {
       return nativeFetch(input, init);
     }
 
-    try {
-      const { data } = await supabase.auth.getSession();
-      const accessToken = data.session?.access_token;
-      const appMetadata = data.session?.user?.app_metadata;
-      if (!accessToken || appMetadata?.auth_source !== "clinic-scoped-shadow") {
-        return nativeFetch(input, init);
-      }
+    const accessToken = activeClinicAccessToken;
+    if (!accessToken) return nativeFetch(input, init);
 
-      const headers = new Headers(
-        init?.headers || (input instanceof Request ? input.headers : undefined),
-      );
-      headers.set("Authorization", `Bearer ${accessToken}`);
-      return nativeFetch(input, { ...init, headers });
-    } catch (error) {
-      // Do not turn an auth-storage failure into an unauthenticated API request.
-      console.error("[Clinic API] Unable to read the tab-scoped session", error);
-      throw error;
-    }
+    const headers = new Headers(
+      init?.headers || (input instanceof Request ? input.headers : undefined),
+    );
+    headers.set("Authorization", `Bearer ${accessToken}`);
+    return nativeFetch(input, { ...init, headers });
   };
 
   return () => {
     if (originalFetch) window.fetch = originalFetch;
     originalFetch = null;
     installed = false;
+    activeClinicAccessToken = null;
   };
 }
