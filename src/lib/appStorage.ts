@@ -1,7 +1,12 @@
 const STORAGE_PREFIX = "prime-physio:tab:";
 
 function storageKey(key: string) {
-  return `${STORAGE_PREFIX}${key}`;
+  if (typeof window === "undefined") return `${STORAGE_PREFIX}global:${key}`;
+  const clinicId =
+    window.sessionStorage.getItem("prime-physio:active-clinic-id") ||
+    window.sessionStorage.getItem("preferred_clinic_id");
+  const scope = clinicId ? `clinic:${clinicId}` : "global";
+  return `${STORAGE_PREFIX}${scope}:${key}`;
 }
 
 function getTabStorage(): Storage | null {
