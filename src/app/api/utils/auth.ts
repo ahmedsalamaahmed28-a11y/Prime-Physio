@@ -7,6 +7,7 @@ export interface AuthUser {
   email: string;
   userId?: string;
   clinicId?: string;
+  authSource?: string;
 }
 
 function mapStaffRoleToRoleKey(role: string): "admin" | "doctor" | "receptionist" | "unknown" {
@@ -73,7 +74,7 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
           // Fail closed. The provisioning bridge must issue both immutable
           // claims; never infer a tenant from URL params or a shared cookie.
           if (!canonicalEmail || !clinicId) throw new Error("Invalid clinic-scoped session");
-          return { email: canonicalEmail, userId: user.id, clinicId };
+          return { email: canonicalEmail, userId: user.id, clinicId, authSource: "clinic-scoped-shadow" };
         }
 
         if (metadata.auth_source !== "nextauth-shadow" && user.email) {
@@ -178,7 +179,7 @@ export async function requireRole(
   const admin = getAdminClient();
   const email = authed.email.trim().toLowerCase();
 
-  if (allowedRoles.includes("platform_admin")) {
+  if (allowedRoles.includes("platform_admin") && authed.authSource !== "clinic-scoped-shadow") {
     const { data: platformAdmin, error: platformAdminError } = await admin
       .from("platform_admins")
       .select("email")
