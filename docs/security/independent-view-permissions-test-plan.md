@@ -1,6 +1,6 @@
 # Independent View Permissions — Review & Test Plan
 
-Status: review branch only. No production migration, deployment, or data mutation has been performed.
+Status: database migrations applied to Supabase production on 2026-11-20. Application code remains on the review branch and has NOT been deployed. No patient, invoice, appointment, or staff business records were changed by the migrations or the transactional tests.
 
 ## Permission contract
 
@@ -66,25 +66,51 @@ Server routes using the service-role client must enforce these permissions and c
 | Clinic owner without a staff row | Owner-level access remains available |
 | Session expired | Existing restrictive auth-session guard continues to deny access |
 
-## Current production permission inventory (read-only)
+## Production inventory after migration (read-only)
 
-The current database inspection returned 2 staff rows and 0 non-empty explicit permission lists. Both rows currently rely on role defaults; one admin-role row has no clinic_id, so it is not treated as an ordinary clinic staff membership. No staff permission backfill is required for the current inventory. This count should be rechecked immediately before the eventual migration.
+The database currently contains 1 clinic, 1 staff row with a clinic membership, 1 clinic-owner membership, and 2 Auth users. The one clinic staff row has no explicit permission override and therefore uses its role default. The other staff row has no `clinic_id` and is not an active clinic staff membership. Neither staff row currently matches an Auth user by normalized email, so real login-based staff-role tests cannot be performed against the existing staff records. No permission backfill was performed.
 
-## Data preservation checks
+## Verification performed on 2026-11-20
 
-Before migration:
-1. Confirm backup row count equals the number of staff rows.
-2. Confirm every targeted policy has a matching row in the policy backup table.
-3. Confirm the previous `has_staff_permission(text)` function definition is stored.
-4. Preview which explicit staff lists do not contain the new `view_*` permissions.
-5. Confirm that the migration does not UPDATE or DELETE any patient, invoice, appointment, or staff row.
+### Database permission-function tests
 
-After migration in a non-production test database:
-1. Run all permission matrix cases.
-2. Verify cross-clinic isolation with two test clinics and test users.
-3. Verify UPDATE paths through the server APIs, because PostgreSQL UPDATE via the Data API also requires a matching SELECT policy.
-4. Run Supabase security advisors and inspect the resulting RLS policy inventory.
-5. Verify that clinic settings, bank details, staff writes, and branch-logo storage now require their explicit management permissions; subscriptions, payroll permissions, platform-admin exceptions, and auth-session expiry guards remain unchanged.
+The following tests ran inside separate database transactions. Test staff role/permission values were temporarily changed inside each transaction and rolled back; no persistent staff permission changes were made.
+
+| Scenario | Result |
+|---|---|
+| Existing clinic staff role defaults | `view_patients`, `view_appointments`, and `view_invoices` allowed; `view_analytics` and `manage_staff` denied |
+| Doctor role defaults | Patient/appointment viewing and EMR editing allowed; invoice viewing and staff management denied |
+| Receptionist role defaults | Patient/appointment/invoice viewing and invoice creation allowed; EMR editing denied |
+| Admin role with no explicit list | Admin defaults allowed the tested permissions |
+| Admin role with explicit `[\"view_patients\"]` | Only patient viewing among the tested permissions allowed; invoice, staff, and settings permissions denied |
+| Explicit empty list `[]` | All tested permissions denied; RLS patient rows invisible |
+| Malformed explicit permission JSON | All tested permissions denied; no role-default fallback |
+| Explicit `[\"view_patients\"]` RLS check | One patient row visible; invoice rows invisible |
+| Wrong active clinic ID | Clinic context rejected; zero patient rows visible |
+| Clinic owner membership | Owner-level permissions remained allowed |
+
+These are database-level JWT-claim simulations, not end-to-end sign-ins through the application. No real staff account in the current Auth inventory maps to the existing staff row.
+
+### Policy and backup checks
+
+- 2 staff rows, 162 prior RLS policy records, and 1 prior permission-function definition were backed up.
+- Staff backup comparison returned 0 mismatches.
+- All backed-up policy names remained present after the migration (replaced policies retain their names).
+- Authenticated users cannot use the `private` schema or read the backup tables.
+- Patient and invoice SELECT policies contain their independent `view_*` permissions.
+- Appointment SELECT and UPDATE policies require patient visibility as designed.
+- An initial review found the appointment DELETE policy lacked `view_patients`; follow-up migration `20261120030350_require_patient_visibility_for_appointment_deletes` corrected it. The live policy was then verified to require `view_appointments`, `view_patients`, and `edit_appointments`.
+
+### Cross-clinic isolation limitation
+
+The production database currently has only one clinic. A true Clinic A → Clinic B read/write attempt cannot be completed without provisioning a second test clinic and test identities. The wrong-active-clinic negative test passed, but it is not a substitute for the requested two-clinic end-to-end isolation test.
+
+### Not yet verified
+
+- Real login-based role tests for separate owner, admin, doctor, receptionist, and restricted staff accounts.
+- Cross-clinic A/B access attempts through the application's API and direct Supabase Data API.
+- Full Next.js production build and browser-level UI checks. The earlier Vercel preview attempt was blocked by the free deployment daily quota; no paid retry was used.
+- A fresh full Supabase Advisor review after the corrective migration.
 
 ## Trusted automation exception
 
@@ -92,8 +118,8 @@ The n8n endpoint is a server-to-server integration, not a staff-session API. It 
 
 ## Explicitly not done
 
-- No migration has been applied.
-- No staff permission values have been backfilled or changed.
-- No patient, invoice, appointment, or employee records have been deleted or edited.
-- No production deployment has been started.
+- No application code has been merged to `main` or deployed to production.
+- No staff permission values were permanently backfilled or changed.
+- No patient, invoice, appointment, or employee business records were deleted or edited.
+- No second test clinic or test users were created in production.
 - No paid services or paid test environments have been used.
