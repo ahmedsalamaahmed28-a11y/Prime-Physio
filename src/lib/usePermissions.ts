@@ -81,10 +81,45 @@ export function usePermissions() {
         setHasOverride(parsed.defined);
       } catch (error) {
         if (!cancelled) {
-          console.error("Failed to load permissions", error);
-          // If permission data cannot be loaded, do not grant role-default privileges.
-          setCustomPerms([]);
+          console.error("Failed to load staff permission row; resolving permissions through the verified clinic RPC", error);
+          // The staff table may be temporarily unavailable during tab-scoped auth
+          // hydration. Resolve exact permissions on the server instead of treating
+          // a transport error as an explicit empty permission override.
+          const permissionKeys = [
+            "view_patients",
+            "view_appointments",
+            "view_invoices",
+            "create_invoice",
+            "edit_patient",
+            "edit_emr",
+            "view_patient_history",
+            "manage_staff",
+            "view_analytics",
+            "manage_settings",
+            "edit_appointments",
+            "apply_discount",
+            "refund_invoice",
+            "delete_invoice",
+            "delete_patient",
+            "delete_emr",
+          ];
+          const resolved = await Promise.all(permissionKeys.map(async (permission) => {
+            try {
+              const { data, error: rpcError } = await supabase.rpc("has_staff_permission", {
+                permission_key: permission,
+              });
+              return [permission, !rpcError && data === true] as const;
+            } catch {
+              return [permission, false] as const;
+            }
+          }));
+          if (cancelled) return;
+          const serverPermissions = Object.fromEntries(resolved);
+          setCustomPerms(Object.entries(serverPermissions)
+            .filter(([, allowed]) => allowed)
+            .map(([permission]) => permission));
           setHasOverride(true);
+          setServerManageStaff(serverPermissions.manage_staff === true);
         }
       }
     }

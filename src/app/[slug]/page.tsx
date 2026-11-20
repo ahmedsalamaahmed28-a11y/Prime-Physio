@@ -163,15 +163,13 @@ export default function BrandedClinicPage() {
           const candidate = await getSession();
           const candidateEmail = candidate?.user?.email?.trim().toLowerCase();
           const candidateClinicId = (candidate?.user as { clinicId?: string | null } | undefined)?.clinicId;
-          const expiresAt = Date.parse(candidate?.expires || "");
-
           if (
             candidate &&
             candidateEmail === expectedEmail &&
-            candidateClinicId === clinic.id &&
-            Number.isFinite(expiresAt) &&
-            expiresAt > Date.now()
+            candidateClinicId === clinic.id
           ) {
+            // Session identity is checked here; cryptographic JWT signature and
+            // expiry are verified by /api/auth/clinic-session before token issuance.
             verifiedSession = candidate;
             break;
           }

@@ -378,15 +378,16 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
             await withNextAuthLoginLock(async () => {
               const latestSession = await getSession();
               const latestEmail = latestSession?.user?.email?.trim().toLowerCase();
-              const latestExpiry = Date.parse(latestSession?.expires || "");
               if (
                 !latestSession ||
-                latestEmail !== enriched.email.trim().toLowerCase() ||
-                !Number.isFinite(latestExpiry) ||
-                latestExpiry <= Date.now()
+                latestEmail !== enriched.email.trim().toLowerCase()
               ) {
                 throw new Error("The login identity changed in another tab; please sign in again in this tab.");
               }
+              // Do not gate the clinic session on NextAuth serialized expiry metadata:
+              // production diagnostics show it can drift while the signed JWT remains valid.
+              // The clinic-session API verifies the JWT signature and exp claim before
+              // issuing any scoped Supabase credentials.
 
               // The branded login may already have exchanged this tab's session.
               // Reuse it rather than issuing a second scoped refresh-token pair.

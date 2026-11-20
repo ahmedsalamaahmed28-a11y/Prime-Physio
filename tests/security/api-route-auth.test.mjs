@@ -200,14 +200,31 @@ test("clinic exchange binds the selected tab to its expected login email", async
   assert.match(brandedLoginSource, /const candidate = await getSession\(\)/);
   assert.match(brandedLoginSource, /candidateEmail === expectedEmail/);
   assert.match(brandedLoginSource, /candidateClinicId === clinic\.id/);
-  assert.match(brandedLoginSource, /expiresAt > Date\.now\(\)/);
+  assert.match(brandedLoginSource, /cryptographic JWT signature and[\s\S]*?expiry are verified by \/api\/auth\/clinic-session/);
+  assert.doesNotMatch(brandedLoginSource, /expiresAt > Date\.now\(\)/,
+    "the client must not reject a valid signed JWT because NextAuth session expiry metadata drifted");
+  assert.match(authSource, /latestEmail !== enriched\.email\.trim\(\)\.toLowerCase\(\)/);
+  assert.doesNotMatch(authSource, /latestExpiry <= Date\.now\(\)/,
+    "the auth provider must let the server validate the signed JWT exp claim");
   assert.ok(
     brandedLoginSource.indexOf("if (!verifiedSession)") < brandedLoginSource.indexOf("await activateClinicSession(clinic.id, expectedEmail)"),
-    "the clinic-scoped exchange must not run until the fresh NextAuth session is verified",
+    "the clinic-scoped exchange must not run until the fresh NextAuth session identity is verified",
   );
   assert.match(brandedLoginSource, /could not be verified for this clinic/);
 });
 
+
+
+test("clinic-owner navigation permissions recover from a temporary staff-table read failure", async () => {
+  const permissionsSource = await readFile(path.join(root, "src", "lib", "usePermissions.ts"), "utf8");
+  assert.match(permissionsSource, /resolving permissions through the verified clinic RPC/);
+  assert.match(permissionsSource, /supabase\.rpc\("has_staff_permission"/);
+  assert.match(permissionsSource, /view_analytics/);
+  assert.match(permissionsSource, /manage_settings/);
+  assert.match(permissionsSource, /manage_staff/);
+  assert.match(permissionsSource, /setHasOverride\(true\)/);
+  assert.match(permissionsSource, /serverPermissions\.manage_staff === true/);
+});
 
 test("clinic-scoped bearer identities cannot enter platform administration", async () => {
   const authSource = await readFile(
