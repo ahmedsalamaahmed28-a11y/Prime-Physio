@@ -11,7 +11,7 @@ test("AI report API requires explicit external processing consent", async () => 
   assert.match(route, /\.eq\("clinic_id", auth\.clinicId\)/);
   assert.match(route, /\.select\("id, diagnosis"\)/);
   assert.match(route, /cleanClinicalText\(patientRecord\.diagnosis/);
-  assert.match(route, /Do not read or forward patientInfo/);
+  assert.match(route, /do not read or forward patientInfo/i);
   assert.match(route, /Cache-Control.*no-store, private/);
 });
 
