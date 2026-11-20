@@ -129,3 +129,25 @@ test("shared Supabase cookies cannot override a verified tab clinic scope", asyn
     /if \(authed\.clinicId\) return authed\.clinicId;[\s\S]*?const token = parseAuthCookie\(req\);/,
     "the verified bearer clinic must be returned before inspecting the shared Supabase cookie");
 });
+
+
+test("clinic-session exchange issues a distinct, membership-verified identity per clinic", async () => {
+  const routeSource = await readFile(
+    path.join(root, "src", "app", "api", "auth", "clinic-session", "route.ts"),
+    "utf8",
+  );
+  assert.match(routeSource, /export async function POST/);
+  assert.match(routeSource, /getServerSession\(authOptions\)/);
+  assert.match(routeSource, /clinic_owners/);
+  assert.match(routeSource, /from\("staff"\)/);
+  assert.match(routeSource, /\.eq\("clinic_id", clinicId\)/);
+  assert.match(routeSource, /auth_source: "clinic-scoped-shadow"/);
+  assert.match(routeSource, /canonical_email: canonicalEmail/);
+  assert.match(routeSource, /clinic_id: clinicId/);
+  assert.match(routeSource, /createHmac\("sha256", secret\)/);
+  assert.match(routeSource, /email_confirm: true/);
+  assert.doesNotMatch(routeSource, /active_clinic_id/,
+    "the new identity exchange must not mutate a shared active-clinic claim");
+  assert.match(routeSource, /isSameOrigin\(req\)/,
+    "the cookie-authenticated exchange must reject cross-origin POST requests");
+});
