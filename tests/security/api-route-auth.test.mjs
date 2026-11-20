@@ -233,7 +233,7 @@ test("auth provider preserves a scoped tab identity and signs out locally", asyn
   assert.match(authSource, /prime-physio:tab-logged-out/);
   assert.doesNotMatch(authSource, /onAuthStateChange\(async/);
   assert.match(authSource, /tabEmail !== sessionEmail/);
-  assert.match(authSource, /activateClinicSession\(enriched\.clinicId\)/);
+  assert.match(authSource, /activateClinicSession\(enriched\.clinicId, enriched\.email\)/);
   assert.match(authSource, /supabase\.auth\.signOut\(\{ scope: "local" \}\)/);
   assert.doesNotMatch(authSource, /signOut\(\{ callbackUrl/);
   assert.match(authSource, /prime-physio:tab-logged-out/);
