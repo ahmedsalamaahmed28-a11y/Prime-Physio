@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useLanguage } from "@/lib/LanguageContext";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Download, User, Activity, CheckCircle2 } from "lucide-react";
+import { FileText, Download, User, Activity, CheckCircle2, Sparkles, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,30 +17,76 @@ interface Patient {
   diagnosis?: string;
 }
 
+type ReportType = "referral" | "progress" | "discharge";
+
 export function SmartReportsTab({ patient }: { patient: Patient }) {
   const { language } = useLanguage();
   const { user } = useAuth();
   const isRtl = language === "ar";
-  
-  const [reportType, setReportType] = useState("referral");
+
+  const [reportType, setReportType] = useState<ReportType>("referral");
   const [notes, setNotes] = useState("");
+  const [rom, setRom] = useState("");
+  const [vasScore, setVasScore] = useState("5");
+  const [externalConsent, setExternalConsent] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedReport, setGeneratedReport] = useState("");
+  const [error, setError] = useState("");
 
   const getReportTitle = () => {
-    switch(reportType) {
-      case "referral": return isRtl ? "خطاب تحويل طبي (Medical Referral)" : "Medical Referral Letter";
-      case "progress": return isRtl ? "تقرير تقدم حالة (Progress Report)" : "Progress Report";
-      case "discharge": return isRtl ? "تقرير خروج وتوصيات (Discharge Summary)" : "Discharge Summary";
-      default: return "";
+    switch (reportType) {
+      case "referral": return isRtl ? "خطاب تحويل طبي" : "Medical Referral Letter";
+      case "progress": return isRtl ? "تقرير تقدم الحالة" : "Progress Report";
+      case "discharge": return isRtl ? "ملخص الخروج" : "Discharge Summary";
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handleGenerate = async () => {
+    if (!externalConsent) {
+      setError(isRtl ? "يجب تأكيد موافقة المريض أو ممثله المخول أولاً." : "Confirm that the patient or authorized representative has consented first.");
+      return;
+    }
+    if (!patient.diagnosis?.trim() || !rom.trim() || !notes.trim()) {
+      setError(isRtl ? "أدخل التشخيص ونتائج الحركة والملاحظات السريرية أولاً." : "Enter the diagnosis, ROM findings, and clinical notes first.");
+      return;
+    }
+
+    setIsGenerating(true);
+    setError("");
+    setGeneratedReport("");
+    try {
+      const response = await fetch("/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        cache: "no-store",
+        body: JSON.stringify({
+          type: reportType,
+          consentToExternalProcessing: true,
+          // No patient name, phone, file number, date of birth, gender, or other direct identifier is sent.
+          clinicalData: {
+            diagnosis: patient.diagnosis,
+            vasScore: Number(vasScore),
+            rom,
+            notes,
+          },
+        }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || typeof payload.report !== "string") {
+        throw new Error(payload.error || (isRtl ? "تعذر إنشاء التقرير." : "Unable to generate the report."));
+      }
+      setGeneratedReport(payload.report);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : (isRtl ? "حدث خطأ غير متوقع." : "An unexpected error occurred."));
+    } finally {
+      setIsGenerating(false);
+    }
   };
+
+  const handlePrint = () => window.print();
 
   return (
     <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-6 print:block print:max-w-full print:px-0 print:m-0" dir={isRtl ? "rtl" : "ltr"}>
-      {/* Controls (Hidden in Print) */}
       <div className="lg:col-span-1 space-y-6 print:hidden">
         <Card className="border-0 shadow-lg">
           <CardHeader className="bg-slate-50 border-b pb-4">
@@ -50,63 +96,73 @@ export function SmartReportsTab({ patient }: { patient: Patient }) {
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4 space-y-4">
-            {/* Report Type */}
             <div className="space-y-2">
               <Label>{isRtl ? "نوع التقرير" : "Report Type"}</Label>
               <div className="grid grid-cols-1 gap-2">
-                <Button 
-                  variant={reportType === "referral" ? "default" : "outline"} 
-                  onClick={() => setReportType("referral")}
-                  className={reportType === "referral" ? "bg-teal-600 hover:bg-teal-700 justify-start" : "justify-start"}
-                >
-                  <User className="w-4 h-4 mr-2 ml-2" />
-                  {isRtl ? "خطاب تحويل" : "Referral Letter"}
+                <Button type="button" variant={reportType === "referral" ? "default" : "outline"} onClick={() => setReportType("referral")} className={reportType === "referral" ? "bg-teal-600 hover:bg-teal-700 justify-start" : "justify-start"}>
+                  <User className="w-4 h-4 mr-2 ml-2" />{isRtl ? "خطاب تحويل" : "Referral Letter"}
                 </Button>
-                <Button 
-                  variant={reportType === "progress" ? "default" : "outline"} 
-                  onClick={() => setReportType("progress")}
-                  className={reportType === "progress" ? "bg-teal-600 hover:bg-teal-700 justify-start" : "justify-start"}
-                >
-                  <Activity className="w-4 h-4 mr-2 ml-2" />
-                  {isRtl ? "تقرير تقدم" : "Progress Report"}
+                <Button type="button" variant={reportType === "progress" ? "default" : "outline"} onClick={() => setReportType("progress")} className={reportType === "progress" ? "bg-teal-600 hover:bg-teal-700 justify-start" : "justify-start"}>
+                  <Activity className="w-4 h-4 mr-2 ml-2" />{isRtl ? "تقرير تقدم" : "Progress Report"}
                 </Button>
-                <Button 
-                  variant={reportType === "discharge" ? "default" : "outline"} 
-                  onClick={() => setReportType("discharge")}
-                  className={reportType === "discharge" ? "bg-teal-600 hover:bg-teal-700 justify-start" : "justify-start"}
-                >
-                  <CheckCircle2 className="w-4 h-4 mr-2 ml-2" />
-                  {isRtl ? "تقرير خروج" : "Discharge Summary"}
+                <Button type="button" variant={reportType === "discharge" ? "default" : "outline"} onClick={() => setReportType("discharge")} className={reportType === "discharge" ? "bg-teal-600 hover:bg-teal-700 justify-start" : "justify-start"}>
+                  <CheckCircle2 className="w-4 h-4 mr-2 ml-2" />{isRtl ? "تقرير خروج" : "Discharge Summary"}
                 </Button>
               </div>
             </div>
 
-            {/* Notes */}
             <div className="space-y-2">
-              <Label>{isRtl ? "ملاحظات وتوصيات الطبيب" : "Doctor's Notes & Recommendations"}</Label>
-              <Textarea 
-                rows={4} 
-                placeholder={isRtl ? "اكتب تفاصيل الخطة العلاجية والتوصيات..." : "Write treatment plan and recommendations..."}
-                value={notes}
-                onChange={e => setNotes(e.target.value)}
-              />
+              <Label>{isRtl ? "التشخيص" : "Diagnosis"}</Label>
+              <div className="rounded-md border bg-slate-50 p-3 text-sm text-slate-700 min-h-10">
+                {patient.diagnosis || (isRtl ? "لا يوجد تشخيص مسجل" : "No diagnosis recorded")}
+              </div>
             </div>
 
-            <div className="pt-4 border-t flex gap-2">
-              <Button className="flex-1 bg-teal-600 hover:bg-teal-700" onClick={handlePrint}>
-                <Download className="w-4 h-4 mr-2 ml-2" />
-                {isRtl ? "طباعة" : "Print"}
-              </Button>
+            <div className="space-y-2">
+              <Label htmlFor="report-vas">{isRtl ? "درجة الألم (VAS من 0 إلى 10)" : "Pain score (VAS 0–10)"}</Label>
+              <input id="report-vas" type="number" min="0" max="10" step="1" value={vasScore} onChange={(event) => setVasScore(event.target.value)} className="w-full rounded-md border border-slate-300 bg-background px-3 py-2 text-sm" />
             </div>
+
+            <div className="space-y-2">
+              <Label>{isRtl ? "نتائج المدى الحركي والفحص الموضوعي" : "ROM and objective findings"}</Label>
+              <Textarea rows={3} value={rom} onChange={(event) => setRom(event.target.value)} placeholder={isRtl ? "أدخل النتائج المقاسة فقط..." : "Enter measured findings only..."} />
+            </div>
+
+            <div className="space-y-2">
+              <Label>{isRtl ? "ملاحظات وتوصيات الطبيب" : "Clinical notes and recommendations"}</Label>
+              <Textarea rows={5} value={notes} onChange={(event) => setNotes(event.target.value)} placeholder={isRtl ? "اكتب الملاحظات السريرية دون اسم المريض أو رقم الملف أو الهاتف..." : "Enter clinical notes without patient name, file number, or phone..."} />
+            </div>
+
+            <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 space-y-3">
+              <div className="flex items-center gap-2 text-amber-900 font-semibold text-sm">
+                <ShieldCheck className="w-4 h-4" />
+                {isRtl ? "موافقة مشاركة البيانات" : "External AI processing consent"}
+              </div>
+              <p className="text-xs leading-5 text-amber-900">
+                {isRtl
+                  ? "سيتم إرسال التشخيص ودرجة الألم ونتائج الحركة والملاحظات السريرية فقط إلى مزود ذكاء اصطناعي خارجي (DeepSeek أو Gemini) لإنشاء التقرير. لن نرسل الاسم أو الهاتف أو رقم الملف أو تاريخ الميلاد أو النوع. لا تضع أي معلومات تعريفية داخل الملاحظات."
+                  : "Only diagnosis, pain score, ROM findings, and clinical notes will be sent to an external AI provider (DeepSeek or Gemini). Patient name, phone, file number, date of birth, and gender are not sent. Do not include identifying details in free-text notes."}
+              </p>
+              <label className="flex items-start gap-2 text-sm text-amber-950 cursor-pointer">
+                <input type="checkbox" checked={externalConsent} onChange={(event) => setExternalConsent(event.target.checked)} className="mt-1 h-4 w-4 accent-teal-700" />
+                <span>{isRtl ? "أؤكد أن موافقة المريض أو ممثله المخول على معالجة هذه البيانات السريرية بواسطة مزود خارجي قد تم الحصول عليها." : "I confirm that the patient or authorized representative has consented to this clinical data being processed by an external provider."}</span>
+              </label>
+            </div>
+
+            {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+
+            <Button type="button" className="w-full bg-teal-600 hover:bg-teal-700" onClick={handleGenerate} disabled={isGenerating || !externalConsent}>
+              <Sparkles className="w-4 h-4 mr-2 ml-2" />
+              {isGenerating ? (isRtl ? "جارٍ إنشاء التقرير..." : "Generating report...") : (isRtl ? "إنشاء تقرير بالذكاء الاصطناعي" : "Generate AI Report")}
+            </Button>
+            <p className="text-xs text-slate-500">{isRtl ? "لا يتم إرسال أي بيانات قبل تحديد الموافقة والضغط على زر الإنشاء." : "No data is sent until consent is checked and Generate is pressed."}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Report Preview / Print Area */}
       <div className="lg:col-span-2 print:col-span-1 print:w-full">
         <Card className="border-0 shadow-lg min-h-[600px] print:shadow-none print:border-none print:min-h-0">
-          <CardContent className="p-10 print:p-0">
-            {/* Report Header */}
+          <CardContent className="p-8 print:p-0">
             <div className="flex justify-between items-start border-b-2 border-slate-900 pb-6 mb-6">
               <div>
                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight">PRIME PHYSIO</h1>
@@ -114,84 +170,43 @@ export function SmartReportsTab({ patient }: { patient: Patient }) {
               </div>
               <div className="text-right">
                 <h2 className="text-xl font-bold text-slate-800">{getReportTitle()}</h2>
-                <p className="text-sm text-slate-500 mt-1">{isRtl ? "التاريخ:" : "Date:"} {new Date().toLocaleDateString(isRtl ? 'ar-EG' : 'en-US')}</p>
+                <p className="text-sm text-slate-500 mt-1">{isRtl ? "التاريخ:" : "Date:"} {new Date().toLocaleDateString(isRtl ? "ar-EG" : "en-US")}</p>
               </div>
             </div>
 
-            <div className="space-y-8">
-              {/* Patient Info */}
-              <div className="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-100 print:border-slate-300">
-                <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase">{isRtl ? "اسم المريض" : "Patient Name"}</p>
-                  <p className="text-base font-semibold text-slate-900">{isRtl ? patient.nameAr || patient.nameEn : patient.nameEn || patient.nameAr}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-500 uppercase">{isRtl ? "رقم الهاتف" : "Phone Number"}</p>
-                  <p className="text-base font-semibold text-slate-900">{patient.phone || "N/A"}</p>
-                </div>
-                <div className="col-span-2">
-                  <p className="text-xs font-bold text-slate-500 uppercase">{isRtl ? "التشخيص المبدئي" : "Primary Diagnosis"}</p>
-                  <p className="text-base font-semibold text-slate-900">{patient.diagnosis || (isRtl ? "غير محدد" : "Not specified")}</p>
-                </div>
+            <div className="mb-6 rounded-lg border bg-slate-50 p-4 print:border-slate-300">
+              <p className="text-xs font-bold text-slate-500 uppercase">{isRtl ? "المريض (للعرض المحلي فقط)" : "Patient (local display only)"}</p>
+              <p className="text-base font-semibold text-slate-900">{isRtl ? patient.nameAr || patient.nameEn : patient.nameEn || patient.nameAr}</p>
+              <p className="text-sm text-slate-600">{isRtl ? "رقم الهاتف:" : "Phone:"} {patient.phone || "N/A"}</p>
+              <p className="text-sm text-slate-600">{isRtl ? "التشخيص:" : "Diagnosis:"} {patient.diagnosis || (isRtl ? "غير محدد" : "Not specified")}</p>
+            </div>
+
+            {generatedReport ? (
+              <div className="whitespace-pre-wrap text-sm leading-7 text-slate-800">{generatedReport}</div>
+            ) : (
+              <div className="min-h-[300px] flex flex-col items-center justify-center text-center text-slate-400 gap-3">
+                <FileText className="h-12 w-12" />
+                <p>{isRtl ? "أدخل البيانات السريرية واحصل على الموافقة لإنشاء التقرير." : "Enter the clinical findings and obtain consent to generate the report."}</p>
               </div>
+            )}
 
-              {/* Dynamic Content based on type */}
-              <div className="space-y-4">
-                {reportType === "referral" && (
-                  <>
-                    <h3 className="text-lg font-bold text-slate-800 border-b pb-2">{isRtl ? "إلى من يهمه الأمر / الطبيب المعالج" : "To Whom It May Concern / Attending Physician"}</h3>
-                    <p className="text-slate-700 leading-relaxed">
-                      {isRtl 
-                        ? "نحيل إليكم المريض المذكور أعلاه لاستكمال التقييم الطبي. بناءً على جلسات العلاج الطبيعي، لوحظت الأعراض التالية التي قد تتطلب تقييماً متخصصاً:"
-                        : "We are referring the above-mentioned patient for further medical evaluation. Based on physiotherapy sessions, the following symptoms were observed:"}
-                    </p>
-                  </>
-                )}
-                
-                {reportType === "progress" && (
-                  <>
-                    <h3 className="text-lg font-bold text-slate-800 border-b pb-2">{isRtl ? "التقدم العلاجي" : "Therapeutic Progress"}</h3>
-                    <p className="text-slate-700 leading-relaxed">
-                      {isRtl 
-                        ? "يخضع المريض المذكور لجلسات تأهيل وعلاج طبيعي منتظمة، وقد أظهر استجابة للبروتوكول العلاجي كالتالي:"
-                        : "The patient is undergoing regular physiotherapy rehabilitation and has shown the following response to the protocol:"}
-                    </p>
-                  </>
-                )}
-
-                {reportType === "discharge" && (
-                  <>
-                    <h3 className="text-lg font-bold text-slate-800 border-b pb-2">{isRtl ? "ملخص الخروج والتوصيات" : "Discharge Summary & Recommendations"}</h3>
-                    <p className="text-slate-700 leading-relaxed">
-                      {isRtl 
-                        ? "أنهى المريض البرنامج التأهيلي بنجاح ووصل للأهداف العلاجية المرجوة. يُنصح باتباع التوصيات التالية للحفاظ على النتائج:"
-                        : "The patient has successfully completed the rehab program and reached the desired therapeutic goals. The following recommendations should be followed to maintain results:"}
-                    </p>
-                  </>
-                )}
-
-                {/* Notes Field */}
-                <div className="min-h-[200px] mt-6 p-4 bg-white border rounded-lg whitespace-pre-wrap text-slate-700 print:border-none print:p-0">
-                  {notes || (isRtl ? "(لا توجد ملاحظات إضافية تم إدخالها)" : "(No additional notes provided)")}
-                </div>
+            <div className="mt-16 pt-8 border-t flex justify-between items-end print:mt-10">
+              <div className="text-center">
+                <p className="font-bold text-slate-800">{user?.name || "Dr. Physiotherapist"}</p>
+                <p className="text-sm text-slate-500">{isRtl ? "أخصائي العلاج الطبيعي" : "Physiotherapist"}</p>
               </div>
-
-              {/* Signatures */}
-              <div className="mt-16 pt-8 border-t flex justify-between items-end">
-                <div className="text-center">
-                  <p className="font-bold text-slate-800">{user?.name || "Dr. Physiotherapist"}</p>
-                  <p className="text-sm text-slate-500">{isRtl ? "أخصائي العلاج الطبيعي" : "Physiotherapist"}</p>
-                </div>
-                <div className="text-center border-t border-slate-300 w-48 pt-2">
-                  <p className="text-xs text-slate-400">{isRtl ? "التوقيع / الختم" : "Signature / Stamp"}</p>
-                </div>
+              <div className="text-center border-t border-slate-300 w-48 pt-2">
+                <p className="text-xs text-slate-400">{isRtl ? "التوقيع / الختم" : "Signature / Stamp"}</p>
               </div>
-
+            </div>
+            <div className="mt-6 flex justify-end print:hidden">
+              <Button type="button" variant="outline" onClick={handlePrint} disabled={!generatedReport}>
+                <Download className="w-4 h-4 mr-2 ml-2" />{isRtl ? "طباعة التقرير" : "Print report"}
+              </Button>
             </div>
           </CardContent>
         </Card>
       </div>
-
     </div>
   );
 }
