@@ -88,12 +88,26 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
         throw new Error("Invalid or expired clinic-scoped session");
       }
 
-      const [{ data: clinic, error: clinicError }, { data: owner, error: ownerError }, { data: staff, error: staffError }] = await Promise.all([
+      const [
+        { data: identity, error: identityError },
+        { data: clinic, error: clinicError },
+        { data: owner, error: ownerError },
+        { data: staff, error: staffError },
+      ] = await Promise.all([
+        admin.from("clinic_auth_identities")
+          .select("shadow_user_id")
+          .eq("clinic_id", clinicId)
+          .eq("canonical_email", canonicalEmail)
+          .eq("shadow_user_id", user.id)
+          .maybeSingle(),
         admin.from("clinics").select("id,is_active,status").eq("id", clinicId).maybeSingle(),
         admin.from("clinic_owners").select("clinic_id").eq("clinic_id", clinicId).eq("owner_email", canonicalEmail).maybeSingle(),
         admin.from("staff").select("clinic_id,status").eq("clinic_id", clinicId).eq("email", canonicalEmail).maybeSingle(),
       ]);
-      if (clinicError || ownerError || staffError) throw new Error("Unable to verify clinic-scoped membership");
+      if (identityError || clinicError || ownerError || staffError) {
+        throw new Error("Unable to verify clinic-scoped membership");
+      }
+      if (!identity) throw new Error("Forbidden: Clinic identity mapping is invalid");
       if (!clinic || clinic.is_active !== true || String(clinic.status || "").trim().toLowerCase() !== "active") {
         throw new Error("Forbidden: Clinic is inactive");
       }
