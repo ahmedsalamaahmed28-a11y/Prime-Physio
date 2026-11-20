@@ -64,3 +64,23 @@ Do not merge or deploy until the clean rebuild, schema comparison, role-based AP
 - Full migration replay: not run because the verified baseline/configuration is missing.
 - Real two-user API CRUD integration: not run because isolated tenant credentials/fixtures are not configured.
 - Next safe action: recover the 23 unmatched historical migration bodies and reconcile all 51 same-name timestamp mismatches before constructing the local baseline.
+
+
+## Additional Git-history investigation — 2026-11-20
+
+A second read-only pass inspected GitHub commit history for all 23 currently unmatched production migration paths. Direct path history returned zero commits for all 23 exact production filenames. This does not prove that the SQL was never committed under another filename; it means the exact paths cannot be recovered from their direct path histories.
+
+The migration directory history does contain prior timestamp-alignment and duplicate-removal commits. Examples include:
+- `33b3e8ae39cf0b2aa006f532a1834eadae28712c`: moved the default-privilege migration to the production-recorded version `20261116194303`; the prior timestamped duplicate was removed in `85abce40f86273f5dcb2a98090675ec255d91fab`.
+- `377c94b62398d0f6850f2fcd7df4fefb578e9f19` and `03f05aad3e2558cc085b7fbea30e5372090dccfe`: aligned the patient-index cleanup filename and removed the mismatched duplicate.
+- `293af0496d1c103509b0e5ea89dc14a02e79588c`: added the current one-hour group-session source file.
+- `28f49ea98dfd23f3f99c2596a1a7c73ac22d5c70`: added the current center-owner quota source file.
+- `349759ce2e8ecd7c94a1203402ab4c893a00d918` and `5fc97153e26f64ae482b5fcebf625b6652e03a1a`: added the current RLS auth.uid() optimization source files.
+
+These commits establish source-file provenance and show that filename reconciliation occurred before. They do not expose the SQL body stored in the hosted migration history, so they are not treated as proof of production/source body equality.
+
+A machine-readable ledger is now stored at `docs/database-migration-reconciliation-ledger.json`. It contains one row per production-applied migration, the current source candidate (when same-name), the current source Git blob SHA-1, and an explicit null production SQL hash. The Git blob hash is not represented as a production SQL hash. All source-only files are listed separately and marked do-not-apply pending evidence.
+
+## Execution boundary
+
+No local PostgreSQL service or Docker runtime is exposed through the connected GitHub/Supabase tools in this session. The production Supabase project is healthy, but it is not a safe substitute for a disposable local database. Therefore no migration replay, schema mutation, migration repair, or test fixture creation was run. The next valid step is to obtain trusted SQL artifacts for the unmatched records and execute the reconciled replay in an isolated local PostgreSQL/Supabase environment.
