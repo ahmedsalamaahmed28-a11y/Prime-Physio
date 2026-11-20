@@ -154,7 +154,7 @@ test("clinic-session exchange issues a distinct, membership-verified identity pe
   assert.match(routeSource, /clinic_id: clinicId/);
   assert.match(routeSource, /createHmac\("sha256", secret\)/);
   assert.match(routeSource, /email_confirm: true/);
-  assert.match(routeSource, /The login session has expired/);
+  assert.match(routeSource, /Your login session is invalid or expired/);
   assert.doesNotMatch(routeSource, /nowSeconds \+ 8 \* 60 \* 60/);
   assert.doesNotMatch(routeSource, /active_clinic_id/,
     "the new identity exchange must not mutate a shared active-clinic claim");
