@@ -60,7 +60,7 @@ export function installClinicApiFetch(): () => void {
       pathname === "/api/test" ||
       pathname === "/api/branches/all" ||
       pathname === "/api/branches/by-slug" ||
-      (pathname.startsWith("/api/auth/") && pathname !== "/api/auth/enrich") ||
+      (requestUrl.pathname.startsWith("/api/auth/") && requestUrl.pathname !== "/api/auth/enrich") ||
       pathname.startsWith("/api/admin/")
     ) {
       return nativeFetch(input, init);
