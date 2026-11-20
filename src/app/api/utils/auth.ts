@@ -61,7 +61,7 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
   // second clinic login in another tab can silently replace this tab's scope.
   const authHeader = req.headers.get("authorization");
   if (authHeader) {
-    const tokenMatch = authHeader.match(/^Bearer\\s+(.+)$/i);
+    const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
     const token = tokenMatch?.[1]?.trim();
     if (!token) throw new Error("Unauthorized");
 
