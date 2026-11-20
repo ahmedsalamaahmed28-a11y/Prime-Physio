@@ -215,6 +215,8 @@ test("clinic enrichment trusts verified bearer claims instead of the shared cook
   assert.match(source, /metadata\.canonical_email/);
   assert.match(source, /metadata\.clinic_id/);
   assert.match(source, /Clinic scope mismatch/);
+  assert.match(source, /platformAdmin && !scopedClinicId/);
+  assert.match(source, /staffProfileQuery\.eq\("clinic_id", scopedClinicId\)/);
 });
 
 test("RLS migration removes legacy staff email policy and scopes owner rows", async () => {
