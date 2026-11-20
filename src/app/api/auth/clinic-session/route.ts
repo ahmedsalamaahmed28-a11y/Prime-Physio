@@ -191,6 +191,8 @@ export async function POST(req: NextRequest) {
     }
 
     const { error: updateError } = await admin.auth.admin.updateUserById(shadowUser.id, {
+      email: resolvedShadowEmail,
+      email_confirm: true,
       password: shadowPassword,
       app_metadata: { ...existingMetadata, ...expectedMetadata },
     });
