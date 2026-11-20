@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const canonicalEmail = session?.user?.email?.trim().toLowerCase();
-    if (!canonicalEmail) return noStoreJson({ error: "Unauthorized" }, 401);
+    if (!session || !canonicalEmail) return noStoreJson({ error: "Unauthorized" }, 401);
 
     const body = await req.json().catch(() => null);
     const clinicId = typeof body?.clinic_id === "string" ? body.clinic_id.trim() : "";
