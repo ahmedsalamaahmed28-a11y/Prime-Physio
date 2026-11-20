@@ -27,9 +27,7 @@ export function installClinicApiFetch(): () => void {
       requestUrl.origin !== window.location.origin ||
       !requestUrl.pathname.startsWith("/api/") ||
       requestUrl.pathname.startsWith("/api/public/") ||
-      requestUrl.pathname === "/api/auth/clinic-session" ||
-      requestUrl.pathname === "/api/auth/supabase-session" ||
-      requestUrl.pathname.startsWith("/api/auth/[...nextauth]")
+      (requestUrl.pathname.startsWith("/api/auth/") && requestUrl.pathname !== "/api/auth/enrich")
     ) {
       return nativeFetch(input, init);
     }
