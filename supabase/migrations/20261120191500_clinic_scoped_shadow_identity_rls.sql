@@ -6,7 +6,7 @@ create table if not exists public.clinic_auth_identities (
   clinic_id uuid not null references public.clinics(id) on delete cascade,
   canonical_email text not null,
   shadow_email text not null,
-  shadow_user_id uuid,
+  shadow_user_id uuid references auth.users(id) on delete set null,
   created_at timestamptz not null default now(),
   primary key (clinic_id, canonical_email),
   constraint clinic_auth_identities_email_normalized
