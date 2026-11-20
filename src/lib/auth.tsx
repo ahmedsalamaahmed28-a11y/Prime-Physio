@@ -358,8 +358,18 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       setIsEnriching(false);
       setUser((prev) => prev?.email?.toLowerCase() === expiredEmail ? null : prev);
       setAppValue("current_user", null).catch(() => {});
-      // Revoke only this tab's clinic session; other tabs use separate sessions.
-      supabase.auth.signOut({ scope: "local" }).catch((error) => console.error("Failed to revoke expired clinic session:", error));
+      // A shared NextAuth cookie can expire/change because of another tab.
+      // Revoke this tab's Supabase session only when it belongs to that same account.
+      supabase.auth.getSession().then(({ data }) => {
+        const metadata = data.session?.user?.app_metadata || {};
+        if (
+          metadata.auth_source === "clinic-scoped-shadow" &&
+          typeof metadata.canonical_email === "string" &&
+          metadata.canonical_email.toLowerCase() === expiredEmail
+        ) {
+          return supabase.auth.signOut({ scope: "local" });
+        }
+      }).catch((error) => console.error("Failed to validate expired tab session:", error));
     }
   }, [session, status]);
 
