@@ -117,6 +117,11 @@ INSERT INTO public.hr_attendance (clinic_id, staff_id) VALUES
 
 \i supabase/migrations/20261120191500_clinic_scoped_shadow_identity_rls.sql
 
+-- Server-provisioned mapping rows bind the immutable JWT claims to auth.uid().
+INSERT INTO public.clinic_auth_identities (clinic_id, canonical_email, shadow_email, shadow_user_id) VALUES
+  ('11111111-1111-4111-8111-111111111111', 'owner@example.test', 'clinic-a@shadow.primephysio.app', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
+  ('22222222-2222-4222-8222-222222222222', 'owner@example.test', 'clinic-b@shadow.primephysio.app', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+
 -- Mirror the live Storage policies; their tenant scope is supplied by get_my_clinic_id().
 CREATE POLICY clinic_logo_delete_own_center ON storage.objects
 FOR DELETE TO authenticated USING (
