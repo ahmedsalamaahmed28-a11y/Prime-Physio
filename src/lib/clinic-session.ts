@@ -3,13 +3,13 @@ import { setClinicApiAccessToken } from "@/lib/clinic-api-fetch";
 
 const pendingExchanges = new Map<string, Promise<void>>();
 
-async function exchangeClinicSession(clinicId: string): Promise<void> {
+async function exchangeClinicSession(clinicId: string, expectedEmail: string): Promise<void> {
   const response = await fetch("/api/auth/clinic-session", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     cache: "no-store",
     credentials: "same-origin",
-    body: JSON.stringify({ clinic_id: clinicId }),
+    body: JSON.stringify({ clinic_id: clinicId, expected_email: expectedEmail.trim().toLowerCase() }),
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || !payload.session?.access_token || !payload.session?.refresh_token) {
@@ -55,15 +55,18 @@ async function exchangeClinicSession(clinicId: string): Promise<void> {
 
 }
 
-export async function activateClinicSession(clinicId: string): Promise<void> {
-  const existing = pendingExchanges.get(clinicId);
+export async function activateClinicSession(clinicId: string, expectedEmail: string): Promise<void> {
+  const normalizedEmail = expectedEmail.trim().toLowerCase();
+  if (!normalizedEmail) throw new Error("A verified login email is required");
+  const exchangeKey = `${clinicId}:${normalizedEmail}`;
+  const existing = pendingExchanges.get(exchangeKey);
   if (existing) return existing;
 
-  const pending = exchangeClinicSession(clinicId);
-  pendingExchanges.set(clinicId, pending);
+  const pending = exchangeClinicSession(clinicId, normalizedEmail);
+  pendingExchanges.set(exchangeKey, pending);
   try {
     await pending;
   } finally {
-    pendingExchanges.delete(clinicId);
+    pendingExchanges.delete(exchangeKey);
   }
 }
