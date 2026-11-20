@@ -183,3 +183,38 @@ test("clinic-scoped bearer identities cannot enter platform administration", asy
   assert.match(authSource, /allowedRoles\.includes\("platform_admin"\) && authed\.authSource !== "clinic-scoped-shadow"/);
   assert.match(migration, /auth_source', ''\) <> 'clinic-scoped-shadow'/);
 });
+
+test("tab-scoped API bridge never forwards tokens to external or public endpoints", async () => {
+  const bridge = await readFile(path.join(root, "src", "lib", "clinic-api-fetch.ts"), "utf8");
+  assert.match(bridge, /requestUrl\.origin !== window\.location\.origin/);
+  assert.match(bridge, /requestUrl\.pathname\.startsWith\("\/api\/public\/"\)/);
+  assert.match(bridge, /clinic-session/);
+  assert.match(bridge, /auth_source !== "clinic-scoped-shadow"/);
+  assert.match(bridge, /headers\.set\("Authorization"/);
+});
+
+test("auth provider preserves a scoped tab identity and signs out locally", async () => {
+  const authSource = await readFile(path.join(root, "src", "lib", "auth.tsx"), "utf8");
+  assert.match(authSource, /tabMetadata\.auth_source === "clinic-scoped-shadow"/);
+  assert.match(authSource, /tabEmail !== sessionEmail/);
+  assert.match(authSource, /activateClinicSession\(enriched\.clinicId\)/);
+  assert.match(authSource, /supabase\.auth\.signOut\(\{ scope: "local" \}\)/);
+  assert.doesNotMatch(authSource, /signOut\(\{ callbackUrl/);
+  assert.match(authSource, /prime-physio:tab-logged-out/);
+});
+
+test("clinic enrichment trusts verified bearer claims instead of the shared cookie", async () => {
+  const source = await readFile(path.join(root, "src", "app", "api", "auth", "enrich", "route.ts"), "utf8");
+  assert.match(source, /admin\.auth\.getUser\(bearer\)/);
+  assert.match(source, /metadata\.canonical_email/);
+  assert.match(source, /metadata\.clinic_id/);
+  assert.match(source, /Clinic scope mismatch/);
+});
+
+test("RLS migration removes legacy staff email policy and scopes owner rows", async () => {
+  const migration = await readFile(path.join(root, "supabase", "migrations", "20261120191500_clinic_scoped_shadow_identity_rls.sql"), "utf8");
+  assert.match(migration, /drop policy if exists staff_self_read on public\.staff/);
+  assert.match(migration, /clinic_id = public\.get_my_clinic_id\(\)/);
+  assert.match(migration, /array_agg\(distinct membership\.clinic_id\)/);
+  assert.doesNotMatch(migration, /min\(membership\.clinic_id\)/);
+});
