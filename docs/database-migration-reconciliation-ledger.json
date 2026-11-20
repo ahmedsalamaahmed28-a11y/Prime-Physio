@@ -1,0 +1,1408 @@
+{
+  "schema_version": 1,
+  "snapshot_date": "2026-11-20",
+  "project_id": "crrhrjhftwostjomzmfj",
+  "note": "Git blob SHA-1 identifies the current source blob only. Production SQL hashes are intentionally null because Supabase migration history lists versions/names, not the original SQL bodies.",
+  "counts": {
+    "production_applied": 130,
+    "source_files": 122,
+    "exact_version_name_candidates": 56,
+    "same_name_timestamp_mismatches": 51,
+    "production_without_same_name_source": 23,
+    "source_only": 15
+  },
+  "applied_migrations": [
+    {
+      "production_version": "20261105145318",
+      "production_name": "enable_notifications_rls",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105145500_enable_notifications_rls.sql",
+      "source_git_blob_sha1": "dafb80679c1d5f4563443ad5975863438aac075b",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105150029",
+      "production_name": "pin_search_path_security_functions",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261105150212",
+      "production_name": "restrict_google_provision_rpc",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261105150218",
+      "production_name": "scope_clinic_lookup_to_current_user",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261105150238",
+      "production_name": "authenticate_create_center_rpc",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105153000_authenticate_create_center_rpc.sql",
+      "source_git_blob_sha1": "1c86e8c6898ecddac2ad7fb199d82d2bc123357f",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105150635",
+      "production_name": "enforce_clinic_admin_email_matches_session",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261105150701",
+      "production_name": "restrict_setup_clinic_rpc_to_authenticated",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261105150715",
+      "production_name": "restrict_session_helper_rpc_privileges",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261105152656",
+      "production_name": "restrict_public_clinic_and_clinical_access",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105162000_restrict_public_clinic_and_clinical_access.sql",
+      "source_git_blob_sha1": "44da0251e8111d5b60a131894c4b3313859c3ec5",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105152933",
+      "production_name": "secure_auth_verification_storage",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105150000_secure_auth_verification_storage.sql",
+      "source_git_blob_sha1": "1419ec3399c2d570e8a09107194131a7533455bd",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105152935",
+      "production_name": "rate_limit_credentials_auth",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105163000_rate_limit_credentials_auth.sql",
+      "source_git_blob_sha1": "79c26c00a8391fab92210033029abb3d312be929",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105153610",
+      "production_name": "enforce_auth_otp_resend_cooldown",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261105154412",
+      "production_name": "revoke_anonymous_table_privileges",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105165500_revoke_anonymous_table_privileges.sql",
+      "source_git_blob_sha1": "a52693f81e32a8cf24a155bbdb4d8e0e826df560",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105154628",
+      "production_name": "restrict_legacy_auth_keys",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105170000_restrict_legacy_auth_keys.sql",
+      "source_git_blob_sha1": "c6c282a5cc910442a0eca1642754909cb3952a07",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105154738",
+      "production_name": "restrict_slug_availability_rpc",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105172000_restrict_slug_availability_rpc.sql",
+      "source_git_blob_sha1": "9876e8885ab0a2823b00423b0a5ba1cbdb5b6b12",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105154749",
+      "production_name": "restrict_unpublished_clinic_tables",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105173000_restrict_unpublished_clinic_tables.sql",
+      "source_git_blob_sha1": "a12db0729414e30403392da611b4313e660cb6bb",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105154801",
+      "production_name": "fix_notification_tenant_policies",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105174000_fix_notification_tenant_policies.sql",
+      "source_git_blob_sha1": "e0f551f1152006ba5fdd48f12182cb3f1d3e125b",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105154823",
+      "production_name": "bind_setup_clinic_to_session",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105175000_bind_setup_clinic_to_session.sql",
+      "source_git_blob_sha1": "d3eb7cce7524dfedff02b6bd7246718a57ad9d66",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105154926",
+      "production_name": "harden_clinic_provisioning_and_plan_prices",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105180000_harden_clinic_provisioning_and_plan_prices.sql",
+      "source_git_blob_sha1": "2d49909d60ae89f54095906b0d61773e5e53a36f",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105155012",
+      "production_name": "add_case_insensitive_identity_constraints",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105181000_add_case_insensitive_identity_constraints.sql",
+      "source_git_blob_sha1": "334f990e9f5180685406c5e2077a8954c41342a0",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105155834",
+      "production_name": "harden_server_side_clinic_onboarding",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105190000_harden_server_side_clinic_onboarding.sql",
+      "source_git_blob_sha1": "0a74f89dc97792469747288a6db623e65e525039",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105155909",
+      "production_name": "fix_clinic_setup_settings_identity",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105191000_fix_clinic_setup_settings_identity.sql",
+      "source_git_blob_sha1": "1b59d6d75fabee324d289bec0d5f1b1745af175b",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105160112",
+      "production_name": "expire_shadow_sessions_in_rls",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105192000_expire_shadow_sessions_in_rls.sql",
+      "source_git_blob_sha1": "de48fd9ed5b990d96e13194979258347e5dfe2d4",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105160158",
+      "production_name": "safe_shadow_expiry_check",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105192500_safe_shadow_expiry_check.sql",
+      "source_git_blob_sha1": "60cbc8f9f052a09b942c37434413eada2ec52693",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105160332",
+      "production_name": "revoke_legacy_onboarding_rpc_access",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105193000_revoke_legacy_onboarding_rpc_access.sql",
+      "source_git_blob_sha1": "e7f82afd26507adfc012a334841492ea9c78b057",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105161113",
+      "production_name": "restrict_browser_payment_order_mappings",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105194000_restrict_browser_payment_order_mappings.sql",
+      "source_git_blob_sha1": "e2ddcdb8b667d7206cd3c825e0ee5ea2f1a1950c",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105161809",
+      "production_name": "unique_paymob_subscription_identifiers",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261105162204",
+      "production_name": "revoke_all_browser_app_key_access",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105195000_revoke_all_browser_app_key_access.sql",
+      "source_git_blob_sha1": "b1e573aff1ab9f2c9020e09079b7e02bfddc2f42",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105162309",
+      "production_name": "restrict_system_broadcasts_to_authenticated_clinics",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261105162328",
+      "production_name": "restrict_treatment_templates_to_authenticated_users",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105200000_restrict_treatment_templates_to_authenticated_users.sql",
+      "source_git_blob_sha1": "ab4d391d746631baf240d5db899e3ae1df966adb",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105170505",
+      "production_name": "unique_paymob_subscription_references",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261105170505_unique_paymob_subscription_references.sql",
+      "source_git_blob_sha1": "30c2261516c1f2993d5f3c0a292631ab79737ac9",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261105170626",
+      "production_name": "explicit_deny_policies_and_slug_rpc_restriction",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261105170626_explicit_deny_policies_and_slug_rpc_restriction.sql",
+      "source_git_blob_sha1": "e011884be8c325cb4b35f740f3d93003987cb5ae",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261105170724",
+      "production_name": "index_uncovered_public_foreign_keys",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261105170724_index_uncovered_public_foreign_keys.sql",
+      "source_git_blob_sha1": "540c0c636cc4ebe187b440857942508bef03075e",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261105171555",
+      "production_name": "remove_duplicate_clinic_indexes",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261105171555_remove_duplicate_clinic_indexes.sql",
+      "source_git_blob_sha1": "ff7cf4830922775d0030b8d624662f0df63b8cdf",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261105171638",
+      "production_name": "make_shadow_session_expiry_policy_restrictive",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261105171638_make_shadow_session_expiry_policy_restrictive.sql",
+      "source_git_blob_sha1": "2577c48007bd0c68a97db2c21948331a46cf1a15",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261105171712",
+      "production_name": "restrict_tenant_policies_to_authenticated_role",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261105171712_restrict_tenant_policies_to_authenticated_role.sql",
+      "source_git_blob_sha1": "e643fe19fad3917f70b75dafb24fc5b872268770",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261105172545",
+      "production_name": "harden_rls_helper_function_search_paths",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261105172545_harden_rls_helper_function_search_paths.sql",
+      "source_git_blob_sha1": "bffc21bd865e80a9afdde83d5071f266d3e194e7",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261105210155",
+      "production_name": "protect_clinical_history_and_atomic_workflows",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105210000_protect_clinical_history_and_atomic_workflows.sql",
+      "source_git_blob_sha1": "32486004d75f2cdf6009efcc0332a629930a3b72",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105210843",
+      "production_name": "preserve_paid_invoices_and_completed_sessions",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105211000_preserve_paid_invoices_and_completed_sessions.sql",
+      "source_git_blob_sha1": "1477ae99720ce60a97f573109aea5b91ddc197b1",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105210946",
+      "production_name": "index_patient_history_foreign_keys",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261105211500_index_patient_history_foreign_keys.sql",
+      "source_git_blob_sha1": "8aff9104b6fd6290a7a51d84ebfdc199254eb1c4",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261105212431",
+      "production_name": "link_treatment_plans_to_appointments_and_record_session_progress",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261105212431_link_treatment_plans_to_appointments_and_record_session_progress.sql",
+      "source_git_blob_sha1": "f327340f00fb92e6cfd44465ea6c0d44f32c9b55",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261105212732",
+      "production_name": "preserve_session_objectives_in_completed_records",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261105212732_preserve_session_objectives_in_completed_records.sql",
+      "source_git_blob_sha1": "12a4be2b929edd9361335b03cf093eb0bec76e15",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261105213233",
+      "production_name": "enforce_appointment_treatment_plan_patient_and_clinic_match",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261105213233_enforce_appointment_treatment_plan_patient_and_clinic_match.sql",
+      "source_git_blob_sha1": "02526bef10ce184bfe5be7c5c5d8918f0a0b2b77",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261105213642",
+      "production_name": "remove_weak_audit_insert_and_duplicate_staff_policy",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261105213642_remove_weak_audit_insert_and_duplicate_staff_policy.sql",
+      "source_git_blob_sha1": "899d06fcda8e8f91cdc310dfed7c23d497931941",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261105213918",
+      "production_name": "index_appointment_treatment_plan_composite_foreign_key",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261105213918_index_appointment_treatment_plan_composite_foreign_key.sql",
+      "source_git_blob_sha1": "f134c0dde128c170539441b2bc8dda934042ba9d",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261105214217",
+      "production_name": "store_target_exercises_on_treatment_plans",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261105214217_store_target_exercises_on_treatment_plans.sql",
+      "source_git_blob_sha1": "1280efacb3b623e063906e5b98f0360e01e38939",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261106003126",
+      "production_name": "optimize_rls_auth_function_evaluation",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261106003000_optimize_rls_auth_function_evaluation.sql",
+      "source_git_blob_sha1": "5ee8954758dc85783998f5bff1e5846f6f3e51a2",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261106083116",
+      "production_name": "prevent_duplicate_active_subscriptions_and_delete_staff_identity",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261106083130",
+      "production_name": "prevent_duplicate_active_subscriptions_and_delete_staff_identity_v2",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261106083212",
+      "production_name": "preserve_staff_history_on_account_removal",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261106083625",
+      "production_name": "revoke_rls_access_for_removed_staff",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261106083724",
+      "production_name": "restrict_platform_admin_phi_access",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261106084057",
+      "production_name": "restrict_platform_admin_audit_log_phi",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261107181800",
+      "production_name": "add_persisted_emr_patient_profile_fields",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261108070350",
+      "production_name": "enforce_role_based_staff_permissions",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261108070350_enforce_role_based_staff_permissions.sql",
+      "source_git_blob_sha1": "aa1508912eee4b9450a3fc542a8eacab54d53b70",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261108070710",
+      "production_name": "restrict_clinical_record_reads",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261108070710_restrict_clinical_record_reads.sql",
+      "source_git_blob_sha1": "30d069df71c3afd7303504ddb1505c3d326935dd",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261108071832",
+      "production_name": "separate_patient_medical_records",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261108071832_separate_patient_medical_records.sql",
+      "source_git_blob_sha1": "d604fc3301ea40fac18d475a7e195d4a83437728",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261108072714",
+      "production_name": "remove_legacy_patient_medical_columns",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261108072714_remove_legacy_patient_medical_columns.sql",
+      "source_git_blob_sha1": "74cb20a6f47311acc69baad7a3f0d177760fa184",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261108072951",
+      "production_name": "add_appointment_resource_conflict_protection",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261108072951_add_appointment_resource_conflict_protection.sql",
+      "source_git_blob_sha1": "1f3c54953e278ce165c74a7b417f1ba29ba6f9a8",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261108073054",
+      "production_name": "link_patients_appointments_and_invoices_to_branches",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261108073054_link_patients_appointments_and_invoices_to_branches.sql",
+      "source_git_blob_sha1": "82ed081ccc753a639569e92ae384069cb63fb82a",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261108073231",
+      "production_name": "require_emr_permission_for_session_completion",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261108073231_require_emr_permission_for_session_completion.sql",
+      "source_git_blob_sha1": "aef434302a92a7afb1c13e77225fc4b64af906ca",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261108073335",
+      "production_name": "persist_session_branch_and_guard_completion_permission",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261108073335_persist_session_branch_and_guard_completion_permission.sql",
+      "source_git_blob_sha1": "a4369fec0d12eb757f971d9da0eb6071294d629c",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261108073603",
+      "production_name": "add_private_patient_attachment_storage",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261108073603_add_private_patient_attachment_storage.sql",
+      "source_git_blob_sha1": "53b8ff1ab7bd0cc334b05e1032bc029033ca8cfe",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261108074704",
+      "production_name": "backfill_single_branch_records",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261108074704_backfill_single_branch_records.sql",
+      "source_git_blob_sha1": "72057bf0ea6328834a5d5494c806a28ce35ff710",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261108074759",
+      "production_name": "expand_audit_coverage_and_capture_safe_diffs",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261108074759_expand_audit_coverage_and_capture_safe_diffs.sql",
+      "source_git_blob_sha1": "63435fe2218922f40ad1e72fd4a2a40e22c8a612",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261108075429",
+      "production_name": "restrict_appointment_clinical_column_access",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261108075429_restrict_appointment_clinical_column_access.sql",
+      "source_git_blob_sha1": "8a8932e240a566fc0a8530bca44eb635f7ff1d11",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261108075727",
+      "production_name": "restrict_appointment_table_to_safe_columns",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261108075727_restrict_appointment_table_to_safe_columns.sql",
+      "source_git_blob_sha1": "7df072d1d972b5dce953f9e6ca84d2a2ca5e94b4",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261108211451",
+      "production_name": "add_center_creation_email_otp",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261108183000_add_center_creation_email_otp.sql",
+      "source_git_blob_sha1": "ea306391dea1646efe5795938198f4be5306e255",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261109064857",
+      "production_name": "secure_clinic_owner_contact_phone",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261109064857_secure_clinic_owner_contact_phone.sql",
+      "source_git_blob_sha1": "ac7a64cbd9c7d0a19014ed50dc1ae1e09ffabb16",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261109065008",
+      "production_name": "harden_owner_contact_rpc_role_check",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261109065008_harden_owner_contact_rpc_role_check.sql",
+      "source_git_blob_sha1": "7562efadfc172eb26d45574097d07b7db91788c1",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261109072353",
+      "production_name": "create_signup_legal_acceptances",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261109072315_create_signup_legal_acceptances.sql",
+      "source_git_blob_sha1": "48aeb78e7d17070fdac33d7c56f4997d6c82d88e",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261109224321",
+      "production_name": "multi_center_ownership_and_tenant_context",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261109224321_multi_center_ownership_and_tenant_context.sql",
+      "source_git_blob_sha1": "3a310745b2d6edd09dbc8f33672b8f9be1f9c311",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261109224434",
+      "production_name": "create_independent_center_provisioning",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261109224434_create_independent_center_provisioning.sql",
+      "source_git_blob_sha1": "f229ace2d4be791b64561c84b31ed893637b626b",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261109224906",
+      "production_name": "keep_owner_identity_global_across_centers",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261109224906_keep_owner_identity_global_across_centers.sql",
+      "source_git_blob_sha1": "3f40c0023e6fb82f45b7ba7c8108183216f9a3a2",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261109224949",
+      "production_name": "keep_subscription_selection_per_center",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261109224949_keep_subscription_selection_per_center.sql",
+      "source_git_blob_sha1": "10c39c71e019b5c1378894af7b2514139ee753bd",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261109225046",
+      "production_name": "allow_multiple_center_settings_per_owner",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261109225046_allow_multiple_center_settings_per_owner.sql",
+      "source_git_blob_sha1": "6b240b1c130e4c0623a5695e0a57f4f8f98f5f48",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261109225314",
+      "production_name": "scope_legacy_staff_rls_to_active_tenant",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261109225314_scope_legacy_staff_rls_to_active_tenant.sql",
+      "source_git_blob_sha1": "fc596918ba777bd23435d00f98ace4a1afe4d615",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261109225529",
+      "production_name": "reserve_static_routes_for_center_slugs",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261109225426_reserve_static_routes_for_center_slugs.sql",
+      "source_git_blob_sha1": "e6f7138481234872ffc0d3ae756ca1fbd5d8a379",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261111200553",
+      "production_name": "add_recurring_group_appointment_support",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261111200553_add_recurring_group_appointment_support.sql",
+      "source_git_blob_sha1": "fd5bfe6c1b945eedb065a0a40d501750350729e3",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261111201010",
+      "production_name": "fix_group_participant_invoice_reference",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261111201010_fix_group_participant_invoice_reference.sql",
+      "source_git_blob_sha1": "4cdfb6bc1143e09074695c8a21a3a6de1127cfc0",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261111201116",
+      "production_name": "harden_group_appointment_participant_access",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261111201116_harden_group_appointment_participant_access.sql",
+      "source_git_blob_sha1": "bc64afd294ae0077eb3ed39ffc51bc1c3d928942",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261112215822",
+      "production_name": "add_public_clinic_profile_fields",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261112220000_add_public_clinic_profile_fields.sql",
+      "source_git_blob_sha1": "4cb87a6c62b319f1274d21716f5f189c1a55ea7e",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261114160841",
+      "production_name": "enforce_real_subscription_plan_limits",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261114170000_enforce_real_subscription_plan_limits.sql",
+      "source_git_blob_sha1": "4142665bd9f4af819c87efae4a61f0716a4a71af",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261114161021",
+      "production_name": "count_center_owners_in_subscription_user_quotas",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261114191737",
+      "production_name": "atomic_public_clinic_booking",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261114191737_atomic_public_clinic_booking.sql",
+      "source_git_blob_sha1": "348a593eee7d45ca0e7f0173911f620c069de597",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261114192007",
+      "production_name": "normalize_legacy_appointment_time_overlap",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261114192007_normalize_legacy_appointment_time_overlap.sql",
+      "source_git_blob_sha1": "f5937f448adcca811fd1877a67c9b09e11d1415a",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261114201657",
+      "production_name": "group_booking_requests_and_series",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261114210000_group_booking_requests_and_series.sql",
+      "source_git_blob_sha1": "def37c1b62720e271cffb0d6a22157dcce15d556",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261114202201",
+      "production_name": "fix_group_booking_schedule_cursor",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261114211500_fix_group_booking_schedule_cursor.sql",
+      "source_git_blob_sha1": "79c2acfbfd355577ea0efe51c6cf55376c833132",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261114202310",
+      "production_name": "allow_shared_group_slots",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261114213000_allow_shared_group_slots.sql",
+      "source_git_blob_sha1": "6855a18f6de69860c2372688ea456c71239d3631",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261114202550",
+      "production_name": "add_group_booking_selected_dates",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261114221000_add_group_booking_selected_dates.sql",
+      "source_git_blob_sha1": "a7c35536eca16429547fc7acd68b724ee6a0baec",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261114202636",
+      "production_name": "use_selected_dates_for_group_series",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261114221500_use_selected_dates_for_group_series.sql",
+      "source_git_blob_sha1": "4adda29495a35aaa46e6c836a47fd5ee61b2c31c",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261114202825",
+      "production_name": "align_group_booking_hours_source",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261114223000_align_group_booking_hours_source.sql",
+      "source_git_blob_sha1": "335634d0ef5ace29356ee5421c588e454b3bc459",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261115155627",
+      "production_name": "20261115160000_make_group_sessions_one_hour",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261115162925",
+      "production_name": "create_doctor_working_hours",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261115163000_create_doctor_working_hours.sql",
+      "source_git_blob_sha1": "76d9194ab0047b80847c71690d9d6aaca47a75be",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261115203650",
+      "production_name": "revoke_anonymous_default_table_grants",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261115203650_revoke_anonymous_default_table_grants.sql",
+      "source_git_blob_sha1": "2f092dfed73bf519a830b7cc58bf08bf080a742d",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261115203941",
+      "production_name": "remove_remaining_duplicate_indexes",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261115203941_remove_remaining_duplicate_indexes.sql",
+      "source_git_blob_sha1": "663b9ddbc252dbf9381a94924b6cc2c9fc2ae094",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261115205154",
+      "production_name": "index_uncovered_foreign_keys_november_2026",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261115205229",
+      "production_name": "remove_anonymous_app_key_values_grants",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261115205709",
+      "production_name": "make_auth_session_guard_restrictive",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261115211000_make_auth_session_guard_restrictive.sql",
+      "source_git_blob_sha1": "226123b60f002d22c383062c4a033618781a4160",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261115205901",
+      "production_name": "wrap_rls_auth_uid_calls_in_initplans",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261115205940",
+      "production_name": "wrap_direct_rls_uid_calls_in_initplans",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261116082011",
+      "production_name": "enforce_patient_and_align_plan_quotas",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261116082011_enforce_patient_and_align_plan_quotas.sql",
+      "source_git_blob_sha1": "386da968d420f93ad416c74abcf0bf39a0381588",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261116082356",
+      "production_name": "remove_duplicate_patient_subscription_index",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261116082356_remove_duplicate_patient_subscription_index.sql",
+      "source_git_blob_sha1": "fa96644fe8ad65ad5ca0891fd88f58b0c3085fe3",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261116090518",
+      "production_name": "align_storage_usage_with_enforced_quota",
+      "classification": "no_same_name_source",
+      "source_candidate": null,
+      "source_git_blob_sha1": null,
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "No same-name source file; recover from trusted deployment artifact or historical backup"
+    },
+    {
+      "production_version": "20261116173825",
+      "production_name": "complete_subscription_payment_flow",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261116173825_complete_subscription_payment_flow.sql",
+      "source_git_blob_sha1": "01e67bd4f261426ec85d8d241940b4f98246555c",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261116175057",
+      "production_name": "serialize_subscription_activation_per_clinic",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261116175200_serialize_subscription_activation_per_clinic.sql",
+      "source_git_blob_sha1": "d37fb80822fa3b44c8a1e194230914730c1764dd",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261116175439",
+      "production_name": "prevent_duplicate_open_checkouts_and_extend_renewals",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261116180000_prevent_duplicate_open_checkouts_and_extend_renewals.sql",
+      "source_git_blob_sha1": "4526b446ae2812e156605c346ac35f7bb096eb86",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261116180639",
+      "production_name": "retire_paymob_subscription_schema",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261116182000_retire_paymob_subscription_schema.sql",
+      "source_git_blob_sha1": "aa6db23f6c545d9e3823dcbacb6a6250395c91b2",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261116181948",
+      "production_name": "add_manual_subscription_payments",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261116181948_add_manual_subscription_payments.sql",
+      "source_git_blob_sha1": "eb5b18541b2acddbdb45a39e68a34de8bf737307",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261116182300",
+      "production_name": "prevent_duplicate_pending_subscription_payments",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261116182300_prevent_duplicate_pending_subscription_payments.sql",
+      "source_git_blob_sha1": "2d82b583373cfb1c2635b5dce5e8fccba6e7fd03",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261116183119",
+      "production_name": "add_subscription_payment_reference",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261116183119_add_subscription_payment_reference.sql",
+      "source_git_blob_sha1": "3c364d573162c73a7e31fcded26e44661bff8036",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261116194303",
+      "production_name": "harden_public_default_privileges",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261116194303_harden_public_default_privileges.sql",
+      "source_git_blob_sha1": "c761f449ab6e0134a1d3a7db59af17cf27bf9a1c",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261116195437",
+      "production_name": "revoke_global_public_function_defaults",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261116195437_revoke_global_public_function_defaults.sql",
+      "source_git_blob_sha1": "1edd40d3f6f7fa55828776eb13c8c509c9e8354b",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261116214936",
+      "production_name": "create_platform_admin_console_audit_and_safe_payment_review",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261116203000_create_platform_admin_console_audit_and_safe_payment_review.sql",
+      "source_git_blob_sha1": "cc21000b751e1a4a97bbbf9845d4aeb6796daa13",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261117174700",
+      "production_name": "comprehensive_clinic_activity_audit",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261117174700_comprehensive_clinic_activity_audit.sql",
+      "source_git_blob_sha1": "84c166e359edeefccd6513d8078c31e599e6f4ab",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261117175936",
+      "production_name": "disable_activity_audit_logging",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261117182000_disable_activity_audit_logging.sql",
+      "source_git_blob_sha1": "8d62fc66ac38d69e9b3a28de5f85c8e9f69258bf",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261118180258",
+      "production_name": "patient_archive_and_safe_hard_delete",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261118190000_patient_archive_and_safe_hard_delete.sql",
+      "source_git_blob_sha1": "cd3f2ad07642d45b25c52168f2942b93bc02f1bf",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261118180707",
+      "production_name": "include_all_patient_linked_records_in_hard_delete",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261118191500_include_all_patient_linked_records_in_hard_delete.sql",
+      "source_git_blob_sha1": "fcb2693e98487b496c39e95e40fd6f35fa104538",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261118191114",
+      "production_name": "create_secure_clinic_messaging",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261118193000_create_secure_clinic_messaging.sql",
+      "source_git_blob_sha1": "5406d66db56ed781d09421062f3e91bea10d18d7",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261118195229",
+      "production_name": "persist_profile_bank_logo_and_notification_reads",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261118195229_persist_profile_bank_logo_and_notification_reads.sql",
+      "source_git_blob_sha1": "afa2e215a6dbc4b6d74c0714d2482d364f3eee94",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261118195831",
+      "production_name": "restore_scoped_core_activity_audit",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261118195831_restore_scoped_core_activity_audit.sql",
+      "source_git_blob_sha1": "cb0bb215723eee415bab2e2ebf429a88b746d4e0",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261118195954",
+      "production_name": "index_platform_admin_audit_foreign_keys",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261118195954_index_platform_admin_audit_foreign_keys.sql",
+      "source_git_blob_sha1": "58b1efe66ef5111274b80b8d1d9c50c6b7f8719e",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261118200328",
+      "production_name": "isolate_clinic_bank_details_to_admins",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261118200328_isolate_clinic_bank_details_to_admins.sql",
+      "source_git_blob_sha1": "bd6a7f1b6e8b5652ad4b63576c8669ea095e499a",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261118200723",
+      "production_name": "limit_clinic_logo_uploads",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261118200600_limit_clinic_logo_uploads.sql",
+      "source_git_blob_sha1": "4ce7242340e041f3eaac51dcf25416ebdaab66a3",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261118200912",
+      "production_name": "allow_admin_cleanup_of_replaced_clinic_logos",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261118200800_allow_admin_cleanup_of_replaced_clinic_logos.sql",
+      "source_git_blob_sha1": "5d85cd608f5601a067e5ca8cde368ca89fddd5bf",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261118201048",
+      "production_name": "expand_scoped_activity_audit_coverage",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261118201100_expand_scoped_activity_audit_coverage.sql",
+      "source_git_blob_sha1": "68c27cd66f1b24af861cac3a74bc5c6b5aecd0b2",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261118201229",
+      "production_name": "expand_notification_read_receipt_sources",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261118201200_expand_notification_read_receipt_sources.sql",
+      "source_git_blob_sha1": "d382ddec8d42c947017ba838e80a109c307e6a50",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261119192121",
+      "production_name": "fix_clinic_owner_invoice_permissions",
+      "classification": "same_name_timestamp_mismatch",
+      "source_candidate": "20261119192000_fix_clinic_owner_invoice_permissions.sql",
+      "source_git_blob_sha1": "e97b7294ef8d9c18d27b91e25e091f0d814fd11d",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Candidate selected by name only; compare full SQL body and history"
+    },
+    {
+      "production_version": "20261120025936",
+      "production_name": "independent_view_permissions_20261120",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261120025936_independent_view_permissions_20261120.sql",
+      "source_git_blob_sha1": "1e80a87bf739bfabc3441b0a12b85cf7c3320a4d",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    },
+    {
+      "production_version": "20261120030350",
+      "production_name": "require_patient_visibility_for_appointment_deletes",
+      "classification": "exact_version_and_name_candidate",
+      "source_candidate": "20261120030350_require_patient_visibility_for_appointment_deletes.sql",
+      "source_git_blob_sha1": "89cc238b1aa2882fced73dacfa6b01732a0d3e4e",
+      "production_sql_sha256": null,
+      "sql_body_equivalence": "NOT_VERIFIED",
+      "evidence": "Only version/name match; retrieve applied SQL to prove body identity"
+    }
+  ],
+  "source_only_files": [
+    {
+      "file": "20261105151000_pin_security_function_search_path.sql",
+      "git_blob_sha1": "243ee5f1a792336f287888f7821a460f51e86ce3",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261105152500_restrict_clinic_lookup_and_provision.sql",
+      "git_blob_sha1": "1d45675e01e80042beb50772012ad1544de07951",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261105155000_restrict_security_definer_function_grants.sql",
+      "git_blob_sha1": "09ea4582edc0fa3175d5421ba1563db3715e0a7f",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261105161500_enforce_clinic_owner_session_email.sql",
+      "git_blob_sha1": "8dbd31d6104412ca8e23ed81642323d03c063df2",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261105165000_revoke_legacy_app_key_values_access.sql",
+      "git_blob_sha1": "dca3ffeb50a686148e72c74ade3c2b37444a255c",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261105171000_revoke_legacy_app_key_values_access.sql",
+      "git_blob_sha1": "b7678a192619d7d4f689ef17242d64c9a6f2464e",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261105194500_unique_paymob_subscription_ids.sql",
+      "git_blob_sha1": "d66d3ec86aa4ec08c39920656eb7ae3dd567811e",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261105195500_restrict_system_broadcasts_to_clinics.sql",
+      "git_blob_sha1": "eb119f7b2dfc4fbfac9daaa76644bb33e6f66d9d",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261108170000_generate_clinic_slugs.sql",
+      "git_blob_sha1": "c420e1fda889a4b984de9a86b91a9e3bb299ffcc",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261114171000_count_center_owners_in_user_quotas.sql",
+      "git_blob_sha1": "c4261bfe166db038bb9d256e112b2dbcc8772f30",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261115160000_make_group_sessions_one_hour.sql",
+      "git_blob_sha1": "b0cb7141979d765ccf4090510fd9618cfc885982",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261115210000_index_uncovered_foreign_keys.sql",
+      "git_blob_sha1": "7b000eaad9a6b72422a4deaa397e7f9dd70fb957",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261115210500_revoke_anonymous_app_key_values.sql",
+      "git_blob_sha1": "66f95e482cff831199f78ab4b1887f3cb996c007",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261115212000_wrap_rls_auth_uid_initplans.sql",
+      "git_blob_sha1": "0b79b09f9778ea186140656608982410626da514",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    },
+    {
+      "file": "20261115213000_wrap_direct_rls_uid_calls.sql",
+      "git_blob_sha1": "d2cba88eab747a8457a578b83c1413fe28987055",
+      "classification": "SOURCE_ONLY_NO_SAME_NAME_PRODUCTION_RECORD",
+      "action": "Do not apply until proven required or superseded"
+    }
+  ]
+}
