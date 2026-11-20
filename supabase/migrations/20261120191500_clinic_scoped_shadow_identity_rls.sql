@@ -479,6 +479,2065 @@ begin
 
   v_slug := lower(trim(coalesce(p_slug, '')));
   if v_slug !~ '^[a-z0-9-]{3,50}
+
+  select name, price_monthly into v_plan_name, v_plan_price
+  from public.subscription_plans
+  where is_active = true
+    and (lower(name) = lower(trim(coalesce(p_plan_id, ''))) or id::text = trim(coalesce(p_plan_id, '')))
+  limit 1;
+
+  if v_plan_name is null then
+    return jsonb_build_object('error', 'Selected subscription plan is unavailable');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  select id into v_existing_clinic_id
+  from public.clinics
+  where lower(admin_email) = lower(trim(p_email))
+  limit 1
+  for update;
+
+  if v_existing_clinic_id is not null then
+    return jsonb_build_object('error', 'This email already has a clinic', 'code', 'CLINIC_EMAIL_EXISTS', 'clinicId', v_existing_clinic_id);
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_short_name), btrim(p_short_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  insert into public.branches (clinic_id, short_name, full_name, slug, specializations, logo_url, status)
+  values (v_clinic_id, btrim(p_short_name), nullif(btrim(coalesce(p_full_name, '')), ''), v_slug,
+          coalesce(p_specializations, '[]'::jsonb), p_logo_url, 'active')
+  returning id into v_branch_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name, logo_url)
+  values (v_clinic_id, btrim(p_short_name), p_logo_url)
+  on conflict (clinic_id) do nothing;
+
+  insert into public.subscriptions (clinic_id, user_email, plan_name, plan_price, status, start_date)
+  values (v_clinic_id, lower(trim(p_email)), v_plan_name, v_plan_price, 'active', now());
+
+  return jsonb_build_object('clinic_id', v_clinic_id, 'branch_id', v_branch_id);
+end;
+$function$;
+
+create or replace function public.setup_clinic_transaction(
+  p_email text,
+  p_name text,
+  p_branches jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = 'pg_catalog', 'public'
+as $function$
+declare
+  v_clinic_id uuid;
+  v_branch jsonb;
+  v_branch_id uuid;
+  v_branch_slug text;
+  v_branches jsonb := '[]'::jsonb;
+  v_staff_id uuid;
+begin
+  if auth.uid() is null
+     or public.get_auth_email() is distinct from lower(trim(coalesce(p_email, ''))) then
+    raise exception 'Unauthorized' using errcode = '42501';
+  end if;
+
+  if p_name is null or btrim(p_name) = '' or length(p_name) > 160
+     or p_branches is null or jsonb_typeof(p_branches) <> 'array'
+     or jsonb_array_length(p_branches) < 1 or jsonb_array_length(p_branches) > 5 then
+    return jsonb_build_object('error', 'Invalid clinic setup details');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  if exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    where jsonb_typeof(b.value) <> 'object'
+       or btrim(coalesce(b.value->>'shortName', '')) = ''
+       or lower(btrim(coalesce(b.value->>'slug', ''))) !~ '^[a-z0-9-]{3,50}
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+ then
+    return jsonb_build_object('error', 'Invalid clinic slug');
+  end if;
+
+  select name, price_monthly into v_plan_name, v_plan_price
+  from public.subscription_plans
+  where is_active = true
+    and (lower(name) = lower(trim(coalesce(p_plan_id, ''))) or id::text = trim(coalesce(p_plan_id, '')))
+  limit 1;
+
+  if v_plan_name is null then
+    return jsonb_build_object('error', 'Selected subscription plan is unavailable');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  select id into v_existing_clinic_id
+  from public.clinics
+  where lower(admin_email) = lower(trim(p_email))
+  limit 1
+  for update;
+
+  if v_existing_clinic_id is not null then
+    return jsonb_build_object('error', 'This email already has a clinic', 'code', 'CLINIC_EMAIL_EXISTS', 'clinicId', v_existing_clinic_id);
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_short_name), btrim(p_short_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  insert into public.branches (clinic_id, short_name, full_name, slug, specializations, logo_url, status)
+  values (v_clinic_id, btrim(p_short_name), nullif(btrim(coalesce(p_full_name, '')), ''), v_slug,
+          coalesce(p_specializations, '[]'::jsonb), p_logo_url, 'active')
+  returning id into v_branch_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name, logo_url)
+  values (v_clinic_id, btrim(p_short_name), p_logo_url)
+  on conflict (clinic_id) do nothing;
+
+  insert into public.subscriptions (clinic_id, user_email, plan_name, plan_price, status, start_date)
+  values (v_clinic_id, lower(trim(p_email)), v_plan_name, v_plan_price, 'active', now());
+
+  return jsonb_build_object('clinic_id', v_clinic_id, 'branch_id', v_branch_id);
+end;
+$function$;
+
+create or replace function public.setup_clinic_transaction(
+  p_email text,
+  p_name text,
+  p_branches jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = 'pg_catalog', 'public'
+as $function$
+declare
+  v_clinic_id uuid;
+  v_branch jsonb;
+  v_branch_id uuid;
+  v_branch_slug text;
+  v_branches jsonb := '[]'::jsonb;
+  v_staff_id uuid;
+begin
+  if auth.uid() is null
+     or public.get_auth_email() is distinct from lower(trim(coalesce(p_email, ''))) then
+    raise exception 'Unauthorized' using errcode = '42501';
+  end if;
+
+  if p_name is null or btrim(p_name) = '' or length(p_name) > 160
+     or p_branches is null or jsonb_typeof(p_branches) <> 'array'
+     or jsonb_array_length(p_branches) < 1 or jsonb_array_length(p_branches) > 5 then
+    return jsonb_build_object('error', 'Invalid clinic setup details');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  if exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    where jsonb_typeof(b.value) <> 'object'
+       or btrim(coalesce(b.value->>'shortName', '')) = ''
+       or lower(btrim(coalesce(b.value->>'slug', ''))) !~ '^[a-z0-9-]{3,50}
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+  ) then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+  ) then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+ then
+    return jsonb_build_object('error', 'Invalid clinic slug');
+  end if;
+
+  select name, price_monthly into v_plan_name, v_plan_price
+  from public.subscription_plans
+  where is_active = true
+    and (lower(name) = lower(trim(coalesce(p_plan_id, ''))) or id::text = trim(coalesce(p_plan_id, '')))
+  limit 1;
+
+  if v_plan_name is null then
+    return jsonb_build_object('error', 'Selected subscription plan is unavailable');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  select id into v_existing_clinic_id
+  from public.clinics
+  where lower(admin_email) = lower(trim(p_email))
+  limit 1
+  for update;
+
+  if v_existing_clinic_id is not null then
+    return jsonb_build_object('error', 'This email already has a clinic', 'code', 'CLINIC_EMAIL_EXISTS', 'clinicId', v_existing_clinic_id);
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_short_name), btrim(p_short_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  insert into public.branches (clinic_id, short_name, full_name, slug, specializations, logo_url, status)
+  values (v_clinic_id, btrim(p_short_name), nullif(btrim(coalesce(p_full_name, '')), ''), v_slug,
+          coalesce(p_specializations, '[]'::jsonb), p_logo_url, 'active')
+  returning id into v_branch_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name, logo_url)
+  values (v_clinic_id, btrim(p_short_name), p_logo_url)
+  on conflict (clinic_id) do nothing;
+
+  insert into public.subscriptions (clinic_id, user_email, plan_name, plan_price, status, start_date)
+  values (v_clinic_id, lower(trim(p_email)), v_plan_name, v_plan_price, 'active', now());
+
+  return jsonb_build_object('clinic_id', v_clinic_id, 'branch_id', v_branch_id);
+end;
+$function$;
+
+create or replace function public.setup_clinic_transaction(
+  p_email text,
+  p_name text,
+  p_branches jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = 'pg_catalog', 'public'
+as $function$
+declare
+  v_clinic_id uuid;
+  v_branch jsonb;
+  v_branch_id uuid;
+  v_branch_slug text;
+  v_branches jsonb := '[]'::jsonb;
+  v_staff_id uuid;
+begin
+  if auth.uid() is null
+     or public.get_auth_email() is distinct from lower(trim(coalesce(p_email, ''))) then
+    raise exception 'Unauthorized' using errcode = '42501';
+  end if;
+
+  if p_name is null or btrim(p_name) = '' or length(p_name) > 160
+     or p_branches is null or jsonb_typeof(p_branches) <> 'array'
+     or jsonb_array_length(p_branches) < 1 or jsonb_array_length(p_branches) > 5 then
+    return jsonb_build_object('error', 'Invalid clinic setup details');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  if exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    where jsonb_typeof(b.value) <> 'object'
+       or btrim(coalesce(b.value->>'shortName', '')) = ''
+       or lower(btrim(coalesce(b.value->>'slug', ''))) !~ '^[a-z0-9-]{3,50}
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+  ) then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+       or lower(btrim(coalesce(b.value->>'slug', ''))) in ('api', 'dashboard', 'login', 'signup', 'admin', 'www') then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+ then
+    return jsonb_build_object('error', 'Invalid clinic slug');
+  end if;
+
+  select name, price_monthly into v_plan_name, v_plan_price
+  from public.subscription_plans
+  where is_active = true
+    and (lower(name) = lower(trim(coalesce(p_plan_id, ''))) or id::text = trim(coalesce(p_plan_id, '')))
+  limit 1;
+
+  if v_plan_name is null then
+    return jsonb_build_object('error', 'Selected subscription plan is unavailable');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  select id into v_existing_clinic_id
+  from public.clinics
+  where lower(admin_email) = lower(trim(p_email))
+  limit 1
+  for update;
+
+  if v_existing_clinic_id is not null then
+    return jsonb_build_object('error', 'This email already has a clinic', 'code', 'CLINIC_EMAIL_EXISTS', 'clinicId', v_existing_clinic_id);
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_short_name), btrim(p_short_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  insert into public.branches (clinic_id, short_name, full_name, slug, specializations, logo_url, status)
+  values (v_clinic_id, btrim(p_short_name), nullif(btrim(coalesce(p_full_name, '')), ''), v_slug,
+          coalesce(p_specializations, '[]'::jsonb), p_logo_url, 'active')
+  returning id into v_branch_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name, logo_url)
+  values (v_clinic_id, btrim(p_short_name), p_logo_url)
+  on conflict (clinic_id) do nothing;
+
+  insert into public.subscriptions (clinic_id, user_email, plan_name, plan_price, status, start_date)
+  values (v_clinic_id, lower(trim(p_email)), v_plan_name, v_plan_price, 'active', now());
+
+  return jsonb_build_object('clinic_id', v_clinic_id, 'branch_id', v_branch_id);
+end;
+$function$;
+
+create or replace function public.setup_clinic_transaction(
+  p_email text,
+  p_name text,
+  p_branches jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = 'pg_catalog', 'public'
+as $function$
+declare
+  v_clinic_id uuid;
+  v_branch jsonb;
+  v_branch_id uuid;
+  v_branch_slug text;
+  v_branches jsonb := '[]'::jsonb;
+  v_staff_id uuid;
+begin
+  if auth.uid() is null
+     or public.get_auth_email() is distinct from lower(trim(coalesce(p_email, ''))) then
+    raise exception 'Unauthorized' using errcode = '42501';
+  end if;
+
+  if p_name is null or btrim(p_name) = '' or length(p_name) > 160
+     or p_branches is null or jsonb_typeof(p_branches) <> 'array'
+     or jsonb_array_length(p_branches) < 1 or jsonb_array_length(p_branches) > 5 then
+    return jsonb_build_object('error', 'Invalid clinic setup details');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  if exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    where jsonb_typeof(b.value) <> 'object'
+       or btrim(coalesce(b.value->>'shortName', '')) = ''
+       or lower(btrim(coalesce(b.value->>'slug', ''))) !~ '^[a-z0-9-]{3,50}
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+  ) then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+  ) then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+ then
+    return jsonb_build_object('error', 'Invalid clinic slug');
+  end if;
+
+  select name, price_monthly into v_plan_name, v_plan_price
+  from public.subscription_plans
+  where is_active = true
+    and (lower(name) = lower(trim(coalesce(p_plan_id, ''))) or id::text = trim(coalesce(p_plan_id, '')))
+  limit 1;
+
+  if v_plan_name is null then
+    return jsonb_build_object('error', 'Selected subscription plan is unavailable');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  select id into v_existing_clinic_id
+  from public.clinics
+  where lower(admin_email) = lower(trim(p_email))
+  limit 1
+  for update;
+
+  if v_existing_clinic_id is not null then
+    return jsonb_build_object('error', 'This email already has a clinic', 'code', 'CLINIC_EMAIL_EXISTS', 'clinicId', v_existing_clinic_id);
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_short_name), btrim(p_short_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  insert into public.branches (clinic_id, short_name, full_name, slug, specializations, logo_url, status)
+  values (v_clinic_id, btrim(p_short_name), nullif(btrim(coalesce(p_full_name, '')), ''), v_slug,
+          coalesce(p_specializations, '[]'::jsonb), p_logo_url, 'active')
+  returning id into v_branch_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name, logo_url)
+  values (v_clinic_id, btrim(p_short_name), p_logo_url)
+  on conflict (clinic_id) do nothing;
+
+  insert into public.subscriptions (clinic_id, user_email, plan_name, plan_price, status, start_date)
+  values (v_clinic_id, lower(trim(p_email)), v_plan_name, v_plan_price, 'active', now());
+
+  return jsonb_build_object('clinic_id', v_clinic_id, 'branch_id', v_branch_id);
+end;
+$function$;
+
+create or replace function public.setup_clinic_transaction(
+  p_email text,
+  p_name text,
+  p_branches jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = 'pg_catalog', 'public'
+as $function$
+declare
+  v_clinic_id uuid;
+  v_branch jsonb;
+  v_branch_id uuid;
+  v_branch_slug text;
+  v_branches jsonb := '[]'::jsonb;
+  v_staff_id uuid;
+begin
+  if auth.uid() is null
+     or public.get_auth_email() is distinct from lower(trim(coalesce(p_email, ''))) then
+    raise exception 'Unauthorized' using errcode = '42501';
+  end if;
+
+  if p_name is null or btrim(p_name) = '' or length(p_name) > 160
+     or p_branches is null or jsonb_typeof(p_branches) <> 'array'
+     or jsonb_array_length(p_branches) < 1 or jsonb_array_length(p_branches) > 5 then
+    return jsonb_build_object('error', 'Invalid clinic setup details');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  if exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    where jsonb_typeof(b.value) <> 'object'
+       or btrim(coalesce(b.value->>'shortName', '')) = ''
+       or lower(btrim(coalesce(b.value->>'slug', ''))) !~ '^[a-z0-9-]{3,50}
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+  ) then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+ then
+    return jsonb_build_object('error', 'Invalid clinic slug');
+  end if;
+
+  select name, price_monthly into v_plan_name, v_plan_price
+  from public.subscription_plans
+  where is_active = true
+    and (lower(name) = lower(trim(coalesce(p_plan_id, ''))) or id::text = trim(coalesce(p_plan_id, '')))
+  limit 1;
+
+  if v_plan_name is null then
+    return jsonb_build_object('error', 'Selected subscription plan is unavailable');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  select id into v_existing_clinic_id
+  from public.clinics
+  where lower(admin_email) = lower(trim(p_email))
+  limit 1
+  for update;
+
+  if v_existing_clinic_id is not null then
+    return jsonb_build_object('error', 'This email already has a clinic', 'code', 'CLINIC_EMAIL_EXISTS', 'clinicId', v_existing_clinic_id);
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_short_name), btrim(p_short_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  insert into public.branches (clinic_id, short_name, full_name, slug, specializations, logo_url, status)
+  values (v_clinic_id, btrim(p_short_name), nullif(btrim(coalesce(p_full_name, '')), ''), v_slug,
+          coalesce(p_specializations, '[]'::jsonb), p_logo_url, 'active')
+  returning id into v_branch_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name, logo_url)
+  values (v_clinic_id, btrim(p_short_name), p_logo_url)
+  on conflict (clinic_id) do nothing;
+
+  insert into public.subscriptions (clinic_id, user_email, plan_name, plan_price, status, start_date)
+  values (v_clinic_id, lower(trim(p_email)), v_plan_name, v_plan_price, 'active', now());
+
+  return jsonb_build_object('clinic_id', v_clinic_id, 'branch_id', v_branch_id);
+end;
+$function$;
+
+create or replace function public.setup_clinic_transaction(
+  p_email text,
+  p_name text,
+  p_branches jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = 'pg_catalog', 'public'
+as $function$
+declare
+  v_clinic_id uuid;
+  v_branch jsonb;
+  v_branch_id uuid;
+  v_branch_slug text;
+  v_branches jsonb := '[]'::jsonb;
+  v_staff_id uuid;
+begin
+  if auth.uid() is null
+     or public.get_auth_email() is distinct from lower(trim(coalesce(p_email, ''))) then
+    raise exception 'Unauthorized' using errcode = '42501';
+  end if;
+
+  if p_name is null or btrim(p_name) = '' or length(p_name) > 160
+     or p_branches is null or jsonb_typeof(p_branches) <> 'array'
+     or jsonb_array_length(p_branches) < 1 or jsonb_array_length(p_branches) > 5 then
+    return jsonb_build_object('error', 'Invalid clinic setup details');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  if exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    where jsonb_typeof(b.value) <> 'object'
+       or btrim(coalesce(b.value->>'shortName', '')) = ''
+       or lower(btrim(coalesce(b.value->>'slug', ''))) !~ '^[a-z0-9-]{3,50}
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+ then
+    return jsonb_build_object('error', 'Invalid clinic slug');
+  end if;
+
+  select name, price_monthly into v_plan_name, v_plan_price
+  from public.subscription_plans
+  where is_active = true
+    and (lower(name) = lower(trim(coalesce(p_plan_id, ''))) or id::text = trim(coalesce(p_plan_id, '')))
+  limit 1;
+
+  if v_plan_name is null then
+    return jsonb_build_object('error', 'Selected subscription plan is unavailable');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  select id into v_existing_clinic_id
+  from public.clinics
+  where lower(admin_email) = lower(trim(p_email))
+  limit 1
+  for update;
+
+  if v_existing_clinic_id is not null then
+    return jsonb_build_object('error', 'This email already has a clinic', 'code', 'CLINIC_EMAIL_EXISTS', 'clinicId', v_existing_clinic_id);
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_short_name), btrim(p_short_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  insert into public.branches (clinic_id, short_name, full_name, slug, specializations, logo_url, status)
+  values (v_clinic_id, btrim(p_short_name), nullif(btrim(coalesce(p_full_name, '')), ''), v_slug,
+          coalesce(p_specializations, '[]'::jsonb), p_logo_url, 'active')
+  returning id into v_branch_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name, logo_url)
+  values (v_clinic_id, btrim(p_short_name), p_logo_url)
+  on conflict (clinic_id) do nothing;
+
+  insert into public.subscriptions (clinic_id, user_email, plan_name, plan_price, status, start_date)
+  values (v_clinic_id, lower(trim(p_email)), v_plan_name, v_plan_price, 'active', now());
+
+  return jsonb_build_object('clinic_id', v_clinic_id, 'branch_id', v_branch_id);
+end;
+$function$;
+
+create or replace function public.setup_clinic_transaction(
+  p_email text,
+  p_name text,
+  p_branches jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = 'pg_catalog', 'public'
+as $function$
+declare
+  v_clinic_id uuid;
+  v_branch jsonb;
+  v_branch_id uuid;
+  v_branch_slug text;
+  v_branches jsonb := '[]'::jsonb;
+  v_staff_id uuid;
+begin
+  if auth.uid() is null
+     or public.get_auth_email() is distinct from lower(trim(coalesce(p_email, ''))) then
+    raise exception 'Unauthorized' using errcode = '42501';
+  end if;
+
+  if p_name is null or btrim(p_name) = '' or length(p_name) > 160
+     or p_branches is null or jsonb_typeof(p_branches) <> 'array'
+     or jsonb_array_length(p_branches) < 1 or jsonb_array_length(p_branches) > 5 then
+    return jsonb_build_object('error', 'Invalid clinic setup details');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  if exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    where jsonb_typeof(b.value) <> 'object'
+       or btrim(coalesce(b.value->>'shortName', '')) = ''
+       or lower(btrim(coalesce(b.value->>'slug', ''))) !~ '^[a-z0-9-]{3,50}
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+  ) then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+  ) then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+ then
+    return jsonb_build_object('error', 'Invalid clinic slug');
+  end if;
+
+  select name, price_monthly into v_plan_name, v_plan_price
+  from public.subscription_plans
+  where is_active = true
+    and (lower(name) = lower(trim(coalesce(p_plan_id, ''))) or id::text = trim(coalesce(p_plan_id, '')))
+  limit 1;
+
+  if v_plan_name is null then
+    return jsonb_build_object('error', 'Selected subscription plan is unavailable');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  select id into v_existing_clinic_id
+  from public.clinics
+  where lower(admin_email) = lower(trim(p_email))
+  limit 1
+  for update;
+
+  if v_existing_clinic_id is not null then
+    return jsonb_build_object('error', 'This email already has a clinic', 'code', 'CLINIC_EMAIL_EXISTS', 'clinicId', v_existing_clinic_id);
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_short_name), btrim(p_short_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  insert into public.branches (clinic_id, short_name, full_name, slug, specializations, logo_url, status)
+  values (v_clinic_id, btrim(p_short_name), nullif(btrim(coalesce(p_full_name, '')), ''), v_slug,
+          coalesce(p_specializations, '[]'::jsonb), p_logo_url, 'active')
+  returning id into v_branch_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name, logo_url)
+  values (v_clinic_id, btrim(p_short_name), p_logo_url)
+  on conflict (clinic_id) do nothing;
+
+  insert into public.subscriptions (clinic_id, user_email, plan_name, plan_price, status, start_date)
+  values (v_clinic_id, lower(trim(p_email)), v_plan_name, v_plan_price, 'active', now());
+
+  return jsonb_build_object('clinic_id', v_clinic_id, 'branch_id', v_branch_id);
+end;
+$function$;
+
+create or replace function public.setup_clinic_transaction(
+  p_email text,
+  p_name text,
+  p_branches jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = 'pg_catalog', 'public'
+as $function$
+declare
+  v_clinic_id uuid;
+  v_branch jsonb;
+  v_branch_id uuid;
+  v_branch_slug text;
+  v_branches jsonb := '[]'::jsonb;
+  v_staff_id uuid;
+begin
+  if auth.uid() is null
+     or public.get_auth_email() is distinct from lower(trim(coalesce(p_email, ''))) then
+    raise exception 'Unauthorized' using errcode = '42501';
+  end if;
+
+  if p_name is null or btrim(p_name) = '' or length(p_name) > 160
+     or p_branches is null or jsonb_typeof(p_branches) <> 'array'
+     or jsonb_array_length(p_branches) < 1 or jsonb_array_length(p_branches) > 5 then
+    return jsonb_build_object('error', 'Invalid clinic setup details');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  if exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    where jsonb_typeof(b.value) <> 'object'
+       or btrim(coalesce(b.value->>'shortName', '')) = ''
+       or lower(btrim(coalesce(b.value->>'slug', ''))) !~ '^[a-z0-9-]{3,50}
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+  ) then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+       or lower(btrim(coalesce(b.value->>'slug', ''))) in ('api', 'dashboard', 'login', 'signup', 'admin', 'www') then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+ then
+    return jsonb_build_object('error', 'Invalid clinic slug');
+  end if;
+
+  select name, price_monthly into v_plan_name, v_plan_price
+  from public.subscription_plans
+  where is_active = true
+    and (lower(name) = lower(trim(coalesce(p_plan_id, ''))) or id::text = trim(coalesce(p_plan_id, '')))
+  limit 1;
+
+  if v_plan_name is null then
+    return jsonb_build_object('error', 'Selected subscription plan is unavailable');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  select id into v_existing_clinic_id
+  from public.clinics
+  where lower(admin_email) = lower(trim(p_email))
+  limit 1
+  for update;
+
+  if v_existing_clinic_id is not null then
+    return jsonb_build_object('error', 'This email already has a clinic', 'code', 'CLINIC_EMAIL_EXISTS', 'clinicId', v_existing_clinic_id);
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_short_name), btrim(p_short_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  insert into public.branches (clinic_id, short_name, full_name, slug, specializations, logo_url, status)
+  values (v_clinic_id, btrim(p_short_name), nullif(btrim(coalesce(p_full_name, '')), ''), v_slug,
+          coalesce(p_specializations, '[]'::jsonb), p_logo_url, 'active')
+  returning id into v_branch_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name, logo_url)
+  values (v_clinic_id, btrim(p_short_name), p_logo_url)
+  on conflict (clinic_id) do nothing;
+
+  insert into public.subscriptions (clinic_id, user_email, plan_name, plan_price, status, start_date)
+  values (v_clinic_id, lower(trim(p_email)), v_plan_name, v_plan_price, 'active', now());
+
+  return jsonb_build_object('clinic_id', v_clinic_id, 'branch_id', v_branch_id);
+end;
+$function$;
+
+create or replace function public.setup_clinic_transaction(
+  p_email text,
+  p_name text,
+  p_branches jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = 'pg_catalog', 'public'
+as $function$
+declare
+  v_clinic_id uuid;
+  v_branch jsonb;
+  v_branch_id uuid;
+  v_branch_slug text;
+  v_branches jsonb := '[]'::jsonb;
+  v_staff_id uuid;
+begin
+  if auth.uid() is null
+     or public.get_auth_email() is distinct from lower(trim(coalesce(p_email, ''))) then
+    raise exception 'Unauthorized' using errcode = '42501';
+  end if;
+
+  if p_name is null or btrim(p_name) = '' or length(p_name) > 160
+     or p_branches is null or jsonb_typeof(p_branches) <> 'array'
+     or jsonb_array_length(p_branches) < 1 or jsonb_array_length(p_branches) > 5 then
+    return jsonb_build_object('error', 'Invalid clinic setup details');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  if exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    where jsonb_typeof(b.value) <> 'object'
+       or btrim(coalesce(b.value->>'shortName', '')) = ''
+       or lower(btrim(coalesce(b.value->>'slug', ''))) !~ '^[a-z0-9-]{3,50}
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+  ) then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+  ) then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+ then
+    return jsonb_build_object('error', 'Invalid clinic slug');
+  end if;
+
+  select name, price_monthly into v_plan_name, v_plan_price
+  from public.subscription_plans
+  where is_active = true
+    and (lower(name) = lower(trim(coalesce(p_plan_id, ''))) or id::text = trim(coalesce(p_plan_id, '')))
+  limit 1;
+
+  if v_plan_name is null then
+    return jsonb_build_object('error', 'Selected subscription plan is unavailable');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  select id into v_existing_clinic_id
+  from public.clinics
+  where lower(admin_email) = lower(trim(p_email))
+  limit 1
+  for update;
+
+  if v_existing_clinic_id is not null then
+    return jsonb_build_object('error', 'This email already has a clinic', 'code', 'CLINIC_EMAIL_EXISTS', 'clinicId', v_existing_clinic_id);
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_short_name), btrim(p_short_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  insert into public.branches (clinic_id, short_name, full_name, slug, specializations, logo_url, status)
+  values (v_clinic_id, btrim(p_short_name), nullif(btrim(coalesce(p_full_name, '')), ''), v_slug,
+          coalesce(p_specializations, '[]'::jsonb), p_logo_url, 'active')
+  returning id into v_branch_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name, logo_url)
+  values (v_clinic_id, btrim(p_short_name), p_logo_url)
+  on conflict (clinic_id) do nothing;
+
+  insert into public.subscriptions (clinic_id, user_email, plan_name, plan_price, status, start_date)
+  values (v_clinic_id, lower(trim(p_email)), v_plan_name, v_plan_price, 'active', now());
+
+  return jsonb_build_object('clinic_id', v_clinic_id, 'branch_id', v_branch_id);
+end;
+$function$;
+
+create or replace function public.setup_clinic_transaction(
+  p_email text,
+  p_name text,
+  p_branches jsonb
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = 'pg_catalog', 'public'
+as $function$
+declare
+  v_clinic_id uuid;
+  v_branch jsonb;
+  v_branch_id uuid;
+  v_branch_slug text;
+  v_branches jsonb := '[]'::jsonb;
+  v_staff_id uuid;
+begin
+  if auth.uid() is null
+     or public.get_auth_email() is distinct from lower(trim(coalesce(p_email, ''))) then
+    raise exception 'Unauthorized' using errcode = '42501';
+  end if;
+
+  if p_name is null or btrim(p_name) = '' or length(p_name) > 160
+     or p_branches is null or jsonb_typeof(p_branches) <> 'array'
+     or jsonb_array_length(p_branches) < 1 or jsonb_array_length(p_branches) > 5 then
+    return jsonb_build_object('error', 'Invalid clinic setup details');
+  end if;
+
+  select id into v_staff_id
+  from public.staff
+  where lower(email) = lower(trim(p_email))
+    and clinic_id is null
+    and lower(btrim(role)) in ('admin', 'clinic_admin', 'مدير العيادة', 'مدير العياده')
+  limit 1
+  for update;
+
+  if v_staff_id is null then
+    return jsonb_build_object('error', 'An unassigned clinic administrator account is required');
+  end if;
+
+  if exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    where jsonb_typeof(b.value) <> 'object'
+       or btrim(coalesce(b.value->>'shortName', '')) = ''
+       or lower(btrim(coalesce(b.value->>'slug', ''))) !~ '^[a-z0-9-]{3,50}
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+
+  ) then
+    return jsonb_build_object('error', 'Invalid center details or slug');
+  end if;
+
+  if exists (
+    select lower(btrim(value->>'slug'))
+    from jsonb_array_elements(p_branches)
+    group by lower(btrim(value->>'slug'))
+    having count(*) > 1
+  ) or exists (
+    select 1 from jsonb_array_elements(p_branches) as b(value)
+    join public.branches existing on lower(existing.slug) = lower(btrim(b.value->>'slug'))
+  ) then
+    return jsonb_build_object('error', 'Duplicate or unavailable center slug');
+  end if;
+
+  insert into public.clinics (name, name_en, admin_email, status)
+  values (btrim(p_name), btrim(p_name), lower(trim(p_email)), 'active')
+  returning id into v_clinic_id;
+
+  update public.staff set clinic_id = v_clinic_id, pending_plan_id = null
+  where id = v_staff_id and clinic_id is null;
+
+  insert into public.clinic_settings (clinic_id, clinic_name)
+  values (v_clinic_id, btrim(p_name))
+  on conflict (clinic_id) do nothing;
+
+  for v_branch in select value from jsonb_array_elements(p_branches)
+  loop
+    v_branch_slug := lower(btrim(v_branch->>'slug'));
+    insert into public.branches (clinic_id, short_name, full_name, slug, status)
+    values (v_clinic_id, btrim(v_branch->>'shortName'),
+            nullif(btrim(coalesce(v_branch->>'fullName', '')), ''), v_branch_slug, 'active')
+    returning id into v_branch_id;
+
+    v_branches := v_branches || jsonb_build_array(
+      jsonb_build_object('id', v_branch_id, 'slug', v_branch_slug,
+        'shortName', v_branch->>'shortName', 'fullName', v_branch->>'fullName')
+    );
+  end loop;
+
+  return jsonb_build_object('clinicId', v_clinic_id, 'branches', v_branches);
+end;
+$function$;
+
+revoke all on function public.get_auth_email() from public, anon;
+revoke all on function public.get_my_clinic_id() from public, anon;
+revoke all on function public.get_clinic_id_for_email(text) from public, anon;
+revoke all on function public.is_clinic_admin() from public, anon;
+revoke all on function public.has_staff_permission(text) from public, anon;
+revoke all on function public.is_platform_admin() from public, anon;
+grant execute on function public.get_auth_email() to authenticated, service_role;
+grant execute on function public.get_my_clinic_id() to authenticated, service_role;
+grant execute on function public.get_clinic_id_for_email(text) to authenticated, service_role;
+grant execute on function public.is_clinic_admin() to authenticated, service_role;
+grant execute on function public.has_staff_permission(text) to authenticated, service_role;
+grant execute on function public.is_platform_admin() to authenticated, service_role;
+ then
+    return jsonb_build_object('error', 'Invalid clinic slug');
   end if;
 
   select name, price_monthly into v_plan_name, v_plan_price
