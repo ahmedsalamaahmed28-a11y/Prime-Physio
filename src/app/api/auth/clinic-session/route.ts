@@ -111,7 +111,21 @@ export async function POST(req: NextRequest) {
       nextauth_expires_at: nextAuthExpiresAt,
     };
 
-    let shadowUser = await findAuthUserByEmail(admin, shadowEmail);
+    const { data: identityMap, error: identityMapError } = await admin
+      .from("clinic_auth_identities")
+      .select("shadow_user_id")
+      .eq("clinic_id", clinicId)
+      .eq("canonical_email", canonicalEmail)
+      .maybeSingle();
+    if (identityMapError) throw identityMapError;
+
+    let shadowUser: SupabaseAuthUser | null = null;
+    if (identityMap?.shadow_user_id) {
+      const { data, error } = await admin.auth.admin.getUserById(identityMap.shadow_user_id);
+      if (error) throw error;
+      shadowUser = data.user;
+    }
+    if (!shadowUser) shadowUser = await findAuthUserByEmail(admin, shadowEmail);
     if (!shadowUser) {
       const { data, error } = await admin.auth.admin.createUser({
         email: shadowEmail,
@@ -127,6 +141,42 @@ export async function POST(req: NextRequest) {
       } else {
         shadowUser = data.user;
       }
+    }
+
+    if (identityMap?.shadow_user_id && identityMap.shadow_user_id !== shadowUser.id) {
+      return noStoreJson({ error: "Clinic identity mapping mismatch" }, 409);
+    }
+
+    if (!identityMap) {
+      const { error: mapInsertError } = await admin
+        .from("clinic_auth_identities")
+        .insert({
+          clinic_id: clinicId,
+          canonical_email: canonicalEmail,
+          shadow_email: shadowEmail,
+          shadow_user_id: shadowUser.id,
+        });
+      if (mapInsertError) {
+        // A concurrent exchange may have inserted the same mapping. Accept it
+        // only when it resolves to this exact Auth user.
+        const { data: concurrentMap, error: concurrentMapError } = await admin
+          .from("clinic_auth_identities")
+          .select("shadow_user_id")
+          .eq("clinic_id", clinicId)
+          .eq("canonical_email", canonicalEmail)
+          .maybeSingle();
+        if (concurrentMapError || concurrentMap?.shadow_user_id !== shadowUser.id) {
+          throw mapInsertError;
+        }
+      }
+    } else if (!identityMap.shadow_user_id) {
+      const { error: mapUpdateError } = await admin
+        .from("clinic_auth_identities")
+        .update({ shadow_user_id: shadowUser.id })
+        .eq("clinic_id", clinicId)
+        .eq("canonical_email", canonicalEmail)
+        .is("shadow_user_id", null);
+      if (mapUpdateError) throw mapUpdateError;
     }
 
     const existingMetadata = shadowUser.app_metadata || {};
