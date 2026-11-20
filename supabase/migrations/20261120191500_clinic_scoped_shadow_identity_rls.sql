@@ -625,6 +625,24 @@ begin
 end;
 $function$;
 
+-- Keep the existing clinics trigger compatible with synthetic shadow emails.
+-- The authenticated business identity is the server-managed canonical email.
+create or replace function public.enforce_clinic_admin_email_matches_session()
+returns trigger
+language plpgsql
+set search_path = 'pg_catalog', 'public'
+as $function$
+begin
+  if auth.uid() is not null
+     and pg_catalog.lower(coalesce(public.get_auth_email(), '')) <>
+         pg_catalog.lower(pg_catalog.btrim(coalesce(new.admin_email, ''))) then
+    raise exception 'Clinic admin email must match the authenticated account'
+      using errcode = '42501';
+  end if;
+  return new;
+end;
+$function$;
+
 revoke all on function public.get_auth_email() from public, anon;
 revoke all on function public.get_my_clinic_id() from public, anon;
 revoke all on function public.get_clinic_id_for_email(text) from public, anon;
