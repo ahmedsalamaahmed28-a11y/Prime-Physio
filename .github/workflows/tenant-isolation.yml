@@ -45,3 +45,39 @@ jobs:
       - name: Report integration test as skipped when fixtures are unavailable
         if: ${{ env.SUPABASE_TEST_PROJECT_REF == '' || env.SUPABASE_TEST_ANON_KEY == '' || env.TENANT_A_TEST_EMAIL == '' || env.TENANT_A_TEST_PASSWORD == '' || env.TENANT_B_TEST_EMAIL == '' || env.TENANT_B_TEST_PASSWORD == '' || env.TENANT_A_TEST_PATIENT_ID == '' || env.TENANT_B_TEST_PATIENT_ID == '' }}
         run: echo "::notice::SKIPPED — Clinic A/B integration tests require a dedicated non-production Supabase project and two synthetic tenant fixtures."
+
+  local-supabase-rls:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: latest
+
+      - name: Initialize local Supabase configuration
+        run: |
+          if [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
+
+      - name: Start isolated local Supabase stack and apply migrations
+        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector
+
+      - name: Export local-only API credentials
+        run: |
+          supabase status -o env \
+            --override-name api.url=SUPABASE_URL \
+            --override-name auth.anon_key=SUPABASE_ANON_KEY \
+            --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
+            >> "$GITHUB_ENV"
+
+      - name: Run synthetic A/B tenant CRUD and storage isolation tests
+        run: node scripts/check-local-tenant-isolation.mjs
+
+      - name: Stop and discard local Supabase stack
+        if: always()
+        run: supabase stop --no-backup
