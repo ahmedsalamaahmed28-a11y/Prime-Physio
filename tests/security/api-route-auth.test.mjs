@@ -169,3 +169,17 @@ test("clinic-scoped RLS resolves canonical identity and immutable clinic claims"
   assert.match(migration, /create policy chat_participants_self_read/);
   assert.match(migration, /create policy hr_attendance_clinic_update/);
 });
+
+
+test("clinic-scoped bearer identities cannot enter platform administration", async () => {
+  const authSource = await readFile(
+    path.join(root, "src", "app", "api", "utils", "auth.ts"),
+    "utf8",
+  );
+  const migration = await readFile(
+    path.join(root, "supabase", "migrations", "20261120191500_clinic_scoped_shadow_identity_rls.sql"),
+    "utf8",
+  );
+  assert.match(authSource, /allowedRoles\.includes\("platform_admin"\) && authed\.authSource !== "clinic-scoped-shadow"/);
+  assert.match(migration, /auth_source', ''\) <> 'clinic-scoped-shadow'/);
+});
