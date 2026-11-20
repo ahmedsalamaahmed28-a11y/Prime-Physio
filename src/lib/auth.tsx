@@ -226,7 +226,44 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, authSession) => {
       if (authSession?.user) {
         // Shadow sessions are only a bridge for RLS; NextAuth remains the actual web identity.
-        if (authSession.user.app_metadata?.auth_source === "nextauth-shadow") return;
+        // Supabase broadcasts token changes across tabs. Keep each tab's clinic context aligned
+        // with the signed app_metadata claim so one tab cannot keep displaying a stale tenant.
+        if (authSession.user.app_metadata?.auth_source === "nextauth-shadow") {
+          const activeClinicId = typeof authSession.user.app_metadata?.active_clinic_id === "string"
+            ? authSession.user.app_metadata.active_clinic_id
+            : null;
+          const shadowEmail = String(authSession.user.email || "").toLowerCase();
+          if (typeof window !== "undefined") {
+            if (activeClinicId) sessionStorage.setItem("preferred_clinic_id", activeClinicId);
+            else sessionStorage.removeItem("preferred_clinic_id");
+          }
+          setUser((previous) => previous && previous.email.toLowerCase() === shadowEmail
+            ? { ...previous, clinicId: activeClinicId }
+            : previous);
+          const enrichUrl = activeClinicId
+            ? `/api/auth/enrich?preferred_clinic_id=${encodeURIComponent(activeClinicId)}`
+            : "/api/auth/enrich";
+          void fetch(enrichUrl, { cache: "no-store" }).then(async (response) => {
+            if (!response.ok) return null;
+            return response.json();
+          }).then((data) => {
+            if (!data || typeof data !== "object") return;
+            setUser((previous) => {
+              if (!previous || previous.email.toLowerCase() !== shadowEmail) return previous;
+              return {
+                ...previous,
+                clinicId: typeof data.clinicId === "string" ? data.clinicId : null,
+                clinicSlug: typeof data.clinicSlug === "string" ? data.clinicSlug : null,
+                roleKey: data.roleKey || previous.roleKey,
+                role: data.roleAr || previous.role,
+                roleEn: data.roleEn || previous.roleEn,
+                shortName: data.shortName || null,
+                logoUrl: data.logoUrl || null,
+              };
+            });
+          }).catch((error) => console.error("Failed to sync active clinic across tabs:", error));
+          return;
+        }
         // User metadata and browser storage are user-controlled; the staff table is the role source of truth.
         const roleKey = "doctor" as const;
         const name = authSession.user.user_metadata?.full_name || authSession.user.email?.split("@")[0] || "مستخدم";
