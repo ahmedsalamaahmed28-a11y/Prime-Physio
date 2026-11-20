@@ -291,10 +291,14 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
           const preferredClinicId =
             requestedClinicId ||
             (typeof window !== "undefined" ? sessionStorage.getItem("preferred_clinic_id") : null);
-          const sessionUrl = preferredClinicId
-            ? `/api/auth/supabase-session?clinic_id=${encodeURIComponent(preferredClinicId)}`
-            : "/api/auth/supabase-session";
-          const res = await fetch(sessionUrl, { signal: AbortSignal.timeout(10000) });
+          const res = await fetch("/api/auth/supabase-session", {
+            method: preferredClinicId ? "POST" : "GET",
+            ...(preferredClinicId ? {
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ clinicId: preferredClinicId }),
+            } : {}),
+            signal: AbortSignal.timeout(10000),
+          });
           if (res.ok) {
             const { session: supaSession } = await res.json();
             if (supaSession && active) {
