@@ -52,6 +52,12 @@ export async function POST(req: NextRequest) {
     if (!session || !canonicalEmail) return noStoreJson({ error: "Unauthorized" }, 401);
 
     const body = await req.json().catch(() => null);
+    const expectedEmail = typeof body?.expected_email === "string"
+      ? body.expected_email.trim().toLowerCase()
+      : "";
+    if (!expectedEmail || expectedEmail.length > 254 || expectedEmail !== canonicalEmail) {
+      return noStoreJson({ error: "The login identity changed in another tab; please retry" }, 409);
+    }
     const clinicId = typeof body?.clinic_id === "string" ? body.clinic_id.trim() : "";
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clinicId)) {
       return noStoreJson({ error: "A valid clinic_id is required" }, 400);
