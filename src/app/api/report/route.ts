@@ -15,13 +15,26 @@ tolerance, goals achieved, or discharge status that were not explicitly supplied
 If information is missing, mark it as "Not provided". The patient is represented by a
 non-identifying reference; never request or infer their identity.`;
 
-function cleanClinicalText(value: unknown, max = 3000): string {
+function cleanClinicalText(value: unknown, max = 3000, sensitiveValues: unknown[] = []): string {
+  if (typeof value !== "string") return "";
+  let cleaned = value
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[REDACTED CONTACT]")
+    .replace(/(?:\+?\d[\d\s().-]{7,}\d)/g, "[REDACTED NUMBER]");
+
+  for (const sensitiveValue of sensitiveValues) {
+    if (typeof sensitiveValue !== "string" || sensitiveValue.trim().length < 3) continue;
+    const escaped = sensitiveValue.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\function cleanClinicalText(value: unknown, max = 3000): string {
   if (typeof value !== "string") return "";
   return value
     .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[REDACTED CONTACT]")
     .replace(/(?:\+?\d[\d\s().-]{7,}\d)/g, "[REDACTED NUMBER]")
     .slice(0, max)
     .trim();
+}");
+    cleaned = cleaned.replace(new RegExp(escaped, "gi"), "[REDACTED PATIENT DATA]");
+  }
+
+  return cleaned.slice(0, max).trim();
 }
 
 async function callDeepSeek(prompt: string) {
@@ -110,7 +123,7 @@ export async function POST(req: NextRequest) {
     // Resolve the patient on the server and enforce the active clinic boundary.
     const { data: patientRecord, error: patientLookupError } = await auth.admin
       .from("patients")
-      .select("id, diagnosis")
+      .select("id, diagnosis, nameAr, nameEn, phone")
       .eq("id", patientId)
       .eq("clinic_id", auth.clinicId)
       .maybeSingle();
@@ -121,9 +134,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "المريض غير موجود في المركز الحالي." }, { status: 404 });
     }
 
-    const diagnosis = cleanClinicalText(patientRecord.diagnosis, 1500);
-    const rom = cleanClinicalText(clinicalData.rom, 2500);
-    const notes = cleanClinicalText(clinicalData.notes, 3000);
+    const sensitiveValues = [patientId, patientRecord.nameAr, patientRecord.nameEn, patientRecord.phone];
+    const diagnosis = cleanClinicalText(patientRecord.diagnosis, 1500, sensitiveValues);
+    const rom = cleanClinicalText(clinicalData.rom, 2500, sensitiveValues);
+    const notes = cleanClinicalText(clinicalData.notes, 3000, sensitiveValues);
     const vasScore = Number(clinicalData.vasScore);
     if (!Number.isInteger(vasScore) || vasScore < 0 || vasScore > 10 ||
         !diagnosis || !rom || !notes) {
