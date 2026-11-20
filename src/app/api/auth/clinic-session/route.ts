@@ -119,7 +119,9 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
     if (identityMapError) throw identityMapError;
 
-    const resolvedShadowEmail = identityMap?.shadow_email || shadowEmail;\n\n    let shadowUser: SupabaseAuthUser | null = null;
+    const resolvedShadowEmail = identityMap?.shadow_email || shadowEmail;
+
+    let shadowUser: SupabaseAuthUser | null = null;
     if (identityMap?.shadow_user_id) {
       const { data, error } = await admin.auth.admin.getUserById(identityMap.shadow_user_id);
       if (error) throw error;
