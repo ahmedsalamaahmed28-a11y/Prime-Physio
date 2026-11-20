@@ -28,7 +28,8 @@ GRANT EXECUTE ON FUNCTION auth.jwt() TO anon, authenticated, service_role;
 CREATE TABLE public.clinics (
   id uuid PRIMARY KEY,
   is_active boolean NOT NULL DEFAULT true,
-  status text NOT NULL DEFAULT 'active'
+  status text NOT NULL DEFAULT 'active',
+  admin_email text
 );
 CREATE TABLE public.clinic_owners (
   clinic_id uuid NOT NULL REFERENCES public.clinics(id),
@@ -121,6 +122,30 @@ INSERT INTO public.hr_attendance (clinic_id, staff_id) VALUES
 INSERT INTO public.clinic_auth_identities (clinic_id, canonical_email, shadow_email, shadow_user_id) VALUES
   ('11111111-1111-4111-8111-111111111111', 'owner@example.test', 'clinic-a@shadow.primephysio.app', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
   ('22222222-2222-4222-8222-222222222222', 'owner@example.test', 'clinic-b@shadow.primephysio.app', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+
+-- Mirror the live BEFORE INSERT/UPDATE clinics admin-email trigger.
+CREATE TRIGGER enforce_clinic_admin_email_matches_session
+BEFORE INSERT OR UPDATE OF admin_email ON public.clinics
+FOR EACH ROW EXECUTE FUNCTION public.enforce_clinic_admin_email_matches_session();
+
+SELECT set_config('request.jwt.claim.sub', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', false);
+SELECT set_config(
+  'request.jwt.claims',
+  '{"sub":"aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa","email":"clinic-a@shadow.primephysio.app","app_metadata":{"auth_source":"clinic-scoped-shadow","canonical_email":"owner@example.test","clinic_id":"11111111-1111-4111-8111-111111111111","nextauth_expires_at":"4102444800"}}',
+  false
+);
+UPDATE public.clinics SET admin_email = 'owner@example.test'
+WHERE id = '11111111-1111-4111-8111-111111111111';
+DO $$
+BEGIN
+  BEGIN
+    UPDATE public.clinics SET admin_email = 'clinic-a@shadow.primephysio.app'
+    WHERE id = '11111111-1111-4111-8111-111111111111';
+    RAISE EXCEPTION 'Clinic trigger accepted synthetic shadow email as business owner';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+END
+$$;
 
 -- Mirror the live Storage policies; their tenant scope is supplied by get_my_clinic_id().
 CREATE POLICY clinic_logo_delete_own_center ON storage.objects
