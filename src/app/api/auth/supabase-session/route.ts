@@ -5,7 +5,7 @@ import { authOptions } from "@/pages/api/auth/[...nextauth]";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// The legacy endpoint mutated one global shadow user's active_clinic_id. Keep
+// The legacy endpoint mutated one global shadow user's active-clinic metadata. Keep
 // authentication on this route, but refuse to issue or mutate shared identities.
 export async function GET(_req: NextRequest) {
   const session = await getServerSession(authOptions);
