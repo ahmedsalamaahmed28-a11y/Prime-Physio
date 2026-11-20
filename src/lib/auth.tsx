@@ -2,9 +2,11 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { SessionProvider, signOut, useSession, getSession } from "next-auth/react";
+import { SessionProvider, useSession, getSession } from "next-auth/react";
 import { supabase } from "@/lib/supabase";
 import { getAppValue, setAppValue } from "@/lib/appStorage";
+import { installClinicApiFetch } from "@/lib/clinic-api-fetch";
+import { activateClinicSession } from "@/lib/clinic-session";
 
 interface User {
   name: string;
@@ -216,6 +218,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setIsEnriching(enrichmentCountRef.current > 0);
   };
 
+  // Install the same-origin API bridge before auth effects run.
+  useEffect(() => installClinicApiFetch(), []);
+
   // Never restore an authenticated user from localStorage. Only verified server sessions
   // (NextAuth) or a live Supabase Auth session may establish identity.
   useEffect(() => {
@@ -225,18 +230,23 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, authSession) => {
       if (authSession?.user) {
-        // Shadow sessions are only a bridge for RLS; NextAuth remains the actual web identity.
-        if (authSession.user.app_metadata?.auth_source === "nextauth-shadow") return;
-        // User metadata and browser storage are user-controlled; the staff table is the role source of truth.
-        const roleKey = "doctor" as const;
-        const name = authSession.user.user_metadata?.full_name || authSession.user.email?.split("@")[0] || "مستخدم";
+        const metadata = authSession.user.app_metadata || {};
+        if (metadata.auth_source === "nextauth-shadow") return;
+        const isClinicScoped = metadata.auth_source === "clinic-scoped-shadow";
+        const canonicalEmail = isClinicScoped && typeof metadata.canonical_email === "string"
+          ? metadata.canonical_email.trim().toLowerCase()
+          : (authSession.user.email || "").trim().toLowerCase();
+        if (!canonicalEmail) return;
 
+        const roleKey = "doctor" as const;
+        const name = authSession.user.user_metadata?.full_name || canonicalEmail.split("@")[0] || "مستخدم";
         const newUser: User = {
           name: prefixArabicName(name, roleKey),
-          email: authSession.user.email || "",
+          email: canonicalEmail,
           initials: name.substring(0, 2).toUpperCase(),
           role: getArabicRoleLabel(roleKey),
           roleKey,
+          clinicId: isClinicScoped && typeof metadata.clinic_id === "string" ? metadata.clinic_id : undefined,
           bg: "bg-gradient-to-br from-emerald-500 to-teal-600",
           nameEn: prefixEnglishName(name, roleKey),
           roleEn: getEnglishRoleLabel(roleKey),
