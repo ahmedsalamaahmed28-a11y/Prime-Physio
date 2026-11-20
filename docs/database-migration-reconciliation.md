@@ -98,3 +98,17 @@ The ledger now records 13 historical or semantic candidates among the 23 unmatch
 ## Local execution environment check
 
 The connected execution runtime was checked for `psql`, `postgres`, `initdb`, `pg_ctl`, Docker, Podman, and the Supabase CLI; none is installed. The connected GitHub and Supabase tools do not provide a disposable local PostgreSQL daemon. No production database was used as a substitute, and no migration replay was attempted. A local rebuild therefore remains blocked until an isolated PostgreSQL/Supabase CLI runner is made available and a complete, trusted baseline is recovered.
+
+## Live production security re-check — 2026-11-20
+
+Read-only checks were run against the production Supabase project after the migration inventory was refreshed.
+
+- The production migration inventory currently contains 130 applied records.
+- A catalog query found **no public-schema table or view granted to `anon` or `authenticated` that either has RLS disabled or has no RLS policy**.
+- The six tables reported by the advisor as “RLS enabled, no policy” have no table grants to `anon` or `authenticated`; access is limited to `service_role` (and database owner). This is a deny-by-default configuration, not evidence of public table exposure. Do not add permissive policies just to silence the informational lint.
+- Five `SECURITY DEFINER` helper functions are executable by `authenticated`, but not by `anon`. Their current definitions pin `search_path` to empty. They are used by tenant RLS policies and perform membership/permission checks; revoking authenticated execution without first redesigning all dependent policies would break authorization. The advisor warning requires a deliberate RPC threat review, not a blind revoke.
+- The leaked-password protection advisor warning remains an Auth dashboard configuration item; it cannot be safely changed through SQL. It should be enabled in Supabase Auth password security settings after confirming the desired setting.
+- GitHub's latest validation workflow passed unit/API tests, TypeScript, ESLint, CSP checks, and production build. The synthetic PostgreSQL RLS harness passed. The real two-account Supabase integration step was skipped because no dedicated non-production project and test credentials are configured. Therefore cross-tenant production isolation is **not yet certified**.
+- No production schema, data, Auth settings, or deployment were changed during this re-check.
+
+This live security check narrows the advisor findings; it does not resolve the missing historical SQL bodies or prove full migration replay equivalence. Historical migration bodies must be recovered from trusted deployment artifacts before any migration repair is attempted.
