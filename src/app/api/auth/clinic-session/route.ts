@@ -113,19 +113,19 @@ export async function POST(req: NextRequest) {
 
     const { data: identityMap, error: identityMapError } = await admin
       .from("clinic_auth_identities")
-      .select("shadow_user_id")
+      .select("shadow_user_id,shadow_email")
       .eq("clinic_id", clinicId)
       .eq("canonical_email", canonicalEmail)
       .maybeSingle();
     if (identityMapError) throw identityMapError;
 
-    let shadowUser: SupabaseAuthUser | null = null;
+    const resolvedShadowEmail = identityMap?.shadow_email || shadowEmail;\n\n    let shadowUser: SupabaseAuthUser | null = null;
     if (identityMap?.shadow_user_id) {
       const { data, error } = await admin.auth.admin.getUserById(identityMap.shadow_user_id);
       if (error) throw error;
       shadowUser = data.user;
     }
-    if (!shadowUser) shadowUser = await findAuthUserByEmail(admin, shadowEmail);
+    if (!shadowUser) shadowUser = await findAuthUserByEmail(admin, resolvedShadowEmail);
     if (!shadowUser) {
       const { data, error } = await admin.auth.admin.createUser({
         email: shadowEmail,
@@ -153,7 +153,7 @@ export async function POST(req: NextRequest) {
         .insert({
           clinic_id: clinicId,
           canonical_email: canonicalEmail,
-          shadow_email: shadowEmail,
+          shadow_email: resolvedShadowEmail,
           shadow_user_id: shadowUser.id,
         });
       if (mapInsertError) {
