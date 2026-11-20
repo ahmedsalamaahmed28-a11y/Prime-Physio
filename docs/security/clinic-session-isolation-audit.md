@@ -9,12 +9,12 @@ The browser currently has one shared NextAuth session cookie per origin. In addi
 
 ## Relevant code
 
-- `src/app/api/auth/supabase-session/route.ts`: reads the shared NextAuth session, signs in a shadow user by email, and mutates the shared user's `active_clinic_id` metadata.
-- `src/app/api/utils/auth.ts`: `requireAuth` prefers the shared NextAuth session before bearer authentication; its shadow-cookie parsing can override the clinic from the same shared shadow identity.
-- `src/lib/auth.tsx`: uses NextAuth `useSession` as the ongoing identity and syncs the shadow session; logout signs out the shared identity.
-- `src/lib/supabase.ts`: exports one shared browser Supabase client.
-- `src/lib/appStorage.ts`: uses unscoped origin-wide localStorage keys.
-- `src/app/[slug]/page.tsx`: clinic login currently redirects to `/dashboard`; there is no `src/app/[slug]/dashboard/page.tsx`.
+- `src/app/api/auth/supabase-session/route.ts`: legacy bridge remains for compatibility but the clinic login flow no longer calls it. New clinic sessions use `/api/auth/clinic-session`.
+- `src/app/api/utils/auth.ts`: verifies clinic-scoped bearer tokens before NextAuth cookies, checks token expiry and active clinic membership, and prevents a shared cookie from overriding the verified clinic.
+- `src/lib/auth.tsx`: uses the tab-scoped Supabase identity as authoritative after exchange; mismatched shared NextAuth changes do not replace it, and logout uses local Supabase scope without clearing the shared NextAuth cookie.
+- `src/lib/supabase.ts`: browser auth storage is configured to use per-tab `sessionStorage`.
+- `src/lib/appStorage.ts`: app state is stored in per-tab `sessionStorage` and namespaced by clinic.
+- `src/app/[slug]/page.tsx`: branded clinic login now exchanges the verified NextAuth session for the selected clinic's independent Supabase identity before entering `/dashboard`.
 - `supabase/migrations/20261109224321_multi_center_ownership_and_tenant_context.sql`: `get_my_clinic_id()`, `is_clinic_admin()`, and `has_staff_permission()` resolve membership from JWT email plus global `active_clinic_id`.
 - `supabase/migrations/20261109224906_keep_owner_identity_global_across_centers.sql`: intentionally keeps one global staff identity per email; center ownership is mapped through `clinic_owners`.
 - `supabase/migrations/20261105192000_expire_shadow_sessions_in_rls.sql` and `20261105192500_safe_shadow_expiry_check.sql`: RLS session expiry is currently coupled to the shadow-session metadata claims.
@@ -57,16 +57,34 @@ The browser currently has one shared NextAuth session cookie per origin. In addi
 
 ## Implementation progress (branch only)
 
-The initial API-auth foundation remains in place, with the following additions:
+### Completed groundwork
 
-- `requireAuth` checks a verified Supabase bearer token before consulting the shared NextAuth cookie.
-- It recognizes a new `clinic-scoped-shadow` token type and reads its canonical account email and clinic ID only from Supabase-verified `app_metadata` claims.
-- Missing canonical email or clinic ID on that token type fails closed.
-- `resolveActiveClinicId` now preserves a clinic ID already derived from the verified bearer token instead of allowing a shared Supabase cookie to overwrite it.
-- Security regression assertions were added to verify bearer-token precedence and required claims.
+- Added `src/app/api/auth/clinic-session/route.ts`: same-origin POST exchange; verifies the NextAuth session, active clinic status, and owner/staff membership before issuing a distinct synthetic Supabase Auth identity for each canonical-email + clinic pair.
+- Added `public.clinic_auth_identities` in the draft migration as a server-only identity map. RLS is enabled; only `service_role` receives table access.
+- The issued token stores `auth_source`, `canonical_email`, `clinic_id`, and bounded NextAuth expiry in server-managed `app_metadata`.
+- Wired the branded clinic login and the auth provider to the new exchange. The provider restores the existing tab-scoped identity before consulting a potentially changed shared NextAuth cookie.
+- Added a same-origin API fetch bridge. It attaches the active tab's bearer token to private API calls, excludes public endpoints and every auth endpoint except `/api/auth/enrich`, and never forwards credentials to external origins.
+- Updated `/api/auth/enrich` to validate the bearer token with Supabase Auth and derive email/clinic from verified `app_metadata`.
+- Updated `requireAuth` to verify the bearer token, expiry, active clinic, and current membership before returning the canonical identity.
+- Changed logout to `signOut({ scope: "local" })` and deliberately retained the shared NextAuth cookie, so one tab does not sign out another.
+- Browser Supabase auth now persists in per-tab `sessionStorage`; app state is per-tab and namespaced by clinic.
+- The draft RLS migration replaces tenant helpers and direct-email policies for clinic owners, staff, audit logs, chat, and HR attendance; clinic-scoped tokens cannot become platform administrators.
+- Added static security assertions and a disposable PostgreSQL integration fixture.
 
-This is groundwork, not a complete feature. The following additional groundwork is now committed on this branch:\n\n- `src/app/api/auth/clinic-session/route.ts` adds a same-origin POST exchange. It verifies the signed NextAuth identity, checks that the requested clinic is active, verifies owner/staff membership, and issues a distinct synthetic Supabase Auth identity for each canonical-email + clinic pair. Authorization claims are written only to server-managed `app_metadata`.\n- The exchange uses `public.clinic_auth_identities` as a server-only mapping so normal exchanges can resolve the shadow Auth user by ID rather than scanning all Auth users. The table is created by the draft migration below, has RLS enabled, and is granted only to `service_role`.\n- The shared browser client and app-state helper now persist auth/state in per-tab `sessionStorage`, so one tab does not overwrite another tab's client-side Supabase token or cached user.\n- `supabase/migrations/20261120191500_clinic_scoped_shadow_identity_rls.sql` introduces `get_auth_email()`, changes tenant resolution to use immutable `clinic_id` and `canonical_email` claims for the new token type, retains legacy-session compatibility during migration, and updates direct-email policies discovered in the live schema: clinic owners, staff self-read, audit logs, chat participants/conversations/messages, and HR attendance.\n- The migration explicitly prevents a clinic-scoped token from satisfying `is_platform_admin()`. The API `requireRole` path now also refuses to treat a clinic-scoped bearer identity as a platform administrator.\n- Static security regression assertions were added for the exchange endpoint, identity claims, and RLS migration. They have **not** been run.\n\nThis is still not an active end-to-end fix. The existing frontend still calls the legacy `/api/auth/supabase-session` bridge; the new exchange route is not yet wired into login. The new exchange is not yet called by the login flow, the API client does not yet attach the tab bearer token to same-origin protected API requests, and the auth context still listens to the shared NextAuth session. The SQL migration has not been applied. The storage primitives are tab-scoped now, but this alone does not complete the isolation. Users should not expect two-tab isolation to work yet.
+### Verification
 
+- GitHub Actions disposable PostgreSQL job **passed** on commit `cd1390ad369fe0d7e503f819798a8de93370d6aa`. It executed the draft migration against an isolated PostgreSQL 16 service with synthetic clinics and verified clinic A/B row isolation for owners, staff, patients, invoices, chat, and HR attendance; it also checked expired tokens, private identity-map access, and platform-admin separation.
+- The separate live Supabase tenant A/B test was **skipped** because the dedicated non-production Supabase project reference, anon key, test accounts, and patient fixture IDs are not configured in GitHub Actions.
+- The browser-level Balance/Bedaya two-tab test has **not** been run. No claim is made that the original user-visible tab problem is solved.
+- GitHub Actions security/application validation is running for the latest branch commit; TypeScript, ESLint, build, and the full static suite are not yet confirmed for that latest commit.
+
+### Remaining before activation
+
+- Review the current security/application CI result and fix any failures.
+- Configure or provide a dedicated non-production Supabase test project and synthetic Balance/Bedaya fixtures. Do not use production for this.
+- Run the live Supabase RLS A/B read/write tests and the actual two-tab browser scenario, including refresh, session renewal, one-tab logout, and Google/email login.
+- Complete coverage for every storage policy, view, RPC, and service-role API path before accepting the migration.
+- Apply the migration only to the approved test project first. Production migration and deployment remain blocked pending your review.
 ## Current state
 
 Changes are committed only to the isolated feature branch. No production database, `main`, or Vercel deployment was changed. The new SQL migration is a branch-only draft and has not been applied. Do not deploy or apply a database migration until the identity model, SQL policy coverage, and tests have been completed and reviewed.
