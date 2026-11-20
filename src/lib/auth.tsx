@@ -524,8 +524,13 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setAppValue("current_user", null).catch(() => {});
     if (typeof window !== "undefined") sessionStorage.removeItem("prime-physio:active-clinic-id");
     // Keep the shared NextAuth cookie for other tabs and revoke only this tab session.
-    await supabase.auth.signOut({ scope: "local" });
-    window.location.replace(callbackUrl);
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch (error) {
+      console.error("Local clinic sign-out failed:", error);
+    } finally {
+      window.location.replace(callbackUrl);
+    }
   };
 
   useEffect(() => {
