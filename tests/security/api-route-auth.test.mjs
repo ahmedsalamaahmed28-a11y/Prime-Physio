@@ -229,3 +229,9 @@ test("RLS migration removes legacy staff email policy and scopes owner rows", as
   assert.match(migration, /array_agg\(distinct membership\.clinic_id\)/);
   assert.doesNotMatch(migration, /min\(membership\.clinic_id\)/);
 });
+test("legacy shared Supabase session endpoint is authenticated but disabled", async () => {
+  const legacyRoute = await readFile(path.join(root, "src", "app", "api", "auth", "supabase-session", "route.ts"), "utf8");
+  assert.match(legacyRoute, /getServerSession\(authOptions\)/);
+  assert.match(legacyRoute, /status: 410/);
+  assert.doesNotMatch(legacyRoute, /active_clinic_id/);
+});
