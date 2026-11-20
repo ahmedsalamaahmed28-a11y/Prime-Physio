@@ -341,6 +341,10 @@ BEGIN
   IF public.get_my_clinic_id() <> '22222222-2222-4222-8222-222222222222'::uuid THEN RAISE EXCEPTION 'Clinic B scope was not resolved'; END IF;
   SELECT count(*) INTO v_count FROM public.patients;
   IF v_count <> 1 THEN RAISE EXCEPTION 'Clinic B patient scope is not isolated'; END IF;
+  SELECT count(*) INTO v_count FROM storage.objects WHERE bucket_id = 'patient-files';
+  IF v_count <> 1 THEN RAISE EXCEPTION 'Clinic B patient file scope is not isolated'; END IF;
+  SELECT count(*) INTO v_count FROM storage.objects WHERE bucket_id = 'branch-logos';
+  IF v_count <> 1 THEN RAISE EXCEPTION 'Clinic B logo scope is not isolated'; END IF;
   IF EXISTS (SELECT 1 FROM public.patients WHERE id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee') THEN
     RAISE EXCEPTION 'Clinic B read Clinic A patient';
   END IF;
