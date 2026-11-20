@@ -30,6 +30,14 @@ export function installClinicApiFetch(): () => void {
       requestUrl.origin !== window.location.origin ||
       !requestUrl.pathname.startsWith("/api/") ||
       requestUrl.pathname.startsWith("/api/public/") ||
+      requestUrl.pathname === "/api/public-chat" ||
+      requestUrl.pathname === "/api/signup" ||
+      requestUrl.pathname === "/api/slug-check" ||
+      requestUrl.pathname === "/api/n8n" ||
+      requestUrl.pathname.startsWith("/api/n8n/") ||
+      requestUrl.pathname.startsWith("/api/centers/send-otp") ||
+      requestUrl.pathname === "/api/sw" ||
+      requestUrl.pathname === "/api/test" ||
       (requestUrl.pathname.startsWith("/api/auth/") && requestUrl.pathname !== "/api/auth/enrich")
     ) {
       return nativeFetch(input, init);
@@ -41,6 +49,7 @@ export function installClinicApiFetch(): () => void {
     const headers = new Headers(
       init?.headers || (input instanceof Request ? input.headers : undefined),
     );
+    if (headers.has("Authorization")) return nativeFetch(input, init);
     headers.set("Authorization", `Bearer ${accessToken}`);
     return nativeFetch(input, { ...init, headers });
   };
