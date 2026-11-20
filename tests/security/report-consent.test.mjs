@@ -22,7 +22,7 @@ test("AI report API sends only bounded clinical fields and rejects identifying c
   assert.match(route, /cleanClinicalText\(clinicalData\.notes/);
   assert.match(route, /REDACTED CONTACT/);
   assert.match(route, /REDACTED NUMBER/);
-  assert.match(route, /patient name, file IDs, phone numbers, DOB, or gender/i);
+  assert.match(route, /patient names, file IDs, phone numbers, DOB, or gender/i);
 });
 
 test("report UI requires a patient consent confirmation before sending clinical data", async () => {
