@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test",
+    "test": "node --test tests/run.mjs",
     "security:audit": "npm audit --omit=dev --audit-level=high",
     "security:refresh-lock": "npm install --package-lock-only --ignore-scripts --no-audit --no-fund"
   },
