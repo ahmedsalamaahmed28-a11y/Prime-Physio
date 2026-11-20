@@ -46,6 +46,7 @@ CREATE TABLE public.chat_messages (conversation_id uuid, clinic_id uuid);
 CREATE TABLE public.hr_attendance (clinic_id uuid, staff_id uuid);
 CREATE TABLE public.patients (id uuid PRIMARY KEY, clinic_id uuid NOT NULL);
 CREATE TABLE public.invoices (id uuid PRIMARY KEY, clinic_id uuid NOT NULL);
+CREATE TABLE public.appointments (id uuid PRIMARY KEY, clinic_id uuid NOT NULL);
 
 ALTER TABLE public.clinics ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.clinic_owners ENABLE ROW LEVEL SECURITY;
@@ -57,10 +58,12 @@ ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.hr_attendance ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.patients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.appointments ENABLE ROW LEVEL SECURITY;
 
 GRANT SELECT ON public.clinics, public.clinic_owners, public.staff,
   public.chat_conversations, public.chat_participants, public.chat_messages,
-  public.hr_attendance, public.patients, public.invoices TO authenticated;
+  public.hr_attendance TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.patients, public.invoices, public.appointments TO authenticated;
 GRANT INSERT ON public.audit_logs TO authenticated;
 
 -- Two clinics intentionally share one canonical owner email.
@@ -83,6 +86,9 @@ INSERT INTO public.patients (id, clinic_id) VALUES
 INSERT INTO public.invoices (id, clinic_id) VALUES
   ('12121212-1212-4212-8212-121212121212', '11111111-1111-4111-8111-111111111111'),
   ('23232323-2323-4232-8232-232323232323', '22222222-2222-4222-8222-222222222222');
+INSERT INTO public.appointments (id, clinic_id) VALUES
+  ('56565656-5656-4565-8565-565656565656', '11111111-1111-4111-8111-111111111111'),
+  ('67676767-6767-4676-8676-676767676767', '22222222-2222-4222-8222-222222222222');
 INSERT INTO public.chat_conversations (id, clinic_id, kind) VALUES
   ('34343434-3434-4434-8434-343434343434', '11111111-1111-4111-8111-111111111111', 'team'),
   ('45454545-4545-4454-8454-454545454545', '22222222-2222-4222-8222-222222222222', 'team');
@@ -98,10 +104,74 @@ INSERT INTO public.hr_attendance (clinic_id, staff_id) VALUES
 
 \i supabase/migrations/20261120191500_clinic_scoped_shadow_identity_rls.sql
 
-CREATE POLICY patients_tenant_read ON public.patients
-FOR SELECT TO authenticated USING (clinic_id = public.get_my_clinic_id());
-CREATE POLICY invoices_tenant_read ON public.invoices
-FOR SELECT TO authenticated USING (clinic_id = public.get_my_clinic_id());
+-- Mirror the live tenant/permission policies for patients, invoices, and appointments.
+CREATE POLICY patients_clinic_select ON public.patients
+FOR SELECT TO authenticated USING (clinic_id = public.get_my_clinic_id() AND public.has_staff_permission('view_patients'));
+CREATE POLICY patients_clinic_insert ON public.patients
+FOR INSERT TO authenticated WITH CHECK (clinic_id = public.get_my_clinic_id() AND public.has_staff_permission('edit_patient'));
+CREATE POLICY patients_clinic_update ON public.patients
+FOR UPDATE TO authenticated USING (clinic_id = public.get_my_clinic_id() AND public.has_staff_permission('edit_patient'))
+WITH CHECK (clinic_id = public.get_my_clinic_id() AND public.has_staff_permission('edit_patient'));
+CREATE POLICY patients_clinic_delete ON public.patients
+FOR DELETE TO authenticated USING (clinic_id = public.get_my_clinic_id() AND public.has_staff_permission('delete_patient'));
+CREATE POLICY patients_auth_session_expiry_guard ON public.patients
+FOR ALL TO authenticated USING (public.is_valid_auth_session()) WITH CHECK (public.is_valid_auth_session());
+
+CREATE POLICY invoices_clinic_select ON public.invoices
+FOR SELECT TO authenticated USING (clinic_id = public.get_my_clinic_id() AND public.has_staff_permission('view_invoices'));
+CREATE POLICY invoices_clinic_insert ON public.invoices
+FOR INSERT TO authenticated WITH CHECK (clinic_id = public.get_my_clinic_id() AND public.has_staff_permission('create_invoice'));
+CREATE POLICY invoices_clinic_update ON public.invoices
+FOR UPDATE TO authenticated
+USING (clinic_id = public.get_my_clinic_id() AND (
+  public.has_staff_permission('create_invoice') OR public.has_staff_permission('apply_discount')
+  OR public.has_staff_permission('refund_invoice') OR public.has_staff_permission('delete_invoice')
+))
+WITH CHECK (clinic_id = public.get_my_clinic_id() AND (
+  public.has_staff_permission('create_invoice') OR public.has_staff_permission('apply_discount')
+  OR public.has_staff_permission('refund_invoice') OR public.has_staff_permission('delete_invoice')
+));
+CREATE POLICY invoices_clinic_delete ON public.invoices
+FOR DELETE TO authenticated USING (clinic_id = public.get_my_clinic_id() AND public.has_staff_permission('delete_invoice'));
+CREATE POLICY invoices_auth_session_expiry_guard ON public.invoices
+FOR ALL TO authenticated USING (public.is_valid_auth_session()) WITH CHECK (public.is_valid_auth_session());
+
+CREATE POLICY appointments_clinic_select ON public.appointments
+FOR SELECT TO authenticated USING (
+  clinic_id = public.get_my_clinic_id()
+  AND public.has_staff_permission('view_appointments')
+  AND public.has_staff_permission('view_patients')
+);
+CREATE POLICY appointments_clinic_insert ON public.appointments
+FOR INSERT TO authenticated WITH CHECK (
+  clinic_id = public.get_my_clinic_id()
+  AND public.has_staff_permission('view_patients')
+  AND public.has_staff_permission('edit_appointments')
+  AND public.has_staff_permission('create_invoice')
+);
+CREATE POLICY appointments_clinic_update ON public.appointments
+FOR UPDATE TO authenticated
+USING (
+  clinic_id = public.get_my_clinic_id()
+  AND public.has_staff_permission('view_appointments')
+  AND public.has_staff_permission('view_patients')
+  AND public.has_staff_permission('edit_appointments')
+)
+WITH CHECK (
+  clinic_id = public.get_my_clinic_id()
+  AND public.has_staff_permission('view_appointments')
+  AND public.has_staff_permission('view_patients')
+  AND public.has_staff_permission('edit_appointments')
+);
+CREATE POLICY appointments_clinic_delete ON public.appointments
+FOR DELETE TO authenticated USING (
+  clinic_id = public.get_my_clinic_id()
+  AND public.has_staff_permission('view_appointments')
+  AND public.has_staff_permission('view_patients')
+  AND public.has_staff_permission('edit_appointments')
+);
+CREATE POLICY appointments_auth_session_expiry_guard ON public.appointments
+FOR ALL TO authenticated USING (public.is_valid_auth_session()) WITH CHECK (public.is_valid_auth_session());
 
 
 SET ROLE authenticated;
@@ -128,6 +198,33 @@ BEGIN
   IF v_count <> 1 THEN RAISE EXCEPTION 'Patient RLS leaked rows across centers: %', v_count; END IF;
   SELECT count(*) INTO v_count FROM public.invoices;
   IF v_count <> 1 THEN RAISE EXCEPTION 'Invoice RLS leaked rows across centers: %', v_count; END IF;
+  SELECT count(*) INTO v_count FROM public.appointments;
+  IF v_count <> 1 THEN RAISE EXCEPTION 'Appointment RLS leaked rows across centers: %', v_count; END IF;
+
+  -- Clinic A owner can write within A, but cannot create or move rows into B.
+  INSERT INTO public.patients (id, clinic_id)
+    VALUES ('78787878-7878-4787-8787-787878787878', '11111111-1111-4111-8111-111111111111');
+  BEGIN
+    INSERT INTO public.patients (id, clinic_id)
+      VALUES ('89898989-8989-4898-8898-898989898989', '22222222-2222-4222-8222-222222222222');
+    RAISE EXCEPTION 'Clinic A inserted a patient into Clinic B';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  BEGIN
+    UPDATE public.invoices
+      SET clinic_id = '22222222-2222-4222-8222-222222222222'
+      WHERE id = '12121212-1212-4212-8212-121212121212';
+    RAISE EXCEPTION 'Clinic A moved an invoice into Clinic B';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+  INSERT INTO public.appointments (id, clinic_id)
+    VALUES ('90909090-9090-4090-8090-909090909090', '11111111-1111-4111-8111-111111111111');
+  BEGIN
+    INSERT INTO public.appointments (id, clinic_id)
+      VALUES ('abababab-abab-4aba-8aba-abababababab', '22222222-2222-4222-8222-222222222222');
+    RAISE EXCEPTION 'Clinic A inserted an appointment into Clinic B';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
   SELECT count(*) INTO v_count FROM public.chat_conversations;
   IF v_count <> 1 THEN RAISE EXCEPTION 'Conversation policy leaked rows across centers: %', v_count; END IF;
   SELECT count(*) INTO v_count FROM public.chat_messages;
