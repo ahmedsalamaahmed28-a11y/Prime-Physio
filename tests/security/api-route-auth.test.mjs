@@ -192,6 +192,8 @@ test("clinic exchange binds the selected tab to its expected login email", async
   const brandedLoginSource = await readFile(path.join(root, "src", "app", "[slug]", "page.tsx"), "utf8");
   assert.match(sessionSource, /expectedEmail: string/);
   assert.match(sessionSource, /expected_email: expectedEmail\.trim\(\)\.toLowerCase\(\)/);
+  assert.match(sessionSource, /await clearTabClinicSession\(\)/);
+  assert.match(sessionSource, /setClinicApiAccessToken\(null\)/);
   assert.match(authSource, /activateClinicSession\(enriched\.clinicId, enriched\.email\)/);
   assert.match(brandedLoginSource, /activateClinicSession\(clinic\.id, email\.trim\(\)\.toLowerCase\(\)\)/);
 });
