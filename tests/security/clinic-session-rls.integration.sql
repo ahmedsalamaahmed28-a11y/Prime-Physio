@@ -48,8 +48,8 @@ CREATE TABLE public.chat_conversations (id uuid PRIMARY KEY, clinic_id uuid, kin
 CREATE TABLE public.chat_participants (conversation_id uuid, clinic_id uuid, email text);
 CREATE TABLE public.chat_messages (conversation_id uuid, clinic_id uuid);
 CREATE TABLE public.hr_attendance (clinic_id uuid, staff_id uuid);
-CREATE TABLE public.patients (id uuid PRIMARY KEY, clinic_id uuid NOT NULL);
-CREATE TABLE public.invoices (id uuid PRIMARY KEY, clinic_id uuid NOT NULL);
+CREATE TABLE public.patients (id text PRIMARY KEY, clinic_id uuid NOT NULL);
+CREATE TABLE public.invoices (id text PRIMARY KEY, clinic_id uuid NOT NULL);
 CREATE TABLE public.appointments (id uuid PRIMARY KEY, clinic_id uuid NOT NULL);
 CREATE TABLE storage.objects (id uuid PRIMARY KEY, bucket_id text NOT NULL, name text NOT NULL);
 
