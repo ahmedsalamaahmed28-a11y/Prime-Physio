@@ -207,6 +207,8 @@ test("auth provider preserves a scoped tab identity and signs out locally", asyn
   const authSource = await readFile(path.join(root, "src", "lib", "auth.tsx"), "utf8");
   assert.match(authSource, /tabMetadata\.auth_source === "clinic-scoped-shadow"/);
   assert.match(authSource, /setClinicApiAccessToken\(/);
+  assert.match(authSource, /if \(isClinicScoped && !scopedSessionValid\)/);
+  assert.match(authSource, /prime-physio:tab-logged-out/);
   assert.doesNotMatch(authSource, /onAuthStateChange\(async/);
   assert.match(authSource, /tabEmail !== sessionEmail/);
   assert.match(authSource, /activateClinicSession\(enriched\.clinicId\)/);
