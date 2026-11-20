@@ -118,3 +118,14 @@ test("clinic-scoped bearer identity takes precedence over the shared NextAuth co
   assert.match(authSource, /if \(!canonicalEmail \|\| !clinicId\) throw/,
     "incomplete clinic-scoped claims must fail closed");
 });
+
+
+test("shared Supabase cookies cannot override a verified tab clinic scope", async () => {
+  const authSource = await readFile(
+    path.join(root, "src", "app", "api", "utils", "auth.ts"),
+    "utf8",
+  );
+  assert.match(authSource,
+    /if \(authed\.clinicId\) return authed\.clinicId;[\s\S]*?const token = parseAuthCookie\(req\);/,
+    "the verified bearer clinic must be returned before inspecting the shared Supabase cookie");
+});
