@@ -106,5 +106,5 @@ test("independent center provisioning creates a fresh tenant without copying pat
 test("private patient storage remains clinic-folder scoped", async () => {
   const migration = await source("supabase/migrations/20261120025936_independent_view_permissions_20261120.sql");
   assert.match(migration, /patient_files_clinic_read[\s\S]*?storage\.foldername\(name\)\)\[1\] = \(public\.get_my_clinic_id\(\)\)::text/);
-  assert.match(migration, /patient_files_clinic_upload[\s\S]*?p\.clinic_id = get_my_clinic_id\(\)/);
+  assert.match(migration, /patient_files_clinic_upload[\s\S]*?p\.clinic_id = public\.get_my_clinic_id\(\)/);
 });
