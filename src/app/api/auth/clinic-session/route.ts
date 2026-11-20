@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
         email: shadowEmail,
         password: shadowPassword,
         email_confirm: true,
-        app_metadata: expectedMetadata,
+        app_metadata: { ...existingMetadata, ...expectedMetadata },
         user_metadata: { identity_kind: "clinic_session" },
       });
       if (error) {
