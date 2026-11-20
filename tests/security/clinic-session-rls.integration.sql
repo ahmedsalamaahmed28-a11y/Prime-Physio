@@ -225,6 +225,14 @@ BEGIN
     RAISE EXCEPTION 'Clinic A inserted an appointment into Clinic B';
   EXCEPTION WHEN insufficient_privilege THEN NULL;
   END;
+  INSERT INTO public.audit_logs (clinic_id, user_email)
+    VALUES ('11111111-1111-4111-8111-111111111111', 'owner@example.test');
+  BEGIN
+    INSERT INTO public.audit_logs (clinic_id, user_email)
+      VALUES ('22222222-2222-4222-8222-222222222222', 'owner@example.test');
+    RAISE EXCEPTION 'Clinic A wrote an audit log into Clinic B';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
   SELECT count(*) INTO v_count FROM public.chat_conversations;
   IF v_count <> 1 THEN RAISE EXCEPTION 'Conversation policy leaked rows across centers: %', v_count; END IF;
   SELECT count(*) INTO v_count FROM public.chat_messages;
