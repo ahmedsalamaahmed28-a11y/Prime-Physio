@@ -13,7 +13,7 @@ CREATE SCHEMA auth;
 CREATE SCHEMA storage;
 CREATE OR REPLACE FUNCTION storage.foldername(object_name text)
 RETURNS text[] LANGUAGE sql IMMUTABLE
-AS $ SELECT string_to_array(object_name, '/') $;
+AS $function$ SELECT string_to_array(object_name, '/') $function$;
 CREATE TABLE auth.users (id uuid PRIMARY KEY);
 CREATE OR REPLACE FUNCTION auth.uid()
 RETURNS uuid LANGUAGE sql STABLE
