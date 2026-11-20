@@ -84,3 +84,17 @@ A machine-readable ledger is now stored at `docs/database-migration-reconciliati
 ## Execution boundary
 
 No local PostgreSQL service or Docker runtime is exposed through the connected GitHub/Supabase tools in this session. The production Supabase project is healthy, but it is not a safe substitute for a disposable local database. Therefore no migration replay, schema mutation, migration repair, or test fixture creation was run. The next valid step is to obtain trusted SQL artifacts for the unmatched records and execute the reconciled replay in an isolated local PostgreSQL/Supabase environment.
+
+
+## Candidate recovery findings — 2026-11-20
+
+The original reconciliation note preserved in merge commit `1432e625f85e4b38249ed066e6b132e20cb31814` provides historical candidate paths for several early migrations:
+- Applied `20261105150029_pin_search_path_security_functions` was previously associated with source `20261105151000_pin_security_function_search_path.sql`.
+- The early clinic lookup/provisioning restrictions have a combined source candidate `20261105152500_restrict_clinic_lookup_and_provision.sql`.
+- The original note also documented that the legacy app-key revocation history included multiple similarly named files with different contents, reinforcing that names cannot establish equivalence.
+
+The ledger now records 13 historical or semantic candidates among the 23 unmatched production records. These candidates are explicitly marked unverified. Ten unmatched records still have no defensible current-source candidate. The ledger also records current source Git blob SHA-1 values for candidate files, while leaving every production SQL hash null because the hosted migration inventory does not expose original SQL bodies.
+
+## Local execution environment check
+
+The connected execution runtime was checked for `psql`, `postgres`, `initdb`, `pg_ctl`, Docker, Podman, and the Supabase CLI; none is installed. The connected GitHub and Supabase tools do not provide a disposable local PostgreSQL daemon. No production database was used as a substitute, and no migration replay was attempted. A local rebuild therefore remains blocked until an isolated PostgreSQL/Supabase CLI runner is made available and a complete, trusted baseline is recovered.
