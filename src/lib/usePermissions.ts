@@ -56,72 +56,51 @@ export function usePermissions() {
         return;
       }
 
-      try {
-        const { data, error } = await supabase.rpc("has_staff_permission", {
-          permission_key: "manage_staff",
-        });
-        if (!cancelled) setServerManageStaff(!error && data === true);
-      } catch {
-        if (!cancelled) setServerManageStaff(false);
-      }
+      // Resolve permissions through the server-side clinic-scoped RPC for every role.
+      // This is authoritative for both owners (all clinic permissions) and staff
+      // (their explicit permission list / role defaults), and avoids a direct staff
+      // table read failing during auth hydration or incorrectly hiding owner items.
+      const permissionKeys = [
+        "view_patients",
+        "view_appointments",
+        "view_invoices",
+        "create_invoice",
+        "edit_patient",
+        "edit_emr",
+        "view_patient_history",
+        "manage_staff",
+        "view_analytics",
+        "manage_settings",
+        "edit_appointments",
+        "apply_discount",
+        "refund_invoice",
+        "delete_invoice",
+        "delete_patient",
+        "delete_emr",
+      ];
 
-      try {
-        const { data, error } = await supabase
-          .from("staff")
-          .select("permissions")
-          .eq("clinic_id", user.clinicId)
-          .ilike("email", user.email)
-          .maybeSingle();
+      setCustomPerms([]);
+      setHasOverride(true);
+      setServerManageStaff(false);
 
-        if (error) throw error;
-        if (cancelled) return;
-
-        const parsed = parsePermissionList(data?.permissions);
-        setCustomPerms(parsed.defined ? parsed.permissions : []);
-        setHasOverride(parsed.defined);
-      } catch (error) {
-        if (!cancelled) {
-          console.error("Failed to load staff permission row; resolving permissions through the verified clinic RPC", error);
-          // The staff table may be temporarily unavailable during tab-scoped auth
-          // hydration. Resolve exact permissions on the server instead of treating
-          // a transport error as an explicit empty permission override.
-          const permissionKeys = [
-            "view_patients",
-            "view_appointments",
-            "view_invoices",
-            "create_invoice",
-            "edit_patient",
-            "edit_emr",
-            "view_patient_history",
-            "manage_staff",
-            "view_analytics",
-            "manage_settings",
-            "edit_appointments",
-            "apply_discount",
-            "refund_invoice",
-            "delete_invoice",
-            "delete_patient",
-            "delete_emr",
-          ];
-          const resolved = await Promise.all(permissionKeys.map(async (permission) => {
-            try {
-              const { data, error: rpcError } = await supabase.rpc("has_staff_permission", {
-                permission_key: permission,
-              });
-              return [permission, !rpcError && data === true] as const;
-            } catch {
-              return [permission, false] as const;
-            }
-          }));
-          if (cancelled) return;
-          const serverPermissions = Object.fromEntries(resolved);
-          setCustomPerms(Object.entries(serverPermissions)
-            .filter(([, allowed]) => allowed)
-            .map(([permission]) => permission));
-          setHasOverride(true);
-          setServerManageStaff(serverPermissions.manage_staff === true);
+      const resolved = await Promise.all(permissionKeys.map(async (permission) => {
+        try {
+          const { data, error } = await supabase.rpc("has_staff_permission", {
+            permission_key: permission,
+          });
+          return [permission, !error && data === true] as const;
+        } catch {
+          return [permission, false] as const;
         }
-      }
+      }));
+
+      if (cancelled) return;
+      const serverPermissions = Object.fromEntries(resolved);
+      setCustomPerms(Object.entries(serverPermissions)
+        .filter(([, allowed]) => allowed)
+        .map(([permission]) => permission));
+      setServerManageStaff(serverPermissions.manage_staff === true);
+      setHasOverride(true);
     }
 
     loadPermissions();

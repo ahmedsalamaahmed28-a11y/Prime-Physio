@@ -215,15 +215,16 @@ test("clinic exchange binds the selected tab to its expected login email", async
 
 
 
-test("clinic-owner navigation permissions recover from a temporary staff-table read failure", async () => {
+test("clinic navigation uses server-authoritative permissions for owners and staff", async () => {
   const permissionsSource = await readFile(path.join(root, "src", "lib", "usePermissions.ts"), "utf8");
-  assert.match(permissionsSource, /resolving permissions through the verified clinic RPC/);
+  assert.match(permissionsSource, /server-side clinic-scoped RPC for every role/);
   assert.match(permissionsSource, /supabase\.rpc\("has_staff_permission"/);
-  assert.match(permissionsSource, /view_analytics/);
-  assert.match(permissionsSource, /manage_settings/);
-  assert.match(permissionsSource, /manage_staff/);
+  for (const permission of ["view_patients", "view_appointments", "view_invoices", "manage_staff", "view_analytics", "manage_settings"]) {
+    assert.match(permissionsSource, new RegExp(permission));
+  }
+  assert.doesNotMatch(permissionsSource, /\.from\("staff"\)/,
+    "sidebar permissions must not depend on a direct staff-table read");
   assert.match(permissionsSource, /setHasOverride\(true\)/);
-  assert.match(permissionsSource, /serverPermissions\.manage_staff === true/);
 });
 
 test("clinic-scoped bearer identities cannot enter platform administration", async () => {
