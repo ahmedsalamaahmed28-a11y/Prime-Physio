@@ -271,6 +271,7 @@ security definer
 set search_path = ''
 as $function$
   select auth.uid() is not null
+    and public.is_valid_auth_session()
     and coalesce(auth.jwt() -> 'app_metadata' ->> 'auth_source', '') <> 'clinic-scoped-shadow'
     and exists (
       select 1 from public.platform_admins pa
@@ -284,7 +285,7 @@ language plpgsql
 set search_path = 'pg_catalog', 'public'
 as $function$
 begin
-  if auth.uid() is not null and public.get_auth_email() is distinct from lower(trim(new.admin_email)) then
+  if auth.uid() is not null and (not public.is_valid_auth_session() or public.get_auth_email() is distinct from lower(trim(new.admin_email))) then
     raise exception 'Clinic admin email must match the authenticated account'
       using errcode = '42501';
   end if;
@@ -458,6 +459,7 @@ declare
   v_slug text;
 begin
   if auth.uid() is null
+     or not public.is_valid_auth_session()
      or public.get_auth_email() is distinct from lower(trim(coalesce(p_email, ''))) then
     raise exception 'Unauthorized' using errcode = '42501';
   end if;
