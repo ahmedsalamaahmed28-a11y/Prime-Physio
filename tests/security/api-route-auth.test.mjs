@@ -196,6 +196,16 @@ test("clinic exchange binds the selected tab to its expected login email", async
   assert.match(sessionSource, /setClinicApiAccessToken\(null\)/);
   assert.match(authSource, /activateClinicSession\(enriched\.clinicId, enriched\.email\)/);
   assert.match(brandedLoginSource, /activateClinicSession\(clinic\.id, email\.trim\(\)\.toLowerCase\(\)\)/);
+  assert.match(brandedLoginSource, /import \{ getSession, signIn \} from "next-auth\/react"/);
+  assert.match(brandedLoginSource, /const candidate = await getSession\(\)/);
+  assert.match(brandedLoginSource, /candidateEmail === expectedEmail/);
+  assert.match(brandedLoginSource, /candidateClinicId === clinic\.id/);
+  assert.match(brandedLoginSource, /expiresAt > Date\.now\(\)/);
+  assert.ok(
+    brandedLoginSource.indexOf("if (!verifiedSession)") < brandedLoginSource.indexOf("await activateClinicSession(clinic.id, expectedEmail)"),
+    "the clinic-scoped exchange must not run until the fresh NextAuth session is verified",
+  );
+  assert.match(brandedLoginSource, /could not be verified for this clinic/);
 });
 
 
