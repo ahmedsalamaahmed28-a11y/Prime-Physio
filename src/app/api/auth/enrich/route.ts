@@ -47,19 +47,63 @@ async function clinicPresentation(admin: ReturnType<typeof getAdminClient>, clin
 
 export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    const email = session?.user?.email?.toLowerCase().trim();
+    const admin = getAdminClient();
+    const bearer = req.headers.get("authorization")?.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+    let email: string | null = null;
+    let scopedClinicId: string | null = null;
+
+    if (bearer) {
+      const { data, error } = await admin.auth.getUser(bearer);
+      const metadata = data.user?.app_metadata || {};
+      if (error || !data.user || metadata.auth_source !== "clinic-scoped-shadow") {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: { "Cache-Control": "no-store, private" } });
+      }
+      email = typeof metadata.canonical_email === "string" ? metadata.canonical_email.trim().toLowerCase() : null;
+      scopedClinicId = typeof metadata.clinic_id === "string" ? metadata.clinic_id : null;
+      const expiresAt = Number(metadata.nextauth_expires_at || 0);
+      if (
+        !email ||
+        !scopedClinicId ||
+        !Number.isSafeInteger(expiresAt) ||
+        expiresAt <= Math.floor(Date.now() / 1000)
+      ) {
+        return NextResponse.json({ error: "Invalid or expired clinic identity" }, { status: 401, headers: { "Cache-Control": "no-store, private" } });
+      }
+
+      const { data: identity, error: identityError } = await admin
+        .from("clinic_auth_identities")
+        .select("shadow_user_id")
+        .eq("clinic_id", scopedClinicId)
+        .eq("canonical_email", email)
+        .eq("shadow_user_id", data.user.id)
+        .maybeSingle();
+      if (identityError) {
+        return NextResponse.json({ error: "Unable to verify clinic identity" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
+      }
+      if (!identity) {
+        return NextResponse.json({ error: "Clinic identity mapping is invalid" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
+      }
+    } else {
+      const session = await getServerSession(authOptions);
+      email = session?.user?.email?.toLowerCase().trim() || null;
+    }
+
     if (!email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: { "Cache-Control": "no-store, private" } });
     }
 
-    const preferredClinicId = new URL(req.url).searchParams.get("preferred_clinic_id");
-    const admin = getAdminClient();
+    const requestedClinicId = new URL(req.url).searchParams.get("preferred_clinic_id");
+    if (scopedClinicId && requestedClinicId && requestedClinicId !== scopedClinicId) {
+      return NextResponse.json({ error: "Clinic scope mismatch" }, { status: 403, headers: { "Cache-Control": "no-store, private" } });
+    }
+    const preferredClinicId = scopedClinicId || requestedClinicId;
+    let staffProfileQuery = admin.from("staff").select("name").eq("email", email).not("name", "is", null);
+    if (scopedClinicId) staffProfileQuery = staffProfileQuery.eq("clinic_id", scopedClinicId);
     const [
       { data: profile, error: profileResultError },
       { data: accountProfile, error: accountProfileResultError },
     ] = await Promise.all([
-      admin.from("staff").select("name").eq("email", email).not("name", "is", null).limit(1).maybeSingle(),
+      staffProfileQuery.limit(1).maybeSingle(),
       admin.from("auth_accounts").select("name").eq("email", email).maybeSingle(),
     ]);
     if (profileResultError || accountProfileResultError) {
@@ -81,7 +125,7 @@ export async function GET(req: NextRequest) {
       console.error("[AuthEnrich] Platform-admin lookup failed", { code: platformAdminError.code });
       return NextResponse.json({ error: "Unable to verify platform permissions" }, { status: 503, headers: { "Cache-Control": "no-store, private" } });
     }
-    if (platformAdmin) {
+    if (platformAdmin && !scopedClinicId) {
       return NextResponse.json({
         clinicId: null, displayName, role: "platform_admin", roleKey: "platform_admin",
         roleAr: "مدير المنصة", roleEn: "Platform Admin",

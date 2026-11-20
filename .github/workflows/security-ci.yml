@@ -7,6 +7,7 @@ on:
       - security/critical-hardening
       - security/phase-3-csp-nonce
       - security/independent-view-permissions
+      - fix/clinic-session-isolation
   pull_request:
     branches: [main]
   workflow_dispatch:

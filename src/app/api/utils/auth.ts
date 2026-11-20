@@ -7,6 +7,7 @@ export interface AuthUser {
   email: string;
   userId?: string;
   clinicId?: string;
+  authSource?: string;
 }
 
 function mapStaffRoleToRoleKey(role: string): "admin" | "doctor" | "receptionist" | "unknown" {
@@ -53,6 +54,79 @@ function parseAuthCookie(req: NextRequest): string | null {
 }
 
 export async function requireAuth(req: NextRequest): Promise<AuthUser> {
+  const admin = getAdminClient();
+
+  // A clinic-scoped bearer token is the authoritative identity for this tab.
+  // It must be checked before the origin-wide NextAuth cookie, otherwise a
+  // second clinic login in another tab can silently replace this tab's scope.
+  const authHeader = req.headers.get("authorization");
+  if (authHeader) {
+    const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
+    const token = tokenMatch?.[1]?.trim();
+    if (!token) throw new Error("Unauthorized");
+
+    const { data: { user }, error } = await admin.auth.getUser(token);
+    if (error || !user || !(user.email_confirmed_at || user.confirmed_at)) {
+      // Never fall back to the shared NextAuth cookie when a caller supplied
+      // an invalid/expired bearer token; doing so could change this tab's user.
+      throw new Error("Unauthorized");
+    }
+
+    const metadata = user.app_metadata || {};
+    if (metadata.auth_source === "clinic-scoped-shadow") {
+      const canonicalEmail = typeof metadata.canonical_email === "string"
+        ? metadata.canonical_email.trim().toLowerCase()
+        : "";
+      const clinicId = typeof metadata.clinic_id === "string" ? metadata.clinic_id : "";
+      const expiresAt = Number(metadata.nextauth_expires_at || 0);
+      if (
+        !canonicalEmail ||
+        !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clinicId) ||
+        !Number.isSafeInteger(expiresAt) ||
+        expiresAt <= Math.floor(Date.now() / 1000)
+      ) {
+        throw new Error("Invalid or expired clinic-scoped session");
+      }
+
+      const [
+        { data: identity, error: identityError },
+        { data: clinic, error: clinicError },
+        { data: owner, error: ownerError },
+        { data: staff, error: staffError },
+      ] = await Promise.all([
+        admin.from("clinic_auth_identities")
+          .select("shadow_user_id")
+          .eq("clinic_id", clinicId)
+          .eq("canonical_email", canonicalEmail)
+          .eq("shadow_user_id", user.id)
+          .maybeSingle(),
+        admin.from("clinics").select("id,is_active,status").eq("id", clinicId).maybeSingle(),
+        admin.from("clinic_owners").select("clinic_id").eq("clinic_id", clinicId).eq("owner_email", canonicalEmail).maybeSingle(),
+        admin.from("staff").select("clinic_id,status").eq("clinic_id", clinicId).eq("email", canonicalEmail).maybeSingle(),
+      ]);
+      if (identityError || clinicError || ownerError || staffError) {
+        throw new Error("Unable to verify clinic-scoped membership");
+      }
+      if (!identity) throw new Error("Forbidden: Clinic identity mapping is invalid");
+      if (!clinic || clinic.is_active !== true || String(clinic.status || "").trim().toLowerCase() !== "active") {
+        throw new Error("Forbidden: Clinic is inactive");
+      }
+      const activeStaff = Boolean(staff && !["محذوف", "deleted", "inactive", "غير نشط"].includes(String(staff.status || "").trim().toLowerCase()));
+      if (!owner && !activeStaff) throw new Error("Forbidden: Clinic membership is inactive");
+
+      return { email: canonicalEmail, userId: user.id, clinicId, authSource: "clinic-scoped-shadow" };
+    }
+
+    if (metadata.auth_source === "nextauth-shadow" || !user.email) throw new Error("Unauthorized");
+    return {
+      email: user.email.trim().toLowerCase(),
+      userId: user.id,
+      clinicId: typeof metadata.active_clinic_id === "string" ? metadata.active_clinic_id : undefined,
+    };
+  }
+
+  // Legacy sign-in compatibility: the NextAuth cookie remains the initial
+  // identity for existing sessions until the clinic-scoped exchange is wired.
   try {
     const session = await getServerSession(authOptions);
     if (session?.user?.email) {
@@ -60,7 +134,7 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
       let clinicId = typeof (session.user as any).clinicId === "string" ? (session.user as any).clinicId : undefined;
       const shadowToken = parseAuthCookie(req);
       if (shadowToken) {
-        const { data: { user }, error } = await getAdminClient().auth.getUser(shadowToken);
+        const { data: { user }, error } = await admin.auth.getUser(shadowToken);
         if (!error && user?.email?.toLowerCase() === email && user.app_metadata?.auth_source === "nextauth-shadow") {
           const activeClinicId = user.app_metadata?.active_clinic_id;
           if (typeof activeClinicId === "string") clinicId = activeClinicId;
@@ -77,7 +151,6 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
     console.error("[auth] NextAuth session error:", err);
   }
 
-  const admin = getAdminClient();
   const cookieToken = parseAuthCookie(req);
   if (cookieToken) {
     try {
@@ -90,22 +163,7 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
         };
       }
     } catch {
-      // Continue to supported bearer-token authentication.
-    }
-  }
-
-  const authHeader = req.headers.get("authorization");
-  if (authHeader?.startsWith("Bearer ")) {
-    const token = authHeader.slice(7).trim();
-    if (token) {
-      const { data: { user }, error } = await admin.auth.getUser(token);
-      if (!error && user?.email && (user.email_confirmed_at || user.confirmed_at) && user.app_metadata?.auth_source !== "nextauth-shadow") {
-        return {
-          email: user.email.trim().toLowerCase(),
-          userId: user.id,
-          clinicId: typeof user.app_metadata?.active_clinic_id === "string" ? user.app_metadata.active_clinic_id : undefined,
-        };
-      }
+      // Invalid cookies do not establish identity.
     }
   }
 
@@ -113,7 +171,11 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
 }
 
 async function resolveActiveClinicId(req: NextRequest, authed: AuthUser, admin: ReturnType<typeof getAdminClient>) {
-  let clinicId = authed.clinicId || null;
+  // A clinic ID derived from a verified bearer token is already tab-scoped.
+  // Never let an origin-wide Supabase cookie replace that verified tenant.
+  if (authed.clinicId) return authed.clinicId;
+
+  let clinicId: string | null = null;
   const token = parseAuthCookie(req);
   if (token) {
     const { data: { user }, error } = await admin.auth.getUser(token);
@@ -154,7 +216,7 @@ export async function requireRole(
   const admin = getAdminClient();
   const email = authed.email.trim().toLowerCase();
 
-  if (allowedRoles.includes("platform_admin")) {
+  if (allowedRoles.includes("platform_admin") && authed.authSource !== "clinic-scoped-shadow") {
     const { data: platformAdmin, error: platformAdminError } = await admin
       .from("platform_admins")
       .select("email")
@@ -167,6 +229,14 @@ export async function requireRole(
       throw new Error("Unable to verify account permissions");
     }
     if (platformAdmin) return { ...authed, roleKey: "platform_admin" };
+  }
+
+  // Clinic-scoped APIs must never accept the shared NextAuth cookie or a
+  // legacy Supabase shadow session as tenant authorization. Those identities
+  // are origin-wide and can be changed by another browser tab. Platform-admin
+  // access is handled explicitly above through the server-managed allowlist.
+  if (authed.authSource !== "clinic-scoped-shadow") {
+    throw new Error("Unauthorized: an independently verified clinic session is required");
   }
 
   const clinicId = await resolveActiveClinicId(req, authed, admin);

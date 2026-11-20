@@ -10,7 +10,7 @@ import {
   Clock, Eye, EyeOff, Globe, Lock, Mail,
   MapPin, Menu, Phone, ShieldCheck, Sparkles, Stethoscope, Users, X,
 } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { activateClinicSession } from "@/lib/clinic-session";
 import { useLanguage } from "@/lib/LanguageContext";
 import { Loader } from "@/components/Loader";
 
@@ -147,6 +147,7 @@ export default function BrandedClinicPage() {
       // setting this afterward causes owner accounts to be briefly treated as
       // unscoped center managers and redirected to /overview.php/.
       sessionStorage.setItem("preferred_clinic_id", clinic.id);
+      sessionStorage.removeItem("prime-physio:tab-logged-out");
 
       const result = await signIn("credentials", {
         email: email.trim().toLowerCase(), password, clinicSlug: slug, redirect: false,
@@ -155,15 +156,7 @@ export default function BrandedClinicPage() {
         sessionStorage.removeItem("preferred_clinic_id");
         throw new Error(isRtl ? "البريد الإلكتروني أو كلمة المرور غير صحيحة" : "Invalid email or password");
       }
-      const response = await fetch(`/api/auth/supabase-session?clinic_id=${encodeURIComponent(clinic.id)}`, { cache: "no-store" });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok || !payload.session?.access_token || !payload.session?.refresh_token) {
-        throw new Error(payload.error || (isRtl ? "تعذر تفعيل جلسة هذا المركز" : "Could not activate this clinic session"));
-      }
-      const { error } = await supabase.auth.setSession({
-        access_token: payload.session.access_token, refresh_token: payload.session.refresh_token,
-      });
-      if (error) throw error;
+      await activateClinicSession(clinic.id, email.trim().toLowerCase());
       window.location.replace("/dashboard");
     } catch (error) {
       if (clinic?.id && sessionStorage.getItem("preferred_clinic_id") === clinic.id) {

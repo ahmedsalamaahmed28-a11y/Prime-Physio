@@ -2,9 +2,11 @@
 
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
-import { SessionProvider, signOut, useSession, getSession } from "next-auth/react";
+import { SessionProvider, useSession, getSession } from "next-auth/react";
 import { supabase } from "@/lib/supabase";
 import { getAppValue, setAppValue } from "@/lib/appStorage";
+import { installClinicApiFetch, setClinicApiAccessToken } from "@/lib/clinic-api-fetch";
+import { activateClinicSession } from "@/lib/clinic-session";
 
 interface User {
   name: string;
@@ -216,53 +218,108 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     setIsEnriching(enrichmentCountRef.current > 0);
   };
 
+  // Install the same-origin API bridge before auth effects run.
+  useEffect(() => installClinicApiFetch(), []);
+
   // Never restore an authenticated user from localStorage. Only verified server sessions
   // (NextAuth) or a live Supabase Auth session may establish identity.
   useEffect(() => {
-    setIsLoading(false);
-  }, []);
+    let active = true;
+    let authEventVersion = 0;
+    const pendingTimers = new Set<ReturnType<typeof setTimeout>>();
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, authSession) => {
+      const eventVersion = ++authEventVersion;
+      setIsLoading(false);
+      const metadata = authSession?.user?.app_metadata || {};
+      const isClinicScoped = metadata.auth_source === "clinic-scoped-shadow";
+      const scopedEmail = typeof metadata.canonical_email === "string"
+        ? metadata.canonical_email.trim().toLowerCase()
+        : "";
+      const scopedClinicId = typeof metadata.clinic_id === "string" ? metadata.clinic_id : "";
+      const scopedExpiry = Number(metadata.nextauth_expires_at || 0);
+      const scopedSessionValid =
+        isClinicScoped &&
+        Boolean(scopedEmail && scopedClinicId) &&
+        Number.isSafeInteger(scopedExpiry) &&
+        scopedExpiry > Math.floor(Date.now() / 1000);
+      setClinicApiAccessToken(scopedSessionValid ? authSession?.access_token || null : null);
 
-  useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, authSession) => {
-      if (authSession?.user) {
-        // Shadow sessions are only a bridge for RLS; NextAuth remains the actual web identity.
-        if (authSession.user.app_metadata?.auth_source === "nextauth-shadow") return;
-        // User metadata and browser storage are user-controlled; the staff table is the role source of truth.
-        const roleKey = "doctor" as const;
-        const name = authSession.user.user_metadata?.full_name || authSession.user.email?.split("@")[0] || "مستخدم";
-
-        const newUser: User = {
-          name: prefixArabicName(name, roleKey),
-          email: authSession.user.email || "",
-          initials: name.substring(0, 2).toUpperCase(),
-          role: getArabicRoleLabel(roleKey),
-          roleKey,
-          bg: "bg-gradient-to-br from-emerald-500 to-teal-600",
-          nameEn: prefixEnglishName(name, roleKey),
-          roleEn: getEnglishRoleLabel(roleKey),
-          initialsEn: name.substring(0, 2).toUpperCase(),
-        };
-
-        beginEnrichment();
-        const enriched = await enrichUserWithClinic(newUser);
-        endEnrichment();
-
-        // Always accept the latest authoritative enrichment result. A previous null clinicId
-        // must not block a later successful lookup for the same email.
-        setUser(enriched);
-        setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
-        setAppValue("pending_role", "doctor").catch(() => {});
-      } else if (event === "SIGNED_OUT") {
+      if (isClinicScoped && !scopedSessionValid) {
         setUser(null);
         setAppValue("current_user", null).catch(() => {});
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("prime-physio:tab-logged-out", "1");
+          sessionStorage.removeItem("preferred_clinic_id");
+          sessionStorage.removeItem("prime-physio:active-clinic-id");
+        }
+        const cleanupTimer = setTimeout(() => {
+          pendingTimers.delete(cleanupTimer);
+          void supabase.auth.signOut({ scope: "local" }).catch((error) => {
+            console.error("Failed to clear expired clinic session:", error);
+          });
+        }, 0);
+        pendingTimers.add(cleanupTimer);
+        return;
       }
+
+      if (!authSession?.user) {
+        if (event === "SIGNED_OUT") {
+          setUser(null);
+          setAppValue("current_user", null).catch(() => {});
+        }
+        return;
+      }
+
+      if (metadata.auth_source === "nextauth-shadow") return;
+      const canonicalEmail = isClinicScoped
+        ? scopedEmail
+        : (authSession.user.email || "").trim().toLowerCase();
+      if (!canonicalEmail) return;
+
+      const roleKey = "doctor" as const;
+      const name = authSession.user.user_metadata?.full_name || canonicalEmail.split("@")[0] || "مستخدم";
+      const newUser: User = {
+        name: prefixArabicName(name, roleKey),
+        email: canonicalEmail,
+        initials: name.substring(0, 2).toUpperCase(),
+        role: getArabicRoleLabel(roleKey),
+        roleKey,
+        clinicId: isClinicScoped ? scopedClinicId : undefined,
+        bg: "bg-gradient-to-br from-emerald-500 to-teal-600",
+        nameEn: prefixEnglishName(name, roleKey),
+        roleEn: getEnglishRoleLabel(roleKey),
+        initialsEn: name.substring(0, 2).toUpperCase(),
+      };
+
+      // Supabase warns against awaiting other Supabase operations inside its
+      // auth-state callback. Defer enrichment until after the callback releases
+      // the internal auth lock; the token is already available to the API bridge.
+      beginEnrichment();
+      const timer = setTimeout(() => {
+        pendingTimers.delete(timer);
+        void enrichUserWithClinic(newUser)
+          .then((enriched) => {
+            if (!active || eventVersion !== authEventVersion) return;
+            setUser(enriched);
+            setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
+            setAppValue("pending_role", "doctor").catch(() => {});
+          })
+          .catch((error) => {
+            console.error("Failed to enrich authenticated clinic user:", error);
+          })
+          .finally(() => endEnrichment());
+      }, 0);
+      pendingTimers.add(timer);
     });
 
     return () => {
+      active = false;
+      authEventVersion += 1;
+      pendingTimers.forEach((timer) => clearTimeout(timer));
+      pendingTimers.clear();
       authListener.subscription.unsubscribe();
     };
   }, []);
-
   useEffect(() => {
     if (status === "authenticated" && session?.user) {
       const sessionEmail = (session.user.email || "").toLowerCase();
@@ -270,43 +327,30 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       let active = true;
 
       const loadRoleState = async () => {
+        if (typeof window !== "undefined" && sessionStorage.getItem("prime-physio:tab-logged-out") === "1") return;
+
+        // A verified clinic identity stored in this tab always wins over the
+        // shared NextAuth cookie, which may have changed in another tab.
+        const { data: tabAuth } = await supabase.auth.getSession();
+        const tabMetadata = tabAuth.session?.user?.app_metadata || {};
+        if (tabMetadata.auth_source === "clinic-scoped-shadow") {
+          const tabEmail = typeof tabMetadata.canonical_email === "string"
+            ? tabMetadata.canonical_email.trim().toLowerCase()
+            : "";
+          if (tabEmail && tabEmail !== sessionEmail) return;
+          if (tabEmail === sessionEmail) return;
+        }
+
         const currentUser = session.user!;
         const email = currentUser.email || "";
-        // Never trust a role stored in localStorage. enrichUserWithClinic resolves it from the server-side staff record.
         const finalRoleKey = "doctor" as const;
 
-        // Sync NextAuth session to Supabase so RLS policies work!
-        try {
-          // A dashboard opened from the account overview can request a specific
-          // clinic in its URL. Persist it before syncing Supabase so this tab
-          // uses the same verified tenant for RLS and subsequent enrichment.
-          const requestedClinicId =
-            typeof window !== "undefined" &&
-            (window.location.pathname.replace(/\/+$/, "") || "/") === "/dashboard"
-              ? new URLSearchParams(window.location.search).get("clinicId")
-              : null;
-          if (requestedClinicId) {
-            sessionStorage.setItem("preferred_clinic_id", requestedClinicId);
-          }
-          const preferredClinicId =
-            requestedClinicId ||
-            (typeof window !== "undefined" ? sessionStorage.getItem("preferred_clinic_id") : null);
-          const sessionUrl = preferredClinicId
-            ? `/api/auth/supabase-session?clinic_id=${encodeURIComponent(preferredClinicId)}`
-            : "/api/auth/supabase-session";
-          const res = await fetch(sessionUrl, { signal: AbortSignal.timeout(10000) });
-          if (res.ok) {
-            const { session: supaSession } = await res.json();
-            if (supaSession && active) {
-              await supabase.auth.setSession({
-                access_token: supaSession.access_token,
-                refresh_token: supaSession.refresh_token,
-              });
-            }
-          }
-        } catch (err) {
-          console.error("Failed to sync Supabase session:", err);
-        }
+        const requestedClinicId =
+          typeof window !== "undefined" &&
+          (window.location.pathname.replace(/\/+$/, "") || "/") === "/dashboard"
+            ? new URLSearchParams(window.location.search).get("clinicId")
+            : null;
+        if (requestedClinicId) sessionStorage.setItem("preferred_clinic_id", requestedClinicId);
 
         const name = currentUser.name || email.split("@")[0];
         const initials = name.substring(0, 2).toUpperCase();
@@ -328,7 +372,20 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         const enriched = await enrichUserWithClinic(newUser);
         endEnrichment();
         if (!active) return;
-        // Do not keep stale clinic data from an earlier enrichment attempt.
+
+        if (enriched.clinicId && !enriched.isPlatformAdmin) {
+          try {
+            await activateClinicSession(enriched.clinicId, enriched.email);
+          } catch (error) {
+            console.error("Failed to activate independent clinic session:", error);
+            setClinicApiAccessToken(null);
+            setUser(null);
+            setAppValue("current_user", null).catch(() => {});
+            setIsEnriching(false);
+            return;
+          }
+        }
+
         setUser(enriched);
         setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
         const currentPath = typeof window !== "undefined" ? (window.location.pathname.replace(/[/]+$/, "") || "/") : "";
@@ -339,7 +396,6 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
         } else if (enriched.clinicId === null && typeof window !== "undefined" && currentPath !== "/" && !currentPath.startsWith("/setup") && currentPath !== "/center-management" && currentPath !== "/center-management.php" && !/^\/(?:centers|overview|export|account|plans|notices)\.php$/.test(currentPath) && currentPath !== "/create-center" && currentPath !== "/addcenter.php" && currentPath !== "/my-centers/create" && !/^\/[a-z][a-z0-9-]+$/.test(currentPath) && !isClinicLandingPage) {
           window.location.href = "/overview.php/";
         }
-
       };
 
       loadRoleState();
@@ -351,8 +407,18 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       setIsEnriching(false);
       setUser((prev) => prev?.email?.toLowerCase() === expiredEmail ? null : prev);
       setAppValue("current_user", null).catch(() => {});
-      // Revoke the long-lived Supabase shadow session when its NextAuth owner expires.
-      supabase.auth.signOut().catch((error) => console.error("Failed to revoke expired shadow session:", error));
+      // A shared NextAuth cookie can expire/change because of another tab.
+      // Revoke this tab's Supabase session only when it belongs to that same account.
+      supabase.auth.getSession().then(({ data }) => {
+        const metadata = data.session?.user?.app_metadata || {};
+        if (
+          metadata.auth_source === "clinic-scoped-shadow" &&
+          typeof metadata.canonical_email === "string" &&
+          metadata.canonical_email.toLowerCase() === expiredEmail
+        ) {
+          return supabase.auth.signOut({ scope: "local" });
+        }
+      }).catch((error) => console.error("Failed to validate expired tab session:", error));
     }
   }, [session, status]);
 
@@ -372,7 +438,8 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       const isSlugPage = /^\/[a-z][a-z0-9-]+$/.test(pathname) && !knownPages.has(pathname.replace("/", ""));
       if (isSlugPage) return;
       if (pathname.startsWith("/setup") || pathname === "/plans" || pathname === "/center_setup") { window.location.replace("/center-management"); return; }
-      if (!user && status !== "authenticated") {
+      const tabWasLoggedOut = typeof window !== "undefined" && sessionStorage.getItem("prime-physio:tab-logged-out") === "1";
+      if (!user && (status !== "authenticated" || tabWasLoggedOut)) {
         // Legal documents are public and must remain accessible without an account.
         if (
           pathname !== "/login.php" &&
@@ -402,6 +469,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
   }, [user, pathname, isAuthLoading, status]);
 
   const loginWithGoogle = async (email: string) => {
+    if (typeof window !== "undefined") sessionStorage.removeItem("prime-physio:tab-logged-out");
     const activeSession = await getSession();
     if (!activeSession?.user?.email || activeSession.user.email.toLowerCase() !== email.toLowerCase()) return;
     const name = email.split("@")[0];
@@ -420,12 +488,14 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     beginEnrichment();
     const enriched = await enrichUserWithClinic(newUser);
     endEnrichment();
+    if (enriched.clinicId && !enriched.isPlatformAdmin) await activateClinicSession(enriched.clinicId, enriched.email);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
     window.location.href = enriched.clinicId ? "/dashboard" : "/overview.php/";
   };
 
   const loginWithCredentials = async (email: string, name: string, _role: string) => {
+    if (typeof window !== "undefined") sessionStorage.removeItem("prime-physio:tab-logged-out");
     const activeSession = await getSession();
     if (!activeSession?.user?.email || activeSession.user.email.toLowerCase() !== email.toLowerCase()) return;
     const initials = name.substring(0, 2).toUpperCase();
@@ -445,6 +515,7 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
     beginEnrichment();
     const enriched = await enrichUserWithClinic(newUser);
     endEnrichment();
+    if (enriched.clinicId && !enriched.isPlatformAdmin) await activateClinicSession(enriched.clinicId, enriched.email);
     setUser(enriched);
     setAppValue("current_user", enriched).catch((error) => console.error("Failed to persist user", error));
     window.location.href = enriched.clinicId ? "/dashboard" : "/overview.php/";
@@ -494,16 +565,21 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
       ? `/${encodeURIComponent(clinicSlug)}`
       : "/login.php/";
 
-    if (typeof window !== "undefined") sessionStorage.removeItem("preferred_clinic_id");
+    if (typeof window !== "undefined") {
+      sessionStorage.removeItem("preferred_clinic_id");
+      sessionStorage.setItem("prime-physio:tab-logged-out", "1");
+    }
     setUser(null);
+    setClinicApiAccessToken(null);
     setAppValue("current_user", null).catch(() => {});
-
+    if (typeof window !== "undefined") sessionStorage.removeItem("prime-physio:active-clinic-id");
+    // Keep the shared NextAuth cookie for other tabs and revoke only this tab session.
     try {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut({ scope: "local" });
+    } catch (error) {
+      console.error("Local clinic sign-out failed:", error);
     } finally {
-      signOut({ callbackUrl }).catch(() => {
-        window.location.href = callbackUrl;
-      });
+      window.location.replace(callbackUrl);
     }
   };
 
