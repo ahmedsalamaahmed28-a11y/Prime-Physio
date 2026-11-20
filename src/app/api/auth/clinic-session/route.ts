@@ -128,15 +128,15 @@ export async function POST(req: NextRequest) {
     if (!shadowUser) shadowUser = await findAuthUserByEmail(admin, resolvedShadowEmail);
     if (!shadowUser) {
       const { data, error } = await admin.auth.admin.createUser({
-        email: shadowEmail,
+        email: resolvedShadowEmail,
         password: shadowPassword,
         email_confirm: true,
-        app_metadata: { ...existingMetadata, ...expectedMetadata },
+        app_metadata: expectedMetadata,
         user_metadata: { identity_kind: "clinic_session" },
       });
       if (error) {
         // Another request may have created the same deterministic identity.
-        shadowUser = await findAuthUserByEmail(admin, shadowEmail);
+        shadowUser = await findAuthUserByEmail(admin, resolvedShadowEmail);
         if (!shadowUser) throw error;
       } else {
         shadowUser = data.user;
@@ -190,12 +190,12 @@ export async function POST(req: NextRequest) {
 
     const { error: updateError } = await admin.auth.admin.updateUserById(shadowUser.id, {
       password: shadowPassword,
-      app_metadata: expectedMetadata,
+      app_metadata: { ...existingMetadata, ...expectedMetadata },
     });
     if (updateError) throw updateError;
 
     const { data: authResult, error: signInError } = await admin.auth.signInWithPassword({
-      email: shadowEmail,
+      email: resolvedShadowEmail,
       password: shadowPassword,
     });
     if (signInError || !authResult.session || !authResult.user) {
