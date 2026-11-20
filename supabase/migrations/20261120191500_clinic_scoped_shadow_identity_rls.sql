@@ -295,7 +295,9 @@ language plpgsql
 set search_path = 'pg_catalog', 'public'
 as $function$
 begin
-  if auth.uid() is not null and (not public.is_valid_auth_session() or public.get_auth_email() is distinct from lower(trim(new.admin_email))) then
+  if auth.uid() is not null
+     and (not public.is_valid_auth_session()
+       or public.get_auth_email() is distinct from lower(trim(new.admin_email))) then
     raise exception 'Clinic admin email must match the authenticated account'
       using errcode = '42501';
   end if;
@@ -553,6 +555,7 @@ declare
   v_staff_id uuid;
 begin
   if auth.uid() is null
+     or not public.is_valid_auth_session()
      or public.get_auth_email() is distinct from lower(trim(coalesce(p_email, ''))) then
     raise exception 'Unauthorized' using errcode = '42501';
   end if;
@@ -634,8 +637,9 @@ set search_path = 'pg_catalog', 'public'
 as $function$
 begin
   if auth.uid() is not null
-     and pg_catalog.lower(coalesce(public.get_auth_email(), '')) <>
-         pg_catalog.lower(pg_catalog.btrim(coalesce(new.admin_email, ''))) then
+     and (not public.is_valid_auth_session()
+       or pg_catalog.lower(coalesce(public.get_auth_email(), '')) <>
+          pg_catalog.lower(pg_catalog.btrim(coalesce(new.admin_email, '')))) then
     raise exception 'Clinic admin email must match the authenticated account'
       using errcode = '42501';
   end if;
