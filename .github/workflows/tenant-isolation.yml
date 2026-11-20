@@ -46,36 +46,38 @@ jobs:
         if: ${{ env.SUPABASE_TEST_PROJECT_REF == '' || env.SUPABASE_TEST_ANON_KEY == '' || env.TENANT_A_TEST_EMAIL == '' || env.TENANT_A_TEST_PASSWORD == '' || env.TENANT_B_TEST_EMAIL == '' || env.TENANT_B_TEST_PASSWORD == '' || env.TENANT_A_TEST_PATIENT_ID == '' || env.TENANT_B_TEST_PATIENT_ID == '' }}
         run: echo "::notice::SKIPPED — Clinic A/B integration tests require a dedicated non-production Supabase project and two synthetic tenant fixtures."
 
-  local-supabase-rls:
+  postgres-rls-harness:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: prime_physio_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d prime_physio_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Supabase CLI
-        uses: supabase/setup-cli@v3
-        with:
-          version: latest
-
-      - name: Initialize local Supabase configuration
+      - name: Install PostgreSQL client
         run: |
-          if [ ! -f supabase/config.toml ]; then
-            supabase init
-          fi
-          # Match the hosted Prime Physio database major version.
-          sed -i 's/^major_version = .*/major_version = 17/' supabase/config.toml
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
 
-      - name: Start isolated local Supabase stack and apply migrations
-        run: supabase start -x studio,imgproxy,edge-runtime,logflare,vector
-
-      - name: Export local-only API credentials
+      - name: Run isolated synthetic A/B RLS CRUD and storage tests
+        env:
+          PGPASSWORD: postgres
         run: |
-          supabase status -o env >> "$GITHUB_ENV"
+          psql -h 127.0.0.1 -p 5432 -U postgres -d prime_physio_test \
+            -v ON_ERROR_STOP=1 -f tests/security/tenant-isolation-rls.sql
 
-      - name: Run synthetic A/B tenant CRUD and storage isolation tests
-        run: node scripts/check-local-tenant-isolation.mjs
-
-      - name: Stop and discard local Supabase stack
-        if: always()
-        run: supabase stop --no-backup || true
+      - name: Report full migration replay limitation
+        run: echo "::warning::The repository does not yet contain a complete baseline schema migration. This job tests the current clinic RLS predicates in an isolated PostgreSQL 17 harness; it does not claim to replay all Supabase migrations."
