@@ -115,8 +115,10 @@ test("clinic-scoped bearer identity takes precedence over the shared NextAuth co
     "the canonical account email must come from verified server-issued token metadata");
   assert.match(authSource, /metadata\.clinic_id/,
     "the clinic scope must come from verified server-issued token metadata");
-  assert.match(authSource, /if \(!canonicalEmail \|\| !clinicId\) throw/,
-    "incomplete clinic-scoped claims must fail closed");
+  assert.match(authSource, /Invalid or expired clinic-scoped session/);
+  assert.match(authSource, /Unable to verify clinic-scoped membership/);
+  assert.match(authSource, /Forbidden: Clinic membership is inactive/,
+    "missing or inactive membership must fail closed");
 });
 
 
