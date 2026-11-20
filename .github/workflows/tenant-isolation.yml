@@ -2,7 +2,7 @@ name: Prime Physio tenant isolation tests
 
 on:
   push:
-    branches: [security/independent-view-permissions, fix/clinic-session-isolation]
+    branches: [main]
   pull_request:
     branches: [main]
   schedule:
@@ -45,7 +45,9 @@ jobs:
         run: |
           psql -h 127.0.0.1 -U postgres -d primephysio_test -v ON_ERROR_STOP=1 \
             -f tests/security/clinic-session-rls.integration.sql
-  cross-tenant-read-check:
+          psql -h 127.0.0.1 -U postgres -d primephysio_test -v ON_ERROR_STOP=1 \
+            -f tests/security/tenant-isolation-rls.sql
+  cross-tenant-crud-check:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
@@ -66,7 +68,7 @@ jobs:
         with:
           node-version: 24
 
-      - name: Verify tenant isolation using dedicated test fixtures
+      - name: Verify cross-tenant read/write/update/delete isolation using dedicated synthetic fixtures
         if: ${{ env.SUPABASE_TEST_PROJECT_REF != '' && env.SUPABASE_TEST_ANON_KEY != '' && env.TENANT_A_TEST_EMAIL != '' && env.TENANT_A_TEST_PASSWORD != '' && env.TENANT_B_TEST_EMAIL != '' && env.TENANT_B_TEST_PASSWORD != '' && env.TENANT_A_TEST_PATIENT_ID != '' && env.TENANT_B_TEST_PATIENT_ID != '' }}
         run: node scripts/check-tenant-isolation.mjs
 
