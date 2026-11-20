@@ -114,7 +114,7 @@ FOR UPDATE TO authenticated USING (clinic_id = public.get_my_clinic_id() AND pub
 WITH CHECK (clinic_id = public.get_my_clinic_id() AND public.has_staff_permission('edit_patient'));
 CREATE POLICY patients_clinic_delete ON public.patients
 FOR DELETE TO authenticated USING (clinic_id = public.get_my_clinic_id() AND public.has_staff_permission('delete_patient'));
-CREATE POLICY patients_auth_session_expiry_guard AS RESTRICTIVE ON public.patients
+CREATE POLICY patients_auth_session_expiry_guard ON public.patients AS RESTRICTIVE
 FOR ALL TO authenticated USING (public.is_valid_auth_session()) WITH CHECK (public.is_valid_auth_session());
 
 CREATE POLICY invoices_clinic_select ON public.invoices
@@ -133,7 +133,7 @@ WITH CHECK (clinic_id = public.get_my_clinic_id() AND (
 ));
 CREATE POLICY invoices_clinic_delete ON public.invoices
 FOR DELETE TO authenticated USING (clinic_id = public.get_my_clinic_id() AND public.has_staff_permission('delete_invoice'));
-CREATE POLICY invoices_auth_session_expiry_guard AS RESTRICTIVE ON public.invoices
+CREATE POLICY invoices_auth_session_expiry_guard ON public.invoices AS RESTRICTIVE
 FOR ALL TO authenticated USING (public.is_valid_auth_session()) WITH CHECK (public.is_valid_auth_session());
 
 CREATE POLICY appointments_clinic_select ON public.appointments
@@ -170,7 +170,7 @@ FOR DELETE TO authenticated USING (
   AND public.has_staff_permission('view_patients')
   AND public.has_staff_permission('edit_appointments')
 );
-CREATE POLICY appointments_auth_session_expiry_guard AS RESTRICTIVE ON public.appointments
+CREATE POLICY appointments_auth_session_expiry_guard ON public.appointments AS RESTRICTIVE
 FOR ALL TO authenticated USING (public.is_valid_auth_session()) WITH CHECK (public.is_valid_auth_session());
 
 
