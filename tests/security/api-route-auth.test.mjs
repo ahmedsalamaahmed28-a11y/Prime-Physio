@@ -148,6 +148,8 @@ test("clinic-session exchange issues a distinct, membership-verified identity pe
   assert.match(routeSource, /from\("staff"\)/);
   assert.match(routeSource, /\.eq\("clinic_id", clinicId\)/);
   assert.match(routeSource, /auth_source: "clinic-scoped-shadow"/);
+  assert.match(routeSource, /expected_email/);
+  assert.match(routeSource, /expectedEmail !== canonicalEmail/);
   assert.match(routeSource, /canonical_email: canonicalEmail/);
   assert.match(routeSource, /clinic_id: clinicId/);
   assert.match(routeSource, /createHmac\("sha256", secret\)/);
