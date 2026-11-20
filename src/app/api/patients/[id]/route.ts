@@ -87,7 +87,7 @@ export async function PATCH(request: NextRequest, context: { params: Promise<{ i
       return NextResponse.json({ error: "ليس لديك صلاحية تعديل البيانات الأساسية للمريض" }, { status: 403 });
     }
     if ((body.medicalFields !== undefined || protectedMedicalKeys.length > 0)
-      && !hasStaffPermission(auth.staff, "edit_emr")) {
+      && (!hasStaffPermission(auth.staff, "view_patients") || !hasStaffPermission(auth.staff, "edit_emr"))) {
       return NextResponse.json({ error: "ليس لديك صلاحية تعديل الملف الطبي" }, { status: 403 });
     }
 
