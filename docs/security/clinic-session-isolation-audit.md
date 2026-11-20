@@ -73,10 +73,13 @@ The browser currently has one shared NextAuth session cookie per origin. In addi
 
 ### Verification
 
-- GitHub Actions disposable PostgreSQL job **passed** on commit `cd1390ad369fe0d7e503f819798a8de93370d6aa`. It executed the draft migration against an isolated PostgreSQL 16 service with synthetic clinics and verified clinic A/B row isolation for owners, staff, patients, invoices, chat, and HR attendance; it also checked expired tokens, private identity-map access, and platform-admin separation.
-- The separate live Supabase tenant A/B test was **skipped** because the dedicated non-production Supabase project reference, anon key, test accounts, and patient fixture IDs are not configured in GitHub Actions.
-- The browser-level Balance/Bedaya two-tab test has **not** been run. No claim is made that the original user-visible tab problem is solved.
-- GitHub Actions security/application validation is running for the latest branch commit; TypeScript, ESLint, build, and the full static suite are not yet confirmed for that latest commit.
+- GitHub Actions ran the draft migration against a disposable PostgreSQL 16 database. The tenant-isolation job **passed** on commit `7c551ff645243fad787f4313eb86793ad5657bb7`, including the identity-map binding, clinic A/B read/write checks, expiry checks, and private mapping-table access.
+- On that run, the static/API security tests, dependency audit, TypeScript, ESLint, and CSP check also completed successfully; the production build was still running when this note was written.
+- The separate live Supabase tenant A/B test was **skipped** because no dedicated non-production project credentials and test fixtures are configured in GitHub Actions.
+- The connected Supabase account currently exposes the Prime Physio production project and no Supabase development branches. No SQL was run against that production project, and no paid test project/branch was created.
+- The browser-level Balance/Bedaya two-tab test has **not** been run. Therefore the user-visible tab isolation is not yet proven end-to-end.
+- API bearer authorization now also requires an exact match in `clinic_auth_identities` for `auth.uid()`, canonical email, and clinic ID; this is checked in both API authorization and the RLS tenant resolver.
+
 
 ### Remaining before activation
 
