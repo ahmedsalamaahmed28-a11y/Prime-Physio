@@ -94,8 +94,7 @@ export async function requireAuth(req: NextRequest): Promise<AuthUser> {
         admin.from("staff").select("clinic_id,status").eq("clinic_id", clinicId).eq("email", canonicalEmail).maybeSingle(),
       ]);
       if (clinicError || ownerError || staffError) throw new Error("Unable to verify clinic-scoped membership");
-      const blockedStatuses = new Set(["inactive", "disabled", "suspended", "deleted", "غير نشط", "موقوف", "محذوف"]);
-      if (!clinic || clinic.is_active === false || blockedStatuses.has(String(clinic.status || "").trim().toLowerCase())) {
+      if (!clinic || clinic.is_active !== true || String(clinic.status || "").trim().toLowerCase() !== "active") {
         throw new Error("Forbidden: Clinic is inactive");
       }
       const activeStaff = Boolean(staff && !["محذوف", "deleted", "inactive", "غير نشط"].includes(String(staff.status || "").trim().toLowerCase()));
