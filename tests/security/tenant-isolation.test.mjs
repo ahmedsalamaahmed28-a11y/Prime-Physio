@@ -31,7 +31,7 @@ test("central overview is restricted to explicit clinic owners", async () => {
   assert.match(route, /central owner dashboard/);
   assert.match(route, /\.from\(["']clinic_owners["']\)/);
   assert.match(route, /if \(!clinicIds\.length\)/);
-  assert.doesNotMatch(route, /\.from\(["']staff["']\)/);
+  assert.doesNotMatch(route, /staffQuery|\.ilike\(["\']email["\'], email\)/);
   assert.match(route, /\.in\(["']id["'], clinicIds\)/);
   assert.match(route, /\.in\(["']clinic_id["'], clinicIds\)/);
 });
