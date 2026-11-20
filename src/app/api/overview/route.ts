@@ -36,13 +36,19 @@ export async function GET(req: NextRequest) {
     const session = await requireAuthOnly(req);
     const admin = getAdminClient();
     const email = session.email.toLowerCase().trim();
-    const { data: ownerships, error: ownershipError } = await admin
-      .from("clinic_owners").select("clinic_id").ilike("owner_email", email);
+    let ownershipQuery = admin
+      .from("clinic_owners")
+      .select("clinic_id")
+      .ilike("owner_email", email);
+
+    // A verified clinic-scoped bearer represents this tab's selected center.
+    // Owners may still use the no-clinic bootstrap overview to list all centers,
+    // but once a tab has an active clinic identity its dashboard is tenant-scoped.
+    if (session.clinicId) ownershipQuery = ownershipQuery.eq("clinic_id", session.clinicId);
+
+    const { data: ownerships, error: ownershipError } = await ownershipQuery;
     if (ownershipError) throw ownershipError;
     let clinicIds = [...new Set((ownerships || []).map((x) => x.clinic_id).filter(Boolean))];
-    // Resolve staff memberships directly when the authenticated session does not
-    // carry an active clinic claim. This avoids relying on a separate role resolver
-    // that may reject a valid single-clinic staff session before overview can load.
     let canViewFinancials = clinicIds.length > 0;
     if (!clinicIds.length) {
       const staffQuery = admin
