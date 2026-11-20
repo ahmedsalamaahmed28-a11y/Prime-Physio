@@ -89,6 +89,7 @@ export function installClinicApiFetch(): () => void {
     );
     // Never allow a caller-supplied Authorization header to replace this tab's
     // verified clinic identity.
+    if (headers.has("Authorization")) headers.delete("Authorization");
     headers.set("Authorization", `Bearer ${accessToken}`);
     return nativeFetch(input, { ...init, headers });
   };
