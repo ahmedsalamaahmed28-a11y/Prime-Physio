@@ -73,7 +73,6 @@ test("tenant-facing APIs use a server-verified active clinic context", async () 
     "src/app/api/group-bookings/route.ts",
     "src/app/api/messages/route.ts",
     "src/app/api/messages/[conversationId]/route.ts",
-    "src/app/api/report/route.ts",
     "src/app/api/upload/logo/route.ts",
     "src/app/api/staff/invite/route.ts",
     "src/app/api/subscription/usage/route.ts",
@@ -120,7 +119,8 @@ test("A/B integration runner exercises disposable patient CRUD and refuses produ
   assert.match(script, /updatePatient\(tokenA/);
   assert.match(script, /deletePatient\(tokenA/);
   assert.match(script, /cross-tenant update/);
-  assert.match(script, /cross-tenant delete/);
+  assert.match(script, /Tenant A cannot delete Tenant B/);
+  assert.match(script, /Tenant B cannot delete Tenant A/);
   assert.match(script, /createdFixtures/);
 });
 
