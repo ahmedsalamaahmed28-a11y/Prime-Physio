@@ -226,6 +226,9 @@ test("clinic enrichment trusts verified bearer claims instead of the shared cook
   const source = await readFile(path.join(root, "src", "app", "api", "auth", "enrich", "route.ts"), "utf8");
   assert.match(source, /admin\.auth\.getUser\(bearer\)/);
   assert.match(source, /metadata\.canonical_email/);
+  assert.match(source, /match\(\/\^Bearer\\s\+/);
+  assert.match(source, /clinic_auth_identities/);
+  assert.match(source, /eq\("shadow_user_id", data\.user\.id\)/);
   assert.match(source, /metadata\.clinic_id/);
   assert.match(source, /Clinic scope mismatch/);
   assert.match(source, /platformAdmin && !scopedClinicId/);
