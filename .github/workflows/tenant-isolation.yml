@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  cross-tenant-read-check:
+  cross-tenant-crud-check:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     env:
@@ -38,7 +38,7 @@ jobs:
         with:
           node-version: 24
 
-      - name: Verify tenant isolation using dedicated test fixtures
+      - name: Verify cross-tenant read/write/update/delete isolation using disposable synthetic fixtures
         if: ${{ env.SUPABASE_TEST_PROJECT_REF != '' && env.SUPABASE_TEST_ANON_KEY != '' && env.TENANT_A_TEST_EMAIL != '' && env.TENANT_A_TEST_PASSWORD != '' && env.TENANT_B_TEST_EMAIL != '' && env.TENANT_B_TEST_PASSWORD != '' && env.TENANT_A_TEST_PATIENT_ID != '' && env.TENANT_B_TEST_PATIENT_ID != '' }}
         run: node scripts/check-tenant-isolation.mjs
 
