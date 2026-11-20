@@ -93,6 +93,9 @@ The following tests ran inside separate database transactions. Test staff role/p
 | Explicit wildcard `[\"*\"]` | Tested permissions allowed, including `manage_staff` |
 | Inactive staff status | All tested permissions denied |
 | Explicit `[\"view_patients\"]` RLS check | One patient row visible; invoice rows invisible |
+| Explicit `[\"view_appointments\"]` direct Data API SELECT | Zero patient, appointment, or invoice rows; calendar API separately returns an anonymized schedule |
+| Explicit `[\"view_invoices\"]` direct Data API SELECT | Invoice row visible; patient and appointment rows remain invisible |
+| Explicit `[\"view_analytics\"]` direct Data API SELECT | Patient, appointment, and invoice table rows remain invisible; analytics access is handled by the permission-checked API |
 | Wrong active clinic ID | Clinic context rejected; zero patient rows visible |
 | Clinic owner membership | Owner-level permissions remained allowed |
 
