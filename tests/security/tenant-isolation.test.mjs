@@ -103,6 +103,18 @@ test("independent center provisioning creates a fresh tenant without copying pat
   assert.doesNotMatch(migration, /insert into public\.(patients|appointments|invoices|sessions)\b/i);
 });
 
+test("A/B integration runner exercises disposable patient CRUD and refuses production", async () => {
+  const script = await source("scripts/check-tenant-isolation.mjs");
+  assert.match(script, /productionProjectRef/);
+  assert.match(script, /projectRef === productionProjectRef/);
+  assert.match(script, /createPatient\(tokenA/);
+  assert.match(script, /updatePatient\(tokenA/);
+  assert.match(script, /deletePatient\(tokenA/);
+  assert.match(script, /cross-tenant update/);
+  assert.match(script, /cross-tenant delete/);
+  assert.match(script, /createdFixtures/);
+});
+
 test("private patient storage remains clinic-folder scoped", async () => {
   const migration = await source("supabase/migrations/20261120025936_independent_view_permissions_20261120.sql");
   assert.match(migration, /patient_files_clinic_read[\s\S]*?storage\.foldername\(name\)\)\[1\] = \(public\.get_my_clinic_id\(\)\)::text/);
