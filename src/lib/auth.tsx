@@ -378,7 +378,9 @@ function AuthContextValueProvider({ children }: { children: React.ReactNode }) {
             await activateClinicSession(enriched.clinicId, enriched.email);
           } catch (error) {
             console.error("Failed to activate independent clinic session:", error);
-            setUser({ ...enriched, clinicId: undefined });
+            setClinicApiAccessToken(null);
+            setUser(null);
+            setAppValue("current_user", null).catch(() => {});
             setIsEnriching(false);
             return;
           }
