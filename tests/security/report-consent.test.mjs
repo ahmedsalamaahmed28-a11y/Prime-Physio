@@ -8,6 +8,9 @@ test("AI report API requires explicit external processing consent", async () => 
   const route = await readFile(new URL("src/app/api/report/route.ts", root), "utf8");
   assert.match(route, /body\.consentToExternalProcessing !== true/);
   assert.match(route, /patientInfo/);
+  assert.match(route, /\.eq\("clinic_id", auth\.clinicId\)/);
+  assert.match(route, /\.select\("id, diagnosis"\)/);
+  assert.match(route, /cleanClinicalText\(patientRecord\.diagnosis/);
   assert.match(route, /Do not read or forward patientInfo/);
   assert.match(route, /Cache-Control.*no-store, private/);
 });
@@ -29,6 +32,7 @@ test("report UI requires a patient consent confirmation before sending clinical 
   assert.match(component, /disabled=\{isGenerating \|\| !externalConsent\}/);
   assert.match(component, /consentToExternalProcessing: true/);
   assert.match(component, /patient\.diagnosis/);
+  assert.match(component, /patientId: patient\.id/);
   assert.doesNotMatch(component, /patientInfo:/);
   assert.doesNotMatch(component, /patient\.phone,/);
 });
