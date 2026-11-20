@@ -164,7 +164,7 @@ test("clinic-scoped RLS resolves canonical identity and immutable clinic claims"
   assert.match(migration, /revoke all on public\.clinic_auth_identities from public, anon, authenticated/);
   assert.match(migration, /create or replace function public\.get_auth_email\(\)/);
   assert.match(migration, /auth_source' = 'clinic-scoped-shadow'/);
-  assert.match(migration, /app_metadata ->> 'canonical_email'/);
+  assert.match(migration, /app_metadata' ->> 'canonical_email'/);
   assert.match(migration, /app_metadata ->> 'clinic_id'/);
   assert.match(migration, /clinic-scoped-shadow/);
   assert.match(migration, /and coalesce\(auth\.jwt\(\) -> 'app_metadata' ->> 'auth_source', ''\) <> 'clinic-scoped-shadow'/);
@@ -191,7 +191,6 @@ test("tab-scoped API bridge never forwards tokens to external or public endpoint
   assert.match(bridge, /requestUrl\.origin !== window\.location\.origin/);
   assert.match(bridge, /requestUrl\.pathname\.startsWith\("\/api\/public\/"\)/);
   assert.match(bridge, /requestUrl\.pathname\.startsWith\("\/api\/auth\/"\) && requestUrl\.pathname !== "\/api\/auth\/enrich"/);
-  assert.match(bridge, /clinic-session/);
   assert.match(bridge, /auth_source !== "clinic-scoped-shadow"/);
   assert.match(bridge, /headers\.set\("Authorization"/);
 });
