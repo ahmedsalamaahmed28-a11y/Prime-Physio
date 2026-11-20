@@ -193,13 +193,15 @@ test("tab-scoped API bridge never forwards tokens to external or public endpoint
   assert.match(bridge, /requestUrl\.origin !== window\.location\.origin/);
   assert.match(bridge, /requestUrl\.pathname\.startsWith\("\/api\/public\/"\)/);
   assert.match(bridge, /requestUrl\.pathname\.startsWith\("\/api\/auth\/"\) && requestUrl\.pathname !== "\/api\/auth\/enrich"/);
-  assert.match(bridge, /auth_source !== "clinic-scoped-shadow"/);
+  assert.match(bridge, /activeClinicAccessToken/);
+  assert.match(bridge, /setClinicApiAccessToken/);
   assert.match(bridge, /headers\.set\("Authorization"/);
 });
 
 test("auth provider preserves a scoped tab identity and signs out locally", async () => {
   const authSource = await readFile(path.join(root, "src", "lib", "auth.tsx"), "utf8");
   assert.match(authSource, /tabMetadata\.auth_source === "clinic-scoped-shadow"/);
+  assert.match(authSource, /setClinicApiAccessToken\(/);
   assert.match(authSource, /tabEmail !== sessionEmail/);
   assert.match(authSource, /activateClinicSession\(enriched\.clinicId\)/);
   assert.match(authSource, /supabase\.auth\.signOut\(\{ scope: "local" \}\)/);
