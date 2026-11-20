@@ -40,24 +40,39 @@ export async function GET(req: NextRequest) {
       .from("clinic_owners").select("clinic_id").eq("owner_email", email);
     if (ownershipError) throw ownershipError;
     let clinicIds = [...new Set((ownerships || []).map((x) => x.clinic_id).filter(Boolean))];
-    // Clinic owners retain their owner-level overview. Staff financial analytics
-    // are returned only when the active staff permission explicitly allows them.
+    // Resolve staff memberships directly when the authenticated session does not
+    // carry an active clinic claim. This avoids relying on a separate role resolver
+    // that may reject a valid single-clinic staff session before overview can load.
     let canViewFinancials = clinicIds.length > 0;
     if (!clinicIds.length) {
-      const member = await requireRole(req, ["admin", "doctor", "receptionist"]);
-      if (!member.clinicId) {
-        return NextResponse.json({ centers: [], totals: null, updatedAt: new Date().toISOString() }, { headers: { "Cache-Control": "no-store, private" } });
-      }
-      clinicIds = [member.clinicId];
-      const { data: staffRecord, error: staffError } = await admin
+      const staffQuery = admin
         .from("staff")
-        .select("role,permissions,status")
-        .eq("clinic_id", member.clinicId)
+        .select("clinic_id,role,permissions,status")
         .ilike("email", email)
-        .maybeSingle();
+        .not("clinic_id", "is", null);
+      const { data: staffRows, error: staffError } = session.clinicId
+        ? await staffQuery.eq("clinic_id", session.clinicId)
+        : await staffQuery;
       if (staffError) throw staffError;
-      if (!staffRecord) {
-        return NextResponse.json({ error: "لا توجد عضوية نشطة لهذا المركز" }, { status: 403 });
+      const activeStaffRows = (staffRows || []).filter((row) =>
+        !["محذوف", "deleted", "inactive", "غير نشط"].includes(String(row.status || "").trim().toLowerCase())
+      );
+      const staffClinicIds = [...new Set(activeStaffRows.map((row) => row.clinic_id).filter(Boolean))];
+      if (staffClinicIds.length !== 1) {
+        return NextResponse.json(
+          { error: staffClinicIds.length > 1 ? "يجب اختيار مركز قبل متابعة العملية" : "لا توجد عضوية نشطة لهذا المركز" },
+          { status: staffClinicIds.length > 1 ? 409 : 403, headers: { "Cache-Control": "no-store, private" } }
+        );
+      }
+      clinicIds = staffClinicIds;
+      const staffRecord = activeStaffRows.find((row) => row.clinic_id === clinicIds[0]);
+      const allowedRoles = new Set([
+        "admin", "clinic_admin", "مدير العيادة", "مدير العياده",
+        "doctor", "استشاري علاج طبيعي", "أخصائي علاج طبيعي", "ممارس علاج طبيعي",
+        "receptionist", "موظف استقبال", "موظفة استقبال رئيسية",
+      ]);
+      if (!staffRecord || !allowedRoles.has(String(staffRecord.role || "").trim().toLowerCase())) {
+        return NextResponse.json({ error: "غير مصرح — صلاحية غير كافية" }, { status: 403 });
       }
       canViewFinancials = hasStaffPermission(staffRecord, "view_analytics");
     }
