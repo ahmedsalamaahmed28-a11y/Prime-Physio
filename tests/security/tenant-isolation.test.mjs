@@ -103,6 +103,15 @@ test("independent center provisioning creates a fresh tenant without copying pat
   assert.doesNotMatch(migration, /insert into public\.(patients|appointments|invoices|sessions)\b/i);
 });
 
+test("service-role attachment signing and deletion validate clinic/patient storage paths", async () => {
+  const patientAttachments = await source("src/app/api/patients/[id]/attachments/route.ts");
+  const backupAttachments = await source("src/app/api/backup/attachments/route.ts");
+  assert.match(patientAttachments, /item\.file_path\.startsWith\(expectedPrefix\)/);
+  assert.match(patientAttachments, /attachment\.file_path\.startsWith\(\`\$\{auth\.clinicId\}\/\$\{id\}\/\`\)/);
+  assert.match(backupAttachments, /validPatientIds\.has\(item\.patient_id\)/);
+  assert.match(backupAttachments, /item\.file_path\.startsWith\(expectedPrefix\)/);
+});
+
 test("A/B integration runner exercises disposable patient CRUD and refuses production", async () => {
   const script = await source("scripts/check-tenant-isolation.mjs");
   assert.match(script, /productionProjectRef/);
