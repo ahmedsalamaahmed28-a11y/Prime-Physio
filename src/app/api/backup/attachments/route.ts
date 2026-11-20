@@ -31,8 +31,23 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Unable to list clinic attachments." }, { status: 500, headers });
     }
 
+    const patientIds = [...new Set((data || []).map((item) => item.patient_id).filter((id): id is string => typeof id === "string" && id.length > 0))];
+    const { data: clinicPatients, error: patientError } = patientIds.length
+      ? await admin.from("patients").select("id").eq("clinic_id", auth.clinicId).in("id", patientIds)
+      : { data: [], error: null };
+    if (patientError) {
+      console.error("Export attachment patient-scope check failed:", patientError.message);
+      return NextResponse.json({ error: "Unable to verify clinic attachment ownership." }, { status: 500, headers });
+    }
+    const validPatientIds = new Set((clinicPatients || []).map((patient) => patient.id));
+
     const attachments = [];
     for (const item of data || []) {
+      const expectedPrefix = `${auth.clinicId}/${item.patient_id}/`;
+      if (!validPatientIds.has(item.patient_id) || typeof item.file_path !== "string" || !item.file_path.startsWith(expectedPrefix)) {
+        console.error("Export attachment scope mismatch; refusing to sign file:", item.id);
+        return NextResponse.json({ error: "An attachment does not belong to the active clinic. No file URLs were returned." }, { status: 500, headers });
+      }
       const { data: signed, error: signError } = await admin.storage
         .from("patient-files")
         .createSignedUrl(item.file_path, 3600);
