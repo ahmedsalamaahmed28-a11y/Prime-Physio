@@ -19,12 +19,13 @@ export async function GET(req: NextRequest) {
     }
 
     const { searchParams } = new URL(req.url);
-    const limit = parseInt(searchParams.get("limit") || "100", 10);
-    const filter = searchParams.get("filter") || "all";
+    const requestedLimit = Number.parseInt(searchParams.get("limit") || "100", 10);
+    const limit = Number.isFinite(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 200) : 100;
+    const filter = (searchParams.get("filter") || "all").slice(0, 64);
 
     let query = admin
       .from("audit_logs")
-      .select("id, action, entity, details, created_at, user_email, user_name, clinic_id")
+      .select("id, action, entity, created_at, user_email, user_name, clinic_id")
       .order("created_at", { ascending: false })
       .limit(limit);
 
@@ -58,6 +59,7 @@ export async function GET(req: NextRequest) {
 
     const enrichedLogs = logs?.map(log => ({
       ...log,
+      details: null, // Audit details may contain patient, appointment, or invoice information.
       clinic_name: log.clinic_id ? clinicsMap[log.clinic_id] || "Unknown Clinic" : "System"
     }));
 
